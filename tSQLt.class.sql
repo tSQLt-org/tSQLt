@@ -93,10 +93,11 @@ CREATE TABLE tSQLt.TestMessage(
 GO
 
 CREATE PROCEDURE tSQLt.private_Print 
-    @message VARCHAR(MAX)
+    @message VARCHAR(MAX),
+    @severity INT = 0
 AS 
 BEGIN
-    RAISERROR(@message,0,1) WITH NOWAIT;
+    RAISERROR(@message,@severity,1) WITH NOWAIT;
     RETURN 0;
 END;
 GO
@@ -160,7 +161,7 @@ BEGIN
         END
         ELSE
         BEGIN
-            SELECT @Msg = ERROR_MESSAGE() + '{' + ERROR_PROCEDURE() + ',' + CAST(ERROR_LINE() AS VARCHAR) + '}';
+            SELECT @Msg = COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS VARCHAR), '<ERROR_LINE() is NULL>') + '}';
 --RAISERROR(@Msg,16,10)WITH NOWAIT;
             SET @Result = 'Error';
         END;
@@ -173,7 +174,7 @@ BEGIN
         IF (@@TRANCOUNT > 0) ROLLBACK;
 
         BEGIN TRAN;
-        SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' --> ' + ERROR_MESSAGE() + '{' + ERROR_PROCEDURE() + ',' + CAST(ERROR_LINE() AS VARCHAR) + '}';
+        SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS VARCHAR), '<ERROR_LINE() is NULL>') + '})';
         SET @Result = 'Error';
     END CATCH    
 
@@ -239,6 +240,8 @@ SET NOCOUNT ON;
     DECLARE @testCaseName NVARCHAR(MAX);
     DECLARE @msg VARCHAR(MAX);
     DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
+    DECLARE @isSuccess INT;
+    DECLARE @severity INT;
 
     EXEC tSQLt.private_CleanTestResult;
     
@@ -267,10 +270,12 @@ SET NOCOUNT ON;
     CLOSE testCases;
     DEALLOCATE testCases;
 
-    SELECT @msg = Msg
+    SELECT @msg = Msg, @isSuccess = 1 - SIGN(FailCnt + ErrorCnt)
       FROM tSQLt.TestCaseSummary();
-
-    EXEC tSQLt.private_Print @msg;
+    
+    set @severity = 16*(1-@isSuccess);
+    
+    EXEC tSQLt.private_Print @msg, @severity;
 END;
 GO
 
@@ -398,8 +403,25 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.AssertObjectExists
+    @objectName VARCHAR(MAX),
+    @Message VARCHAR(MAX) = ''
+AS
+BEGIN
+    IF OBJECT_ID(@objectName) IS NULL
+    BEGIN
+        DECLARE @msg VARCHAR(MAX);
+        SELECT @msg = '''' + COALESCE(@objectName, 'NULL') + ''' does not exist';
+        EXEC tSQLt.Fail @Message, @msg;
+        RETURN 1;
+    END;
+    
+    RETURN 0;
+END;
+GO
+
 --------------------------------------------------------------------------------------------------------------------------
---below is untestet code
+--below is untested code
 --------------------------------------------------------------------------------------------------------------------------
 GO
 /*******************************************************************************************/
@@ -513,7 +535,22 @@ AS
 BEGIN
     DECLARE @TblMsg VARCHAR(MAX);
     DECLARE @r INT;
+    DECLARE @errorMessage NVARCHAR(MAX);
+    DECLARE @failureOccurred BIT;
+    SET @failureOccurred = 0;
 
+    EXEC @failureOccurred = tSQLt.AssertObjectExists @Actual;
+    IF @failureOccurred = 1 RETURN 1;
+    EXEC @failureOccurred = tSQLt.AssertObjectExists @Expected;
+    IF @failureOccurred = 1 RETURN 1;
+    
+    IF OBJECT_ID(@Expected) IS NULL
+    BEGIN
+        SET @errorMessage = 
+            '@Expected = ''' + COALESCE(@Expected, 'NULL') + ''' does not exist in call to AssertEqualsTable';
+        RAISERROR (@errorMessage, 16, 10);
+    END;
+    
     EXEC @r = tSQLt.TableCompare @Expected, @Actual, @TblMsg OUT;
 
     IF (@r <> 0)
@@ -565,10 +602,21 @@ CREATE PROCEDURE tSQLt.FakeTable
 AS
 BEGIN
 
+   DECLARE @origSchemaName SYSNAME;
    DECLARE @newName SYSNAME;
    DECLARE @cmd VARCHAR(MAX);
    
+   SET @origSchemaName = @schemaName;   
    SET @schemaName = tSQLt.private_getCleanSchemaName(@schemaName, @tableName);
+   
+   IF @schemaName IS NULL
+   BEGIN
+        DECLARE @errorMessage NVARCHAR(MAX);
+        SET @errorMessage = 
+            '''' + COALESCE(@origSchemaName, 'NULL') + '.' + COALESCE(@tableName, 'NULL') + 
+            ''' does not exist.';
+        RAISERROR (@errorMessage, 16, 10);
+   END;
 
    EXEC tSQLt.private_RenameObjectToUniqueName @schemaName, @tableName, @newName OUTPUT
 

@@ -97,6 +97,70 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.test_RunTestClass_raises_error_if_failure
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.fail ''This is an expected failure''');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTestClass MyTestClass;
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    IF(@errorRaised = 0)
+    BEGIN
+        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.test_RunTestClass_raises_error_if_error
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS SELECT 1/0;');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTestClass MyTestClass;
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    IF(@errorRaised = 0)
+    BEGIN
+        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.test_RunTestClass_does_not_raise_error_if_not_failure
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 0;');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTestClass MyTestClass;
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    IF(@errorRaised <> 0)
+    BEGIN
+        EXEC tSQLt.Fail 'tSQLt.RunTestClass did raise an error!';
+    END
+END;
+GO
+
+
 CREATE PROC tSQLt_test.test_SpyProcedure_shouldAllowTesterToNotExecuteBehaviorOfProcedure
 AS
 BEGIN
@@ -390,8 +454,12 @@ BEGIN
     EXEC('CREATE SCHEMA innertest;');
     EXEC('CREATE PROC innertest.SetUp AS EXEC tSQLt.Fail ''expected failure'';');
     EXEC('CREATE PROC innertest.test AS RETURN 0;');
-
-    EXEC tSQLt.RunTestClass 'innertest';
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTestClass 'innertest';
+    END TRY
+    BEGIN CATCH
+    END CATCH
 
     IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = 'innertest.test' AND Result = 'Failure')
     BEGIN
@@ -644,5 +712,59 @@ BEGIN
     BEGIN
         EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to tableB';
     END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.test_FakeTable_raises_appropriate_error_if_table_does_not_exist
+AS
+BEGIN
+    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (constCol CHAR(3) );
+
+    BEGIN TRY
+      EXEC tSQLt.FakeTable 'schemaA', 'tableXYZ';
+    END TRY
+    BEGIN CATCH
+      DECLARE @errorMessage NVARCHAR(MAX);
+      SELECT @errorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @errorMessage NOT LIKE '%''schemaA.tableXYZ'' does not exist%'
+      BEGIN
+          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@errorMessage;     
+      END
+      SET @errorThrown = 1;
+    END CATCH;
+    
+    EXEC tSQLt.AssertEquals 1, @errorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_expected_table_does_not_exist
+AS
+BEGIN
+    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.actual (constCol CHAR(3) );
+
+    DECLARE @command NVARCHAR(MAX);
+    SET @command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
+    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsTable did not call Fail when expected table does not exist';
+END;
+GO
+
+
+CREATE PROCEDURE tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_actual_table_does_not_exist
+AS
+BEGIN
+    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.expected (constCol CHAR(3) );
+    
+    DECLARE @command NVARCHAR(MAX);
+    SET @command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
+    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsTable did not call Fail when actual table does not exist';
 END;
 GO
