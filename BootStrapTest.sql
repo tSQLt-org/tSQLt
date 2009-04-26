@@ -329,7 +329,7 @@ RAISERROR('---------- Multiple passing tests in a class should report an appropr
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX) AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT  AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
@@ -366,7 +366,7 @@ RAISERROR('---------- Passing and failing tests in a class should report an appr
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX) AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
