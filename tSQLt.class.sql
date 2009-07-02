@@ -1,3 +1,5 @@
+DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
+GO
 --IF OBJECT_ID('tSQLt.TestCaseSummary') IS NOT NULL DROP FUNCTION tSQLt.TestCaseSummary;
 --IF OBJECT_ID('tSQLt.RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.RunTestClass;
 --IF OBJECT_ID('tSQLt.RunTest') IS NOT NULL DROP PROCEDURE tSQLt.RunTest;
@@ -130,15 +132,17 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.private_RunTest
-   @testName sysname,
+   @testName VARCHAR(MAX),
    @SetUp NVARCHAR(MAX) = NULL
 AS
 BEGIN
-    DECLARE @msg VARCHAR(MAX); SET @Msg = '';
+    DECLARE @Msg VARCHAR(MAX); SET @Msg = '';
+    DECLARE @cmd VARCHAR(MAX); SET @cmd = '';
     DECLARE @Result VARCHAR(MAX); SET @Result = 'Success';
     DECLARE @TranName CHAR(32); EXEC tSQLt.getNewTranName @TranName OUT;
     DECLARE @TestResultID INT;
 
+    SELECT @cmd = 'EXEC ' + @testName;
 
     INSERT INTO tSQLt.TestResult(Name, TranName) 
         SELECT @testName, @TranName;
@@ -151,7 +155,7 @@ BEGIN
 
     BEGIN TRY
         IF (@SetUp IS NOT NULL) EXEC @SetUp;
-        EXEC (@testName);
+        EXEC (@cmd);
     END TRY
     BEGIN CATCH
         IF ERROR_MESSAGE() = 'tSQLt.Failure'
@@ -210,7 +214,7 @@ END
 GO
 
 CREATE PROCEDURE tSQLt.RunTest
-   @testName sysname
+   @testName VARCHAR(MAX)
 AS
 BEGIN
 SET NOCOUNT ON;
@@ -218,7 +222,8 @@ SET NOCOUNT ON;
     DECLARE @msg VARCHAR(MAX);
 
     EXEC tSQLt.private_CleanTestResult;
-
+    
+    SELECT @testName = '['+OBJECT_SCHEMA_NAME(OBJECT_ID(@testName))+'].['+OBJECT_NAME(OBJECT_ID(@testName))+']';
     EXEC tSQLt.private_RunTest @testName
 
     SELECT @Result = Result
@@ -245,16 +250,17 @@ SET NOCOUNT ON;
 
     EXEC tSQLt.private_CleanTestResult;
     
-    SELECT @SetUp = SCHEMA_NAME(schema_id)+'.'+name
-          FROM sys.procedures
-         WHERE schema_id = SCHEMA_ID(@testClassName)
-           AND name = 'SetUp';
+    SELECT @SetUp = '['+SCHEMA_NAME(schema_id)+'].['+name+']'
+      FROM sys.procedures
+     WHERE schema_id = SCHEMA_ID(@testClassName)
+       AND name = 'SetUp';
 
-    DECLARE testCases CURSOR LOCAL FAST_FORWARD FOR
-        SELECT SCHEMA_NAME(schema_id)+'.'+name
-          FROM sys.procedures
-         WHERE schema_id = SCHEMA_ID(@testClassName)
-           AND name LIKE 'test%';
+    DECLARE testCases CURSOR LOCAL FAST_FORWARD 
+        FOR
+     SELECT '['+SCHEMA_NAME(schema_id)+'].['+name+']'
+       FROM sys.procedures
+      WHERE schema_id = SCHEMA_ID(@testClassName)
+        AND name LIKE 'test%';
 
     OPEN testCases;
     
@@ -276,6 +282,12 @@ SET NOCOUNT ON;
     set @severity = 16*(1-@isSuccess);
     
     EXEC tSQLt.private_Print @msg, @severity;
+    IF(@isSuccess = 0)
+    BEGIN
+     SELECT Name, Result, Msg
+       FROM tSQLt.TestResult
+      WHERE Result <> 'Success';
+    END
 END;
 GO
 
@@ -408,14 +420,25 @@ CREATE PROCEDURE tSQLt.AssertObjectExists
     @Message VARCHAR(MAX) = ''
 AS
 BEGIN
-    IF OBJECT_ID(@objectName) IS NULL
+    DECLARE @msg VARCHAR(MAX);
+    IF(@objectName LIKE '#%')
     BEGIN
-        DECLARE @msg VARCHAR(MAX);
-        SELECT @msg = '''' + COALESCE(@objectName, 'NULL') + ''' does not exist';
-        EXEC tSQLt.Fail @Message, @msg;
-        RETURN 1;
+     IF OBJECT_ID('tempdb..'+@objectName) IS NULL
+     BEGIN
+         SELECT @msg = '''' + COALESCE(@objectName, 'NULL') + ''' does not exist';
+         EXEC tSQLt.Fail @Message, @msg;
+         RETURN 1;
+     END;
+    END
+    ELSE
+    BEGIN
+     IF OBJECT_ID(@objectName) IS NULL
+     BEGIN
+         SELECT @msg = '''' + COALESCE(@objectName, 'NULL') + ''' does not exist';
+         EXEC tSQLt.Fail @Message, @msg;
+         RETURN 1;
+     END;
     END;
-    
     RETURN 0;
 END;
 GO
@@ -522,44 +545,6 @@ BEGIN
   
 END  
 
-GO
-
-/*******************************************************************************************/
-/*******************************************************************************************/
-/*******************************************************************************************/
-CREATE PROCEDURE tSQLt.AssertEqualsTable
-    @Expected SYSNAME,
-    @Actual SYSNAME,
-    @FailMsg VARCHAR(4000) = 'unexpected resultset rows!'
-AS
-BEGIN
-    DECLARE @TblMsg VARCHAR(MAX);
-    DECLARE @r INT;
-    DECLARE @errorMessage NVARCHAR(MAX);
-    DECLARE @failureOccurred BIT;
-    SET @failureOccurred = 0;
-
-    EXEC @failureOccurred = tSQLt.AssertObjectExists @Actual;
-    IF @failureOccurred = 1 RETURN 1;
-    EXEC @failureOccurred = tSQLt.AssertObjectExists @Expected;
-    IF @failureOccurred = 1 RETURN 1;
-    
-    IF OBJECT_ID(@Expected) IS NULL
-    BEGIN
-        SET @errorMessage = 
-            '@Expected = ''' + COALESCE(@Expected, 'NULL') + ''' does not exist in call to AssertEqualsTable';
-        RAISERROR (@errorMessage, 16, 10);
-    END;
-    
-    EXEC @r = tSQLt.TableCompare @Expected, @Actual, @TblMsg OUT;
-
-    IF (@r <> 0)
-    BEGIN
-        IF ISNULL(@FailMsg,'')<>'' SET @FailMsg = @FailMsg + CHAR(13) + CHAR(10);
-        EXEC tSQLt.Fail @FailMsg, @TblMsg;
-    END;
-    
-END;
 GO
 
 /*******************************************************************************************/
@@ -750,7 +735,15 @@ BEGIN
            @an = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS VARCHAR(100))),
            @rn = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS VARCHAR(100)));
 
-    WITH A AS (SELECT column_id,
+    WITH T AS (SELECT column_id,name
+                 FROM SYS.COLUMNS 
+                WHERE object_id = OBJECT_ID(@actual)
+                UNION ALL
+               SELECT column_id,name
+                 FROM tempdb.SYS.COLUMNS 
+                WHERE object_id = OBJECT_ID('tempdb..'+@actual)
+              ),
+         A AS (SELECT column_id,
                       P0 = ', '+QUOTENAME(name)+
                          ' AS C'+CAST(column_id AS VARCHAR),
                       P1 = CASE WHEN column_id = 1 THEN '' ELSE ' AND ' END+
@@ -769,8 +762,7 @@ BEGIN
                            CAST(column_id AS VARCHAR)+
                            ') AS '+
                            QUOTENAME(name)
-                 FROM SYS.COLUMNS 
-                WHERE object_id = OBJECT_ID(@actual)),
+                 FROM T),
          B(m,p) AS (SELECT 0,0 UNION ALL 
                     SELECT 1,0 UNION ALL 
                     SELECT 2,1 UNION ALL 
@@ -814,6 +806,40 @@ BEGIN
     RETURN @r;
 END;
 GO
+
+/*******************************************************************************************/
+/*******************************************************************************************/
+/*******************************************************************************************/
+CREATE PROCEDURE tSQLt.AssertEqualsTable
+    @Expected SYSNAME,
+    @Actual SYSNAME,
+    @FailMsg VARCHAR(4000) = 'unexpected resultset rows!'
+AS
+BEGIN
+    DECLARE @TblMsg VARCHAR(MAX);
+    DECLARE @r INT;
+    DECLARE @errorMessage NVARCHAR(MAX);
+    DECLARE @failureOccurred BIT;
+    SET @failureOccurred = 0;
+
+    EXEC @failureOccurred = tSQLt.AssertObjectExists @Actual;
+    IF @failureOccurred = 1 RETURN 1;
+    EXEC @failureOccurred = tSQLt.AssertObjectExists @Expected;
+    IF @failureOccurred = 1 RETURN 1;
+        
+    EXEC @r = tSQLt.TableCompare @Expected, @Actual, @TblMsg OUT;
+
+    IF (@r <> 0)
+    BEGIN
+        IF ISNULL(@FailMsg,'')<>'' SET @FailMsg = @FailMsg + CHAR(13) + CHAR(10);
+        EXEC tSQLt.Fail @FailMsg, @TblMsg;
+    END;
+    
+END;
+GO
+/*******************************************************************************************/
+/*******************************************************************************************/
+/*******************************************************************************************/
 
 CREATE PROCEDURE tSQLt.ApplyConstraint
        @schemaName SYSNAME,

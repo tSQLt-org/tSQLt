@@ -1,3 +1,5 @@
+DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
+GO
 EXEC tSQLt.DropClass tSQLt_testutil;
 GO
 
@@ -139,13 +141,45 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_RunTestClass_does_not_raise_error_if_not_failure
+CREATE PROC tSQLt_test.test_RunTestClass_returns_resultset_with_failing_testcase_names
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    --EXEC('CREATE SCHEMA MyTestClass;');
+    --EXEC('CREATE PROC MyTestClass.TestCaseA AS RAISERROR(''GotHere'',16,10);');
+    
+    --SELECT Name, Result, Msg
+    --  INTO #tmp
+    --  FROM tSQLt.TestResult
+    -- WHERE 1=0;
+     
+    --BEGIN TRY
+    --    INSERT INTO #tmp(Name, Result, Msg)
+    --      EXEC tSQLt.RunTestClass MyTestClass;
+    --END TRY
+    --BEGIN CATCH
+    --    SET @errorRaised = 1;
+    --END CATCH
+
+    --SELECT Name, Result--, Msg
+    --  INTO actual
+    --  FROM #tmp;
+
+    --SELECT '[MyTestClass].[TestCaseA]' Name, 'Error' Result--, 'GotHere{Test Case A,1}' Msg
+    --  INTO expected;
+    
+    --EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_RunTestClass_handles_test_names_with_spaces
 AS
 BEGIN
     DECLARE @errorRaised INT; SET @errorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 0;');
+    EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
     
     BEGIN TRY
         EXEC tSQLt.RunTestClass MyTestClass;
@@ -153,10 +187,37 @@ BEGIN
     BEGIN CATCH
         SET @errorRaised = 1;
     END CATCH
-    IF(@errorRaised <> 0)
-    BEGIN
-        EXEC tSQLt.Fail 'tSQLt.RunTestClass did raise an error!';
-    END
+    SELECT Name, Msg 
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT '[MyTestClass].[Test Case A]' Name, 'GotHere{Test Case A,1}' Msg
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_RunTest_handles_test_names_with_spaces
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTest 'MyTestClass.Test Case A';
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    SELECT Name, Msg 
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT '[MyTestClass].[Test Case A]' Name, 'GotHere{Test Case A,1}' Msg
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
 END;
 GO
 
@@ -424,7 +485,7 @@ BEGIN
 
     EXEC tSQLt.RunTestClass 'innertest';
 
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = 'innertest.testMe')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = '[innertest].[testMe]')
     BEGIN
        EXEC tSQLt.Fail 'innertest.testMe did not get executed.';
     END;
@@ -461,7 +522,7 @@ BEGIN
     BEGIN CATCH
     END CATCH
 
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = 'innertest.test' AND Result = 'Failure')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = '[innertest].[test]' AND Result = 'Failure')
     BEGIN
        EXEC tSQLt.Fail 'failing innertest.SetUp did not cause innertest.test to fail.';
    END;
@@ -513,8 +574,7 @@ CREATE PROCEDURE tSQLt_test.test_RunTest_handles_uncommitable_transaction
 AS
 BEGIN
     DECLARE @TranName SYSNAME; 
-    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Name = 'tSQLt_test.test_RunTest_handles_uncommitable_transaction' ORDER BY ID DESC;
-
+    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Name = '[tSQLt_test].[test_RunTest_handles_uncommitable_transaction]' ORDER BY ID DESC;
     EXEC ('CREATE PROCEDURE testUncommitable AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
 
     BEGIN TRY
@@ -523,7 +583,7 @@ BEGIN
     BEGIN CATCH
       IF NOT EXISTS(SELECT 1
                       FROM tSQLt.TestResult
-                     WHERE Name = 'testUncommitable'
+                     WHERE Name = '[dbo].[testUncommitable]'
                        AND Result = 'Error'
                        AND Msg LIKE '%There is already an object named ''t1'' in the database.{testUncommitable,1}%'
                        AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
@@ -536,7 +596,7 @@ BEGIN
         EXEC tSQLt.Fail 'runTest ''testUncommitable'' did not rollback the transactions';
       END
       DELETE FROM tSQLt.TestResult
-             WHERE Name = 'testUncommitable'
+             WHERE Name = '[dbo].[testUncommitable]'
                AND Result = 'Error'
                AND Msg LIKE '%There is already an object named ''t1'' in the database.{testUncommitable,1}%'
                AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
@@ -766,5 +826,112 @@ BEGIN
     DECLARE @command NVARCHAR(MAX);
     SET @command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
     EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsTable did not call Fail when actual table does not exist';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.test_AssertEqualsTable_works_with_temptables
+AS
+BEGIN
+    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+
+    CREATE TABLE #t1(I INT)
+    INSERT INTO #t1 SELECT 1
+    CREATE TABLE #t2(I INT)
+    INSERT INTO #t2 SELECT 2
+
+    DECLARE @command NVARCHAR(MAX);
+    SET @command = 'EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';';
+    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsTable did not call Fail when comparing temp tables';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_equal_temptables
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #t1(I INT)
+    INSERT INTO #t1 SELECT 42
+    CREATE TABLE #t2(I INT)
+    INSERT INTO #t2 SELECT 42
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    SELECT Name, Result
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_AssertObjectExists_raises_appropriate_error_if_table_does_not_exist
+AS
+BEGIN
+    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+
+    EXEC ('CREATE SCHEMA schemaA');
+    
+    DECLARE @command NVARCHAR(MAX);
+    SET @command = 'EXEC tSQLt.AssertObjectExists ''schemaA.expected''';
+    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertObjectExists did not call Fail when table does not exist';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_AssertObjectExists_does_not_call_fail_when_table_exists
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE TABLE MyTestClass.tbl(i int);');
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertObjectExists ''MyTestClass.tbl'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    SELECT Name, Result 
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_AssertObjectExists_does_not_call_fail_when_table_is_temp_table
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #tbl(i int);
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertObjectExists ''#tbl'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    SELECT Name, Result
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
 END;
 GO
