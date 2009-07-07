@@ -873,6 +873,62 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_actual_having_identity_column
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #t1(I INT IDENTITY(1,1));
+    INSERT INTO #t1 DEFAULT VALUES;
+    CREATE TABLE #t2(I INT);
+    INSERT INTO #t2 VALUES(1);
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    SELECT Name, Result
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_expected_having_identity_column
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #t1(I INT);
+    INSERT INTO #t1 VALUES(1);
+    CREATE TABLE #t2(I INT IDENTITY(1,1));
+    INSERT INTO #t2 DEFAULT VALUES;
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+    SELECT Name, Result
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
 CREATE PROC tSQLt_test.test_AssertObjectExists_raises_appropriate_error_if_table_does_not_exist
 AS
 BEGIN
