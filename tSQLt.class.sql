@@ -10,7 +10,7 @@ GO
 --IF OBJECT_ID('tSQLt.TestResult') IS NOT NULL DROP TABLE tSQLt.TestResult;
 --IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL DROP PROCEDURE tSQLt.DropClass;
 --IF EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'tSQLt') DROP SCHEMA tSQLt;
-EXEC tSQLt.DropClass tSQLt;
+IF EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'tSQLt') EXEC tSQLt.DropClass tSQLt;
 GO
 CREATE SCHEMA tSQLt;
 GO
@@ -276,18 +276,20 @@ SET NOCOUNT ON;
     CLOSE testCases;
     DEALLOCATE testCases;
 
+    SELECT Name, Result, Msg
+      INTO #tmp
+      FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.TableToText @msg OUTPUT, '#tmp', 'Result DESC, Name ASC';
+    EXEC tSQLt.private_Print @msg,0;
+
     SELECT @msg = Msg, @isSuccess = 1 - SIGN(FailCnt + ErrorCnt)
       FROM tSQLt.TestCaseSummary();
     
     set @severity = 16*(1-@isSuccess);
     
     EXEC tSQLt.private_Print @msg, @severity;
-    IF(@isSuccess = 0)
-    BEGIN
-     SELECT Name, Result, Msg
-       FROM tSQLt.TestResult
-      WHERE Result <> 'Success';
-    END
+    
 END;
 GO
 
@@ -735,16 +737,37 @@ BEGIN
            @an = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS VARCHAR(100))),
            @rn = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS VARCHAR(100)));
 
-    WITH T AS (SELECT column_id,name
-                 FROM SYS.COLUMNS 
-                WHERE object_id = OBJECT_ID(@actual)
-                UNION ALL
-               SELECT column_id,name
-                 FROM tempdb.SYS.COLUMNS 
-                WHERE object_id = OBJECT_ID('tempdb..'+@actual)
+    WITH TA AS (SELECT column_id,name,is_identity
+                  FROM SYS.COLUMNS 
+                 WHERE object_id = OBJECT_ID(@actual)
+                 UNION ALL
+                SELECT column_id,name,is_identity
+                  FROM tempdb.SYS.COLUMNS 
+                 WHERE object_id = OBJECT_ID('tempdb..'+@actual)
+               ),
+         TB AS (SELECT column_id,name,is_identity
+                  FROM SYS.COLUMNS 
+                 WHERE object_id = OBJECT_ID(@expected)
+                 UNION ALL
+                SELECT column_id,name,is_identity
+                  FROM tempdb.SYS.COLUMNS 
+                 WHERE object_id = OBJECT_ID('tempdb..'+@expected)
+               ),
+         T AS (SELECT TA.column_id,TA.name,
+                      CASE WHEN TA.is_identity = 1 THEN 1
+                           WHEN TB.is_identity = 1 THEN 1
+                           ELSE 0
+                      END is_identity
+                 FROM TA
+                 LEFT JOIN TB
+                   ON TA.column_id = TB.column_id
               ),
          A AS (SELECT column_id,
                       P0 = ', '+QUOTENAME(name)+
+                           CASE WHEN is_identity = 1
+                                THEN '*1'
+                                ELSE ''
+                           END+
                          ' AS C'+CAST(column_id AS VARCHAR),
                       P1 = CASE WHEN column_id = 1 THEN '' ELSE ' AND ' END+
                            '((A.C'+

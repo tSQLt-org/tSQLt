@@ -2,9 +2,10 @@
 TODO
 ====
 - fix test_RunTestClass_returns_resultset_with_failing_testcase_names
-- table compare works with tables that have identity column
 - table compare of table compare result fails???
-
+- print executing testclass in summary
+- rerun last testclass if no parameter is given
+- inject code in spyproc
 
 */
 
