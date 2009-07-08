@@ -21,7 +21,7 @@ BEGIN
     DECLARE @cmd NVARCHAR(MAX);
 
     WITH A(name, type) AS
-           (SELECT SCHEMA_NAME(schema_id)+'.'+name , type
+           (SELECT QUOTENAME(SCHEMA_NAME(schema_id))+'.'+QUOTENAME(name) , type
               FROM sys.objects
              WHERE schema_id = SCHEMA_ID(@ClassName)
           ),
@@ -37,7 +37,7 @@ BEGIN
                    ' ' + name + ';'
               FROM A
              UNION ALL
-            SELECT -1,'DROP SCHEMA ' + name+';'
+            SELECT -1,'DROP SCHEMA ' + QUOTENAME(name) +';'
               FROM sys.schemas
              WHERE schema_id = SCHEMA_ID(@ClassName)
            ),
@@ -83,8 +83,8 @@ GO
 
 CREATE TABLE tSQLt.TestResult(
     ID INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
-    Name SYSNAME NOT NULL,
-    TranName SYSNAME NOT NULL,
+    Name VARCHAR(MAX) NOT NULL,
+    TranName VARCHAR(MAX) NOT NULL,
     Result VARCHAR(MAX) NULL,
     Msg VARCHAR(MAX) NULL
 );
@@ -96,10 +96,29 @@ GO
 
 CREATE PROCEDURE tSQLt.private_Print 
     @message VARCHAR(MAX),
-    @severity INT = 0
+    @severity INT = 0,
+    @lineNo INT = 0
 AS 
 BEGIN
-    RAISERROR(@message,@severity,1) WITH NOWAIT;
+    DECLARE @sPos INT;SET @sPos = 1;
+    DECLARE @ePos INT;
+    DECLARE @len INT; SELECT @len = LEN(@message);
+    DECLARE @subMsg VARCHAR(MAX);
+    DECLARE @cmd NVARCHAR(MAX);
+    
+    WHILE (@sPos <= @len)
+    BEGIN
+      SELECT @ePos = CHARINDEX(CHAR(13)+CHAR(10),@message+CHAR(13)+CHAR(10),@sPos);
+      SELECT @subMsg = SUBSTRING(@message, @sPos, @ePos - @sPos);
+      SELECT @cmd = REPLICATE(CHAR(10),@lineNo)+N'RAISERROR(@msg,@severity,10) WITH NOWAIT;';
+      EXEC sp_executesql @cmd, 
+                         N'@msg VARCHAR(MAX),@severity INT',
+                         @subMsg,
+                         @severity;
+      SELECT @sPos = @ePos + 2,
+             @severity = 0; --Print only first line with high severity
+    END
+
     RETURN 0;
 END;
 GO
@@ -237,6 +256,45 @@ SET NOCOUNT ON;
 END;
 GO
 
+CREATE PROCEDURE tSQLt.RunTestClassSummary
+AS
+BEGIN
+    DECLARE @msg1 VARCHAR(MAX);
+    DECLARE @msg2 VARCHAR(MAX);
+    DECLARE @msg3 VARCHAR(MAX);
+    DECLARE @msg4 VARCHAR(MAX);
+    DECLARE @isSuccess INT;
+    DECLARE @successCnt INT;
+    DECLARE @severity INT;
+    
+    SELECT ROW_NUMBER() OVER(ORDER BY Result DESC, Name ASC) No,Name [Test Case Name], Result--, Msg
+      INTO #tmp
+      FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.TableToText @msg1 OUTPUT, '#tmp', 'No';
+
+    SELECT @msg3 = Msg, 
+           @isSuccess = 1 - SIGN(FailCnt + ErrorCnt),
+           @successCnt = successCnt
+      FROM tSQLt.TestCaseSummary();
+    
+    SELECT @severity = 16*(1-@isSuccess),
+           @msg2 = REPLICATE('-',LEN(@msg3)),
+           @msg4 = CHAR(13)+CHAR(10);
+    
+    
+    EXEC tSQLt.private_Print @msg4,0;
+    EXEC tSQLt.private_Print '+---------------------+',0;
+    EXEC tSQLt.private_Print '|Test Execution Sumary|',0;
+    EXEC tSQLt.private_Print '+---------------------+',0;
+    EXEC tSQLt.private_Print @msg4,0;
+    EXEC tSQLt.private_Print @msg1,0;
+    EXEC tSQLt.private_Print @msg2,0;
+    EXEC tSQLt.private_Print @msg3, @severity, @successCnt;
+    EXEC tSQLt.private_Print @msg2,0;
+END
+GO
+
 CREATE PROCEDURE tSQLt.RunTestClass
    @testClassName sysname
 AS
@@ -276,20 +334,7 @@ SET NOCOUNT ON;
     CLOSE testCases;
     DEALLOCATE testCases;
 
-    SELECT Name, Result, Msg
-      INTO #tmp
-      FROM tSQLt.TestResult;
-    
-    EXEC tSQLt.TableToText @msg OUTPUT, '#tmp', 'Result DESC, Name ASC';
-    EXEC tSQLt.private_Print @msg,0;
-
-    SELECT @msg = Msg, @isSuccess = 1 - SIGN(FailCnt + ErrorCnt)
-      FROM tSQLt.TestCaseSummary();
-    
-    set @severity = 16*(1-@isSuccess);
-    
-    EXEC tSQLt.private_Print @msg, @severity;
-    
+    EXEC tSQLt.RunTestClassSummary;
 END;
 GO
 
@@ -836,7 +881,7 @@ GO
 CREATE PROCEDURE tSQLt.AssertEqualsTable
     @Expected SYSNAME,
     @Actual SYSNAME,
-    @FailMsg VARCHAR(4000) = 'unexpected resultset rows!'
+    @FailMsg VARCHAR(4000) = 'unexpected/missing resultset rows!'
 AS
 BEGIN
     DECLARE @TblMsg VARCHAR(MAX);
