@@ -991,3 +991,28 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
 END;
 GO
+
+CREATE PROC tSQLt_test.test_dropClass_does_not_error_if_testcase_name_contains_spaces
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #tbl(i int);
+    EXEC('CREATE PROC MyTestClass.[Test Case A ] AS EXEC tSQLt.AssertObjectExists ''#tbl'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.DropClass 'MyTestClass';
+    END TRY
+    BEGIN CATCH
+        SET @errorRaised = 1;
+    END CATCH
+
+    EXEC tSQLt.AssertEquals 0,@errorRaised,'Unexpected error during execution of DropClass'
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO

@@ -6,7 +6,9 @@ TODO
 - print executing testclass in summary
 - rerun last testclass if no parameter is given
 - inject code in spyproc
-
+- cleanup hanging transactions on start???
+- remember last testcase / testclass
+- length of sysname (in testresult)???
 */
 
 DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Executed at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
@@ -342,7 +344,7 @@ RAISERROR('---------- Multiple passing tests in a class should report an appropr
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT  AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT, @line INT = 0 AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
@@ -379,7 +381,7 @@ RAISERROR('---------- Passing and failing tests in a class should report an appr
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT, @line INT = 0 AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
