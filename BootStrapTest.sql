@@ -7,7 +7,8 @@ TODO
 - rerun last testclass if no parameter is given
 - inject code in spyproc
 - cleanup hanging transactions on start???
-- remember last testcase / testclass
+- allow RunTestClass to execute single testcase
+- remember last testcase / testclass  (in #table ->restriction to connection)
 - length of sysname (in testresult)???
 */
 
