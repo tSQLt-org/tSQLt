@@ -275,7 +275,7 @@ RAISERROR('---------- A single failing test should report an appropriate message
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX) AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT = NULL AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE PROCEDURE TestCaseA AS EXEC tSQLt.Fail ''I failed'';');
 
@@ -310,7 +310,7 @@ RAISERROR('---------- A single erroring test should report an appropriate messag
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX) AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT = NULL AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE PROCEDURE TestCaseA AS SELECT 1/0 col INTO #tmp;');
 
@@ -345,7 +345,7 @@ RAISERROR('---------- Multiple passing tests in a class should report an appropr
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT, @line INT = 0 AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
@@ -382,7 +382,7 @@ RAISERROR('---------- Passing and failing tests in a class should report an appr
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT, @line INT = 0 AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
