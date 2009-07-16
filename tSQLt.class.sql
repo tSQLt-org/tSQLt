@@ -96,8 +96,7 @@ GO
 
 CREATE PROCEDURE tSQLt.private_Print 
     @message VARCHAR(MAX),
-    @severity INT = 0,
-    @lineNo INT = 0
+    @severity INT = 0
 AS 
 BEGIN
     DECLARE @sPos INT;SET @sPos = 1;
@@ -110,7 +109,7 @@ BEGIN
     BEGIN
       SELECT @ePos = CHARINDEX(CHAR(13)+CHAR(10),@message+CHAR(13)+CHAR(10),@sPos);
       SELECT @subMsg = SUBSTRING(@message, @sPos, @ePos - @sPos);
-      SELECT @cmd = REPLICATE(CHAR(10),@lineNo)+N'RAISERROR(@msg,@severity,10) WITH NOWAIT;';
+      SELECT @cmd = N'RAISERROR(@msg,@severity,10) WITH NOWAIT;';
       EXEC sp_executesql @cmd, 
                          N'@msg VARCHAR(MAX),@severity INT',
                          @subMsg,
@@ -156,6 +155,7 @@ CREATE PROCEDURE tSQLt.private_RunTest
 AS
 BEGIN
     DECLARE @Msg VARCHAR(MAX); SET @Msg = '';
+    DECLARE @Msg2 VARCHAR(MAX); SET @Msg2 = '';
     DECLARE @cmd VARCHAR(MAX); SET @cmd = '';
     DECLARE @Result VARCHAR(MAX); SET @Result = 'Success';
     DECLARE @TranName CHAR(32); EXEC tSQLt.getNewTranName @TranName OUT;
@@ -201,8 +201,12 @@ BEGIN
         SET @Result = 'Error';
     END CATCH    
 
--- delete this line soon!
-If(@Result <> 'Success') RAISERROR('%s failed: %s',0,1,@testName, @Msg) WITH NOWAIT;
+-- delete this block soon!
+If(@Result <> 'Success') 
+BEGIN
+  SET @Msg2 = @testName + ' failed: ' + @Msg;
+  EXEC tSQLt.private_Print @message = @Msg2, @severity = 0;
+END
 
     IF EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE ID = @TestResultID)
     BEGIN
@@ -290,7 +294,7 @@ BEGIN
     EXEC tSQLt.private_Print @msg4,0;
     EXEC tSQLt.private_Print @msg1,0;
     EXEC tSQLt.private_Print @msg2,0;
-    EXEC tSQLt.private_Print @msg3, @severity, @successCnt;
+    EXEC tSQLt.private_Print @msg3, @severity;
     EXEC tSQLt.private_Print @msg2,0;
 END
 GO
