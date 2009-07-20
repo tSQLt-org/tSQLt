@@ -1016,3 +1016,89 @@ BEGIN
     END
 END;
 GO
+CREATE PROC tSQLt_test.[test that tSQLt.Run executes all tests in test class when called with class name]
+AS
+BEGIN
+    EXEC('EXEC tSQLt.DropClass innertest;');
+    EXEC('CREATE SCHEMA innertest;');
+    EXEC('CREATE PROC innertest.testMe as RETURN 0;');
+    EXEC('CREATE PROC innertest.testMeToo as RETURN 0;');
+
+    EXEC tSQLt.Run 'innertest';
+
+    SELECT name 
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected(name)
+    SELECT name = '[innertest].[testMe]' UNION ALL
+    SELECT name = '[innertest].[testMeToo]';
+
+    SELECT name
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
+END;
+GO
+CREATE PROC tSQLt_test.[test that tSQLt.Run executes single test when called with test case name]
+AS
+BEGIN
+    EXEC('EXEC tSQLt.DropClass innertest;');
+    EXEC('CREATE SCHEMA innertest;');
+    EXEC('CREATE PROC innertest.testMe as RETURN 0;');
+    EXEC('CREATE PROC innertest.testNotMe as RETURN 0;');
+
+    EXEC tSQLt.Run 'innertest.testMe';
+
+    SELECT name 
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected(name)
+    SELECT name = '[innertest].[testMe]';
+
+    SELECT name
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
+END;
+GO
+CREATE PROC 'tSQLt_test.[test that tSQLt.Run re-executes single test when called without parameter]'
+AS
+BEGIN
+    EXEC('EXEC tSQLt.DropClass innertest;');
+    EXEC('CREATE SCHEMA innertest;');
+    EXEC('CREATE PROC innertest.testMe as RETURN 0;');
+    EXEC('CREATE PROC innertest.testNotMe as RETURN 0;');
+
+    IF(OBJECT_ID('tempdb..#tSQLt_Run_LastExecution') IS NOT NULL)
+    BEGIN
+      DROP TABLE #tSQLt_Run_LastExecution;
+    END
+
+    EXEC tSQLt.Run 'innertest.testMe';
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.Run;
+
+    SELECT name 
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected(name)
+    SELECT name = '[innertest].[testMe]';
+
+    SELECT name
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
+END;
+GO
+
+--tSQLt_test
