@@ -93,6 +93,12 @@ CREATE TABLE tSQLt.TestMessage(
     Msg VARCHAR(MAX)
 );
 GO
+CREATE TABLE tSQLt.Run_LastExecution(
+    testName VARCHAR(MAX),
+    session_id INT,
+    login_time DATETIME
+);
+GO
 
 CREATE PROCEDURE tSQLt.private_Print 
     @message VARCHAR(MAX),
@@ -303,12 +309,54 @@ CREATE PROCEDURE tSQLt.RunTestClass
    @testClassName sysname
 AS
 BEGIN
+    EXEC tSQLt.Run @testClassName;
+END
+GO    
+
+CREATE PROCEDURE tSQLt.Run
+   @testName sysname = NULL
+AS
+BEGIN
 SET NOCOUNT ON;
+
     DECLARE @testCaseName NVARCHAR(MAX);
+    DECLARE @testClassName NVARCHAR(MAX);
+    DECLARE @fullName NVARCHAR(MAX);
+    DECLARE @testCaseId INT;
+    DECLARE @testClassId INT;
+
     DECLARE @msg VARCHAR(MAX);
     DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
     DECLARE @isSuccess INT;
     DECLARE @severity INT;
+
+    IF(LTRIM(ISNULL(@testName,'')) = '')
+    BEGIN
+      SELECT @testName = testName 
+        FROM tSQLt.Run_LastExecution le
+        JOIN sys.dm_exec_sessions es
+          ON le.session_id = es.session_id
+         AND le.login_time = es.login_time
+       WHERE es.session_id = @@SPID;
+
+      DELETE FROM tSQLt.Run_LastExecution
+       WHERE session_id = @@SPID;
+    END
+    SELECT @testClassName = COALESCE(SCHEMA_NAME(SCHEMA_ID(@testName)),OBJECT_SCHEMA_NAME(OBJECT_ID(@testName))),
+           @testCaseName = OBJECT_NAME(OBJECT_ID(@testName));
+
+    SELECT @fullName = '[' + @testClassName + ']' + 
+                      COALESCE('.[' + @testCaseName + ']', '');
+    
+    INSERT INTO tSQLt.Run_LastExecution(testName, session_id, login_time)
+    SELECT testName = @fullName,
+           session_id,
+           login_time
+      FROM sys.dm_exec_sessions
+     WHERE session_id = @@SPID;
+
+    SELECT @testClassId = SCHEMA_ID(@testClassName),
+           @testCaseId = OBJECT_ID(@testName);
 
     EXEC tSQLt.private_CleanTestResult;
     
@@ -322,8 +370,10 @@ SET NOCOUNT ON;
      SELECT '['+SCHEMA_NAME(schema_id)+'].['+name+']'
        FROM sys.procedures
       WHERE schema_id = SCHEMA_ID(@testClassName)
-        AND name LIKE 'test%';
-
+        AND ((@testCaseId IS NULL AND name LIKE 'test%')
+             OR
+             object_id = @testCaseId
+            );
     OPEN testCases;
     
     FETCH NEXT FROM testCases INTO @testCaseName;
