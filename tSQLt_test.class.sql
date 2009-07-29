@@ -173,30 +173,6 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_RunTestClass_handles_test_names_with_spaces
-AS
-BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
-
-    EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
-    
-    BEGIN TRY
-        EXEC tSQLt.RunTestClass MyTestClass;
-    END TRY
-    BEGIN CATCH
-        SET @errorRaised = 1;
-    END CATCH
-    SELECT Name, Msg 
-      INTO actual
-      FROM tSQLt.TestResult;
-    SELECT '[MyTestClass].[Test Case A]' Name, 'GotHere{Test Case A,1}' Msg
-      INTO expected;
-    
-    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
-END;
-GO
-
 CREATE PROC tSQLt_test.test_RunTest_handles_test_names_with_spaces
 AS
 BEGIN
@@ -998,8 +974,7 @@ BEGIN
     DECLARE @errorRaised INT; SET @errorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    CREATE TABLE #tbl(i int);
-    EXEC('CREATE PROC MyTestClass.[Test Case A ] AS EXEC tSQLt.AssertObjectExists ''#tbl'';');
+    EXEC('CREATE PROC MyTestClass.[Test Case A ] AS RETURN 0;');
     
     BEGIN TRY
         EXEC tSQLt.DropClass 'MyTestClass';
@@ -1162,4 +1137,60 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.test_SpyProcedure_handles_procedure_names_with_spaces
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE PROC tSQLt_test.[Spyee Proc] AS RETURN 0;');
+
+    EXEC tSQLt.SpyProcedure 'tSQLt_test.[Spyee Proc]'
+    
+    EXEC tSQLt_test.[Spyee Proc];
+    
+    SELECT *
+      INTO #Actual
+      FROM tSQLt_test.[Spyee Proc_SpyProcedureLog];
+    
+    SELECT 1 _id_
+      INTO #Expected
+     WHERE 0=1;
+
+    INSERT #Expected
+    SELECT 1;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.test_RunTestClass_handles_test_names_with_spaces
+AS
+BEGIN
+    DECLARE @errorRaised INT; SET @errorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE PROC MyTestClass.[Test Case A] AS RETURN 0;');
+
+    EXEC tSQLt.SpyProcedure 'MyTestClass.[Test Case A]'
+    EXEC tSQLt.RunTestClass MyTestClass;
+    
+    SELECT * FROM sys.tables where schema_id = schema_id('MyTestClass');
+    
+    --BEGIN TRY
+    --    EXEC tSQLt.RunTestClass MyTestClass;
+    --END TRY
+    --BEGIN CATCH
+    --    SET @errorRaised = 1;
+    --END CATCH
+    --SELECT Name, Msg 
+    --  INTO actual
+    --  FROM tSQLt.TestResult;
+    --SELECT '[MyTestClass].[Test Case A]' Name, 'GotHere{Test Case A,1}' Msg
+    --  INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+--ROLLBACK
 --tSQLt_test

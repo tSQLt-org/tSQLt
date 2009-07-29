@@ -437,11 +437,14 @@ CREATE PROCEDURE tSQLt.SpyProcedure
 AS
 BEGIN
     DECLARE @Cmd NVARCHAR(MAX);
-    DECLARE @LogTableName NVARCHAR(MAX); SET @LogTableName = @ProcedureName + '_SpyProcedureLog';
+    DECLARE @LogTableName NVARCHAR(MAX); 
     DECLARE @ProcParmList NVARCHAR(MAX),
             @TableColList NVARCHAR(MAX),
             @ProcParmTypeList NVARCHAR(MAX),
             @TableColTypeList NVARCHAR(MAX);
+
+    SELECT @LogTableName =  QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)) + '.' + QUOTENAME(OBJECT_NAME(ObjId)+'_SpyProcedureLog')
+      FROM (SELECT OBJECT_ID(@ProcedureName) AS ObjId)X;
 
     WITH A(no,pname, cname, type, sep)
            AS (SELECT p.parameter_id,
