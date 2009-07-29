@@ -1067,7 +1067,7 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
-CREATE PROC 'tSQLt_test.[test that tSQLt.Run re-executes single test when called without parameter]'
+CREATE PROC tSQLt_test.[test that tSQLt.Run re-executes single test when called without parameter]
 AS
 BEGIN
     EXEC('EXEC tSQLt.DropClass innertest;');
@@ -1075,11 +1075,8 @@ BEGIN
     EXEC('CREATE PROC innertest.testMe as RETURN 0;');
     EXEC('CREATE PROC innertest.testNotMe as RETURN 0;');
 
-    IF(OBJECT_ID('tempdb..#tSQLt_Run_LastExecution') IS NOT NULL)
-    BEGIN
-      DROP TABLE #tSQLt_Run_LastExecution;
-    END
-
+    TRUNCATE TABLE tSQLt.Run_LastExecution;
+    
     EXEC tSQLt.Run 'innertest.testMe';
     DELETE FROM tSQLt.TestResult;
     
@@ -1096,6 +1093,70 @@ BEGIN
     SELECT name
       INTO #Actual
       FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
+END;
+GO
+CREATE PROC tSQLt_test.[test that tSQLt.Run re-executes testClass when called without parameter]
+AS
+BEGIN
+    EXEC('EXEC tSQLt.DropClass innertest;');
+    EXEC('CREATE SCHEMA innertest;');
+    EXEC('CREATE PROC innertest.testMe as RETURN 0;');
+    EXEC('CREATE PROC innertest.testMeToo as RETURN 0;');
+
+    TRUNCATE TABLE tSQLt.Run_LastExecution;
+    
+    EXEC tSQLt.Run 'innertest';
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.Run;
+
+    SELECT name 
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected(name)
+    SELECT name = '[innertest].[testMe]' UNION ALL
+    SELECT name = '[innertest].[testMeToo]';
+
+    SELECT name
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
+END;
+GO
+CREATE PROC tSQLt_test.[test that tSQLt.Run deletes all entries from tSQLt.Run_LastExecution with same SPID]
+AS
+BEGIN
+    EXEC tSQLt.FakeTable 'tSQLt', 'Run_LastExecution';
+    
+    EXEC('EXEC tSQLt.DropClass New;');
+    EXEC('CREATE SCHEMA New;');
+
+    TRUNCATE TABLE tSQLt.Run_LastExecution;
+    
+    INSERT tSQLt.Run_LastExecution(session_id, login_time, testName)
+    SELECT @@SPID, '2009-09-09', '[Old1]' UNION ALL
+    SELECT @@SPID, '2010-10-10', '[Old2]' UNION ALL
+    SELECT @@SPID+10, '2011-11-11', '[Other]';   
+
+    EXEC tSQLt.Run 'New';
+    
+    SELECT testName 
+      INTO #Expected
+      FROM tSQLt.Run_LastExecution
+     WHERE 1=0;
+     
+    INSERT INTO #Expected(testName)
+    SELECT '[Other]' UNION ALL
+    SELECT '[New]';
+
+    SELECT testName
+      INTO #Actual
+      FROM tSQLt.Run_LastExecution;
       
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
