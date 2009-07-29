@@ -313,12 +313,12 @@ BEGIN
 END
 GO    
 
+----------------------------------------------------------------------
 CREATE PROCEDURE tSQLt.Run
    @testName sysname = NULL
 AS
 BEGIN
 SET NOCOUNT ON;
-
     DECLARE @testCaseName NVARCHAR(MAX);
     DECLARE @testClassName NVARCHAR(MAX);
     DECLARE @fullName NVARCHAR(MAX);
@@ -338,16 +338,23 @@ SET NOCOUNT ON;
           ON le.session_id = es.session_id
          AND le.login_time = es.login_time
        WHERE es.session_id = @@SPID;
-
-      DELETE FROM tSQLt.Run_LastExecution
-       WHERE session_id = @@SPID;
     END
+
+    DELETE FROM tSQLt.Run_LastExecution
+     WHERE session_id = @@SPID;
+
+    SELECT @testName = CASE WHEN @testName LIKE '\[%\]' ESCAPE '\'
+                             AND @testName NOT LIKE '\[%[^[]\].\[%\]' ESCAPE '\'
+                            THEN SUBSTRING(@testName, 2, LEN(@testName) -2)
+                            ELSE @testName
+                       END; --UNQUOTENAME(@testName) for bug in SCHEMA_ID() function
+
     SELECT @testClassName = COALESCE(SCHEMA_NAME(SCHEMA_ID(@testName)),OBJECT_SCHEMA_NAME(OBJECT_ID(@testName))),
            @testCaseName = OBJECT_NAME(OBJECT_ID(@testName));
 
-    SELECT @fullName = '[' + @testClassName + ']' + 
-                      COALESCE('.[' + @testCaseName + ']', '');
-    
+    SELECT @fullName = QUOTENAME(@testClassName) + 
+                      COALESCE('.' + QUOTENAME(@testCaseName), '');
+
     INSERT INTO tSQLt.Run_LastExecution(testName, session_id, login_time)
     SELECT testName = @fullName,
            session_id,
