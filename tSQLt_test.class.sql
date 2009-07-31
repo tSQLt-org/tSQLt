@@ -1171,22 +1171,14 @@ BEGIN
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.[Test Case A] AS RETURN 0;');
 
-    EXEC tSQLt.SpyProcedure 'MyTestClass.[Test Case A]'
     EXEC tSQLt.RunTestClass MyTestClass;
     
-    SELECT * FROM sys.tables where schema_id = schema_id('MyTestClass');
-    
-    --BEGIN TRY
-    --    EXEC tSQLt.RunTestClass MyTestClass;
-    --END TRY
-    --BEGIN CATCH
-    --    SET @errorRaised = 1;
-    --END CATCH
-    --SELECT Name, Msg 
-    --  INTO actual
-    --  FROM tSQLt.TestResult;
-    --SELECT '[MyTestClass].[Test Case A]' Name, 'GotHere{Test Case A,1}' Msg
-    --  INTO expected;
+    SELECT Name 
+      INTO actual
+      FROM tSQLt.TestResult;
+      
+    SELECT '[MyTestClass].[Test Case A]' Name
+      INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
 END;

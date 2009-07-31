@@ -207,12 +207,11 @@ BEGIN
         SET @Result = 'Error';
     END CATCH    
 
--- delete this block soon!
-If(@Result <> 'Success') 
-BEGIN
-  SET @Msg2 = @testName + ' failed: ' + @Msg;
-  EXEC tSQLt.private_Print @message = @Msg2, @severity = 0;
-END
+    If(@Result <> 'Success') 
+    BEGIN
+      SET @Msg2 = @testName + ' failed: ' + @Msg;
+      EXEC tSQLt.private_Print @message = @Msg2, @severity = 0;
+    END
 
     IF EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE ID = @TestResultID)
     BEGIN
