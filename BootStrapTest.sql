@@ -8,6 +8,8 @@ TODO
 - allow RunTestClass to execute single testcase
 - remember last testcase / testclass  (in #table ->restriction to connection)
 - length of sysname (in testresult)???
+- asserSpyProc[Not]Called
+- applyConstraint and triggers
 */
 
 DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Executed at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
