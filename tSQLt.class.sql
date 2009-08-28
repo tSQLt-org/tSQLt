@@ -1,4 +1,4 @@
-DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
+DECLARE @msg NVARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(NVARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
 GO
 --IF OBJECT_ID('tSQLt.TestCaseSummary') IS NOT NULL DROP FUNCTION tSQLt.TestCaseSummary;
 --IF OBJECT_ID('tSQLt.RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.RunTestClass;
@@ -15,7 +15,7 @@ GO
 CREATE SCHEMA tSQLt;
 GO
 CREATE PROCEDURE tSQLt.DropClass
-    @ClassName SYSNAME
+    @ClassName NVARCHAR(MAX)
 AS
 BEGIN
     DECLARE @cmd NVARCHAR(MAX);
@@ -55,9 +55,9 @@ END;
 GO
 
 CREATE FUNCTION tSQLt.private_getForeignKeyDefinition(
-    @SchemaName SYSNAME,
-    @ParentTableName SYSNAME,
-    @ForeignKeyName SYSNAME
+    @SchemaName NVARCHAR(MAX),
+    @ParentTableName NVARCHAR(MAX),
+    @ForeignKeyName NVARCHAR(MAX)
 )
 RETURNS TABLE
 AS
@@ -83,32 +83,32 @@ GO
 
 CREATE TABLE tSQLt.TestResult(
     ID INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
-    Name VARCHAR(MAX) NOT NULL,
-    TranName VARCHAR(MAX) NOT NULL,
-    Result VARCHAR(MAX) NULL,
-    Msg VARCHAR(MAX) NULL
+    Name NVARCHAR(MAX) NOT NULL,
+    TranName NVARCHAR(MAX) NOT NULL,
+    Result NVARCHAR(MAX) NULL,
+    Msg NVARCHAR(MAX) NULL
 );
 GO
 CREATE TABLE tSQLt.TestMessage(
-    Msg VARCHAR(MAX)
+    Msg NVARCHAR(MAX)
 );
 GO
 CREATE TABLE tSQLt.Run_LastExecution(
-    testName VARCHAR(MAX),
+    testName NVARCHAR(MAX),
     session_id INT,
     login_time DATETIME
 );
 GO
 
 CREATE PROCEDURE tSQLt.private_Print 
-    @message VARCHAR(MAX),
+    @message NVARCHAR(MAX),
     @severity INT = 0
 AS 
 BEGIN
     DECLARE @sPos INT;SET @sPos = 1;
     DECLARE @ePos INT;
     DECLARE @len INT; SELECT @len = LEN(@message);
-    DECLARE @subMsg VARCHAR(MAX);
+    DECLARE @subMsg NVARCHAR(MAX);
     DECLARE @cmd NVARCHAR(MAX);
     
     WHILE (@sPos <= @len)
@@ -117,7 +117,7 @@ BEGIN
       SELECT @subMsg = SUBSTRING(@message, @sPos, @ePos - @sPos);
       SELECT @cmd = N'RAISERROR(@msg,@severity,10) WITH NOWAIT;';
       EXEC sp_executesql @cmd, 
-                         N'@msg VARCHAR(MAX),@severity INT',
+                         N'@msg NVARCHAR(MAX),@severity INT',
                          @subMsg,
                          @severity;
       SELECT @sPos = @ePos + 2,
@@ -133,21 +133,21 @@ CREATE PROCEDURE tSQLt.getNewTranName
   @TranName CHAR(32) OUTPUT
 AS
 BEGIN
-  SELECT @TranName = LEFT('tSQLtTran'+REPLACE(CAST(NEWID() AS VARCHAR(60)),'-',''),32);
+  SELECT @TranName = LEFT('tSQLtTran'+REPLACE(CAST(NEWID() AS NVARCHAR(60)),'-',''),32);
 END;
 GO
 
 CREATE PROCEDURE tSQLt.Fail
-    @Message0 VARCHAR(MAX) = '',
-    @Message1 VARCHAR(MAX) = '',
-    @Message2 VARCHAR(MAX) = '',
-    @Message3 VARCHAR(MAX) = '',
-    @Message4 VARCHAR(MAX) = '',
-    @Message5 VARCHAR(MAX) = '',
-    @Message6 VARCHAR(MAX) = '',
-    @Message7 VARCHAR(MAX) = '',
-    @Message8 VARCHAR(MAX) = '',
-    @Message9 VARCHAR(MAX) = ''
+    @Message0 NVARCHAR(MAX) = '',
+    @Message1 NVARCHAR(MAX) = '',
+    @Message2 NVARCHAR(MAX) = '',
+    @Message3 NVARCHAR(MAX) = '',
+    @Message4 NVARCHAR(MAX) = '',
+    @Message5 NVARCHAR(MAX) = '',
+    @Message6 NVARCHAR(MAX) = '',
+    @Message7 NVARCHAR(MAX) = '',
+    @Message8 NVARCHAR(MAX) = '',
+    @Message9 NVARCHAR(MAX) = ''
 AS
 BEGIN
    INSERT INTO tSQLt.TestMessage(Msg) SELECT @Message0+@Message1+@Message2+@Message3+@Message4+@Message5+@Message6+@Message7+@Message8+@Message9;
@@ -156,14 +156,14 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.private_RunTest
-   @testName VARCHAR(MAX),
+   @testName NVARCHAR(MAX),
    @SetUp NVARCHAR(MAX) = NULL
 AS
 BEGIN
-    DECLARE @Msg VARCHAR(MAX); SET @Msg = '';
-    DECLARE @Msg2 VARCHAR(MAX); SET @Msg2 = '';
-    DECLARE @cmd VARCHAR(MAX); SET @cmd = '';
-    DECLARE @Result VARCHAR(MAX); SET @Result = 'Success';
+    DECLARE @Msg NVARCHAR(MAX); SET @Msg = '';
+    DECLARE @Msg2 NVARCHAR(MAX); SET @Msg2 = '';
+    DECLARE @cmd NVARCHAR(MAX); SET @cmd = '';
+    DECLARE @Result NVARCHAR(MAX); SET @Result = 'Success';
     DECLARE @TranName CHAR(32); EXEC tSQLt.getNewTranName @TranName OUT;
     DECLARE @TestResultID INT;
 
@@ -190,7 +190,7 @@ BEGIN
         END
         ELSE
         BEGIN
-            SELECT @Msg = COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS VARCHAR), '<ERROR_LINE() is NULL>') + '}';
+            SELECT @Msg = COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
 --RAISERROR(@Msg,16,10)WITH NOWAIT;
             SET @Result = 'Error';
         END;
@@ -203,7 +203,7 @@ BEGIN
         IF (@@TRANCOUNT > 0) ROLLBACK;
 
         BEGIN TRAN;
-        SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS VARCHAR), '<ERROR_LINE() is NULL>') + '})';
+        SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '})';
         SET @Result = 'Error';
     END CATCH    
 
@@ -242,12 +242,12 @@ END
 GO
 
 CREATE PROCEDURE tSQLt.RunTest
-   @testName VARCHAR(MAX)
+   @testName NVARCHAR(MAX)
 AS
 BEGIN
 SET NOCOUNT ON;
-    DECLARE @Result VARCHAR(MAX); SET @Result = 'Success';
-    DECLARE @msg VARCHAR(MAX);
+    DECLARE @Result NVARCHAR(MAX); SET @Result = 'Success';
+    DECLARE @msg NVARCHAR(MAX);
 
     EXEC tSQLt.private_CleanTestResult;
     
@@ -268,10 +268,10 @@ GO
 CREATE PROCEDURE tSQLt.RunTestClassSummary
 AS
 BEGIN
-    DECLARE @msg1 VARCHAR(MAX);
-    DECLARE @msg2 VARCHAR(MAX);
-    DECLARE @msg3 VARCHAR(MAX);
-    DECLARE @msg4 VARCHAR(MAX);
+    DECLARE @msg1 NVARCHAR(MAX);
+    DECLARE @msg2 NVARCHAR(MAX);
+    DECLARE @msg3 NVARCHAR(MAX);
+    DECLARE @msg4 NVARCHAR(MAX);
     DECLARE @isSuccess INT;
     DECLARE @successCnt INT;
     DECLARE @severity INT;
@@ -305,7 +305,7 @@ END
 GO
 
 CREATE PROCEDURE tSQLt.RunTestClass
-   @testClassName sysname
+   @testClassName NVARCHAR(MAX)
 AS
 BEGIN
     EXEC tSQLt.Run @testClassName;
@@ -314,7 +314,7 @@ GO
 
 ----------------------------------------------------------------------
 CREATE PROCEDURE tSQLt.Run
-   @testName sysname = NULL
+   @testName NVARCHAR(MAX) = NULL
 AS
 BEGIN
 SET NOCOUNT ON;
@@ -324,7 +324,7 @@ SET NOCOUNT ON;
     DECLARE @testCaseId INT;
     DECLARE @testClassId INT;
 
-    DECLARE @msg VARCHAR(MAX);
+    DECLARE @msg NVARCHAR(MAX);
     DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
     DECLARE @isSuccess INT;
     DECLARE @severity INT;
@@ -353,6 +353,8 @@ SET NOCOUNT ON;
 
     SELECT @fullName = QUOTENAME(@testClassName) + 
                       COALESCE('.' + QUOTENAME(@testCaseName), '');
+
+    --SELECT OBJECT_ID(@testName),@testName, @testClassName, @testCaseName, @fullName;
 
     INSERT INTO tSQLt.Run_LastExecution(testName, session_id, login_time)
     SELECT testName = @fullName,
@@ -409,10 +411,10 @@ RETURN WITH A(Cnt, SuccessCnt, FailCnt, ErrorCnt) AS (
                   FROM tSQLt.TestResult
                   
                 )
-       SELECT 'Test Case Summary: ' + CAST(Cnt AS VARCHAR) + ' test case(s) executed, '+
-                  CAST(SuccessCnt AS VARCHAR) + ' succeeded, '+
-                  CAST(FailCnt AS VARCHAR) + ' failed, '+
-                  CAST(ErrorCnt AS VARCHAR) + ' errored.' Msg,*
+       SELECT 'Test Case Summary: ' + CAST(Cnt AS NVARCHAR) + ' test case(s) executed, '+
+                  CAST(SuccessCnt AS NVARCHAR) + ' succeeded, '+
+                  CAST(FailCnt AS NVARCHAR) + ' failed, '+
+                  CAST(ErrorCnt AS NVARCHAR) + ' errored.' Msg,*
          FROM A;
 GO
 
@@ -423,9 +425,9 @@ RETURN SELECT typeName = TYPE_NAME(@TypeId) +
               CASE WHEN @Length = -1
                     THEN '(MAX)'
                    WHEN TYPE_NAME(@TypeId) LIKE '%CHAR' OR TYPE_NAME(@TypeId) LIKE '%BINARY'
-                    THEN '(' + CAST(@Length AS VARCHAR) + ')'
+                    THEN '(' + CAST(@Length AS NVARCHAR) + ')'
                    WHEN TYPE_NAME(@TypeId) IN ('DECIMAL', 'NUMERIC')
-                    THEN '(' + CAST(@Precision AS VARCHAR) + ',' + CAST(@Scale AS VARCHAR) + ')'
+                    THEN '(' + CAST(@Precision AS NVARCHAR) + ',' + CAST(@Scale AS NVARCHAR) + ')'
                    ELSE ''
                END;
 
@@ -467,10 +469,10 @@ BEGIN
          TableColList(xml) AS (SELECT TableCol AS [text()] FROM B ORDER BY no FOR XML PATH(''), TYPE),
          ProcParmTypeList(xml) AS (SELECT ProcParmType AS [text()] FROM B ORDER BY no FOR XML PATH(''), TYPE),
          TableColTypeList(xml) AS (SELECT TableColType AS [text()] FROM B ORDER BY no FOR XML PATH(''), TYPE)
-    SELECT @ProcParmList  = (SELECT xml.value('/','VARCHAR(MAX)') FROM ProcParmList),
-           @TableColList  = (SELECT xml.value('/','VARCHAR(MAX)') FROM TableColList),
-           @ProcParmTypeList = (SELECT xml.value('/','VARCHAR(MAX)') FROM ProcParmTypeList),
-           @TableColTypeList = (SELECT xml.value('/','VARCHAR(MAX)') FROM TableColTypeList);
+    SELECT @ProcParmList  = (SELECT xml.value('/','NVARCHAR(MAX)') FROM ProcParmList),
+           @TableColList  = (SELECT xml.value('/','NVARCHAR(MAX)') FROM TableColList),
+           @ProcParmTypeList = (SELECT xml.value('/','NVARCHAR(MAX)') FROM ProcParmTypeList),
+           @TableColTypeList = (SELECT xml.value('/','NVARCHAR(MAX)') FROM TableColTypeList);
 
     SELECT @Cmd = 'CREATE TABLE ' + @LogTableName + ' (_id_ int IDENTITY(1,1) PRIMARY KEY CLUSTERED ' + ISNULL(@TableColTypeList,'') + ');';
 --    RAISERROR(@Cmd,0,1)WITH NOWAIT;
@@ -495,30 +497,30 @@ GO
 CREATE PROCEDURE tSQLt.AssertEquals
     @expected SQL_VARIANT,
     @actual SQL_VARIANT,
-    @Message VARCHAR(MAX) = ''
+    @Message NVARCHAR(MAX) = ''
 AS
 BEGIN
     IF ((@expected = @actual) OR (@actual IS NULL AND @expected IS NULL))
       RETURN 0;
 
-    DECLARE @msg VARCHAR(MAX);
-    SELECT @msg = 'Expected: <' + ISNULL(CAST(@expected AS VARCHAR(MAX)), 'NULL') + 
-                  '> but was: <' + ISNULL(CAST(@actual AS VARCHAR(MAX)), 'NULL') + '>';
+    DECLARE @msg NVARCHAR(MAX);
+    SELECT @msg = 'Expected: <' + ISNULL(CAST(@expected AS NVARCHAR(MAX)), 'NULL') + 
+                  '> but was: <' + ISNULL(CAST(@actual AS NVARCHAR(MAX)), 'NULL') + '>';
     IF((COALESCE(@Message,'') <> '') AND (@Message NOT LIKE '% ')) SET @Message = @Message + ' ';
     EXEC tSQLt.Fail @Message, @msg;
 END;
 GO
 
 CREATE PROCEDURE tSQLt.AssertEqualsString
-    @expected VARCHAR(MAX),
-    @actual VARCHAR(MAX),
-    @Message VARCHAR(MAX) = ''
+    @expected NVARCHAR(MAX),
+    @actual NVARCHAR(MAX),
+    @Message NVARCHAR(MAX) = ''
 AS
 BEGIN
     IF ((@expected = @actual) OR (@actual IS NULL AND @expected IS NULL))
       RETURN 0;
 
-    DECLARE @msg VARCHAR(MAX);
+    DECLARE @msg NVARCHAR(MAX);
     SELECT @msg = 'Expected: <' + ISNULL(@expected, 'NULL') + 
                   '> but was: <' + ISNULL(@actual, 'NULL') + '>';
     EXEC tSQLt.Fail @Message, @msg;
@@ -526,11 +528,11 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.AssertObjectExists
-    @objectName VARCHAR(MAX),
-    @Message VARCHAR(MAX) = ''
+    @objectName NVARCHAR(MAX),
+    @Message NVARCHAR(MAX) = ''
 AS
 BEGIN
-    DECLARE @msg VARCHAR(MAX);
+    DECLARE @msg NVARCHAR(MAX);
     IF(@objectName LIKE '#%')
     BEGIN
      IF OBJECT_ID('tempdb..'+@objectName) IS NULL
@@ -561,15 +563,15 @@ GO
 /*******************************************************************************************/
 /*******************************************************************************************/
 GO
-CREATE PROCEDURE tSQLt.StubRecord(@snTableName AS SYSNAME, @bintObjId AS BIGINT)  
+CREATE PROCEDURE tSQLt.StubRecord(@snTableName AS NVARCHAR(MAX), @bintObjId AS BIGINT)  
 AS   
 BEGIN  
-    DECLARE @vcInsertStmt varchar(8000),  
-            @vcInsertValues varchar(8000)  
-    DECLARE @snColumnName sysname  
-    DECLARE @sintDataType smallint  
-    declare @nvcFKCmd nvarchar(4000)  
-    declare @vcFKVal varchar(1000)  
+    DECLARE @vcInsertStmt NVARCHAR(MAX),  
+            @vcInsertValues NVARCHAR(MAX);  
+    DECLARE @snColumnName NVARCHAR(MAX); 
+    DECLARE @sintDataType SMALLINT; 
+    DECLARE @nvcFKCmd NVARCHAR(MAX);  
+    DECLARE @vcFKVal NVARCHAR(MAX); 
   
     SET @vcInsertStmt = 'INSERT INTO ' + @snTableName + ' ('  
       
@@ -583,7 +585,7 @@ BEGIN
         LEFT OUTER JOIN dbo.sysconstraints ON syscolumns.id = sysconstraints.id  
                                       AND syscolumns.colid = sysconstraints.colid  
                                       AND sysconstraints.status = 1    -- Primary key constraints only  
-        LEFT OUTER JOIN (select fkeyid id,fkey colid,N'select @v=cast(min('+syscolumns.name+') as varchar) from '+sysobjects.name cmd  
+        LEFT OUTER JOIN (select fkeyid id,fkey colid,N'select @v=cast(min('+syscolumns.name+') as NVARCHAR) from '+sysobjects.name cmd  
                         from sysforeignkeys   
                         join sysobjects on sysobjects.id=sysforeignkeys.rkeyid  
                         join syscolumns on sysobjects.id=syscolumns.id and syscolumns.colid=rkey) cmd  
@@ -627,7 +629,7 @@ BEGIN
         if @nvcFKCmd is not null  
         BEGIN  
             set @vcFKVal=null  
-            exec sp_executesql @nvcFKCmd,N'@v varchar(1000) output',@vcFKVal output  
+            exec sp_executesql @nvcFKCmd,N'@v NVARCHAR(MAX) output',@vcFKVal output  
             set @vcFKVal=isnull(','''+@vcFKVal+'''',',NULL')  
         END  
         SET @vcInsertValues = @vcInsertValues + @vcFKVal  
@@ -660,8 +662,8 @@ GO
 /*******************************************************************************************/
 /*******************************************************************************************/
 /*******************************************************************************************/
-CREATE FUNCTION tSQLt.private_getCleanSchemaName(@schemaName SYSNAME, @objectName SYSNAME)
-RETURNS SYSNAME
+CREATE FUNCTION tSQLt.private_getCleanSchemaName(@schemaName NVARCHAR(MAX), @objectName NVARCHAR(MAX))
+RETURNS NVARCHAR(MAX)
 AS
 BEGIN
     RETURN (SELECT SCHEMA_NAME(schema_id) 
@@ -674,12 +676,12 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.private_RenameObjectToUniqueName
-    @schemaName SYSNAME,
-    @objectName SYSNAME,
+    @schemaName NVARCHAR(MAX),
+    @objectName NVARCHAR(MAX),
     @newName NVARCHAR(MAX) = NULL OUTPUT
 AS
 BEGIN
-   DECLARE @fullName SYSNAME;
+   DECLARE @fullName NVARCHAR(MAX);
 
    SET @fullName = @schemaName + '.' + @objectName;
 
@@ -692,14 +694,14 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.FakeTable
-    @schemaName SYSNAME,
-    @tableName SYSNAME
+    @schemaName NVARCHAR(MAX),
+    @tableName NVARCHAR(MAX)
 AS
 BEGIN
 
-   DECLARE @origSchemaName SYSNAME;
-   DECLARE @newName SYSNAME;
-   DECLARE @cmd VARCHAR(MAX);
+   DECLARE @origSchemaName NVARCHAR(MAX);
+   DECLARE @newName NVARCHAR(4000);
+   DECLARE @cmd NVARCHAR(MAX);
    
    SET @origSchemaName = @schemaName;   
    SET @schemaName = tSQLt.private_getCleanSchemaName(@schemaName, @tableName);
@@ -734,13 +736,13 @@ END
 GO
 
 CREATE PROCEDURE tSQLt.TableToText
-    @txt VARCHAR(MAX) OUTPUT,
-    @TableName SYSNAME,
-    @OrderBy VARCHAR(MAX) = NULL
+    @txt NVARCHAR(MAX) OUTPUT,
+    @TableName NVARCHAR(MAX),
+    @OrderBy NVARCHAR(MAX) = NULL
 AS
 BEGIN
     DECLARE @cmd NVARCHAR(MAX);
-    DECLARE @FullTableName SYSNAME;
+    DECLARE @FullTableName NVARCHAR(MAX);
     DECLARE @isTempTable INT;
     SELECT @isTempTable = CASE WHEN @TableName LIKE '#%' OR @TableName LIKE '[[]#%' THEN 1 ELSE 0 END;
     SELECT @OrderBy = ISNULL('ROW_NUMBER() OVER(ORDER BY '+@OrderBy+')','2'),
@@ -751,10 +753,10 @@ BEGIN
                SELECT * FROM tempdb.SYS.COLUMNS WHERE @isTempTable = 1),
          A AS (SELECT column_id,
                       A = CASE WHEN column_id = 1 THEN '' ELSE ',' END+
-                         'CAST(MAX(ISNULL(LEN('+QUOTENAME(name)+'),6))AS VARCHAR(MAX))'+
+                         'CAST(MAX(ISNULL(LEN('+QUOTENAME(name)+'),6))AS NVARCHAR(MAX))'+
                          ' AS '+QUOTENAME(name),
                       B = CASE WHEN column_id = 1 THEN '' ELSE ',' END+
-                          'CONVERT(VARCHAR(MAX),'+QUOTENAME(name)+','+
+                          'CONVERT(NVARCHAR(MAX),'+QUOTENAME(name)+','+
                           CASE WHEN TYPE_NAME(user_type_id) LIKE '%datetime' THEN '121' ELSE '0' END+
                           ') AS '+QUOTENAME(name),
                       C = CASE WHEN column_id = 1 THEN '' ELSE ',' END+
@@ -803,47 +805,47 @@ BEGIN
                              '+''+''''|'''''' ELSE ''xx'' END FROM A CROSS JOIN B), '+
                              'D(n,cmd) AS (SELECT * FROM C'+
                              '             UNION ALL'+
-                             '             SELECT 1,''DECLARE @cmd NVARCHAR(MAX);WITH A(n,txt) AS (SELECT -2,CAST('''''''' AS VARCHAR(MAX)) collate database_default+'''+
+                             '             SELECT 1,''DECLARE @cmd NVARCHAR(MAX);WITH A(n,txt) AS (SELECT -2,CAST('''''''' AS NVARCHAR(MAX)) collate database_default+'''+
                              '             UNION ALL'+
-                             '             SELECT 2000,'' UNION ALL SELECT -1,CAST('''''''' AS VARCHAR(MAX)) collate database_default+'''+
+                             '             SELECT 2000,'' UNION ALL SELECT -1,CAST('''''''' AS NVARCHAR(MAX)) collate database_default+'''+
                              '             UNION ALL'+
-                             '             SELECT 4000,'' UNION ALL SELECT '+@OrderBy+',CAST('''''''' AS VARCHAR(MAX)) collate database_default+'''+
+                             '             SELECT 4000,'' UNION ALL SELECT '+@OrderBy+',CAST('''''''' AS NVARCHAR(MAX)) collate database_default+'''+
                              '             UNION ALL'+
                              '             SELECT 6000,'' FROM '+@TableName+
                              '), E(xml) AS (SELECT CASE WHEN n = -2 THEN '''' '''' ELSE ''''+CHAR(13)+CHAR(10)+'''' END +'+
                              '''''''''''''''''+txt+'''''''''''''''' FROM A ORDER BY n FOR XML PATH(''''''''), TYPE)'+
-                             'SELECT @cmd = ''''SELECT @txt = CAST('''''''''''''''' AS VARCHAR(MAX))+''''+xml.value(''''/'''', ''''varchar(max)'''') FROM E;'+
+                             'SELECT @cmd = ''''SELECT @txt = CAST('''''''''''''''' AS NVARCHAR(MAX))+''''+xml.value(''''/'''', ''''NVARCHAR(max)'''') FROM E;'+
 --                             'PRINT LEN(@cmd);PRINT @cmd;'+
-                             'EXEC sp_executesql @cmd,N''''@txt VARCHAR(MAX) OUTPUT'''',@txt OUTPUT;'+
+                             'EXEC sp_executesql @cmd,N''''@txt NVARCHAR(MAX) OUTPUT'''',@txt OUTPUT;'+
                              ' ''),E(xml) AS (SELECT cmd AS [text()]  FROM D ORDER BY n FOR XML PATH(''''), TYPE)'+
-                             'SELECT @cmd=xml.value(''/'', ''varchar(max)'') FROM E;'+
+                             'SELECT @cmd=xml.value(''/'', ''NVARCHAR(max)'') FROM E;'+
 --                             'PRINT LEN(@cmd);PRINT @cmd;'+
-                             'EXEC sp_executesql @cmd,N''@txt VARCHAR(MAX) OUTPUT'',@txt OUTPUT;'
+                             'EXEC sp_executesql @cmd,N''@txt NVARCHAR(MAX) OUTPUT'',@txt OUTPUT;'
                      ),
          E(xml) AS (SELECT cmd AS [text()]  FROM D ORDER BY n FOR XML PATH(''), TYPE)
-    select @cmd = xml.value('/', 'varchar(max)') from E
+    select @cmd = xml.value('/', 'NVARCHAR(max)') from E
     ;
 
 --    PRINT LEN(@cmd);PRINT @cmd;
-    EXEC sp_executesql @cmd,N'@txt VARCHAR(MAX) OUTPUT',@txt OUTPUT;
+    EXEC sp_executesql @cmd,N'@txt NVARCHAR(MAX) OUTPUT',@txt OUTPUT;
 --    PRINT LEN(@txt);PRINT @txt;
 END;
 GO
 
 CREATE PROCEDURE tSQLt.TableCompare
-       @expected SYSNAME,
-       @actual SYSNAME,
-       @txt VARCHAR(MAX) = NULL OUTPUT
+       @expected NVARCHAR(MAX),
+       @actual NVARCHAR(MAX),
+       @txt NVARCHAR(MAX) = NULL OUTPUT
 AS
 BEGIN
     DECLARE @cmd NVARCHAR(MAX);
     DECLARE @r INT;
-    DECLARE @en SYSNAME;
-    DECLARE @an SYSNAME;
-    DECLARE @rn SYSNAME;
-    SELECT @en = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS VARCHAR(100))),
-           @an = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS VARCHAR(100))),
-           @rn = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS VARCHAR(100)));
+    DECLARE @en NVARCHAR(MAX);
+    DECLARE @an NVARCHAR(MAX);
+    DECLARE @rn NVARCHAR(MAX);
+    SELECT @en = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS NVARCHAR(100))),
+           @an = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS NVARCHAR(100))),
+           @rn = QUOTENAME('#tSQLt_TempTable'+CAST(NEWID() AS NVARCHAR(100)));
 
     WITH TA AS (SELECT column_id,name,is_identity
                   FROM SYS.COLUMNS 
@@ -876,21 +878,21 @@ BEGIN
                                 THEN '*1'
                                 ELSE ''
                            END+
-                         ' AS C'+CAST(column_id AS VARCHAR),
+                         ' AS C'+CAST(column_id AS NVARCHAR),
                       P1 = CASE WHEN column_id = 1 THEN '' ELSE ' AND ' END+
                            '((A.C'+
-                           CAST(column_id AS VARCHAR)+
+                           CAST(column_id AS NVARCHAR)+
                            '=E.C'+
-                           CAST(column_id AS VARCHAR)+
+                           CAST(column_id AS NVARCHAR)+
                            ') OR (COALESCE(A.C'+ 
-                           CAST(column_id AS VARCHAR)+
+                           CAST(column_id AS NVARCHAR)+
                            ',E.C'+
-                           CAST(column_id AS VARCHAR)+
+                           CAST(column_id AS NVARCHAR)+
                            ') IS NULL))',
                       P2 = ', COALESCE(E.C'+
-                           CAST(column_id AS VARCHAR)+
+                           CAST(column_id AS NVARCHAR)+
                            ',A.C'+
-                           CAST(column_id AS VARCHAR)+
+                           CAST(column_id AS NVARCHAR)+
                            ') AS '+
                            QUOTENAME(name)
                  FROM T),
@@ -927,12 +929,12 @@ BEGIN
                                   ' DROP TABLE '+@an+'; DROP TABLE '+@en+'; DROP TABLE '+@rn+';'
                      ),
          E(xml) AS (SELECT cmd AS [data()]  FROM D ORDER BY n FOR XML PATH(''), TYPE)
-    select @cmd = xml.value( '/', 'varchar(max)' ) from E;
+    select @cmd = xml.value( '/', 'NVARCHAR(max)' ) from E;
 
 --    PRINT @cmd;
-    EXEC sp_executesql @cmd, N'@r INT OUTPUT, @txt VARCHAR(MAX) OUTPUT', @r OUTPUT, @txt OUTPUT;;
+    EXEC sp_executesql @cmd, N'@r INT OUTPUT, @txt NVARCHAR(MAX) OUTPUT', @r OUTPUT, @txt OUTPUT;;
 
---    PRINT 'Outcome:'+CAST(@r AS VARCHAR);
+--    PRINT 'Outcome:'+CAST(@r AS NVARCHAR);
 --    PRINT @txt; 
     RETURN @r;
 END;
@@ -942,12 +944,12 @@ GO
 /*******************************************************************************************/
 /*******************************************************************************************/
 CREATE PROCEDURE tSQLt.AssertEqualsTable
-    @Expected SYSNAME,
-    @Actual SYSNAME,
-    @FailMsg VARCHAR(4000) = 'unexpected/missing resultset rows!'
+    @Expected NVARCHAR(MAX),
+    @Actual NVARCHAR(MAX),
+    @FailMsg NVARCHAR(MAX) = 'unexpected/missing resultset rows!'
 AS
 BEGIN
-    DECLARE @TblMsg VARCHAR(MAX);
+    DECLARE @TblMsg NVARCHAR(MAX);
     DECLARE @r INT;
     DECLARE @errorMessage NVARCHAR(MAX);
     DECLARE @failureOccurred BIT;
@@ -973,15 +975,15 @@ GO
 /*******************************************************************************************/
 
 CREATE PROCEDURE tSQLt.ApplyConstraint
-       @schemaName SYSNAME,
-       @tableName SYSNAME,
-       @constraintName SYSNAME
+       @schemaName NVARCHAR(MAX),
+       @tableName NVARCHAR(MAX),
+       @constraintName NVARCHAR(MAX)
 AS
 BEGIN
   DECLARE @orgTableName NVARCHAR(MAX);
   DECLARE @cmd NVARCHAR(MAX);
 
-  SELECT @orgTableName = CAST(value AS NVARCHAR(300))
+  SELECT @orgTableName = CAST(value AS NVARCHAR(4000))
     FROM sys.extended_properties
    WHERE class_desc = 'OBJECT_OR_COLUMN'
      AND major_id = OBJECT_ID(@schemaName + '.' + @tableName)
