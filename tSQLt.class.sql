@@ -54,6 +54,15 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.NewTestClass
+    @ClassName NVARCHAR(MAX)
+AS
+BEGIN
+    EXEC tSQLt.DropClass @ClassName = @ClassName;
+    EXEC ('CREATE SCHEMA ' + @ClassName);
+END;
+GO
+
 CREATE FUNCTION tSQLt.private_getForeignKeyDefinition(
     @SchemaName NVARCHAR(MAX),
     @ParentTableName NVARCHAR(MAX),

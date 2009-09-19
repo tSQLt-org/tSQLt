@@ -10,6 +10,7 @@ TODO
 - length of sysname (in testresult)???
 - asserSpyProc[Not]Called
 - applyConstraint and triggers
+- make parameters for procedures consistent (either always pass schema name or pass schema.object)See: select OBJECT_NAME(id) ProcName,* from syscolumns where id in (select object_id from sys.procedures where schema_id = SCHEMA_ID('tSQLt')) ORDER BY ProcName
 */
 
 DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Executed at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
