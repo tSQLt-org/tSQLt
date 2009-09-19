@@ -1184,5 +1184,31 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt_test.[test NewTestClass creates a new schema]
+AS
+BEGIN
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    
+    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'MyTestClass')
+    BEGIN
+        EXEC tSQLt.Fail 'Should have created schema: MyTestClass';
+    END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test NewTestClass calls tSQLt.DropClass]
+AS
+BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.DropClass';
+    
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    
+    IF NOT EXISTS(SELECT * FROM tSQLt.DropClass_SpyProcedureLog WHERE ClassName = 'MyTestClass') 
+    BEGIN
+        EXEC tSQLt.Fail 'Should have called tSQLt.DropClass ''MyTestClass''';
+    END
+END;
+GO
+ 
 --ROLLBACK
 --tSQLt_test
