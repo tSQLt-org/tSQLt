@@ -1,3 +1,9 @@
+-- rewrite AssertEqualsTable
+-- AssertLike
+-- TryBlockHelperProcedure
+-- DropObject
+-- UndoLog
+-- Create Class should add extended property
 DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
 GO
 EXEC tSQLt.DropClass tSQLt_testutil;
@@ -202,7 +208,7 @@ CREATE PROC tSQLt_test.test_SpyProcedure_shouldAllowTesterToNotExecuteBehaviorOf
 AS
 BEGIN
 
-    EXEC('CREATE PROC dbo.InnerProcedure AS EXEC tSQLt.Fail ''InnerProcedure was executed'';');
+    EXEC('CREATE PROC dbo.InnerProcedure AS EXEC tSQLt.Fail ''Original InnerProcedure was executed'';');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
@@ -307,6 +313,21 @@ BEGIN
     IF ISNULL(@result,'') <> 'VARCHAR(8)'
     BEGIN
         EXEC tSQLt.Fail 'getFullTypeName should have returned VARCHAR(8), but returned ', @result, ' instead';
+    END
+END
+GO
+
+CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_NVARCHAR_with_length_parameters
+AS
+BEGIN
+    DECLARE @result VARCHAR(MAX);
+
+    SELECT @result = typeName
+     FROM tSQLt.getFullTypeName(TYPE_ID('NVARCHAR'), 8, NULL, NULL);
+
+    IF ISNULL(@result,'') <> 'NVARCHAR(4)'
+    BEGIN
+        EXEC tSQLt.Fail 'getFullTypeName should have returned NVARCHAR(4), but returned ', @result, ' instead';
     END
 END
 GO
@@ -1209,6 +1230,257 @@ BEGIN
     END
 END;
 GO
- 
+CREATE PROCEDURE tSQLt_test.[test SpyProcedure works if spyee has 100 parameters with 8000 bytes each]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.InnerProcedure') IS NOT NULL DROP PROCEDURE dbo.InnerProcedure;
+  DECLARE @cmd VARCHAR(MAX);
+  SELECT @cmd = 'CREATE PROCEDURE dbo.InnerProcedure('+
+                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@p'+CAST(no AS VARCHAR)+' CHAR(8000)' [text()]
+                   FROM tSQLt.f_Num(1020)
+                    FOR XML PATH('')
+                )+
+                ') AS BEGIN RETURN 0; END;';
+  EXEC(@cmd);
+
+  SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+    INTO #expectedM
+    FROM sys.parameters
+   WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+  EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+  SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+    INTO #actualM
+    FROM sys.parameters
+   WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+  SELECT * 
+    INTO #actual1
+    FROM #actualM
+   WHERE parameter_id<511;
+  SELECT * 
+    INTO #expected1
+    FROM #expectedM
+   WHERE parameter_id<511;
+   
+  EXEC tSQLt.AssertEqualsTable '#expected1','#actual1';
+
+  SELECT * 
+    INTO #actual2
+    FROM #actualM
+   WHERE parameter_id>510;
+  SELECT * 
+    INTO #expected2
+    FROM #expectedM
+   WHERE parameter_id>510;
+   
+  EXEC tSQLt.AssertEqualsTable '#expected2','#actual2';
+END
+GO
+CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates char parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+             @CHAR1 CHAR(1),
+             @CHAR8000 CHAR(8000),
+             @VARCHAR1 VARCHAR(1),
+             @VARCHAR8000 VARCHAR(8000),
+             @VARCHARMAX VARCHAR(MAX)
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates binary parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+             @BINARY1 BINARY(1) =NULL,
+             @BINARY8000 BINARY(8000) =NULL,
+             @VARBINARY1 VARBINARY(1) =NULL,
+             @VARBINARY8000 VARBINARY(8000) =NULL,
+             @VARBINARYMAX VARBINARY(MAX) =NULL
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+     EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates log which handles binary columns]
+AS
+BEGIN
+    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+             @VARBINARY8000 VARBINARY(8000) =NULL
+          )
+          AS BEGIN RETURN 0; END');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+     
+    EXEC dbo.InnerProcedure @VARBINARY8000=0x111122223333444455556666777788889999;
+
+    DECLARE @actual VARBINARY(8000);
+    SELECT @actual = VARBINARY8000 FROM dbo.InnerProcedure_SpyProcedureLog;
+    
+    EXEC tSQLt.AssertEquals 0x111122223333444455556666777788889999, @actual;
+END;
+GO
+
+
+CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates nchar parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+             @NCHAR1 NCHAR(1),
+             @NCHAR4000 NCHAR(4000),
+             @NVARCHAR1 NVARCHAR(1),
+             @NVARCHAR4000 NVARCHAR(4000),
+             @NVARCHARMAX NVARCHAR(MAX)
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates other parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+             @TINYINT TINYINT,
+             @SMALLINT SMALLINT,
+             @INT INT,
+             @BIGINT BIGINT
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+CREATE PROCEDURE tSQLt_test.[test SpyProcedure fails with error if spyee has more than 1020 parameters]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.Spyee') IS NOT NULL DROP PROCEDURE dbo.Spyee;
+  DECLARE @cmd VARCHAR(MAX);
+  SELECT @cmd = 'CREATE PROCEDURE dbo.Spyee('+
+                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@p'+CAST(no AS VARCHAR)+' INT' [text()]
+                   FROM tSQLt.f_Num(1021)
+                    FOR XML PATH('')
+                )+
+                ') AS BEGIN RETURN 0; END;';
+  EXEC(@cmd);
+  DECLARE @err VARCHAR(MAX);SET @err = 'NO ERROR';
+  BEGIN TRY
+    EXEC tSQLt.SpyProcedure 'dbo.Spyee';
+  END TRY
+  BEGIN CATCH
+    SET @err = ERROR_MESSAGE();
+  END CATCH
+  
+  IF @err NOT LIKE '%dbo.Spyee%' AND @err NOT LIKE '%1020 parameters%'
+  BEGIN
+      EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+  END;
+  
+END
+GO
+CREATE PROCEDURE tSQLt_test.[test f_Num(13) returns 13 rows]
+AS
+BEGIN
+  SELECT no
+    INTO #actual
+    FROM tSQLt.f_Num(13);
+    
+  SELECT * INTO #expected FROM #actual WHERE 1=0;
+  
+  INSERT #expected(no)
+  SELECT 1 no UNION ALL
+  SELECT 2 no UNION ALL
+  SELECT 3 no UNION ALL
+  SELECT 4 no UNION ALL
+  SELECT 5 no UNION ALL
+  SELECT 6 no UNION ALL
+  SELECT 7 no UNION ALL
+  SELECT 8 no UNION ALL
+  SELECT 9 no UNION ALL
+  SELECT 10 no UNION ALL
+  SELECT 11 no UNION ALL
+  SELECT 12 no UNION ALL
+  SELECT 13 no;
+  
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END 
+GO
+CREATE PROCEDURE tSQLt_test.[test f_Num(0) returns 0 rows]
+AS
+BEGIN
+  SELECT no
+    INTO #actual
+    FROM tSQLt.f_Num(0);
+    
+  SELECT * INTO #expected FROM #actual WHERE 1=0;
+  
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END 
+GO
+CREATE PROCEDURE tSQLt_test.[test f_Num(-11) returns 0 rows]
+AS
+BEGIN
+  SELECT no
+    INTO #actual
+    FROM tSQLt.f_Num(-11);
+    
+  SELECT * INTO #expected FROM #actual WHERE 1=0;
+  
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END 
+
+
+
 --ROLLBACK
 --tSQLt_test
