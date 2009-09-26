@@ -433,6 +433,8 @@ AS
 RETURN SELECT typeName = TYPE_NAME(@TypeId) +
               CASE WHEN @Length = -1
                     THEN '(MAX)'
+                   WHEN TYPE_NAME(@TypeId) LIKE 'N%CHAR'
+                    THEN '(' + CAST(@Length / 2 AS NVARCHAR) + ')'
                    WHEN TYPE_NAME(@TypeId) LIKE '%CHAR' OR TYPE_NAME(@TypeId) LIKE '%BINARY'
                     THEN '(' + CAST(@Length AS NVARCHAR) + ')'
                    WHEN TYPE_NAME(@TypeId) IN ('DECIMAL', 'NUMERIC')
@@ -452,6 +454,12 @@ BEGIN
             @TableColList NVARCHAR(MAX),
             @ProcParmTypeList NVARCHAR(MAX),
             @TableColTypeList NVARCHAR(MAX);
+            
+    IF (1020 < (SELECT COUNT(*) FROM sys.parameters WHERE object_id = OBJECT_ID(@ProcedureName)))
+    BEGIN
+      RAISERROR('Cannot use SpyProcedure on procedure %s because it contains more than 1020 parameters', 16, 10, @ProcedureName) WITH NOWAIT;
+      RETURN -1;
+    END;
 
     SELECT @LogTableName =  QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)) + '.' + QUOTENAME(OBJECT_NAME(ObjId)+'_SpyProcedureLog')
       FROM (SELECT OBJECT_ID(@ProcedureName) AS ObjId)X;
@@ -471,7 +479,14 @@ BEGIN
                       sep + pname,
                       sep + cname,
                       sep + pname + ' ' + type +' = NULL',
-                      ',' + cname + ' ' + type
+                      ',' + cname + ' ' + 
+                          CASE WHEN type LIKE '%NCHAR%'
+                                 OR type LIKE '%NVARCHAR%'
+                               THEN 'NVARCHAR(MAX)'
+                               WHEN type LIKE '%CHAR%'
+                               THEN 'VARCHAR(MAX)'
+                               ELSE type
+                          END
                  FROM A
               ),
          ProcParmList(xml) AS (SELECT ProcParm AS [text()] FROM B ORDER BY no FOR XML PATH(''), TYPE),
@@ -484,11 +499,11 @@ BEGIN
            @TableColTypeList = (SELECT xml.value('/','NVARCHAR(MAX)') FROM TableColTypeList);
 
     SELECT @Cmd = 'CREATE TABLE ' + @LogTableName + ' (_id_ int IDENTITY(1,1) PRIMARY KEY CLUSTERED ' + ISNULL(@TableColTypeList,'') + ');';
---    RAISERROR(@Cmd,0,1)WITH NOWAIT;
+    --RAISERROR(@Cmd,0,1)WITH NOWAIT;
     EXEC(@Cmd);
 
     SELECT @Cmd = 'DROP PROCEDURE ' + @ProcedureName +';';
---    RAISERROR(@Cmd,0,1)WITH NOWAIT;
+    --RAISERROR(@Cmd,0,1)WITH NOWAIT;
     EXEC(@Cmd);
 
     SELECT @Cmd = 'CREATE PROCEDURE ' + @ProcedureName + ISNULL('(' + @ProcParmTypeList + ')', '') + 
@@ -496,7 +511,7 @@ BEGIN
                      'INSERT INTO ' + @LogTableName + 
                      ISNULL(' (' + @TableColList + ') SELECT ' + @ProcParmList, ' DEFAULT VALUES') + 
                   '; END;';
---    RAISERROR(@Cmd,0,1)WITH NOWAIT;
+    --RAISERROR(@Cmd,0,1)WITH NOWAIT;
     EXEC(@Cmd);
 
     RETURN 0;
@@ -1036,3 +1051,17 @@ BEGIN
   RETURN 0;
 END;
 GO
+CREATE FUNCTION [tSQLt].[f_Num](
+       @n INT
+)
+RETURNS TABLE 
+AS 
+RETURN WITH C0(c) AS (SELECT 1 UNION ALL SELECT 1),
+            C1(c) AS (SELECT 1 FROM C0 AS A CROSS JOIN C0 AS B),
+            C2(c) AS (SELECT 1 FROM C1 AS A CROSS JOIN C1 AS B),
+            C3(c) AS (SELECT 1 FROM C2 AS A CROSS JOIN C2 AS B),
+            C4(c) AS (SELECT 1 FROM C3 AS A CROSS JOIN C3 AS B),
+            C5(c) AS (SELECT 1 FROM C4 AS A CROSS JOIN C4 AS B),
+            C6(c) AS (SELECT 1 FROM C5 AS A CROSS JOIN C5 AS B)
+       SELECT TOP(CASE WHEN @n>0 THEN @n ELSE 0 END) ROW_NUMBER() OVER (ORDER BY c) no
+         FROM C6;
