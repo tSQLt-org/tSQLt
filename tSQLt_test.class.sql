@@ -1,9 +1,3 @@
--- rewrite AssertEqualsTable
--- AssertLike
--- TryBlockHelperProcedure
--- DropObject
--- UndoLog
--- Create Class should add extended property
 DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
 GO
 EXEC tSQLt.DropClass tSQLt_testutil;
