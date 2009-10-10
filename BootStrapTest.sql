@@ -1,6 +1,7 @@
 /*
 TODO
 ====
+- Test SCHEMA name same as existing dbo. procedure name prevents running test cases! ->Rule: SCHEMA wins
 - table compare of table compare result fails???
 - rerun last testclass if no parameter is given
 - inject code in spyproc
