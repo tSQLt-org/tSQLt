@@ -1057,3 +1057,34 @@ RETURN WITH C0(c) AS (SELECT 1 UNION ALL SELECT 1),
             C6(c) AS (SELECT 1 FROM C5 AS A CROSS JOIN C5 AS B)
        SELECT TOP(CASE WHEN @n>0 THEN @n ELSE 0 END) ROW_NUMBER() OVER (ORDER BY c) no
          FROM C6;
+GO
+
+CREATE PROCEDURE [tSQLt].[EnableViewFaking]
+  @viewName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX),
+          @schemaName NVARCHAR(MAX),
+          @triggerName NVARCHAR(MAX);
+  
+  SELECT @schemaName = QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)),
+         @viewName = QUOTENAME(OBJECT_NAME(ObjId)),
+         @triggerName = QUOTENAME(OBJECT_NAME(ObjId) + '_EnableViewFaking')
+    FROM (SELECT OBJECT_ID(@ViewName) AS ObjId) X;
+  
+  SET @cmd = 
+     'CREATE TRIGGER %SCHEMA_NAME%.%TRIGGER_NAME%
+      ON %SCHEMA_NAME%.%VIEW_NAME% INSTEAD OF INSERT AS
+      BEGIN
+         RETURN;
+      END;'
+      
+  SET @cmd = REPLACE(@cmd, '%SCHEMA_NAME%', @schemaName);
+  SET @cmd = REPLACE(@cmd, '%VIEW_NAME%', @viewName);
+  SET @cmd = REPLACE(@cmd, '%TRIGGER_NAME%', @triggerName);
+  
+  EXEC(@cmd);
+
+  RETURN 0;
+END;
+GO
