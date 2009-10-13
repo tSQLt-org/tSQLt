@@ -1473,8 +1473,44 @@ BEGIN
   
   EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END 
+GO
 
+CREATE PROCEDURE tSQLt_test.[test that tSQLt.EnableViewFaking allows a non-updatable view to be faked using tSQLt.FakeTable and then inserted into]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA NewSchema;');
 
+  EXEC('
+      CREATE TABLE NewSchema.A (a1 int, a2 int);
+      CREATE TABLE NewSchema.B (a1 int, b1 int, b2 int);
+      ');
+
+  EXEC('      
+      CREATE VIEW NewSchema.NewView AS
+        SELECT A.a1, A.a2, B.b1, B.b2
+          FROM NewSchema.A
+          JOIN NewSchema.B ON A.a1 = B.a1;
+      ');
+      
+  -- EnableViewFaking is executing in a separate batch (typically followed by a GO statement)
+  -- than the code of the test case
+  EXEC('    
+      EXEC tSQLt.EnableViewFaking @ViewName = ''NewSchema.NewView'';
+      ');
+      
+  EXEC('
+      EXEC tSQLt.FakeTable ''NewSchema'', ''NewView'';
+
+      INSERT INTO NewSchema.NewView (a1, a2, b1, b2) VALUES (1, 2, 3, 4);
+      ');
+  
+  SELECT a1, a2, b1, b2 INTO #expected
+    FROM (SELECT 1 AS a1, 2 AS a2, 3 AS b1, 4 AS b2) X;
+    
+  EXEC tSQLt.AssertEqualsTable '#expected', 'NewSchema.NewView';
+  
+END
+GO
 
 --ROLLBACK
 --tSQLt_test
