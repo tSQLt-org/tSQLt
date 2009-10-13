@@ -1,7 +1,8 @@
 DECLARE @msg NVARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(NVARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
 GO
 
-EXEC tSQLt.DropClass tSQLt;
+IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
+    EXEC tSQLt.DropClass tSQLt;
 GO
 CREATE SCHEMA tSQLt;
 GO
