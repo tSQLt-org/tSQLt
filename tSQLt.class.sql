@@ -100,6 +100,11 @@ CREATE TABLE tSQLt.Run_LastExecution(
     login_time DATETIME
 );
 GO
+CREATE TABLE tSQLt.TestSystemProperty(
+    [name] VARCHAR(MAX),
+    [value] VARCHAR(MAX)
+);
+GO
 
 CREATE PROCEDURE tSQLt.private_Print 
     @message NVARCHAR(MAX),
@@ -329,6 +334,12 @@ SET NOCOUNT ON;
     DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
     DECLARE @isSuccess INT;
     DECLARE @severity INT;
+    
+    IF EXISTS (SELECT 1 FROM [tSQLt].[ViewFakeEnabled])
+    BEGIN
+      RAISERROR('Test system is in an invalid state. ResetViewFaking must be called if EnableViewFaking was called. Call ResetViewFaking after creating test case procedures.', 16, 10) WITH NOWAIT;
+      RETURN -1;
+    END;
 
     IF(LTRIM(ISNULL(@testName,'')) = '')
     BEGIN
@@ -1059,19 +1070,27 @@ RETURN WITH C0(c) AS (SELECT 1 UNION ALL SELECT 1),
          FROM C6;
 GO
 
-CREATE PROCEDURE [tSQLt].[EnableViewFaking]
+CREATE TABLE [tSQLt].[ViewFakeEnabled] (
+    ID INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    schemaName NVARCHAR(MAX) NOT NULL,
+    viewName NVARCHAR(MAX) NOT NULL,
+    triggerName NVARCHAR(MAX) NOT NULL
+);
+GO
+
+CREATE PROCEDURE [tSQLt].[EnableViewFaking_SingleView]
   @viewName NVARCHAR(MAX)
 AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX),
           @schemaName NVARCHAR(MAX),
           @triggerName NVARCHAR(MAX);
-  
+          
   SELECT @schemaName = QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)),
          @viewName = QUOTENAME(OBJECT_NAME(ObjId)),
          @triggerName = QUOTENAME(OBJECT_NAME(ObjId) + '_EnableViewFaking')
     FROM (SELECT OBJECT_ID(@ViewName) AS ObjId) X;
-  
+
   SET @cmd = 
      'CREATE TRIGGER %SCHEMA_NAME%.%TRIGGER_NAME%
       ON %SCHEMA_NAME%.%VIEW_NAME% INSTEAD OF INSERT AS
@@ -1083,8 +1102,90 @@ BEGIN
   SET @cmd = REPLACE(@cmd, '%VIEW_NAME%', @viewName);
   SET @cmd = REPLACE(@cmd, '%TRIGGER_NAME%', @triggerName);
   
+  INSERT INTO [tSQLt].[ViewFakeEnabled] (schemaName, viewName, triggerName)
+  VALUES (@schemaName, @viewName, @triggerName)
+
   EXEC(@cmd);
 
   RETURN 0;
+END;
+GO
+
+CREATE PROCEDURE [tSQLt].[EnableViewFaking]
+  @schemaName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @viewName NVARCHAR(MAX);
+    
+  DECLARE viewNames CURSOR LOCAL FAST_FORWARD FOR
+  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(object_id)) + '.' + QUOTENAME([name]) AS viewName
+    FROM sys.objects
+   WHERE type = 'V'
+     AND schema_id = SCHEMA_ID(@schemaName);
+  
+  OPEN viewNames;
+  
+  FETCH NEXT FROM viewNames INTO @viewName;
+  WHILE @@FETCH_STATUS = 0
+  BEGIN
+    EXEC tSQLt.EnableViewFaking_SingleView @viewName;
+    
+    FETCH NEXT FROM viewNames INTO @viewName;
+  END;
+  
+  CLOSE viewNames;
+  DEALLOCATE viewNames;
+END;
+GO
+
+CREATE PROCEDURE [tSQLt].[ResetViewFaking]
+  @schemaName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @viewName NVARCHAR(MAX);
+    
+  DECLARE viewNames CURSOR LOCAL FAST_FORWARD FOR
+  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(object_id)) + '.' + QUOTENAME([name]) AS viewName
+    FROM sys.objects
+   WHERE type = 'V'
+     AND schema_id = SCHEMA_ID(@schemaName);
+  
+  OPEN viewNames;
+  
+  FETCH NEXT FROM viewNames INTO @viewName;
+  WHILE @@FETCH_STATUS = 0
+  BEGIN
+    EXEC tSQLt.ResetViewFaking_SingleView @viewName;
+    
+    FETCH NEXT FROM viewNames INTO @viewName;
+  END;
+  
+  CLOSE viewNames;
+  DEALLOCATE viewNames;
+END;
+GO
+
+CREATE PROCEDURE [tSQLt].[ResetViewFaking_SingleView]
+  @viewName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX),
+          @schemaName NVARCHAR(MAX),
+          @triggerName NVARCHAR(MAX);
+          
+  SELECT @schemaName = QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)),
+         @triggerName = QUOTENAME(OBJECT_NAME(ObjId) + '_EnableViewFaking')
+    FROM (SELECT OBJECT_ID(@ViewName) AS ObjId) X;
+  
+  SET @cmd = 'DROP TRIGGER %SCHEMA_NAME%.%TRIGGER_NAME%;';
+      
+  SET @cmd = REPLACE(@cmd, '%SCHEMA_NAME%', @schemaName);
+  SET @cmd = REPLACE(@cmd, '%TRIGGER_NAME%', @triggerName);
+  
+  EXEC(@cmd);
+  
+  DELETE [tSQLt].[ViewFakeEnabled]
+  WHERE schemaName = @schemaName
+    AND triggerName = @triggerName;
 END;
 GO
