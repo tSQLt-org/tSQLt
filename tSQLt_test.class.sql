@@ -126,7 +126,7 @@ BEGIN
     DECLARE @errorRaised INT; SET @errorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS SELECT 1/0;');
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 1/0;');
     
     BEGIN TRY
         EXEC tSQLt.RunTestClass MyTestClass;
@@ -1475,7 +1475,7 @@ BEGIN
 END 
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that tSQLt.EnableViewFaking allows a non-updatable view to be faked using tSQLt.FakeTable and then inserted into]
+CREATE PROCEDURE tSQLt_test.[test that tSQLt.EnableViewFaking_SingleView allows a non-updatable view to be faked using tSQLt.FakeTable and then inserted into]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
@@ -1483,27 +1483,28 @@ BEGIN
   EXEC('
       CREATE TABLE NewSchema.A (a1 int, a2 int);
       CREATE TABLE NewSchema.B (a1 int, b1 int, b2 int);
+      CREATE TABLE NewSchema.C (b1 int, c1 int, c2 int);
       ');
 
   EXEC('      
       CREATE VIEW NewSchema.NewView AS
         SELECT A.a1, A.a2, B.b1, B.b2
           FROM NewSchema.A
-          JOIN NewSchema.B ON A.a1 = B.a1;
+          JOIN NewSchema.B ON A.a1 < B.a1
+          JOIN NewSchema.C ON B.a1 > C.b1;
       ');
       
-  -- EnableViewFaking is executing in a separate batch (typically followed by a GO statement)
+  -- EnableViewFaking is executed in a separate batch (typically followed by a GO statement)
   -- than the code of the test case
   EXEC('    
-      EXEC tSQLt.EnableViewFaking @ViewName = ''NewSchema.NewView'';
+      EXEC tSQLt.EnableViewFaking_SingleView @ViewName = ''NewSchema.NewView'';
       ');
       
   EXEC('
       EXEC tSQLt.FakeTable ''NewSchema'', ''NewView'';
-
       INSERT INTO NewSchema.NewView (a1, a2, b1, b2) VALUES (1, 2, 3, 4);
       ');
-  
+
   SELECT a1, a2, b1, b2 INTO #expected
     FROM (SELECT 1 AS a1, 2 AS a2, 3 AS b1, 4 AS b2) X;
     
@@ -1512,5 +1513,178 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE tSQLt_test.[test that not calling tSQLt.ResetViewFaking_SingleView before running tests causes an exception and tests not to be run]
+AS
+BEGIN
+  DECLARE @errorOccurred BIT; SET @errorOccurred = 0;
+  
+  EXEC('CREATE SCHEMA NewSchema;');
+  EXEC('CREATE VIEW NewSchema.NewView AS SELECT 1 AS a;');
+  EXEC('EXEC tSQLt.EnableViewFaking_SingleView @ViewName = ''NewSchema.NewView'';');
+  
+  EXEC ('EXEC tSQLt.NewTestClass TestClass;');
+  
+  EXEC ('
+    CREATE PROCEDURE TestClass.testExample
+    AS
+    BEGIN
+      RETURN 0;
+    END;
+  ');
+  
+  BEGIN TRY
+    EXEC tSQLt.RunTestClass 'TestClass';
+    SET @errorOccurred = 0;
+  END TRY
+  BEGIN CATCH
+    SET @errorOccurred = 1;
+  END CATCH
+  
+  IF @errorOccurred = 0
+  BEGIN
+    EXEC tSQLt.Fail 'Expected RunTestClass to raise an error because ResetViewFaking_SingleView was not executed';
+  END;
+END
+GO
+
+CREATE PROCEDURE tSQLt_test.[test that calling tSQLt.ResetViewFaking_SingleView before running tests allows tests to be run]
+AS
+BEGIN
+  DECLARE @errorOccurred BIT; SET @errorOccurred = 0;
+  
+  EXEC('CREATE SCHEMA NewSchema;');
+  EXEC('CREATE VIEW NewSchema.NewView AS SELECT 1 AS a;');
+  EXEC('EXEC tSQLt.EnableViewFaking_SingleView @ViewName = ''NewSchema.NewView'';');
+  
+  EXEC ('EXEC tSQLt.NewTestClass TestClass;');
+  
+  EXEC ('
+    CREATE PROCEDURE TestClass.testExample
+    AS
+    BEGIN
+      RETURN 0;
+    END;
+  ');
+  
+  EXEC('EXEC tSQLt.ResetViewFaking_SingleView @ViewName = ''NewSchema.NewView'';');
+  
+  BEGIN TRY
+    EXEC tSQLt.RunTestClass 'TestClass';
+    SET @errorOccurred = 0;
+  END TRY
+  BEGIN CATCH
+    SET @errorOccurred = 1;
+  END CATCH
+  
+  IF @errorOccurred = 1
+  BEGIN
+    EXEC tSQLt.Fail 'Expected RunTestClass to not raise an error because ResetViewFaking_SingleView was executed';
+  END;
+END
+GO
+
+
+CREATE PROCEDURE tSQLt_test.[test that calling tSQLt.ResetViewFaking_SingleView removes trigger created by tSQLt.EnableViewFaking_SingleView]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA NewSchema;');
+  EXEC('CREATE VIEW NewSchema.NewView AS SELECT 1 AS a;');
+  EXEC('EXEC tSQLt.EnableViewFaking_SingleView @ViewName = ''NewSchema.NewView'';');
+  EXEC('EXEC tSQLt.ResetViewFaking_SingleView @ViewName = ''NewSchema.NewView'';');
+  
+  IF EXISTS (SELECT 1 FROM sys.triggers WHERE [name] = 'NewView_EnableViewFaking')
+  BEGIN
+    EXEC tSQLt.Fail 'Expected NewView_EnableViewFaking to be removed.';
+  END;
+END
+GO
+
+CREATE PROCEDURE tSQLt_test.CreateNonUpdatableView
+  @schemaName NVARCHAR(MAX),
+  @viewName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+
+  SET @cmd = '
+      CREATE TABLE $$SCHEMA_NAME$$.$$VIEW_NAME$$_A (a1 int, a2 int);
+      CREATE TABLE $$SCHEMA_NAME$$.$$VIEW_NAME$$_B (a1 int, b1 int, b2 int);';
+  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
+  EXEC (@cmd);
+
+  SET @cmd = '
+    CREATE VIEW $$SCHEMA_NAME$$.$$VIEW_NAME$$ AS 
+      SELECT A.a1, A.a2, B.b1, B.b2
+        FROM $$SCHEMA_NAME$$.$$VIEW_NAME$$_A A
+        JOIN $$SCHEMA_NAME$$.$$VIEW_NAME$$_B B ON A.a1 = B.a1;';
+  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
+  EXEC (@cmd);
+
+END
+GO
+
+CREATE PROCEDURE tSQLt_test.AssertViewCanBeUpdatedIfFaked
+  @schemaName NVARCHAR(MAX),
+  @viewName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+
+  SET @cmd = '
+      EXEC tSQLt.FakeTable ''$$SCHEMA_NAME$$'', ''$$VIEW_NAME$$'';
+      INSERT INTO $$SCHEMA_NAME$$.$$VIEW_NAME$$ (a1, a2, b1, b2) VALUES (1, 2, 3, 4);';
+  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
+  EXEC (@cmd);
+  
+  SET @cmd = '
+    SELECT a1, a2, b1, b2 INTO #expected
+    FROM (SELECT 1 AS a1, 2 AS a2, 3 AS b1, 4 AS b2) X;
+    
+    EXEC tSQLt.AssertEqualsTable ''#expected'', ''$$SCHEMA_NAME$$.$$VIEW_NAME$$'';';
+  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
+  EXEC (@cmd);
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test that tSQLt.EnableViewFaking @schemaName applies to all views on a schema]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA NewSchema;');
+  EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View1';
+  EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View2';
+  EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View3';
+  EXEC('EXEC tSQLt.EnableViewFaking @schemaName = ''NewSchema'';');
+  
+  EXEC tSQLt_test.AssertViewCanBeUpdatedIfFaked 'NewSchema', 'View1';
+  EXEC tSQLt_test.AssertViewCanBeUpdatedIfFaked 'NewSchema', 'View2';
+  EXEC tSQLt_test.AssertViewCanBeUpdatedIfFaked 'NewSchema', 'View3';
+  
+  -- Also check that triggers got created. Checking if a view is updatable is
+  -- apparently unreliable, since SQL Server could have decided on this run
+  -- that these views are updatable at compile time, even though they were not.
+  IF (SELECT COUNT(*) FROM sys.triggers WHERE [name] LIKE 'View_[_]EnableViewFaking') <> 3
+  BEGIN
+    EXEC tSQLt.Fail 'Expected _EnableViewFaking triggers to be added.';
+  END;
+END
+GO
+
+
+CREATE PROCEDURE tSQLt_test.[test that tSQLt.ResetViewFaking @schemaName applies to all views on a schema]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA NewSchema;');
+  EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View1';
+  EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View2';
+  EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View3';
+  EXEC('EXEC tSQLt.EnableViewFaking @schemaName = ''NewSchema'';');
+  EXEC('EXEC tSQLt.ResetViewFaking @schemaName = ''NewSchema'';');
+  
+  IF EXISTS (SELECT 1 FROM sys.triggers WHERE [name] LIKE 'View_[_]EnableViewFaking')
+  BEGIN
+    EXEC tSQLt.Fail 'Expected _EnableViewFaking triggers rto be removed.';
+  END;
+END
+GO
 --ROLLBACK
 --tSQLt_test
