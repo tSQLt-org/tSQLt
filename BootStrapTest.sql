@@ -3,12 +3,8 @@ TODO
 ====
 - Test SCHEMA name same as existing dbo. procedure name prevents running test cases! ->Rule: SCHEMA wins
 - table compare of table compare result fails???
-- rerun last testclass if no parameter is given
-- inject code in spyproc
+- inject code in spyproc and store all execs for all spys in one table (NO XML :( )
 - cleanup hanging transactions on start???
-- allow RunTestClass to execute single testcase
-- remember last testcase / testclass  (in #table ->restriction to connection)
-- length of sysname (in testresult)???
 - asserSpyProc[Not]Called
 - applyConstraint and triggers
 - make parameters for procedures consistent (either always pass schema name or pass schema.object)See: select OBJECT_NAME(id) ProcName,* from syscolumns where id in (select object_id from sys.procedures where schema_id = SCHEMA_ID('tSQLt')) ORDER BY ProcName

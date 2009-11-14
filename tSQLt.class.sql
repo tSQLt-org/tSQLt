@@ -172,16 +172,26 @@ BEGIN
     DECLARE @Result NVARCHAR(MAX); SET @Result = 'Success';
     DECLARE @TranName CHAR(32); EXEC tSQLt.getNewTranName @TranName OUT;
     DECLARE @TestResultID INT;
+    DECLARE @PreExecTrancount INT;
+
+    IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
+    BEGIN
+      RAISERROR('Test system is in an invalid state. SetFakeViewOff must be called if SetFakeViewOn was called. Call SetFakeViewOff after creating all test case procedures.', 16, 10) WITH NOWAIT;
+      RETURN -1;
+    END;
 
     SELECT @cmd = 'EXEC ' + @testName;
 
-    INSERT INTO tSQLt.TestResult(Name, TranName) 
-        SELECT @testName, @TranName;
+    INSERT INTO tSQLt.TestResult(Name, TranName, Result) 
+        SELECT @testName, @TranName, 'A severe error happened during test execution. Test did not finish.'
+        OPTION(MAXDOP 1);
     SELECT @TestResultID = SCOPE_IDENTITY();
 
     BEGIN TRAN;
     SAVE TRAN @TranName;
 
+    SET @PreExecTrancount = @@TRANCOUNT;
+    
     TRUNCATE TABLE tSQLt.TestMessage;
 
     BEGIN TRY
@@ -197,7 +207,6 @@ BEGIN
         ELSE
         BEGIN
             SELECT @Msg = COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
---RAISERROR(@Msg,16,10)WITH NOWAIT;
             SET @Result = 'Error';
         END;
     END CATCH
@@ -206,11 +215,16 @@ BEGIN
         ROLLBACK TRAN @TranName;
     END TRY
     BEGIN CATCH
+        SET @PreExecTrancount = @PreExecTrancount - @@TRANCOUNT;
         IF (@@TRANCOUNT > 0) ROLLBACK;
-
         BEGIN TRAN;
-        SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '})';
-        SET @Result = 'Error';
+        IF(   @Result <> 'Success'
+           OR @PreExecTrancount <> 0
+          )
+        BEGIN
+          SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '})';
+          SET @Result = 'Error';
+        END
     END CATCH    
 
     If(@Result <> 'Success') 
@@ -335,12 +349,6 @@ SET NOCOUNT ON;
     DECLARE @isSuccess INT;
     DECLARE @severity INT;
     
-    IF EXISTS (SELECT 1 FROM [tSQLt].[ViewFakeEnabled])
-    BEGIN
-      RAISERROR('Test system is in an invalid state. ResetViewFaking must be called if EnableViewFaking was called. Call ResetViewFaking after creating test case procedures.', 16, 10) WITH NOWAIT;
-      RETURN -1;
-    END;
-
     IF(LTRIM(ISNULL(@testName,'')) = '')
     BEGIN
       SELECT @testName = testName 
@@ -1070,15 +1078,7 @@ RETURN WITH C0(c) AS (SELECT 1 UNION ALL SELECT 1),
          FROM C6;
 GO
 
-CREATE TABLE [tSQLt].[ViewFakeEnabled] (
-    ID INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
-    schemaName NVARCHAR(MAX) NOT NULL,
-    viewName NVARCHAR(MAX) NOT NULL,
-    triggerName NVARCHAR(MAX) NOT NULL
-);
-GO
-
-CREATE PROCEDURE [tSQLt].[EnableViewFaking_SingleView]
+CREATE PROCEDURE [tSQLt].[private_SetFakeViewOn_SingleView]
   @viewName NVARCHAR(MAX)
 AS
 BEGIN
@@ -1086,32 +1086,39 @@ BEGIN
           @schemaName NVARCHAR(MAX),
           @triggerName NVARCHAR(MAX);
           
-  SELECT @schemaName = QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)),
-         @viewName = QUOTENAME(OBJECT_NAME(ObjId)),
-         @triggerName = QUOTENAME(OBJECT_NAME(ObjId) + '_EnableViewFaking')
+  SELECT @schemaName = OBJECT_SCHEMA_NAME(ObjId),
+         @viewName = OBJECT_NAME(ObjId),
+         @triggerName = OBJECT_NAME(ObjId) + '_SetFakeViewOn'
     FROM (SELECT OBJECT_ID(@ViewName) AS ObjId) X;
 
   SET @cmd = 
-     'CREATE TRIGGER %SCHEMA_NAME%.%TRIGGER_NAME%
-      ON %SCHEMA_NAME%.%VIEW_NAME% INSTEAD OF INSERT AS
+     'CREATE TRIGGER $$SCHEMA_NAME$$.$$TRIGGER_NAME$$
+      ON $$SCHEMA_NAME$$.$$VIEW_NAME$$ INSTEAD OF INSERT AS
       BEGIN
+         RAISERROR(''Test system is in an invalid state. SetFakeViewOff must be called if SetFakeViewOn was called. Call SetFakeViewOff after creating all test case procedures.'', 16, 10) WITH NOWAIT;
          RETURN;
-      END;'
+      END;
+     ';
       
-  SET @cmd = REPLACE(@cmd, '%SCHEMA_NAME%', @schemaName);
-  SET @cmd = REPLACE(@cmd, '%VIEW_NAME%', @viewName);
-  SET @cmd = REPLACE(@cmd, '%TRIGGER_NAME%', @triggerName);
-  
-  INSERT INTO [tSQLt].[ViewFakeEnabled] (schemaName, viewName, triggerName)
-  VALUES (@schemaName, @viewName, @triggerName)
-
+  SET @cmd = REPLACE(@cmd, '$$SCHEMA_NAME$$', QUOTENAME(@schemaName));
+  SET @cmd = REPLACE(@cmd, '$$VIEW_NAME$$', QUOTENAME(@viewName));
+  SET @cmd = REPLACE(@cmd, '$$TRIGGER_NAME$$', QUOTENAME(@triggerName));
   EXEC(@cmd);
+
+  EXEC sp_addextendedproperty @name = N'SetFakeViewOnTrigger', 
+                               @value = 1,
+                               @level0type = 'SCHEMA',
+                               @level0name = @schemaName, 
+                               @level1type = 'VIEW',
+                               @level1name = @viewName,
+                               @level2type = 'TRIGGER',
+                               @level2name = @triggerName;
 
   RETURN 0;
 END;
 GO
 
-CREATE PROCEDURE [tSQLt].[EnableViewFaking]
+CREATE PROCEDURE [tSQLt].[SetFakeViewOn]
   @schemaName NVARCHAR(MAX)
 AS
 BEGIN
@@ -1128,7 +1135,7 @@ BEGIN
   FETCH NEXT FROM viewNames INTO @viewName;
   WHILE @@FETCH_STATUS = 0
   BEGIN
-    EXEC tSQLt.EnableViewFaking_SingleView @viewName;
+    EXEC tSQLt.private_SetFakeViewOn_SingleView @viewName;
     
     FETCH NEXT FROM viewNames INTO @viewName;
   END;
@@ -1138,24 +1145,24 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE [tSQLt].[ResetViewFaking]
+CREATE PROCEDURE [tSQLt].[SetFakeViewOff]
   @schemaName NVARCHAR(MAX)
 AS
 BEGIN
   DECLARE @viewName NVARCHAR(MAX);
     
   DECLARE viewNames CURSOR LOCAL FAST_FORWARD FOR
-  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(object_id)) + '.' + QUOTENAME([name]) AS viewName
-    FROM sys.objects
-   WHERE type = 'V'
-     AND schema_id = SCHEMA_ID(@schemaName);
-  
+   SELECT QUOTENAME(OBJECT_SCHEMA_NAME(t.parent_id)) + '.' + QUOTENAME(OBJECT_NAME(t.parent_id)) AS viewName
+     FROM sys.extended_properties ep
+     JOIN sys.triggers t
+       on ep.major_id = t.object_id
+     WHERE ep.name = N'SetFakeViewOnTrigger'  
   OPEN viewNames;
   
   FETCH NEXT FROM viewNames INTO @viewName;
   WHILE @@FETCH_STATUS = 0
   BEGIN
-    EXEC tSQLt.ResetViewFaking_SingleView @viewName;
+    EXEC tSQLt.private_SetFakeViewOff_SingleView @viewName;
     
     FETCH NEXT FROM viewNames INTO @viewName;
   END;
@@ -1165,7 +1172,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE [tSQLt].[ResetViewFaking_SingleView]
+CREATE PROCEDURE [tSQLt].[private_SetFakeViewOff_SingleView]
   @viewName NVARCHAR(MAX)
 AS
 BEGIN
@@ -1174,7 +1181,7 @@ BEGIN
           @triggerName NVARCHAR(MAX);
           
   SELECT @schemaName = QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)),
-         @triggerName = QUOTENAME(OBJECT_NAME(ObjId) + '_EnableViewFaking')
+         @triggerName = QUOTENAME(OBJECT_NAME(ObjId) + '_SetFakeViewOn')
     FROM (SELECT OBJECT_ID(@ViewName) AS ObjId) X;
   
   SET @cmd = 'DROP TRIGGER %SCHEMA_NAME%.%TRIGGER_NAME%;';
@@ -1183,9 +1190,5 @@ BEGIN
   SET @cmd = REPLACE(@cmd, '%TRIGGER_NAME%', @triggerName);
   
   EXEC(@cmd);
-  
-  DELETE [tSQLt].[ViewFakeEnabled]
-  WHERE schemaName = @schemaName
-    AND triggerName = @triggerName;
 END;
 GO
