@@ -619,6 +619,22 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt_test.[test FakeTable removes IDENTITY property from column]
+AS
+BEGIN
+  IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
+
+  CREATE TABLE tst1(i INT IDENTITY(1,1));
+  
+  EXEC tSQLt.FakeTable '', 'tst1';
+  
+  IF EXISTS(SELECT 1 FROM sys.columns WHERE OBJECT_ID = OBJECT_ID('tst1') AND is_identity = 1)
+  BEGIN
+    EXEC tSQLt.Fail 'Fake table has identity column!';
+  END
+END;
+GO
+
 CREATE PROCEDURE tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table
 AS
 BEGIN

@@ -752,11 +752,11 @@ BEGIN
 
    EXEC tSQLt.private_RenameObjectToUniqueName @schemaName, @tableName, @newName OUTPUT
 
-   SELECT @cmd = '
+   SELECT @cmd = 'DECLARE @n TABLE(n INT IDENTITY(1,1));
       SELECT Src.*
         INTO ' + QUOTENAME(@schemaName) + '.' + QUOTENAME(@tableName) + '
         FROM ' + QUOTENAME(@schemaName) + '.' + QUOTENAME(@newName) + ' Src
-       RIGHT JOIN (SELECT 1 n)n
+       RIGHT JOIN @n AS n
           ON n.n<>n.n
        WHERE n.n<>n.n
    ';
