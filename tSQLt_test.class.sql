@@ -69,9 +69,9 @@ GO
 CREATE PROC tSQLt_test.test_RunTest_truncates_TestResult_table
 AS
 BEGIN
-    INSERT tSQLt.TestResult(Name, TranName) VALUES('TestCaseDummy','');
+    INSERT tSQLt.TestResult(Class, Name, TranName) VALUES('TestClass', 'TestCaseDummy','');
 
-    EXEC ('CREATE PROC TestCaseA AS IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Name = ''TestCaseDummy'')) RAISERROR(''NoTruncationError'',16,10);');
+    EXEC ('CREATE PROC TestCaseA AS IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Class = ''TestClass'' AND Name = ''TestCaseDummy'')) RAISERROR(''NoTruncationError'',16,10);');
 
     EXEC tSQLt.RunTest TestCaseA;
 
@@ -85,10 +85,10 @@ GO
 CREATE PROC tSQLt_test.test_RunTestClass_truncates_TestResult_table
 AS
 BEGIN
-    INSERT tSQLt.TestResult(Name, TranName) VALUES('TestCaseDummy','');
+    INSERT tSQLt.TestResult(Class, Name, TranName) VALUES('TestClass', 'TestCaseDummy','');
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Name = ''TestCaseDummy'')) RAISERROR(''NoTruncationError'',16,10);');
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Class = ''TestClass'' AND Name = ''TestCaseDummy'')) RAISERROR(''NoTruncationError'',16,10);');
 
     EXEC tSQLt.RunTestClass MyTestClass;
    
@@ -187,10 +187,10 @@ BEGIN
     BEGIN CATCH
         SET @errorRaised = 1;
     END CATCH
-    SELECT Name, Msg 
+    SELECT Class, Name, Msg 
       INTO actual
       FROM tSQLt.TestResult;
-    SELECT '[MyTestClass].[Test Case A]' Name, 'GotHere{Test Case A,1}' Msg
+    SELECT 'MyTestClass' Class, 'Test Case A' Name, 'GotHere{Test Case A,1}' Msg
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
@@ -476,7 +476,7 @@ BEGIN
 
     EXEC tSQLt.RunTestClass 'innertest';
 
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = '[innertest].[testMe]')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE class = 'innertest' and name = 'testMe')
     BEGIN
        EXEC tSQLt.Fail 'innertest.testMe did not get executed.';
     END;
@@ -513,7 +513,7 @@ BEGIN
     BEGIN CATCH
     END CATCH
 
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = '[innertest].[test]' AND Result = 'Failure')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE class = 'innertest' and name = 'test' AND Result = 'Failure')
     BEGIN
        EXEC tSQLt.Fail 'failing innertest.SetUp did not cause innertest.test to fail.';
    END;
@@ -565,7 +565,7 @@ CREATE PROCEDURE tSQLt_test.test_RunTest_handles_uncommitable_transaction
 AS
 BEGIN
     DECLARE @TranName SYSNAME; 
-    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Name = '[tSQLt_test].[test_RunTest_handles_uncommitable_transaction]' ORDER BY ID DESC;
+    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND Name = 'test_RunTest_handles_uncommitable_transaction' ORDER BY ID DESC;
     EXEC ('CREATE PROCEDURE testUncommitable AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
 
     BEGIN TRY
@@ -574,7 +574,7 @@ BEGIN
     BEGIN CATCH
       IF NOT EXISTS(SELECT 1
                       FROM tSQLt.TestResult
-                     WHERE Name = '[dbo].[testUncommitable]'
+                     WHERE Name = 'testUncommitable'
                        AND Result = 'Error'
                        AND Msg LIKE '%There is already an object named ''t1'' in the database.{testUncommitable,1}%'
                        AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
@@ -587,7 +587,7 @@ BEGIN
         EXEC tSQLt.Fail 'runTest ''testUncommitable'' did not rollback the transactions';
       END
       DELETE FROM tSQLt.TestResult
-             WHERE Name = '[dbo].[testUncommitable]'
+             WHERE Name = 'testUncommitable'
                AND Result = 'Error'
                AND Msg LIKE '%There is already an object named ''t1'' in the database.{testUncommitable,1}%'
                AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
@@ -870,10 +870,10 @@ BEGIN
     BEGIN CATCH
         SET @errorRaised = 1;
     END CATCH
-    SELECT Name, Result
+    SELECT Class, Name, Result
       INTO actual
       FROM tSQLt.TestResult;
-    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+    SELECT 'MyTestClass' Class, 'TestCaseA' Name, 'Success' Result
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
@@ -898,10 +898,10 @@ BEGIN
     BEGIN CATCH
         SET @errorRaised = 1;
     END CATCH
-    SELECT Name, Result
+    SELECT Class, Name, Result
       INTO actual
       FROM tSQLt.TestResult;
-    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+    SELECT 'MyTestClass' Class, 'TestCaseA' Name, 'Success' Result
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
@@ -926,10 +926,10 @@ BEGIN
     BEGIN CATCH
         SET @errorRaised = 1;
     END CATCH
-    SELECT Name, Result
+    SELECT Class, Name, Result
       INTO actual
       FROM tSQLt.TestResult;
-    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+    SELECT 'MyTestClass' Class, 'TestCaseA' Name, 'Success' Result
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
@@ -964,10 +964,10 @@ BEGIN
     BEGIN CATCH
         SET @errorRaised = 1;
     END CATCH
-    SELECT Name, Result 
+    SELECT Class, Name, Result 
       INTO actual
       FROM tSQLt.TestResult;
-    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+    SELECT 'MyTestClass' Class, 'TestCaseA' Name, 'Success' Result
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
@@ -989,10 +989,10 @@ BEGIN
     BEGIN CATCH
         SET @errorRaised = 1;
     END CATCH
-    SELECT Name, Result
+    SELECT Class, Name, Result
       INTO actual
       FROM tSQLt.TestResult;
-    SELECT '[MyTestClass].[TestCaseA]' Name, 'Success' Result
+    SELECT 'MyTestClass' Class, 'TestCaseA' Name, 'Success' Result
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
@@ -1032,14 +1032,14 @@ BEGIN
 
     EXEC tSQLt.Run 'innertest';
 
-    SELECT name 
+    SELECT class, name 
       INTO #Expected
       FROM tSQLt.TestResult
      WHERE 1=0;
      
-    INSERT INTO #Expected(name)
-    SELECT name = '[innertest].[testMe]' UNION ALL
-    SELECT name = '[innertest].[testMeToo]';
+    INSERT INTO #Expected(class, name)
+    SELECT class = 'innertest', name = 'testMe' UNION ALL
+    SELECT class = 'innertest', name = 'testMeToo';
 
     SELECT name
       INTO #Actual
@@ -1058,13 +1058,13 @@ BEGIN
 
     EXEC tSQLt.Run 'innertest.testMe';
 
-    SELECT name 
+    SELECT class, name 
       INTO #Expected
       FROM tSQLt.TestResult
      WHERE 1=0;
      
-    INSERT INTO #Expected(name)
-    SELECT name = '[innertest].[testMe]';
+    INSERT INTO #Expected(class, name)
+    SELECT class = 'innertest', name = 'testMe';
 
     SELECT name
       INTO #Actual
@@ -1088,15 +1088,15 @@ BEGIN
     
     EXEC tSQLt.Run;
 
-    SELECT name 
+    SELECT class, name 
       INTO #Expected
       FROM tSQLt.TestResult
      WHERE 1=0;
      
-    INSERT INTO #Expected(name)
-    SELECT name = '[innertest].[testMe]';
+    INSERT INTO #Expected(class, name)
+    SELECT class = 'innertest', name = 'testMe';
 
-    SELECT name
+    SELECT class, name
       INTO #Actual
       FROM tSQLt.TestResult;
       
@@ -1118,16 +1118,16 @@ BEGIN
     
     EXEC tSQLt.Run;
 
-    SELECT name 
+    SELECT class, name 
       INTO #Expected
       FROM tSQLt.TestResult
      WHERE 1=0;
      
-    INSERT INTO #Expected(name)
-    SELECT name = '[innertest].[testMe]' UNION ALL
-    SELECT name = '[innertest].[testMeToo]';
+    INSERT INTO #Expected(class, name)
+    SELECT class = 'innertest', name = 'testMe' UNION ALL
+    SELECT class = 'innertest', name = 'testMeToo';
 
-    SELECT name
+    SELECT class, name
       INTO #Actual
       FROM tSQLt.TestResult;
       
@@ -1204,11 +1204,11 @@ BEGIN
 
     EXEC tSQLt.RunTestClass MyTestClass;
     
-    SELECT Name 
+    SELECT class, Name 
       INTO actual
       FROM tSQLt.TestResult;
       
-    SELECT '[MyTestClass].[Test Case A]' Name
+    SELECT 'MyTestClass' class, 'Test Case A' Name
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
@@ -1715,6 +1715,113 @@ BEGIN
     EXEC tSQLt.Fail 'Expected trigger to throw error. Got:',@msg;
   END;
 END
+GO
+
+CREATE PROCEDURE tSQLt_test.[test RunAll runs all test classes created with NewTestClass]
+AS
+BEGIN
+    EXEC tSQLt.NewTestClass 'A';
+    EXEC tSQLt.NewTestClass 'B';
+    EXEC tSQLt.NewTestClass 'C';
+    
+    EXEC ('CREATE PROCEDURE A.testA AS RETURN 0;');
+    EXEC ('CREATE PROCEDURE B.testB AS RETURN 0;');
+    EXEC ('CREATE PROCEDURE C.testC AS RETURN 0;');
+    
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.RunAll;
+
+    SELECT Class, Name 
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected (Class, Name)
+    SELECT Class = 'A', Name = 'testA' UNION ALL
+    SELECT Class = 'B', Name = 'testB' UNION ALL
+    SELECT Class = 'C', Name = 'testC';
+
+    SELECT Class, Name
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test RunAll runs all test classes created with NewTestClass when there are multiple tests in each class]
+AS
+BEGIN
+    EXEC tSQLt.NewTestClass 'A';
+    EXEC tSQLt.NewTestClass 'B';
+    EXEC tSQLt.NewTestClass 'C';
+    
+    EXEC ('CREATE PROCEDURE A.testA1 AS RETURN 0;');
+    EXEC ('CREATE PROCEDURE A.testA2 AS RETURN 0;');
+    EXEC ('CREATE PROCEDURE B.testB1 AS RETURN 0;');
+    EXEC ('CREATE PROCEDURE B.testB2 AS RETURN 0;');
+    EXEC ('CREATE PROCEDURE C.testC1 AS RETURN 0;');
+    EXEC ('CREATE PROCEDURE C.testC2 AS RETURN 0;');
+    
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.RunAll;
+
+    SELECT Class, Name 
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected (Class, Name)
+    SELECT Class = 'A', Name = 'testA1' UNION ALL
+    SELECT Class = 'A', Name = 'testA2' UNION ALL
+    SELECT Class = 'B', Name = 'testB1' UNION ALL
+    SELECT Class = 'B', Name = 'testB2' UNION ALL
+    SELECT Class = 'C', Name = 'testC1' UNION ALL
+    SELECT Class = 'C', Name = 'testC2';
+
+    SELECT Class, Name
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test RunAll executes the SetUp for each test class]
+AS
+BEGIN
+    EXEC tSQLt.NewTestClass 'A';
+    EXEC tSQLt.NewTestClass 'B';
+    
+    CREATE TABLE A.SetUpLog (Msg VARCHAR(100));
+    CREATE TABLE B.SetUpLog (Msg VARCHAR(100));
+    
+    EXEC ('CREATE PROCEDURE A.SetUp AS INSERT INTO A.SetUpLog (Msg) VALUES (''GOT HERE'');');
+    EXEC ('CREATE PROCEDURE A.testA AS IF NOT EXISTS (SELECT 1 FROM A.SetUpLog WHERE Msg = ''GOT HERE'') EXEC tSQLt.Fail ''row expected in A.SetUpLog did not exist'';');
+    EXEC ('CREATE PROCEDURE B.SetUp AS INSERT INTO B.SetUpLog (Msg) VALUES (''GOT HERE'');');
+    EXEC ('CREATE PROCEDURE B.testB AS IF NOT EXISTS (SELECT 1 FROM B.SetUpLog WHERE Msg = ''GOT HERE'') EXEC tSQLt.Fail ''row expected in B.SetUpLog did not exist'';');
+    
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.RunAll;
+
+    SELECT Class, Name, Result
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected (Class, Name, Result)
+    SELECT Class = 'A', Name = 'testA', Result = 'Success' UNION ALL
+    SELECT Class = 'B', Name = 'testB', Result = 'Success';
+
+    SELECT Class, Name, Result
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
+END;
 GO
 --ROLLBACK
 --tSQLt_test

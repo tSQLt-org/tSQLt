@@ -52,6 +52,11 @@ AS
 BEGIN
     EXEC tSQLt.DropClass @ClassName = @ClassName;
     EXEC ('CREATE SCHEMA ' + @ClassName);
+    
+    EXEC sp_addextendedproperty @name = N'TestClass', 
+                                @value = 1,
+                                @level0type = 'SCHEMA',
+                                @level0name = @ClassName;
 END;
 GO
 
@@ -84,6 +89,7 @@ GO
 
 CREATE TABLE tSQLt.TestResult(
     ID INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    Class NVARCHAR(MAX) NOT NULL,
     Name NVARCHAR(MAX) NOT NULL,
     TranName NVARCHAR(MAX) NOT NULL,
     Result NVARCHAR(MAX) NULL,
@@ -169,6 +175,8 @@ BEGIN
     DECLARE @Msg NVARCHAR(MAX); SET @Msg = '';
     DECLARE @Msg2 NVARCHAR(MAX); SET @Msg2 = '';
     DECLARE @cmd NVARCHAR(MAX); SET @cmd = '';
+    DECLARE @testClassName NVARCHAR(MAX); SET @testClassName = '';
+    DECLARE @testProcName NVARCHAR(MAX); SET @testProcName = '';
     DECLARE @Result NVARCHAR(MAX); SET @Result = 'Success';
     DECLARE @TranName CHAR(32); EXEC tSQLt.getNewTranName @TranName OUT;
     DECLARE @TestResultID INT;
@@ -181,9 +189,12 @@ BEGIN
     END;
 
     SELECT @cmd = 'EXEC ' + @testName;
+    
+    SELECT @testClassName = tSQLt.private_getCleanSchemaName('', @testName),
+           @testProcName = tSQLt.private_getCleanObjectName(@testName);
 
-    INSERT INTO tSQLt.TestResult(Name, TranName, Result) 
-        SELECT @testName, @TranName, 'A severe error happened during test execution. Test did not finish.'
+    INSERT INTO tSQLt.TestResult(Class, Name, TranName, Result) 
+        SELECT @testClassName, @testProcName, @TranName, 'A severe error happened during test execution. Test did not finish.'
         OPTION(MAXDOP 1);
     SELECT @TestResultID = SCOPE_IDENTITY();
 
@@ -242,8 +253,9 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT tSQLt.TestResult(Name, TranName, Result, Msg)
-        SELECT @testName, 
+        INSERT tSQLt.TestResult(Class, Name, TranName, Result, Msg)
+        SELECT @testClassName, 
+               @testProcName,  
                '?', 
                'Error', 
                'TestResult entry is missing; Original outcome: ' + @Result + ', ' + @Msg;
@@ -453,6 +465,71 @@ RETURN SELECT typeName = TYPE_NAME(@TypeId) +
                    ELSE ''
                END;
 
+GO
+
+CREATE PROCEDURE [tSQLt].[private_RunTestClass]
+  @testClassName NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @testCaseName NVARCHAR(MAX);
+    DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
+
+    SELECT @SetUp = '['+SCHEMA_NAME(schema_id)+'].['+name+']'
+      FROM sys.procedures
+     WHERE schema_id = SCHEMA_ID(@testClassName)
+       AND name = 'SetUp';
+
+    DECLARE testCases CURSOR LOCAL FAST_FORWARD 
+        FOR
+     SELECT '['+SCHEMA_NAME(schema_id)+'].['+name+']'
+       FROM sys.procedures
+      WHERE schema_id = SCHEMA_ID(@testClassName)
+        AND name LIKE 'test%';
+
+    OPEN testCases;
+    
+    FETCH NEXT FROM testCases INTO @testCaseName;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        EXEC tSQLt.private_RunTest @testCaseName, @SetUp;
+
+        FETCH NEXT FROM testCases INTO @testCaseName;
+    END;
+
+    CLOSE testCases;
+    DEALLOCATE testCases;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.RunAll
+AS
+BEGIN
+  DECLARE @testClassName NVARCHAR(MAX);
+  DECLARE @testProcName NVARCHAR(MAX);
+
+  DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
+   SELECT DISTINCT s.name AS testClassName
+     FROM sys.extended_properties ep
+     JOIN sys.schemas s
+       ON ep.major_id = s.schema_id
+     JOIN sys.procedures p
+       ON s.schema_id = p.schema_id
+    WHERE ep.name = N'TestClass';
+
+  OPEN tests;
+  
+  FETCH NEXT FROM tests INTO @testClassName;
+  WHILE @@FETCH_STATUS = 0
+  BEGIN
+    EXEC tSQLt.private_RunTestClass @testClassName;
+    
+    FETCH NEXT FROM tests INTO @testClassName;
+  END;
+  
+  CLOSE tests;
+  DEALLOCATE tests;
+END;
 GO
 
 CREATE PROCEDURE tSQLt.SpyProcedure
@@ -709,6 +786,15 @@ BEGIN
                                 END);
 END;
 GO
+
+CREATE FUNCTION [tSQLt].[private_getCleanObjectName](@objectName NVARCHAR(MAX))
+RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+    RETURN (SELECT OBJECT_NAME(OBJECT_ID(@objectName)));
+END;
+GO
+
 
 CREATE PROCEDURE tSQLt.private_RenameObjectToUniqueName
     @schemaName NVARCHAR(MAX),
