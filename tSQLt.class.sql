@@ -53,7 +53,7 @@ BEGIN
     EXEC tSQLt.DropClass @ClassName = @ClassName;
     EXEC ('CREATE SCHEMA ' + @ClassName);
     
-    EXEC sp_addextendedproperty @name = N'TestClass', 
+    EXEC sp_addextendedproperty @name = N'tSQLt.TestClass', 
                                 @value = 1,
                                 @level0type = 'SCHEMA',
                                 @level0name = @ClassName;
@@ -90,7 +90,8 @@ GO
 CREATE TABLE tSQLt.TestResult(
     ID INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
     Class NVARCHAR(MAX) NOT NULL,
-    Name NVARCHAR(MAX) NOT NULL,
+    TestCase NVARCHAR(MAX) NOT NULL,
+    Name AS (QUOTENAME(Class) + '.' + QUOTENAME(TestCase)),
     TranName NVARCHAR(MAX) NOT NULL,
     Result NVARCHAR(MAX) NULL,
     Msg NVARCHAR(MAX) NULL
@@ -193,7 +194,7 @@ BEGIN
     SELECT @testClassName = tSQLt.private_getCleanSchemaName('', @testName),
            @testProcName = tSQLt.private_getCleanObjectName(@testName);
 
-    INSERT INTO tSQLt.TestResult(Class, Name, TranName, Result) 
+    INSERT INTO tSQLt.TestResult(Class, TestCase, TranName, Result) 
         SELECT @testClassName, @testProcName, @TranName, 'A severe error happened during test execution. Test did not finish.'
         OPTION(MAXDOP 1);
     SELECT @TestResultID = SCOPE_IDENTITY();
@@ -253,7 +254,7 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT tSQLt.TestResult(Class, Name, TranName, Result, Msg)
+        INSERT tSQLt.TestResult(Class, TestCase, TranName, Result, Msg)
         SELECT @testClassName, 
                @testProcName,  
                '?', 
@@ -278,6 +279,8 @@ CREATE PROCEDURE tSQLt.RunTest
 AS
 BEGIN
 SET NOCOUNT ON;
+
+    -- REFACTOR: @Result is never used here?
     DECLARE @Result NVARCHAR(MAX); SET @Result = 'Success';
     DECLARE @msg NVARCHAR(MAX);
 
@@ -467,21 +470,21 @@ RETURN SELECT typeName = TYPE_NAME(@TypeId) +
 
 GO
 
-CREATE PROCEDURE [tSQLt].[private_RunTestClass]
+CREATE PROCEDURE tSQLt.private_RunTestClass
   @testClassName NVARCHAR(MAX)
 AS
 BEGIN
     DECLARE @testCaseName NVARCHAR(MAX);
     DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
 
-    SELECT @SetUp = '['+SCHEMA_NAME(schema_id)+'].['+name+']'
+    SELECT @SetUp = tSQLt.private_GetQuotedFullName(object_id)
       FROM sys.procedures
      WHERE schema_id = SCHEMA_ID(@testClassName)
        AND name = 'SetUp';
 
     DECLARE testCases CURSOR LOCAL FAST_FORWARD 
         FOR
-     SELECT '['+SCHEMA_NAME(schema_id)+'].['+name+']'
+     SELECT tSQLt.private_GetQuotedFullName(object_id)
        FROM sys.procedures
       WHERE schema_id = SCHEMA_ID(@testClassName)
         AND name LIKE 'test%';
@@ -508,14 +511,14 @@ BEGIN
   DECLARE @testClassName NVARCHAR(MAX);
   DECLARE @testProcName NVARCHAR(MAX);
 
+  EXEC tSQLt.private_CleanTestResult;
+
   DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
    SELECT DISTINCT s.name AS testClassName
      FROM sys.extended_properties ep
      JOIN sys.schemas s
        ON ep.major_id = s.schema_id
-     JOIN sys.procedures p
-       ON s.schema_id = p.schema_id
-    WHERE ep.name = N'TestClass';
+    WHERE ep.name = N'tSQLt.TestClass';
 
   OPEN tests;
   
@@ -529,6 +532,8 @@ BEGIN
   
   CLOSE tests;
   DEALLOCATE tests;
+  
+  EXEC tSQLt.RunTestClassSummary;
 END;
 GO
 
@@ -1276,5 +1281,15 @@ BEGIN
   SET @cmd = REPLACE(@cmd, '%TRIGGER_NAME%', @triggerName);
   
   EXEC(@cmd);
+END;
+GO
+
+CREATE FUNCTION tSQLt.private_GetQuotedFullName(@objectid INT)
+RETURNS NVARCHAR(517)
+AS
+BEGIN
+    DECLARE @quotedName NVARCHAR(517);
+    SELECT @quotedName = QUOTENAME(OBJECT_SCHEMA_NAME(@objectid)) + '.' + QUOTENAME(OBJECT_NAME(@objectid));
+    RETURN @quotedName;
 END;
 GO
