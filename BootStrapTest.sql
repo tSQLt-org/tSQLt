@@ -76,7 +76,7 @@ EXEC('CREATE PROCEDURE dbo.SucceedingTestCase AS RETURN 0;');
 EXEC tSQLt.RunTest 'dbo.SucceedingTestCase';
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = 'SucceedingTestCase' AND result = 'Success')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'SucceedingTestCase' AND result = 'Success')
           RAISERROR('SucceedingTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
@@ -102,7 +102,7 @@ EXEC('CREATE PROCEDURE dbo.FailingTestCase AS EXEC tSQLt.Fail; RETURN 0;');
 EXEC tSQLt.RunTest 'dbo.FailingTestCase';
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = 'FailingTestCase' AND result = 'Failure')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'FailingTestCase' AND result = 'Failure')
           RAISERROR('FailingTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
@@ -130,7 +130,7 @@ EXEC tSQLt.RunTest 'dbo.FailingTestCase';
 
 BEGIN TRY
     DECLARE @actualCount INT;
-    SELECT @actualCount = COUNT(*) FROM tSQLt.TestResult WHERE name = 'FailingTestCase';
+    SELECT @actualCount = COUNT(*) FROM tSQLt.TestResult WHERE TestCase = 'FailingTestCase';
 
     IF 1 <> @actualCount
         RAISERROR('FailingTestCase was not logged exactly once in TestResult Table. (%i)', 16, 10, @actualCount);
@@ -159,7 +159,7 @@ EXEC('CREATE PROCEDURE dbo.ErroringTestCase AS SELECT 1/0 col INTO #tmp; RETURN 
 EXEC tSQLt.RunTest 'dbo.ErroringTestCase';
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE name = 'ErroringTestCase' AND result = 'Error')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'ErroringTestCase' AND result = 'Error')
           RAISERROR('ErroringTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
@@ -191,7 +191,7 @@ BEGIN TRY
 
     SELECT @actualMessage = Msg
       FROM tSQLt.TestResult
-     WHERE name = 'FailingTestCase';
+     WHERE TestCase = 'FailingTestCase';
 
     IF @actualMessage = @errorMessage
         PRINT 'Test Passed';
@@ -222,9 +222,9 @@ EXEC('CREATE PROCEDURE MyTestClass.TestCaseB AS RETURN 0;');
 EXEC tSQLt.RunTestClass 'MyTestClass';
 
 DECLARE @xml VARCHAR(MAX);
-DECLARE @expected VARCHAR(MAX); SET @expected = '<Class>MyTestClass</Class><Name>TestCaseA</Name><Class>MyTestClass</Class><Name>TestCaseB</Name>';
+DECLARE @expected VARCHAR(MAX); SET @expected = '<Class>MyTestClass</Class><TestCase>TestCaseA</TestCase><Class>MyTestClass</Class><TestCase>TestCaseB</TestCase>';
 BEGIN TRY
-    SELECT @xml = (SELECT Class, Name FROM tSQLt.TestResult ORDER BY Name FOR XML PATH(''));
+    SELECT @xml = (SELECT Class, TestCase FROM tSQLt.TestResult ORDER BY TestCase FOR XML PATH(''));
     IF @xml = @expected
         PRINT 'Test passed';
     ELSE
