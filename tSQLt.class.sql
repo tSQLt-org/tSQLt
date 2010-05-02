@@ -20,6 +20,7 @@ BEGIN
          B(no,cmd) AS
            (SELECT 0,'DROP ' +
                     CASE type WHEN 'P' THEN 'PROCEDURE'
+                              WHEN 'PC' THEN 'PROCEDURE'
                               WHEN 'U' THEN 'TABLE'
                               WHEN 'IF' THEN 'FUNCTION'
                               WHEN 'TF' THEN 'FUNCTION'
@@ -137,6 +138,15 @@ BEGIN
              @severity = 0; --Print only first line with high severity
     END
 
+    RETURN 0;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.private_PrintXML
+    @message XML
+AS 
+BEGIN
+    SELECT @message;
     RETURN 0;
 END;
 GO
@@ -279,19 +289,12 @@ CREATE PROCEDURE tSQLt.RunTest
 AS
 BEGIN
 SET NOCOUNT ON;
-
-    -- REFACTOR: @Result is never used here?
-    DECLARE @Result NVARCHAR(MAX); SET @Result = 'Success';
     DECLARE @msg NVARCHAR(MAX);
 
     EXEC tSQLt.private_CleanTestResult;
     
     SELECT @testName = '['+OBJECT_SCHEMA_NAME(OBJECT_ID(@testName))+'].['+OBJECT_NAME(OBJECT_ID(@testName))+']';
     EXEC tSQLt.private_RunTest @testName
-
-    SELECT @Result = Result
-      FROM tSQLt.TestResult
-     WHERE Name = @testName;
 
     SELECT @msg = Msg
       FROM tSQLt.TestCaseSummary();
@@ -300,7 +303,46 @@ SET NOCOUNT ON;
 END;
 GO
 
-CREATE PROCEDURE tSQLt.RunTestClassSummary
+CREATE PROCEDURE tSQLt.SetTestResultFormatter
+    @formatter NVARCHAR(4000)
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE [name] = N'tSQLt.ResultsFormatter')
+    BEGIN
+        EXEC sp_dropextendedproperty @name = N'tSQLt.ResultsFormatter',
+                                    @level0type = 'SCHEMA',
+                                    @level0name = 'tSQLt',
+                                    @level1type = 'PROCEDURE',
+                                    @level1name = 'RunTestClassSummary';
+    END;
+
+    EXEC sp_addextendedproperty @name = N'tSQLt.ResultsFormatter', 
+                                @value = @formatter,
+                                @level0type = 'SCHEMA',
+                                @level0name = 'tSQLt',
+                                @level1type = 'PROCEDURE',
+                                @level1name = 'RunTestClassSummary';
+END;
+GO
+
+CREATE FUNCTION tSQLt.GetTestResultFormatter()
+RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @FormatterName NVARCHAR(MAX);
+    
+    SELECT @FormatterName = CAST(value AS NVARCHAR(MAX))
+    FROM sys.extended_properties
+    WHERE name = N'tSQLt.ResultsFormatter'
+      AND major_id = OBJECT_ID('tSQLt.RunTestClassSummary');
+      
+    SELECT @FormatterName = COALESCE(@FormatterName, 'tSQLt.DefaultResultFormatter');
+    
+    RETURN @FormatterName;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.DefaultResultFormatter
 AS
 BEGIN
     DECLARE @msg1 NVARCHAR(MAX);
@@ -311,7 +353,7 @@ BEGIN
     DECLARE @successCnt INT;
     DECLARE @severity INT;
     
-    SELECT ROW_NUMBER() OVER(ORDER BY Result DESC, Name ASC) No,Name [Test Case Name], Result--, Msg
+    SELECT ROW_NUMBER() OVER(ORDER BY Result DESC, Name ASC) No,Name [Test Case Name], Result
       INTO #tmp
       FROM tSQLt.TestResult;
     
@@ -321,9 +363,10 @@ BEGIN
            @isSuccess = 1 - SIGN(FailCnt + ErrorCnt),
            @successCnt = successCnt
       FROM tSQLt.TestCaseSummary();
+      
+    SELECT @severity = 16*(1-@isSuccess);
     
-    SELECT @severity = 16*(1-@isSuccess),
-           @msg2 = REPLICATE('-',LEN(@msg3)),
+    SELECT @msg2 = REPLICATE('-',LEN(@msg3)),
            @msg4 = CHAR(13)+CHAR(10);
     
     
@@ -336,6 +379,61 @@ BEGIN
     EXEC tSQLt.private_Print @msg2,0;
     EXEC tSQLt.private_Print @msg3, @severity;
     EXEC tSQLt.private_Print @msg2,0;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.XmlResultFormatter
+AS
+BEGIN
+    DECLARE @xmlOutput XML;
+
+    SELECT @xmlOutput = (
+      SELECT Tag, Parent, [testsuite!1!name], [testsuite!1!errors], [testsuite!1!failures], [testcase!2!classname], [testcase!2!name], [failure!3!message]  FROM (
+        SELECT 1 AS Tag, 
+               NULL AS Parent,
+               Class AS [testsuite!1!name],
+               SUM(CASE Result WHEN 'Error' THEN 1 ELSE 0 END) AS [testsuite!1!errors],
+               SUM(CASE Result WHEN 'Failure' THEN 1 ELSE 0 END) AS [testsuite!1!failures],
+               NULL AS [testcase!2!classname],
+               NULL AS [testcase!2!name],
+               NULL AS [failure!3!message]
+          FROM tSQLt.TestResult
+        GROUP BY Class
+        UNION ALL
+        SELECT 2 AS Tag,
+               1 AS Parent,
+               Class,
+               NULL,
+               NULL,
+               Class,
+               TestCase,
+               NULL
+          FROM tSQLt.TestResult
+        UNION ALL
+        SELECT 3 AS Tag,
+               2 AS Parent,
+               Class,
+               NULL,
+               NULL,
+               Class,
+               TestCase,
+               Msg
+          FROM tSQLt.TestResult
+         WHERE Result IN ('Failure', 'Error')) AS X
+       ORDER BY [testsuite!1!name], [testcase!2!name], Tag
+       FOR XML EXPLICIT, TYPE
+       );
+
+    EXEC tSQLt.private_PrintXML @xmlOutput;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.RunTestClassSummary
+AS
+BEGIN
+    DECLARE @Formatter NVARCHAR(MAX);
+    SELECT @Formatter = tSQLt.GetTestResultFormatter();
+    EXEC (@Formatter);
 END
 GO
 
@@ -457,7 +555,9 @@ CREATE FUNCTION tSQLt.getFullTypeName(@TypeId INT, @Length INT, @Precision INT, 
 RETURNS TABLE
 AS
 RETURN SELECT typeName = TYPE_NAME(@TypeId) +
-              CASE WHEN @Length = -1
+              CASE WHEN TYPE_NAME(@TypeId) = 'XML'
+                    THEN ''
+                   WHEN @Length = -1
                     THEN '(MAX)'
                    WHEN TYPE_NAME(@TypeId) LIKE 'N%CHAR'
                     THEN '(' + CAST(@Length / 2 AS NVARCHAR) + ')'

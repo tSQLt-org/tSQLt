@@ -72,6 +72,13 @@ ELSE
     EXEC('CREATE SCHEMA tSQLt_test;');
 GO
 
+CREATE PROC tSQLt_test.SetUp
+AS
+BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.private_printXML';
+END;
+GO
+
 CREATE PROC tSQLt_test.test_TestCasesAreWrappedInTransactions
 AS
 BEGIN
@@ -133,11 +140,12 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_RunTestClass_raises_error_if_failure
+CREATE PROC tSQLt_test.[test RunTestClass raises error if failure in default print mode]
 AS
 BEGIN
     DECLARE @errorRaised INT; SET @errorRaised = 0;
 
+    EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultFormatter';
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.fail ''This is an expected failure''');
     
@@ -154,11 +162,34 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_RunTestClass_raises_error_if_error
+--CREATE PROC tSQLt_test.[test RunTestClass raises error if failure in xml print mode]
+--AS
+--BEGIN
+--    DECLARE @errorRaised INT; SET @errorRaised = 0;
+--
+--    EXEC tSQLt.SetTestResultFormatter 'tSQLt.XMLResultFormatter';
+--    EXEC('CREATE SCHEMA MyTestClass;');
+--    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.fail ''This is an expected failure''');
+--    
+--    BEGIN TRY
+--        EXEC tSQLt.RunTestClass MyTestClass;
+--    END TRY
+--    BEGIN CATCH
+--        SET @errorRaised = 1;
+--    END CATCH
+--    IF(@errorRaised = 0)
+--    BEGIN
+--        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
+--    END
+--END;
+--GO
+--
+CREATE PROC tSQLt_test.[test RunTestClass raises error if error in default print mode]
 AS
 BEGIN
     DECLARE @errorRaised INT; SET @errorRaised = 0;
 
+    EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultsFormatter';
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 1/0;');
     
@@ -174,6 +205,28 @@ BEGIN
     END
 END;
 GO
+
+--CREATE PROC tSQLt_test.[test RunTestClass raises error if error in xml print mode]
+--AS
+--BEGIN
+--    DECLARE @errorRaised INT; SET @errorRaised = 0;
+--
+--    EXEC tSQLt.SetTestResultFormatter 'tSQLt.XMLResultFormatter';
+--    EXEC('CREATE SCHEMA MyTestClass;');
+--    EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 1/0;');
+--    
+--    BEGIN TRY
+--        EXEC tSQLt.RunTestClass MyTestClass;
+--    END TRY
+--    BEGIN CATCH
+--        SET @errorRaised = 1;
+--    END CATCH
+--    IF(@errorRaised = 0)
+--    BEGIN
+--        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
+--    END
+--END;
+--GO
 
 CREATE PROC tSQLt_test.test_RunTest_handles_test_names_with_spaces
 AS
@@ -384,6 +437,21 @@ BEGIN
     IF ISNULL(@result,'') <> 'INT'
     BEGIN
         EXEC tSQLt.Fail 'getFullTypeName should have returned INT, but returned ', @result, ' instead';
+    END
+END
+GO
+
+CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_typename_when_xml
+AS
+BEGIN
+    DECLARE @result VARCHAR(MAX);
+
+    SELECT @result = typeName
+     FROM tSQLt.getFullTypeName(TYPE_ID('XML'), -1, 0, 0);
+
+    IF ISNULL(@result,'') <> 'XML'
+    BEGIN
+        EXEC tSQLt.Fail 'getFullTypeName should have returned xml, but returned ', @result, ' instead';
     END
 END
 GO
@@ -1890,6 +1958,145 @@ BEGIN
       FROM tSQLt.TestResult;
     
     EXEC tSQLt.AssertEquals 1, @numberOfTestResults;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test procedure can be injected to display test results]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA MyFormatterSchema;');
+    EXEC ('CREATE TABLE MyFormatterSchema.Log (i INT DEFAULT(1));');
+    EXEC ('CREATE PROCEDURE MyFormatterSchema.MyFormatter AS INSERT INTO MyFormatterSchema.Log DEFAULT VALUES;');
+    EXEC tSQLt.SetTestResultFormatter 'MyFormatterSchema.MyFormatter';
+    
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC ('CREATE PROCEDURE MyTestClass.testA AS RETURN 0;');
+    
+    EXEC tSQLt.Run 'MyTestClass';
+    
+    CREATE TABLE #Expected (i int DEFAULT(1));
+    INSERT INTO #Expected DEFAULT VALUES;
+    
+    EXEC tSQLt.AssertEqualsTable 'MyFormatterSchema.Log', '#Expected';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates empty string when no test cases in test suite]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+    DELETE FROM tSQLt.TestResult;
+
+    EXEC tSQLt.SetTestResultFormatter 'tSQLt.XmlResultFormatter';
+    
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    
+    EXEC tSQLt.RunAll;
+    
+    DECLARE @actual NVARCHAR(MAX);
+    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+
+    EXEC tSQLt.AssertEqualsString NULL, @actual;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with test element when there is a passing test]
+AS
+BEGIN
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass', 'testA', 'XYZ', 'Success');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    DECLARE @actual NVARCHAR(MAX);
+    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+
+    EXEC tSQLt.AssertEqualsString 
+'<testsuite name="MyTestClass" errors="0" failures="0"><testcase classname="MyTestClass" name="testA"/></testsuite>', @actual;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with test element and failure element when there is a failing test]
+AS
+BEGIN
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testA', 'XYZ', 'Failure', 'This test intentionally fails');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    DECLARE @actual NVARCHAR(MAX);
+    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    
+    EXEC tSQLt.AssertEqualsString 
+'<testsuite name="MyTestClass" errors="0" failures="1"><testcase classname="MyTestClass" name="testA"><failure message="This test intentionally fails"/></testcase></testsuite>', @actual;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures]
+AS
+BEGIN
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testA', 'XYZ', 'Failure', 'testA intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testB', 'XYZ', 'Success', NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testC', 'XYZ', 'Failure', 'testC intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testD', 'XYZ', 'Success', NULL);
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    DECLARE @actual NVARCHAR(MAX);
+    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    EXEC tSQLt.AssertEqualsString 
+'<testsuite name="MyTestClass" errors="0" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"/></testsuite>', @actual;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures or errors]
+AS
+BEGIN
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testA', 'XYZ', 'Failure', 'testA intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testB', 'XYZ', 'Success', NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testC', 'XYZ', 'Failure', 'testC intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testD', 'XYZ', 'Error', 'testD intentionally errored');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    DECLARE @actual NVARCHAR(MAX);
+    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    EXEC tSQLt.AssertEqualsString 
+'<testsuite name="MyTestClass" errors="1" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite>', @actual;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates multiple testsuite elements for multiple test classes with tests]
+AS
+BEGIN
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass1', 'testA', 'XYZ', 'Failure', 'testA intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass1', 'testB', 'XYZ', 'Success', NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass2', 'testC', 'XYZ', 'Failure', 'testC intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass2', 'testD', 'XYZ', 'Error', 'testD intentionally errored');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    DECLARE @actual NVARCHAR(MAX);
+    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    EXEC tSQLt.AssertEqualsString 
+'<testsuite name="MyTestClass1" errors="0" failures="1"><testcase classname="MyTestClass1" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass1" name="testB"/></testsuite><testsuite name="MyTestClass2" errors="1" failures="1"><testcase classname="MyTestClass2" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass2" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite>', @actual;
 END;
 GO
 --ROLLBACK
