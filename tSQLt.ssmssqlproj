@@ -3,8 +3,8 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):MYMACWIN\meinse00">
-          <Created>2010-03-29T13:24:46.0291751-04:00</Created>
+        <ConnectionNode Name="(local):DLLOYD\Dennis">
+          <Created>2010-03-29T14:24:46.0291751-03:00</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -15,8 +15,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="(local)\sql2008:MYMACWIN\meinse00">
-          <Created>2009-07-02T09:32:02.219617-04:00</Created>
+        <ConnectionNode Name="(local)\sql2008:DLLOYD\Dennis">
+          <Created>2009-07-02T10:32:02.219617-03:00</Created>
           <Type>SQL</Type>
           <Server>(local)\sql2008</Server>
           <UserName />
@@ -48,6 +48,18 @@
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLtclr.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLtclr.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLtclr_test.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLtclr_test.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
