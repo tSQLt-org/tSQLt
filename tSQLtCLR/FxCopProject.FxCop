@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FxCopProject Version="1.36" Name="tSQLtCLR">
+ <ProjectOptions>
+  <SharedProject>True</SharedProject>
+  <Stylesheet Apply="False">c:\programs\microsoft fxcop 1.36\Xml\FxCopReport.xsl</Stylesheet>
+  <SaveMessages>
+   <Project Status="Active, Excluded" NewOnly="False" />
+   <Report Status="Active" NewOnly="False" />
+  </SaveMessages>
+  <ProjectFile Compress="True" DefaultTargetCheck="True" DefaultRuleCheck="True" SaveByRuleGroup="" Deterministic="True" />
+  <EnableMultithreadedLoad>True</EnableMultithreadedLoad>
+  <EnableMultithreadedAnalysis>True</EnableMultithreadedAnalysis>
+  <SourceLookup>True</SourceLookup>
+  <AnalysisExceptionsThreshold>10</AnalysisExceptionsThreshold>
+  <RuleExceptionsThreshold>1</RuleExceptionsThreshold>
+  <Spelling Locale="en-US" />
+  <OverrideRuleVisibilities>False</OverrideRuleVisibilities>
+  <CustomDictionaries SearchFxCopDir="True" SearchUserProfile="True" SearchProjectDir="True" />
+  <SearchGlobalAssemblyCache>False</SearchGlobalAssemblyCache>
+  <DeadlockDetectionTimeout>120</DeadlockDetectionTimeout>
+  <IgnoreGeneratedCode>False</IgnoreGeneratedCode>
+ </ProjectOptions>
+ <Targets>
+  <Target Name="$(ProjectDir)/tSQLtCLR/bin/Release/tSQLtCLR.dll" Analyze="True" AnalyzeAllChildren="True" />
+ </Targets>
+ <Rules>
+  <RuleFiles>
+   <RuleFile Name="$(FxCopDir)\Rules\DesignRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\GlobalizationRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\InteroperabilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\MobilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\NamingRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\PerformanceRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\PortabilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\SecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\UsageRules.dll" Enabled="True" AllRulesEnabled="True" />
+  </RuleFiles>
+  <Groups />
+  <Settings />
+ </Rules>
+ <FxCopReport Version="1.36">
+  <Namespaces>
+   <Namespace Name="tSQLtCLR">
+    <Messages>
+     <Message TypeName="AvoidNamespacesWithFewTypes" Category="Microsoft.Design" CheckId="CA1020" Status="Excluded" Created="2010-05-16 22:36:07Z">
+      <Issue>
+       <Item>tSQLtCLR</Item>
+      </Issue>
+      <Notes>
+       <User Name="Dennis">
+        <Note Id="3" />
+       </User>
+      </Notes>
+     </Message>
+     <Message Id="CLR" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Status="Excluded" Created="2010-05-16 22:36:07Z">
+      <Issue Name="Namespace">
+       <Item>CLR</Item>
+       <Item>tSQLtCLR</Item>
+       <Item>Clr</Item>
+      </Issue>
+      <Notes>
+       <User Name="Dennis">
+        <Note Id="5" />
+       </User>
+      </Notes>
+     </Message>
+     <Message Id="Lt" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Status="Excluded" Created="2010-05-16 22:36:07Z">
+      <Issue Name="Namespace">
+       <Item>Lt</Item>
+       <Item>tSQLtCLR</Item>
+       <Item>LT</Item>
+      </Issue>
+      <Notes>
+       <User Name="Dennis">
+        <Note Id="4" />
+       </User>
+      </Notes>
+     </Message>
+     <Message Id="t" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Status="Excluded" Created="2010-05-16 22:36:07Z">
+      <Issue Name="Namespace">
+       <Item>t</Item>
+       <Item>tSQLtCLR</Item>
+       <Item>T</Item>
+      </Issue>
+      <Notes>
+       <User Name="Dennis">
+        <Note Id="5" />
+       </User>
+      </Notes>
+     </Message>
+    </Messages>
+   </Namespace>
+  </Namespaces>
+  <Targets>
+   <Target Name="$(ProjectDir)/tSQLtCLR/bin/Release/tSQLtCLR.dll">
+    <Modules>
+     <Module Name="tsqltclr.dll">
+      <Messages>
+       <Message Id="CLR" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Status="Excluded" Created="2010-05-16 21:15:33Z">
+        <Issue Name="Assembly">
+         <Item>CLR</Item>
+         <Item>'tSQLtCLR.dll'</Item>
+         <Item>Clr</Item>
+        </Issue>
+        <Notes>
+         <User Name="Dennis">
+          <Note Id="2" />
+         </User>
+        </Notes>
+       </Message>
+       <Message Id="Lt" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Status="Excluded" Created="2010-05-16 21:15:33Z">
+        <Issue Name="Assembly">
+         <Item>Lt</Item>
+         <Item>'tSQLtCLR.dll'</Item>
+         <Item>LT</Item>
+        </Issue>
+        <Notes>
+         <User Name="Dennis">
+          <Note Id="0" />
+         </User>
+        </Notes>
+       </Message>
+       <Message Id="t" TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709" Status="Excluded" Created="2010-05-16 21:15:33Z">
+        <Issue Name="Assembly">
+         <Item>t</Item>
+         <Item>'tSQLtCLR.dll'</Item>
+         <Item>T</Item>
+        </Issue>
+        <Notes>
+         <User Name="Dennis">
+          <Note Id="1" />
+         </User>
+        </Notes>
+       </Message>
+      </Messages>
+      <Namespaces>
+       <Namespace Name="tSQLtCLR">
+        <Types>
+         <Type Name="StoredProcedures">
+          <Members>
+           <Member Name="#AssertResultSetsHaveSameMetaData(System.Data.SqlTypes.SqlString,System.Data.SqlTypes.SqlString)">
+            <Messages>
+             <Message Id="MetaData" TypeName="CompoundWordsShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1702" Status="Excluded" Created="2010-05-16 22:43:35Z">
+              <Issue Name="MemberShouldBeDiscreteTerm">
+               <Item>MetaData</Item>
+               <Item>'StoredProcedures.AssertResultSetsHaveSameMetaData(SqlString, SqlString)'</Item>
+               <Item>Metadata</Item>
+              </Issue>
+              <Notes>
+               <User Name="Dennis">
+                <Note Id="6" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+      </Namespaces>
+     </Module>
+    </Modules>
+   </Target>
+  </Targets>
+  <Notes>
+   <User Name="Dennis">
+    <Note Id="0" Modified="2010-05-16 21:26:53Z">tSQLt is the product name</Note>
+    <Note Id="1" Modified="2010-05-16 21:26:56Z">tSQLt is the product name</Note>
+    <Note Id="2" Modified="2010-05-16 21:27:00Z">tSQLt is the product name</Note>
+    <Note Id="3" Modified="2010-05-16 22:44:45Z">tSQLtCLR is likely to contain many more types in the future</Note>
+    <Note Id="4" Modified="2010-05-16 22:45:27Z">tSQLt is the product name</Note>
+    <Note Id="5" Modified="2010-05-16 22:45:30Z">tSQLt is the product name</Note>
+    <Note Id="6" Modified="2010-05-16 22:46:31Z">MetaData (with capital D is the .Net convention for the term)</Note>
+   </User>
+  </Notes>
+  <Rules>
+   <Rule TypeName="AvoidNamespacesWithFewTypes" Category="Microsoft.Design" CheckId="CA1020">
+    <Resolution Name="Default">Consider merging the types defined in '{0}' with another namespace.</Resolution>
+   </Rule>
+   <Rule TypeName="CompoundWordsShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1702">
+    <Resolution Name="MemberShouldBeDiscreteTerm">The compound word '{0}' in member name {1} exists as a discrete term. If your usage is intended to be single word, case it as '{2}' or strip the first token entirely if it represents any sort of Hungarian notation.</Resolution>
+   </Rule>
+   <Rule TypeName="IdentifiersShouldBeCasedCorrectly" Category="Microsoft.Naming" CheckId="CA1709">
+    <Resolution Name="Assembly">Correct the casing of '{0}' in assembly name {1} by changing it to '{2}'.</Resolution>
+    <Resolution Name="Namespace">Correct the casing of '{0}' in namespace name '{1}' by changing it to '{2}'.</Resolution>
+   </Rule>
+  </Rules>
+ </FxCopReport>
+</FxCopProject>

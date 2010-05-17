@@ -9,5 +9,9 @@ CREATE ASSEMBLY tSQLtCLR FROM 'C:\Projects\tSQLt.sourceforge\tSQLtCLR\tSQLtCLR\b
 GO
 CREATE PROCEDURE tSQLt.ResultsetFilter @ResultsetNo INT, @Command NVARCHAR(MAX)
 AS
-EXTERNAL NAME tSQLtCLR.StoredProcedures.ResultsetFilter;
+EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].ResultSetFilter;
+GO
+CREATE PROCEDURE tSQLt.AssertResultSetsHaveSameMetaData @expectedCommand NVARCHAR(MAX), @actualCommand NVARCHAR(MAX)
+AS
+EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].AssertResultSetsHaveSameMetaData;
 GO

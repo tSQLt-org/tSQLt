@@ -221,7 +221,7 @@ BEGIN
         EXEC (@cmd);
     END TRY
     BEGIN CATCH
-        IF ERROR_MESSAGE() = 'tSQLt.Failure'
+        IF ERROR_MESSAGE() LIKE '%tSQLt.Failure%'
         BEGIN
             SELECT @Msg = Msg FROM tSQLt.TestMessage;
             SET @Result = 'Failure';
