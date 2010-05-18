@@ -10,7 +10,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData does fails for a schema with integer and another with bigint]
+CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails for a schema with integer and another with bigint]
 AS
 BEGIN
     EXEC tSQLt_testutil.assertFailCalled 
@@ -133,45 +133,45 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails if either command produces an exception]
+CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData throws an exception if a command produces an exception]
 AS
 BEGIN
-    EXEC tSQLt_testutil.assertFailCalled 
-        'EXEC tSQLt.AssertResultSetsHaveSameMetaData 
-            ''SELECT 1/0 AS A'', 
-            ''SELECT CAST(1 AS INT) A'';',
-            'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with first command throwing an exception';
-    EXEC tSQLt_testutil.assertFailCalled 
-        'EXEC tSQLt.AssertResultSetsHaveSameMetaData 
-            ''SELECT CAST(1 AS INT) A'',
-            ''SELECT 1/0 AS A'';',
-            'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with second command throwing an exception';
-    EXEC tSQLt_testutil.assertFailCalled 
-        'EXEC tSQLt.AssertResultSetsHaveSameMetaData 
-            ''SELECT 1/0 AS A'',
-            ''SELECT 1/0 AS A'';',
-            'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with both commands throwing an exception';
+    DECLARE @err NVARCHAR(MAX);
+    
+    BEGIN TRY
+        EXEC tSQLt.AssertResultSetsHaveSameMetaData 
+            'SELECT 1/0 AS A', 
+            'SELECT CAST(1 AS INT) A';
+    END TRY
+    BEGIN CATCH
+        SET @err = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @err NOT LIKE '%divide by zero%'
+    BEGIN
+        EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+    END;
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails if either command has a syntax error]
+CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData throws an exception if either command has a syntax error]
 AS
 BEGIN
-    EXEC tSQLt_testutil.assertFailCalled 
-        'EXEC tSQLt.AssertResultSetsHaveSameMetaData 
-            ''SELECT FROM WHERE'', 
-            ''SELECT CAST(1 AS INT) A'';',
-            'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with first command containing syntax error';
-    EXEC tSQLt_testutil.assertFailCalled 
-        'EXEC tSQLt.AssertResultSetsHaveSameMetaData 
-            ''SELECT CAST(1 AS INT) A'',
-            ''SELECT FROM WHERE'';',
-            'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with second command containing syntax error';
-    EXEC tSQLt_testutil.assertFailCalled 
-        'EXEC tSQLt.AssertResultSetsHaveSameMetaData 
-            ''SELECT FROM WHERE'',
-            ''SELECT FROM WHERE'';',
-            'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with both commands containing syntax error';
+    DECLARE @err NVARCHAR(MAX);
+    
+    BEGIN TRY
+        EXEC tSQLt.AssertResultSetsHaveSameMetaData 
+            'SELECT FROM WHERE', 
+            'SELECT CAST(1 AS INT) A';
+    END TRY
+    BEGIN CATCH
+        SET @err = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @err NOT LIKE '%Incorrect syntax near the keyword ''FROM''%'
+    BEGIN
+        EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+    END;
 END;
 GO
 

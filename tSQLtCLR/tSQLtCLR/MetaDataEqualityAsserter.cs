@@ -30,57 +30,53 @@ namespace tSQLtCLR
             {
                 testDatabaseFacade.failTestCaseAndThrowException(irse.Message);
             }
-            catch (SqlException se)
-            {
-                testDatabaseFacade.failTestCaseAndThrowException("Exception encountered while executing command: " + se.Message);
-            }
         }
 
         private String createSchemaStringFromCommand(SqlString command)
         {
             SqlDataReader reader = null;
+
             try
             {
                 reader = testDatabaseFacade.executeCommand(command);
-                throwExceptionIfReadingResultSetProducesError(command, reader);
-
-                DataTable schema = reader.GetSchemaTable();
+                reader.Read();
+                DataTable schema = attemptToGetSchemaTable(command, reader);
                 throwExceptionIfSchemaIsEmpty(command, schema);
 
                 return buildSchemaString(schema);
             }
-            catch (InvalidResultSetException)
+            finally
             {
-                throw;
+                closeReader(reader);
+            }
+
+        }
+
+        private static void closeReader(SqlDataReader reader)
+        {
+            if (reader != null)
+            {
+                reader.Close();
+            }
+        }
+
+        private static DataTable attemptToGetSchemaTable(SqlString command, SqlDataReader reader)
+        {
+            try
+            {
+                return reader.GetSchemaTable();
             }
             catch (Exception e)
             {
                 throw new InvalidResultSetException("The command [" + command.ToString() + "] did not return a valid result set", e);
             }
-            finally
-            {
-                if (reader != null)
-                {
-                    reader.Close();
-                }
-            }
         }
 
         private static void throwExceptionIfSchemaIsEmpty(SqlString command, DataTable schema)
         {
-            if (schema == null)
+            if (schema == null) 
+            {
                 throw new InvalidResultSetException("The command [" + command.ToString() + "] did not return a result set");
-        }
-
-        private static void throwExceptionIfReadingResultSetProducesError(SqlString command, SqlDataReader reader)
-        {
-            try
-            {
-                reader.Read();
-            }
-            catch (SqlException se)
-            {
-                throw new InvalidResultSetException("The command [" + command.ToString() + "] produced an exception", se);
             }
         }
 
