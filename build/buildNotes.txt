@@ -1,0 +1,38 @@
+Setting up tSQLt build notes:
+1. You must run MSBuild from the command line once before running the build. The reason is that the first time it prompts for the signing password. The signing password is: P@$$30rd
+
+This gets somehow stored internally in Windows, and will not need to be re-entered again.
+
+Here is an example of the MSBuild command:
+c:\Projects\tSQLt.sourceforge\tSQLtCLR\tSQLtCLR>C:/Windows/Microsoft.NET/Framework/v2.0.50727/msbuild.exe tSQLtCLR.csproj /p:Configuration=Release /nologo
+
+Note that the current path is where the tSQLtCLR.csproj file lives.
+
+2. There are parameters which need to be set for the ant script. They should be passed from the CruiseControl config file: \CruiseControl\config.xml
+The parameters are:
+	<property name="msbuild.path" value="C:/Windows/Microsoft.NET/Framework/v2.0.50727/"/>
+	<property name="db.server" value="localhost"/>
+	<property name="db.name" value="tSQLt_build"/>
+
+3. Here is an example of the project within CruiseControl's config file:
+	<project name="tSQLt.sourceforge">
+		<listeners>
+			<currentbuildstatuslistener file="logs/${project.name}/status.txt"/>
+		</listeners>
+		
+		<modificationset quietperiod="30">
+			<filesystem folder="C:/projects/${project.name}"/>
+		</modificationset>
+		
+		<schedule interval="300">
+			<ant anthome="apache-ant-1.7.0" buildfile="c:/projects/${project.name}/build/build.xml">
+				<property name="msbuild.path" value="C:/Windows/Microsoft.NET/Framework/v2.0.50727/"/>
+				<property name="db.server" value="localhost"/>
+				<property name="db.name" value="tSQLt_build"/>
+			</ant>
+		</schedule>
+		
+		<log>
+			<merge dir="c:/projects/${project.name}/build/test/results"/>
+		</log>
+	</project>
