@@ -4,6 +4,11 @@ GO
 IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
     EXEC tSQLt.DropClass tSQLt;
 GO
+
+IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
+    DROP ASSEMBLY tSQLtCLR;
+GO
+
 CREATE SCHEMA tSQLt;
 GO
 CREATE PROCEDURE tSQLt.DropClass
@@ -146,7 +151,7 @@ CREATE PROCEDURE tSQLt.private_PrintXML
     @message XML
 AS 
 BEGIN
-    SELECT @message;
+    SELECT @message FOR XML PATH('');
     RETURN 0;
 END;
 GO
@@ -388,20 +393,32 @@ BEGIN
     DECLARE @xmlOutput XML;
 
     SELECT @xmlOutput = (
-      SELECT Tag, Parent, [testsuite!1!name], [testsuite!1!errors], [testsuite!1!failures], [testcase!2!classname], [testcase!2!name], [failure!3!message]  FROM (
-        SELECT 1 AS Tag, 
+      SELECT Tag, Parent, [root!1!hide!hide], [testsuite!2!name], [testsuite!2!errors], [testsuite!2!failures], [testcase!3!classname], [testcase!3!name], [failure!4!message]  FROM (
+        SELECT 1 AS Tag,
                NULL AS Parent,
-               Class AS [testsuite!1!name],
-               SUM(CASE Result WHEN 'Error' THEN 1 ELSE 0 END) AS [testsuite!1!errors],
-               SUM(CASE Result WHEN 'Failure' THEN 1 ELSE 0 END) AS [testsuite!1!failures],
-               NULL AS [testcase!2!classname],
-               NULL AS [testcase!2!name],
-               NULL AS [failure!3!message]
+               'root' AS [root!1!hide!hide],
+               NULL AS [testsuite!2!name],
+               NULL AS [testsuite!2!errors],
+               NULL AS [testsuite!2!failures],
+               NULL AS [testcase!3!classname],
+               NULL AS [testcase!3!name],
+               NULL AS [failure!4!message]
+        UNION ALL
+        SELECT 2 AS Tag, 
+               1 AS Parent,
+               'root',
+               Class AS [testsuite!2!name],
+               SUM(CASE Result WHEN 'Error' THEN 1 ELSE 0 END) AS [testsuite!2!errors],
+               SUM(CASE Result WHEN 'Failure' THEN 1 ELSE 0 END) AS [testsuite!2!failures],
+               NULL AS [testcase!3!classname],
+               NULL AS [testcase!3!name],
+               NULL AS [failure!4!message]
           FROM tSQLt.TestResult
         GROUP BY Class
         UNION ALL
-        SELECT 2 AS Tag,
-               1 AS Parent,
+        SELECT 3 AS Tag,
+               2 AS Parent,
+               'root',
                Class,
                NULL,
                NULL,
@@ -410,8 +427,9 @@ BEGIN
                NULL
           FROM tSQLt.TestResult
         UNION ALL
-        SELECT 3 AS Tag,
-               2 AS Parent,
+        SELECT 4 AS Tag,
+               3 AS Parent,
+               'root',
                Class,
                NULL,
                NULL,
@@ -420,8 +438,8 @@ BEGIN
                Msg
           FROM tSQLt.TestResult
          WHERE Result IN ('Failure', 'Error')) AS X
-       ORDER BY [testsuite!1!name], [testcase!2!name], Tag
-       FOR XML EXPLICIT, TYPE
+       ORDER BY [testsuite!2!name], [testcase!3!name], Tag
+       FOR XML EXPLICIT
        );
 
     EXEC tSQLt.private_PrintXML @xmlOutput;
@@ -1393,3 +1411,4 @@ BEGIN
     RETURN @quotedName;
 END;
 GO
+

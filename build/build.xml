@@ -1,0 +1,102 @@
+<project name="tSQLt.sourceforge" default="all">
+
+	<target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results"/>
+
+	<target name="init">
+		<delete dir="output"/>
+		<delete dir="test"/>
+		<mkdir dir="output"/>
+		<mkdir dir="test"/>
+		<mkdir dir="test/results"/>
+	</target>
+
+	<target name="clr.compile">
+		<exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
+			<arg value="/c"/>
+			<arg value="${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=Release /nologo"/>
+		</exec>
+	</target>
+
+	<target name="package.files.copy">
+		<copy file="../tSQLt.class.sql" todir="output"/>
+		<copy file="../tSQLtCLR_CreateProcs.sql" todir="output"/>
+		<copy file="../SetClrEnabled.sql" todir="output"/>
+		<copy file="../ReleaseNotes.txt" todir="output"/>
+	</target>
+
+	<target name="package.construct.tsqlt">
+                <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
+			<arg value="/c"/>
+			<arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/Release/tSQLtCLR.dll SAFE"/>
+		</exec>
+		<concat destfile="output/tSQLt.class.sql" append="yes" fixlastline="yes" eol="crlf">
+			<filelist dir="output" files="CreateAssembly.sql"/>
+			<filelist dir="output" files="tSQLtCLR_CreateProcs.sql"/>
+		</concat>
+	</target>
+
+	<target name="package.create">
+		<zip destfile="output/tSQLt.zip">
+			<fileset file="output/ReleaseNotes.txt"/>
+			<fileset file="output/tSQLt.class.sql"/>
+			<fileset file="output/SetClrEnabled.sql"/>
+		</zip>
+		<delete>
+			<fileset dir="output" excludes="*.zip"/>
+		</delete>
+	</target>
+
+	<target name="package.extract">
+		<unzip src="output/tSQLt.zip" dest="test"/>
+		<copy file="../tSQLt_test.class.sql" todir="test"/>
+		<copy file="../tSQLtclr_test.sql" todir="test"/>
+		<copy file="GetTestResults.sql" todir="test"/>		
+	</target>
+
+	<target name="db.recreate">
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -E -I -Q &quot;IF EXISTS(SELECT 1 FROM sys.databases WHERE name='${db.name}') DROP DATABASE ${db.name}; CREATE DATABASE ${db.name};&quot;"/>
+		</exec>
+	</target>
+
+	<target name="db.install.schema">
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -I -i &quot;test/tSQLt.class.sql&quot;"/>
+		</exec>
+	</target>
+
+	<target name="db.install.tests">
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -I -i &quot;test/tSQLt_test.class.sql&quot;"/>
+		</exec>
+
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -I -i &quot;test/tSQLtclr_test.sql&quot;"/>
+		</exec>
+	</target>
+
+	<target name="db.tests.run">
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -I -Q &quot;EXEC tSQLt.RunAll;&quot;"/>
+		</exec>
+	</target>
+
+	<target name="db.tests.output">
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -h-1 -y0 -I -i &quot;test/GetTestResults.sql&quot; -o &quot;test/results/TestResults.xml&quot;"/>
+		</exec>
+	</target>
+
+	<target name="db.tests.check.results">
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd  -S ${db.server} -d ${db.name} -h-1 -y0 -I -Q &quot;:EXIT(SELECT COUNT(*) FROM tSQLt.TestResult WHERE Result != 'Success')&quot;"/>
+		</exec>
+	</target>
+</project>

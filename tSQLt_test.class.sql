@@ -1981,7 +1981,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates empty string when no test cases in test suite]
+CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates <root/> when no test cases in test suite]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -1996,7 +1996,7 @@ BEGIN
     DECLARE @actual NVARCHAR(MAX);
     SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
 
-    EXEC tSQLt.AssertEqualsString NULL, @actual;
+    EXEC tSQLt.AssertEqualsString '<root/>', @actual;
 END;
 GO
 
@@ -2013,7 +2013,7 @@ BEGIN
     SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
 
     EXEC tSQLt.AssertEqualsString 
-'<testsuite name="MyTestClass" errors="0" failures="0"><testcase classname="MyTestClass" name="testA"/></testsuite>', @actual;
+'<root><testsuite name="MyTestClass" errors="0" failures="0"><testcase classname="MyTestClass" name="testA"/></testsuite></root>', @actual;
 END;
 GO
 
@@ -2030,7 +2030,7 @@ BEGIN
     SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
     
     EXEC tSQLt.AssertEqualsString 
-'<testsuite name="MyTestClass" errors="0" failures="1"><testcase classname="MyTestClass" name="testA"><failure message="This test intentionally fails"/></testcase></testsuite>', @actual;
+'<root><testsuite name="MyTestClass" errors="0" failures="1"><testcase classname="MyTestClass" name="testA"><failure message="This test intentionally fails"/></testcase></testsuite></root>', @actual;
 END;
 GO
 
@@ -2052,7 +2052,7 @@ BEGIN
     DECLARE @actual NVARCHAR(MAX);
     SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
     EXEC tSQLt.AssertEqualsString 
-'<testsuite name="MyTestClass" errors="0" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"/></testsuite>', @actual;
+'<root><testsuite name="MyTestClass" errors="0" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"/></testsuite></root>', @actual;
 END;
 GO
 
@@ -2074,7 +2074,7 @@ BEGIN
     DECLARE @actual NVARCHAR(MAX);
     SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
     EXEC tSQLt.AssertEqualsString 
-'<testsuite name="MyTestClass" errors="1" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite>', @actual;
+'<root><testsuite name="MyTestClass" errors="1" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @actual;
 END;
 GO
 
@@ -2096,7 +2096,7 @@ BEGIN
     DECLARE @actual NVARCHAR(MAX);
     SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
     EXEC tSQLt.AssertEqualsString 
-'<testsuite name="MyTestClass1" errors="0" failures="1"><testcase classname="MyTestClass1" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass1" name="testB"/></testsuite><testsuite name="MyTestClass2" errors="1" failures="1"><testcase classname="MyTestClass2" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass2" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite>', @actual;
+'<root><testsuite name="MyTestClass1" errors="0" failures="1"><testcase classname="MyTestClass1" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass1" name="testB"/></testsuite><testsuite name="MyTestClass2" errors="1" failures="1"><testcase classname="MyTestClass2" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass2" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @actual;
 END;
 GO
 --ROLLBACK
