@@ -1,0 +1,33 @@
+tSQLt Release Notes
+===================
+
+build.7:
+An online version of these release notes is available at:
+http://www2.sqlity.net/content/tsqlt-build7-release-notes
+The online version is being updated with examples.
+
+IMPORTANT: tSQLt now utilizes CLR (Common Language Runtime) stored procedures. 
+In order to install tSQLt, CLRs must be enabled in SQL Server. The 
+SetClrEnabled.sql file has the command which enables CLRs. If CLRs are not 
+already enabled, this command must be executed before installing tSQLt.
+
+NEW FEATURES:
+1. A new procedure tSQLt.RunAll, executes all test classes created with the 
+tSQLt.NewTestClass procedure.
+
+2. Added procedure tSQLt.AssertResultSetsHaveSameMetaData which allows the 
+meta data of two result sets to be compared. This compares several properties 
+of each column of the result set including the column name, data type, length, 
+precision, scale and other properties.
+
+3. Added procedure tSQLt.ResultSetFilter which returns a single result set from
+a statement which produces multiple result sets. For example, you want to test 
+a stored procedure which executes several select statements. You can now use
+ResultSetFilter to choose which result set to emit, and therefore you can 
+capture that result set into a table for use with tSQLt.AssertEqualsTable.
+
+4. The results of running tests can now be output in an XML format. After 
+calling one of the tSQLt.Run... procedures to execute your test cases, you 
+can call tSQLt.XmlResultFormatter to display the results in XML. The format is 
+compatible with CruiseControl and can be merged into a build log the same way 
+that a JUnit test report is merged.
