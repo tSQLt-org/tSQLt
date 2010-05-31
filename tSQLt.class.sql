@@ -655,6 +655,17 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.private_ValidateProcedureCanBeUsedWithSpyProcedure
+    @ProcedureName NVARCHAR(MAX)
+AS
+BEGIN
+    IF (1020 < (SELECT COUNT(*) FROM sys.parameters WHERE object_id = OBJECT_ID(@ProcedureName)))
+    BEGIN
+      RAISERROR('Cannot use SpyProcedure on procedure %s because it contains more than 1020 parameters', 16, 10, @ProcedureName) WITH NOWAIT;
+    END;
+END;
+GO
+
 CREATE PROCEDURE tSQLt.SpyProcedure
     @ProcedureName NVARCHAR(MAX)
 AS
@@ -666,21 +677,18 @@ BEGIN
             @ProcParmTypeList NVARCHAR(MAX),
             @TableColTypeList NVARCHAR(MAX);
             
-    IF (1020 < (SELECT COUNT(*) FROM sys.parameters WHERE object_id = OBJECT_ID(@ProcedureName)))
-    BEGIN
-      RAISERROR('Cannot use SpyProcedure on procedure %s because it contains more than 1020 parameters', 16, 10, @ProcedureName) WITH NOWAIT;
-      RETURN -1;
-    END;
+    EXEC tSQLt.private_ValidateProcedureCanBeUsedWithSpyProcedure @ProcedureName;
 
     SELECT @LogTableName =  QUOTENAME(OBJECT_SCHEMA_NAME(ObjId)) + '.' + QUOTENAME(OBJECT_NAME(ObjId)+'_SpyProcedureLog')
       FROM (SELECT OBJECT_ID(@ProcedureName) AS ObjId)X;
 
-    WITH A(no,pname, cname, type, sep)
+    WITH A(no,pname, cname, type, sep, is_output)
            AS (SELECT p.parameter_id,
                       p.name,
                       '[' + STUFF(p.name,1,1,'') + ']',
                       t.typeName,
-                      CASE p.parameter_id WHEN 1 THEN '' ELSE ',' END
+                      CASE p.parameter_id WHEN 1 THEN '' ELSE ',' END,
+                      is_output
                  FROM sys.parameters p
                  CROSS APPLY tSQLt.getFullTypeName(p.user_type_id,p.max_length,p.precision,p.scale) t
                 WHERE object_id = OBJECT_ID(@ProcedureName)
@@ -689,7 +697,10 @@ BEGIN
            AS (SELECT no,
                       sep + pname,
                       sep + cname,
-                      sep + pname + ' ' + type +' = NULL',
+                      sep + pname + ' ' + type +' = NULL' + 
+                          CASE WHEN is_output = 1 THEN ' OUT'
+                               ELSE ''
+                          END,
                       ',' + cname + ' ' + 
                           CASE WHEN type LIKE '%NCHAR%'
                                  OR type LIKE '%NVARCHAR%'
@@ -710,11 +721,9 @@ BEGIN
            @TableColTypeList = (SELECT xml.value('/','NVARCHAR(MAX)') FROM TableColTypeList);
 
     SELECT @Cmd = 'CREATE TABLE ' + @LogTableName + ' (_id_ int IDENTITY(1,1) PRIMARY KEY CLUSTERED ' + ISNULL(@TableColTypeList,'') + ');';
-    --RAISERROR(@Cmd,0,1)WITH NOWAIT;
     EXEC(@Cmd);
 
     SELECT @Cmd = 'DROP PROCEDURE ' + @ProcedureName +';';
-    --RAISERROR(@Cmd,0,1)WITH NOWAIT;
     EXEC(@Cmd);
 
     SELECT @Cmd = 'CREATE PROCEDURE ' + @ProcedureName + ISNULL('(' + @ProcParmTypeList + ')', '') + 
@@ -722,7 +731,6 @@ BEGIN
                      'INSERT INTO ' + @LogTableName + 
                      ISNULL(' (' + @TableColList + ') SELECT ' + @ProcParmList, ' DEFAULT VALUES') + 
                   '; END;';
-    --RAISERROR(@Cmd,0,1)WITH NOWAIT;
     EXEC(@Cmd);
 
     RETURN 0;
@@ -1411,4 +1419,3 @@ BEGIN
     RETURN @quotedName;
 END;
 GO
-

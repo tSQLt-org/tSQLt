@@ -253,7 +253,7 @@ END;
 GO
 
 
-CREATE PROC tSQLt_test.test_SpyProcedure_shouldAllowTesterToNotExecuteBehaviorOfProcedure
+CREATE PROC tSQLt_test.[test SpyProcedure should allow tester to not execute behavior of procedure]
 AS
 BEGIN
 
@@ -266,7 +266,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_SpyProcedure_shouldAllowTesterToNotExecuteBehaviorOfProcedureWithAParameter
+CREATE PROC tSQLt_test.[test SpyProcedure should allow tester to not execute behavior of procedure with a parameter]
 AS
 BEGIN
 
@@ -279,7 +279,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_SpyProcedure_shouldAllowTesterToNotExecuteBehaviorOfProcedureWithMultipleParameters
+CREATE PROC tSQLt_test.[test SpyProcedure should allow tester to not execute behavior of procedure with multiple parameters]
 AS
 BEGIN
 
@@ -293,7 +293,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_SpyProcedure_shouldLogCalls
+CREATE PROC tSQLt_test.[test SpyProcedure should log calls]
 AS
 BEGIN
 
@@ -312,7 +312,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_SpyProcedure_shouldLogCallsWithVarcharParameters
+CREATE PROC tSQLt_test.[test SpyProcedure should log calls with varchar parameters]
 AS
 BEGIN
 
@@ -333,6 +333,85 @@ BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
     END;
 
+END;
+GO
+
+CREATE PROC tSQLt_test.[test SpyProcedure should log call when output parameters are present]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
+    
+    DECLARE @actualOutputValue VARCHAR(100);
+    
+    EXEC dbo.InnerProcedure @p1 = @actualOutputValue OUT;
+    
+    IF NOT EXISTS(SELECT 1
+                    FROM dbo.InnerProcedure_SpyProcedureLog
+                   WHERE p1 IS NULL)
+    BEGIN
+        EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test SpyProcedure should log values of output parameters if input was provided for them]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
+    
+    DECLARE @actualOutputValue VARCHAR(100);
+    SET @actualOutputValue = 'HELLO';
+    
+    EXEC dbo.InnerProcedure @p1 = @actualOutputValue OUT;
+    
+    IF NOT EXISTS(SELECT 1
+                    FROM dbo.InnerProcedure_SpyProcedureLog
+                   WHERE p1 = 'HELLO')
+    BEGIN
+        EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test SpyProcedure should log values if a mix of input an output parameters are provided]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT, @p2 INT, @p3 BIT OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
+    
+    EXEC dbo.InnerProcedure @p1 = 'PARAM1', @p2 = 2, @p3 = 0;
+    
+    IF NOT EXISTS(SELECT 1
+                    FROM dbo.InnerProcedure_SpyProcedureLog
+                   WHERE p1 = 'PARAM1'
+                     AND p2 = 2
+                     AND p3 = 0)
+    BEGIN
+        EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test SpyProcedure should not log the default values of parameters if no value is provided]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) = ''MY DEFAULT'' AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
+    
+    EXEC dbo.InnerProcedure;
+    
+    IF NOT EXISTS(SELECT 1
+                    FROM dbo.InnerProcedure_SpyProcedureLog
+                   WHERE p1 IS NULL)
+    BEGIN
+        EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
+    END
 END;
 GO
 
