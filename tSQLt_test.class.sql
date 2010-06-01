@@ -415,6 +415,47 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test SpyProcedure can be given a command to execute]
+AS
+BEGIN
+    EXEC ('CREATE PROC dbo.InnerProcedure AS EXEC tSQLt.Fail ''InnerProcedure was executed'';');
+    
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure', 'RETURN 1';
+    
+    DECLARE @returnVal INT;
+    EXEC @returnVal = dbo.InnerProcedure;
+    
+    IF NOT EXISTS(SELECT 1 FROM dbo.InnerProcedure_SpyProcedureLog)
+    BEGIN
+        EXEC tSQLt.Fail 'InnerProcedure call was not logged!';
+    END;
+    
+    EXEC tSQLt.AssertEquals 1, @returnVal;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test command given to SpyProcedure can be used to set output parameters]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure', 'SET @p1 = ''HELLO'';';
+    
+    DECLARE @actualOutputValue VARCHAR(100);
+    
+    EXEC dbo.InnerProcedure @p1 = @actualOutputValue OUT;
+    
+    EXEC tSQLt.AssertEqualsString 'HELLO', @actualOutputValue;
+    
+    IF NOT EXISTS(SELECT 1
+                    FROM dbo.InnerProcedure_SpyProcedureLog
+                   WHERE p1 IS NULL)
+    BEGIN
+        EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
+    END
+END;
+GO
+
 CREATE PROC tSQLt_test.test_getFullTypeName_shouldProperlyReturnIntParameters
 AS
 BEGIN
