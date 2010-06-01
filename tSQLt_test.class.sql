@@ -456,6 +456,24 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test SpyProcedure can have a cursor output parameter]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @p1 CURSOR VARYING OUTPUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
+    
+    DECLARE @outputCursor CURSOR;
+    EXEC dbo.InnerProcedure @p1 = @outputCursor OUTPUT; 
+    
+    IF NOT EXISTS(SELECT 1
+                    FROM dbo.InnerProcedure_SpyProcedureLog)
+    BEGIN
+        EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
+    END
+END;
+GO
+
 CREATE PROC tSQLt_test.test_getFullTypeName_shouldProperlyReturnIntParameters
 AS
 BEGIN
