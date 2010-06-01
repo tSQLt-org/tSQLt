@@ -667,7 +667,8 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.SpyProcedure
-    @ProcedureName NVARCHAR(MAX)
+    @ProcedureName NVARCHAR(MAX),
+    @CommandToExecute NVARCHAR(MAX) = NULL
 AS
 BEGIN
     DECLARE @Cmd NVARCHAR(MAX);
@@ -729,8 +730,9 @@ BEGIN
     SELECT @Cmd = 'CREATE PROCEDURE ' + @ProcedureName + ISNULL('(' + @ProcParmTypeList + ')', '') + 
                   ' AS BEGIN ' + 
                      'INSERT INTO ' + @LogTableName + 
-                     ISNULL(' (' + @TableColList + ') SELECT ' + @ProcParmList, ' DEFAULT VALUES') + 
-                  '; END;';
+                     ISNULL(' (' + @TableColList + ') SELECT ' + @ProcParmList, ' DEFAULT VALUES') + ';' + 
+                     ISNULL(@CommandToExecute, '') + ';' + 
+                  ' END;';
     EXEC(@Cmd);
 
     RETURN 0;
