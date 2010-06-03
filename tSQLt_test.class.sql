@@ -72,7 +72,7 @@ ELSE
     EXEC('CREATE SCHEMA tSQLt_test;');
 GO
 
-CREATE PROC tSQLt_test.SetUp
+CREATE PROC [tSQLt_test].[SetUp]
 AS
 BEGIN
     EXEC tSQLt.SpyProcedure 'tSQLt.private_printXML';
@@ -470,6 +470,45 @@ BEGIN
                     FROM dbo.InnerProcedure_SpyProcedureLog)
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test SpyProcedure raises appropriate error if the procedure does not exist]
+AS
+BEGIN
+    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+    
+    BEGIN TRY
+      EXEC tSQLt.SpyProcedure 'tSQLt_test.DoesNotExist';
+    END TRY
+    BEGIN CATCH
+        SET @msg = ERROR_MESSAGE();
+    END CATCH
+
+    IF @msg NOT LIKE '%Cannot use SpyProcedure on %DoesNotExist% because the procedure does not exist%'
+    BEGIN
+        EXEC tSQLt.Fail 'Expected SpyProcedure to throw a meaningful error, but message was: ', @msg;
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test SpyProcedure raises appropriate error if the procedure name given references another type of object]
+AS
+BEGIN
+    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+    
+    BEGIN TRY
+      CREATE TABLE tSQLt_test.dummy (i int);
+      EXEC tSQLt.SpyProcedure 'tSQLt_test.dummy';
+    END TRY
+    BEGIN CATCH
+        SET @msg = ERROR_MESSAGE();
+    END CATCH
+
+    IF @msg NOT LIKE '%Cannot use SpyProcedure on %dummy% because the procedure does not exist%'
+    BEGIN
+        EXEC tSQLt.Fail 'Expected SpyProcedure to throw a meaningful error, but message was: ', @msg;
     END
 END;
 GO

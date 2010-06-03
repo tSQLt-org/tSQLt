@@ -659,6 +659,13 @@ CREATE PROCEDURE tSQLt.private_ValidateProcedureCanBeUsedWithSpyProcedure
     @ProcedureName NVARCHAR(MAX)
 AS
 BEGIN
+    IF NOT EXISTS(SELECT 1 FROM sys.procedures WHERE object_id = OBJECT_ID(@ProcedureName))
+    BEGIN
+      PRINT 'GOT HERE';
+      PRINT @ProcedureName;
+      RAISERROR('Cannot use SpyProcedure on %s because the procedure does not exist', 16, 10, @ProcedureName) WITH NOWAIT;
+    END;
+    
     IF (1020 < (SELECT COUNT(*) FROM sys.parameters WHERE object_id = OBJECT_ID(@ProcedureName)))
     BEGIN
       RAISERROR('Cannot use SpyProcedure on procedure %s because it contains more than 1020 parameters', 16, 10, @ProcedureName) WITH NOWAIT;
