@@ -107,7 +107,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_RunTest_truncates_TestResult_table
+CREATE PROC tSQLt_test.[test RunTest truncates TestResult table]
 AS
 BEGIN
     INSERT tSQLt.TestResult(Class, TestCase, TranName) VALUES('TestClass', 'TestCaseDummy','');
@@ -123,7 +123,26 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_RunTestClass_truncates_TestResult_table
+CREATE PROC tSQLt_test.[test RunTest throws error if test case does not exist]
+AS
+BEGIN
+    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+
+    BEGIN TRY
+        EXEC tSQLt.RunTest 'tSQLt_test.DoesNotExist';
+    END TRY
+    BEGIN CATCH
+        SET @msg = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @msg NOT LIKE 'The test case %DoesNotExist% does not exist.'
+    BEGIN
+        EXEC tSQLt.Fail 'Expected RunTest to throw a meaningful error, but message was: ', @msg;
+    END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test RunTestClass truncates TestResult table]
 AS
 BEGIN
     INSERT tSQLt.TestResult(Class, TestCase, TranName) VALUES('TestClass', 'TestCaseDummy','');
@@ -768,12 +787,12 @@ END;
 GO
 
 
-CREATE PROCEDURE tSQLt_test.test_RunTest_handles_uncommitable_transaction
+CREATE PROC tSQLt_test.test_RunTest_handles_uncommitable_transaction
 AS
 BEGIN
     DECLARE @TranName SYSNAME; 
     SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_RunTest_handles_uncommitable_transaction' ORDER BY ID DESC;
-    EXEC ('CREATE PROCEDURE testUncommitable AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
+    EXEC ('CREATE PROC testUncommitable AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
 
     BEGIN TRY
         EXEC tSQLt.RunTest 'testUncommitable';
@@ -805,7 +824,7 @@ END;
 GO
 
 
-CREATE PROCEDURE tSQLt_test.test_FakeTable_works_on_referencedTo_tables
+CREATE PROC tSQLt_test.test_FakeTable_works_on_referencedTo_tables
 AS
 BEGIN
   IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
@@ -826,7 +845,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test FakeTable removes IDENTITY property from column]
+CREATE PROC tSQLt_test.[test FakeTable removes IDENTITY property from column]
 AS
 BEGIN
   IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
@@ -842,7 +861,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table
+CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table
 AS
 BEGIN
     DECLARE @actualDefinition VARCHAR(MAX);
@@ -867,7 +886,7 @@ END;
 GO
 
 
-CREATE PROCEDURE tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table_with_schema
+CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table_with_schema
 AS
 BEGIN
     DECLARE @actualDefinition VARCHAR(MAX);
@@ -892,7 +911,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_invalid_constraint
+CREATE PROC tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_invalid_constraint
 AS
 BEGIN
     DECLARE @errorThrown BIT; SET @errorThrown = 0;
@@ -921,7 +940,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_constraint_existsing_on_different_table
+CREATE PROC tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_constraint_existsing_on_different_table
 AS
 BEGIN
     DECLARE @errorThrown BIT; SET @errorThrown = 0;
@@ -950,7 +969,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table
+CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table
 AS
 BEGIN
     DECLARE @actualDefinition VARCHAR(MAX);
@@ -969,7 +988,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table_with_schema
+CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table_with_schema
 AS
 BEGIN
     DECLARE @actualDefinition VARCHAR(MAX);
@@ -989,7 +1008,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_FakeTable_raises_appropriate_error_if_table_does_not_exist
+CREATE PROC tSQLt_test.test_FakeTable_raises_appropriate_error_if_table_does_not_exist
 AS
 BEGIN
     DECLARE @errorThrown BIT; SET @errorThrown = 0;
@@ -1014,7 +1033,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_expected_table_does_not_exist
+CREATE PROC tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_expected_table_does_not_exist
 AS
 BEGIN
     DECLARE @errorThrown BIT; SET @errorThrown = 0;
@@ -1029,7 +1048,7 @@ END;
 GO
 
 
-CREATE PROCEDURE tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_actual_table_does_not_exist
+CREATE PROC tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_actual_table_does_not_exist
 AS
 BEGIN
     DECLARE @errorThrown BIT; SET @errorThrown = 0;
@@ -1043,7 +1062,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.test_AssertEqualsTable_works_with_temptables
+CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_temptables
 AS
 BEGIN
     DECLARE @errorThrown BIT; SET @errorThrown = 0;
@@ -1229,6 +1248,7 @@ BEGIN
     END
 END;
 GO
+
 CREATE PROC tSQLt_test.[test that tSQLt.Run executes all tests in test class when called with class name]
 AS
 BEGIN
@@ -1255,6 +1275,7 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
+
 CREATE PROC tSQLt_test.[test that tSQLt.Run executes single test when called with test case name]
 AS
 BEGIN
@@ -1280,6 +1301,7 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
+
 CREATE PROC tSQLt_test.[test that tSQLt.Run re-executes single test when called without parameter]
 AS
 BEGIN
@@ -1310,6 +1332,7 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
+
 CREATE PROC tSQLt_test.[test that tSQLt.Run re-executes testClass when called without parameter]
 AS
 BEGIN
@@ -1341,6 +1364,7 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
+
 CREATE PROC tSQLt_test.[test that tSQLt.Run deletes all entries from tSQLt.Run_LastExecution with same SPID]
 AS
 BEGIN
@@ -1422,7 +1446,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test NewTestClass creates a new schema]
+CREATE PROC tSQLt_test.[test NewTestClass creates a new schema]
 AS
 BEGIN
     EXEC tSQLt.NewTestClass 'MyTestClass';
@@ -1434,7 +1458,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test NewTestClass calls tSQLt.DropClass]
+CREATE PROC tSQLt_test.[test NewTestClass calls tSQLt.DropClass]
 AS
 BEGIN
     EXEC tSQLt.SpyProcedure 'tSQLt.DropClass';
@@ -1447,12 +1471,13 @@ BEGIN
     END
 END;
 GO
-CREATE PROCEDURE tSQLt_test.[test SpyProcedure works if spyee has 100 parameters with 8000 bytes each]
+
+CREATE PROC tSQLt_test.[test SpyProcedure works if spyee has 100 parameters with 8000 bytes each]
 AS
 BEGIN
   IF OBJECT_ID('dbo.InnerProcedure') IS NOT NULL DROP PROCEDURE dbo.InnerProcedure;
   DECLARE @cmd VARCHAR(MAX);
-  SELECT @cmd = 'CREATE PROCEDURE dbo.InnerProcedure('+
+  SELECT @cmd = 'CREATE PROC dbo.InnerProcedure('+
                 (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@p'+CAST(no AS VARCHAR)+' CHAR(8000)' [text()]
                    FROM tSQLt.f_Num(1020)
                     FOR XML PATH('')
@@ -1495,10 +1520,10 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected2','#actual2';
 END
 GO
-CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates char parameters correctly]
+CREATE PROC tSQLt_test.[test SpyProcedure creates char parameters correctly]
 AS
 BEGIN
-    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+    EXEC('CREATE PROC dbo.InnerProcedure(
              @CHAR1 CHAR(1),
              @CHAR8000 CHAR(8000),
              @VARCHAR1 VARCHAR(1),
@@ -1521,10 +1546,10 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
-CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates binary parameters correctly]
+CREATE PROC tSQLt_test.[test SpyProcedure creates binary parameters correctly]
 AS
 BEGIN
-    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+    EXEC('CREATE PROC dbo.InnerProcedure(
              @BINARY1 BINARY(1) =NULL,
              @BINARY8000 BINARY(8000) =NULL,
              @VARBINARY1 VARBINARY(1) =NULL,
@@ -1548,10 +1573,10 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates log which handles binary columns]
+CREATE PROC tSQLt_test.[test SpyProcedure creates log which handles binary columns]
 AS
 BEGIN
-    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+    EXEC('CREATE PROC dbo.InnerProcedure(
              @VARBINARY8000 VARBINARY(8000) =NULL
           )
           AS BEGIN RETURN 0; END');
@@ -1568,10 +1593,10 @@ END;
 GO
 
 
-CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates nchar parameters correctly]
+CREATE PROC tSQLt_test.[test SpyProcedure creates nchar parameters correctly]
 AS
 BEGIN
-    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+    EXEC('CREATE PROC dbo.InnerProcedure(
              @NCHAR1 NCHAR(1),
              @NCHAR4000 NCHAR(4000),
              @NVARCHAR1 NVARCHAR(1),
@@ -1594,10 +1619,10 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
-CREATE PROCEDURE tSQLt_test.[test SpyProcedure creates other parameters correctly]
+CREATE PROC tSQLt_test.[test SpyProcedure creates other parameters correctly]
 AS
 BEGIN
-    EXEC('CREATE PROCEDURE dbo.InnerProcedure(
+    EXEC('CREATE PROC dbo.InnerProcedure(
              @TINYINT TINYINT,
              @SMALLINT SMALLINT,
              @INT INT,
@@ -1619,12 +1644,12 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
-CREATE PROCEDURE tSQLt_test.[test SpyProcedure fails with error if spyee has more than 1020 parameters]
+CREATE PROC tSQLt_test.[test SpyProcedure fails with error if spyee has more than 1020 parameters]
 AS
 BEGIN
   IF OBJECT_ID('dbo.Spyee') IS NOT NULL DROP PROCEDURE dbo.Spyee;
   DECLARE @cmd VARCHAR(MAX);
-  SELECT @cmd = 'CREATE PROCEDURE dbo.Spyee('+
+  SELECT @cmd = 'CREATE PROC dbo.Spyee('+
                 (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@p'+CAST(no AS VARCHAR)+' INT' [text()]
                    FROM tSQLt.f_Num(1021)
                     FOR XML PATH('')
@@ -1646,7 +1671,7 @@ BEGIN
   
 END
 GO
-CREATE PROCEDURE tSQLt_test.[test f_Num(13) returns 13 rows]
+CREATE PROC tSQLt_test.[test f_Num(13) returns 13 rows]
 AS
 BEGIN
   SELECT no
@@ -1673,7 +1698,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END 
 GO
-CREATE PROCEDURE tSQLt_test.[test f_Num(0) returns 0 rows]
+CREATE PROC tSQLt_test.[test f_Num(0) returns 0 rows]
 AS
 BEGIN
   SELECT no
@@ -1685,7 +1710,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END 
 GO
-CREATE PROCEDURE tSQLt_test.[test f_Num(-11) returns 0 rows]
+CREATE PROC tSQLt_test.[test f_Num(-11) returns 0 rows]
 AS
 BEGIN
   SELECT no
@@ -1698,7 +1723,7 @@ BEGIN
 END 
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that private_SetFakeViewOn_SingleView allows a non-updatable view to be faked using FakeTable and then inserted into]
+CREATE PROC tSQLt_test.[test that private_SetFakeViewOn_SingleView allows a non-updatable view to be faked using FakeTable and then inserted into]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
@@ -1736,7 +1761,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that not calling tSQLt.private_SetFakeViewOff_SingleView before running tests causes an exception and tests not to be run]
+CREATE PROC tSQLt_test.[test that not calling tSQLt.private_SetFakeViewOff_SingleView before running tests causes an exception and tests not to be run]
 AS
 BEGIN
   DECLARE @ErrorMsg VARCHAR(MAX); SET @ErrorMsg = '';
@@ -1748,7 +1773,7 @@ BEGIN
   EXEC ('EXEC tSQLt.NewTestClass TestClass;');
   
   EXEC ('
-    CREATE PROCEDURE TestClass.testExample
+    CREATE PROC TestClass.testExample
     AS
     BEGIN
       RETURN 0;
@@ -1769,7 +1794,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that calling tSQLt.private_SetFakeViewOff_SingleView before running tests allows tests to be run]
+CREATE PROC tSQLt_test.[test that calling tSQLt.private_SetFakeViewOff_SingleView before running tests allows tests to be run]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
@@ -1779,7 +1804,7 @@ BEGIN
   EXEC ('EXEC tSQLt.NewTestClass TestClass;');
   
   EXEC ('
-    CREATE PROCEDURE TestClass.testExample
+    CREATE PROC TestClass.testExample
     AS
     BEGIN
       RETURN 0;
@@ -1798,7 +1823,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.CreateNonUpdatableView
+CREATE PROC tSQLt_test.CreateNonUpdatableView
   @schemaName NVARCHAR(MAX),
   @viewName NVARCHAR(MAX)
 AS
@@ -1822,7 +1847,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.AssertViewCanBeUpdatedIfFaked
+CREATE PROC tSQLt_test.AssertViewCanBeUpdatedIfFaked
   @schemaName NVARCHAR(MAX),
   @viewName NVARCHAR(MAX)
 AS
@@ -1845,7 +1870,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that tSQLt.SetFakeViewOn @schemaName applies to all views on a schema]
+CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOn @schemaName applies to all views on a schema]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
@@ -1868,7 +1893,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that tSQLt.SetFakeViewOff @schemaName applies to all views on a schema]
+CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOff @schemaName applies to all views on a schema]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
@@ -1885,7 +1910,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that tSQLt.SetFakeViewOff @schemaName only removes triggers created by framework]
+CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOff @schemaName only removes triggers created by framework]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
@@ -1900,7 +1925,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.[test that _SetFakeViewOn trigger throws meaningful error on execution]
+CREATE PROC tSQLt_test.[test that _SetFakeViewOn trigger throws meaningful error on execution]
 AS
 BEGIN
   --This test also tests that tSQLt can handle test that leave the transaction open, but in an uncommitable state.
@@ -1924,7 +1949,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunAll runs all test classes created with NewTestClass]
+CREATE PROC tSQLt_test.[test RunAll runs all test classes created with NewTestClass]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -1933,9 +1958,9 @@ BEGIN
     EXEC tSQLt.NewTestClass 'B';
     EXEC tSQLt.NewTestClass 'C';
     
-    EXEC ('CREATE PROCEDURE A.testA AS RETURN 0;');
-    EXEC ('CREATE PROCEDURE B.testB AS RETURN 0;');
-    EXEC ('CREATE PROCEDURE C.testC AS RETURN 0;');
+    EXEC ('CREATE PROC A.testA AS RETURN 0;');
+    EXEC ('CREATE PROC B.testB AS RETURN 0;');
+    EXEC ('CREATE PROC C.testC AS RETURN 0;');
     
     DELETE FROM tSQLt.TestResult;
     
@@ -1959,7 +1984,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunAll runs all test classes created with NewTestClass when there are multiple tests in each class]
+CREATE PROC tSQLt_test.[test RunAll runs all test classes created with NewTestClass when there are multiple tests in each class]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -1968,12 +1993,12 @@ BEGIN
     EXEC tSQLt.NewTestClass 'B';
     EXEC tSQLt.NewTestClass 'C';
     
-    EXEC ('CREATE PROCEDURE A.testA1 AS RETURN 0;');
-    EXEC ('CREATE PROCEDURE A.testA2 AS RETURN 0;');
-    EXEC ('CREATE PROCEDURE B.testB1 AS RETURN 0;');
-    EXEC ('CREATE PROCEDURE B.testB2 AS RETURN 0;');
-    EXEC ('CREATE PROCEDURE C.testC1 AS RETURN 0;');
-    EXEC ('CREATE PROCEDURE C.testC2 AS RETURN 0;');
+    EXEC ('CREATE PROC A.testA1 AS RETURN 0;');
+    EXEC ('CREATE PROC A.testA2 AS RETURN 0;');
+    EXEC ('CREATE PROC B.testB1 AS RETURN 0;');
+    EXEC ('CREATE PROC B.testB2 AS RETURN 0;');
+    EXEC ('CREATE PROC C.testC1 AS RETURN 0;');
+    EXEC ('CREATE PROC C.testC2 AS RETURN 0;');
     
     DELETE FROM tSQLt.TestResult;
     
@@ -2000,7 +2025,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunAll executes the SetUp for each test case]
+CREATE PROC tSQLt_test.[test RunAll executes the SetUp for each test case]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -2014,11 +2039,11 @@ BEGIN
     CREATE TABLE tSQLt_test.SetUpLog (i INT);
     INSERT INTO tSQLt_test.SetUpLog (i) VALUES (1);
     
-    EXEC ('CREATE PROCEDURE A.SetUp AS INSERT INTO A.SetUpLog DEFAULT VALUES;');
-    EXEC ('CREATE PROCEDURE A.testA AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''A.SetUpLog'';');
-    EXEC ('CREATE PROCEDURE B.SetUp AS INSERT INTO B.SetUpLog DEFAULT VALUES;');
-    EXEC ('CREATE PROCEDURE B.testB1 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''B.SetUpLog'';');
-    EXEC ('CREATE PROCEDURE B.testB2 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''B.SetUpLog'';');
+    EXEC ('CREATE PROC A.SetUp AS INSERT INTO A.SetUpLog DEFAULT VALUES;');
+    EXEC ('CREATE PROC A.testA AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''A.SetUpLog'';');
+    EXEC ('CREATE PROC B.SetUp AS INSERT INTO B.SetUpLog DEFAULT VALUES;');
+    EXEC ('CREATE PROC B.testB1 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''B.SetUpLog'';');
+    EXEC ('CREATE PROC B.testB2 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''B.SetUpLog'';');
     
     DELETE FROM tSQLt.TestResult;
     
@@ -2042,7 +2067,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunTestClass executes the SetUp for each test case]
+CREATE PROC tSQLt_test.[test RunTestClass executes the SetUp for each test case]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -2054,9 +2079,9 @@ BEGIN
     CREATE TABLE tSQLt_test.SetUpLog (i INT);
     INSERT INTO tSQLt_test.SetUpLog (i) VALUES (1);
     
-    EXEC ('CREATE PROCEDURE MyTestClass.SetUp AS INSERT INTO MyTestClass.SetUpLog DEFAULT VALUES;');
-    EXEC ('CREATE PROCEDURE MyTestClass.test1 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''MyTestClass.SetUpLog'';');
-    EXEC ('CREATE PROCEDURE MyTestClass.test2 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''MyTestClass.SetUpLog'';');
+    EXEC ('CREATE PROC MyTestClass.SetUp AS INSERT INTO MyTestClass.SetUpLog DEFAULT VALUES;');
+    EXEC ('CREATE PROC MyTestClass.test1 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''MyTestClass.SetUpLog'';');
+    EXEC ('CREATE PROC MyTestClass.test2 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''MyTestClass.SetUpLog'';');
     
     DELETE FROM tSQLt.TestResult;
     
@@ -2079,7 +2104,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test TestResult record with Class and TestCase has Name value of quoted class name and test case name]
+CREATE PROC tSQLt_test.[test TestResult record with Class and TestCase has Name value of quoted class name and test case name]
 AS
 BEGIN
     DELETE FROM tSQLt.TestResult;
@@ -2103,7 +2128,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunAll produces a test case summary]
+CREATE PROC tSQLt_test.[test RunAll produces a test case summary]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -2118,14 +2143,14 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunAll clears test results between each execution]
+CREATE PROC tSQLt_test.[test RunAll clears test results between each execution]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
     DELETE FROM tSQLt.TestResult;
     
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC ('CREATE PROCEDURE MyTestClass.test1 AS RETURN 0;');
+    EXEC ('CREATE PROC MyTestClass.test1 AS RETURN 0;');
 
     EXEC tSQLt.RunAll;
     EXEC tSQLt.RunAll;
@@ -2138,16 +2163,16 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test procedure can be injected to display test results]
+CREATE PROC tSQLt_test.[test procedure can be injected to display test results]
 AS
 BEGIN
     EXEC ('CREATE SCHEMA MyFormatterSchema;');
     EXEC ('CREATE TABLE MyFormatterSchema.Log (i INT DEFAULT(1));');
-    EXEC ('CREATE PROCEDURE MyFormatterSchema.MyFormatter AS INSERT INTO MyFormatterSchema.Log DEFAULT VALUES;');
+    EXEC ('CREATE PROC MyFormatterSchema.MyFormatter AS INSERT INTO MyFormatterSchema.Log DEFAULT VALUES;');
     EXEC tSQLt.SetTestResultFormatter 'MyFormatterSchema.MyFormatter';
     
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC ('CREATE PROCEDURE MyTestClass.testA AS RETURN 0;');
+    EXEC ('CREATE PROC MyTestClass.testA AS RETURN 0;');
     
     EXEC tSQLt.Run 'MyTestClass';
     
@@ -2158,7 +2183,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates <root/> when no test cases in test suite]
+CREATE PROC tSQLt_test.[test XmlResultFormatter creates <root/> when no test cases in test suite]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -2177,7 +2202,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with test element when there is a passing test]
+CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with test element when there is a passing test]
 AS
 BEGIN
     DELETE FROM tSQLt.TestResult;
@@ -2194,7 +2219,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with test element and failure element when there is a failing test]
+CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with test element and failure element when there is a failing test]
 AS
 BEGIN
     DELETE FROM tSQLt.TestResult;
@@ -2211,7 +2236,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures]
+CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures]
 AS
 BEGIN
     DELETE FROM tSQLt.TestResult;
@@ -2233,7 +2258,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures or errors]
+CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures or errors]
 AS
 BEGIN
     DELETE FROM tSQLt.TestResult;
@@ -2255,7 +2280,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test XmlResultFormatter creates multiple testsuite elements for multiple test classes with tests]
+CREATE PROC tSQLt_test.[test XmlResultFormatter creates multiple testsuite elements for multiple test classes with tests]
 AS
 BEGIN
     DELETE FROM tSQLt.TestResult;

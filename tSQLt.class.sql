@@ -286,7 +286,7 @@ CREATE PROCEDURE tSQLt.private_CleanTestResult
 AS
 BEGIN
    DELETE FROM tSQLt.TestResult;
-END
+END;
 GO
 
 CREATE PROCEDURE tSQLt.RunTest
@@ -294,12 +294,19 @@ CREATE PROCEDURE tSQLt.RunTest
 AS
 BEGIN
 SET NOCOUNT ON;
-    DECLARE @msg NVARCHAR(MAX);
+    DECLARE @msg NVARCHAR(MAX),
+            @resolvedTestName NVARCHAR(MAX);
+    
+    SELECT @resolvedTestName = '['+OBJECT_SCHEMA_NAME(OBJECT_ID(@testName))+'].['+OBJECT_NAME(OBJECT_ID(@testName))+']';
+
+    IF @resolvedTestName IS NULL
+    BEGIN
+        RAISERROR ('The test case %s does not exist.', 16, 10, @testName) WITH NOWAIT;
+        RETURN -1;
+    END
 
     EXEC tSQLt.private_CleanTestResult;
-    
-    SELECT @testName = '['+OBJECT_SCHEMA_NAME(OBJECT_ID(@testName))+'].['+OBJECT_NAME(OBJECT_ID(@testName))+']';
-    EXEC tSQLt.private_RunTest @testName
+    EXEC tSQLt.private_RunTest @resolvedTestName
 
     SELECT @msg = Msg
       FROM tSQLt.TestCaseSummary();
