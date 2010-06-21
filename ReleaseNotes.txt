@@ -1,6 +1,19 @@
 tSQLt Release Notes
 ===================
 
+build.8:
+An online version of these release notes is available at:
+http://www2.sqlity.net/tsqlt/tsqlt-build8-release-notes
+
+NEW FEATURES:
+1. SpyProcedure now supports output parameters. Details are available in the 
+User Guide. See: http://www2.sqlity.net/tsqlt/spyprocedure
+
+2. The first major sections of the User Guide are now available at:
+http://www.tsqlt.org - On the right hand side is a link for the User Guide.
+
+---------------------------
+
 build.7:
 An online version of these release notes is available at:
 http://www2.sqlity.net/content/tsqlt-build7-release-notes
