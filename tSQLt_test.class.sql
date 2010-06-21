@@ -634,7 +634,7 @@ BEGIN
     BEGIN
         EXEC tSQLt.Fail 'getFullTypeName should have returned INT, but returned ', @result, ' instead';
     END
-END
+END;
 GO
 
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_typename_when_xml
@@ -649,40 +649,100 @@ BEGIN
     BEGIN
         EXEC tSQLt.Fail 'getFullTypeName should have returned xml, but returned ', @result, ' instead';
     END
-END
+END;
 GO
 
-CREATE PROC tSQLt_test.test_assertEquals_should_do_nothing_with_two_equal_ints
+CREATE PROC tSQLt_test.[test AssertEquals should do nothing with two equal ints]
 AS
 BEGIN
-    EXEC tSQLt.assertEquals 1, 1;
-END
+    EXEC tSQLt.AssertEquals 1, 1;
+END;
 GO
 
-CREATE PROC tSQLt_test.test_assertEquals_should_do_nothing_with_two_NULLs
+CREATE PROC tSQLt_test.[test AssertEquals should do nothing with two NULLs]
 AS
 BEGIN
-    EXEC tSQLt.assertEquals NULL, NULL;
-END
+    EXEC tSQLt.AssertEquals NULL, NULL;
+END;
 GO
 
-CREATE PROC tSQLt_test.test_assertEquals_should_call_fail_with_nonequal_ints
+CREATE PROC tSQLt_test.[test AssertEquals should call fail with nonequal ints]
 AS
 BEGIN
-    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.assertEquals 1, 2;';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEquals did not call Fail';
-END
+    EXEC tSQLt_testutil.assertFailCalled 'EXEC tSQLt.AssertEquals 1, 2;', 'AssertEquals did not call Fail';
+END;
 GO
 
-CREATE PROC tSQLt_test.test_assertEquals_should_call_fail_with_one_value_null
+CREATE PROC tSQLt_test.[test AssertEquals should call fail with expected int and actual NULL]
 AS
 BEGIN
-    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.assertEquals 1, NULL;';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEquals did not call Fail';
-END
+    EXEC tSQLt_testutil.assertFailCalled 'EXEC tSQLt.AssertEquals 1, NULL;', 'AssertEquals did not call Fail';
+END;
 GO
 
-CREATE PROC tSQLt_test.test_getNewTranName_should_generate_a_name
+CREATE PROC tSQLt_test.[test AssertEquals should call fail with expected NULL and actual int]
+AS
+BEGIN
+    EXEC tSQLt_testutil.assertFailCalled 'EXEC tSQLt.AssertEquals NULL, 1;', 'AssertEquals did not call Fail';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test AssertEquals passes with various datatypes with the same value]
+AS
+BEGIN
+    EXEC tSQLt.AssertEquals 12345.6789, 12345.6789;
+    EXEC tSQLt.AssertEquals 'hello', 'hello';
+    EXEC tSQLt.AssertEquals N'hello', N'hello';
+    
+    DECLARE @datetime DATETIME; SET @datetime = CAST('12-13-2005' AS DATETIME);
+    EXEC tSQLt.AssertEquals @datetime, @datetime;
+    
+    DECLARE @bit BIT; SET @bit = CAST(1 AS BIT);
+    EXEC tSQLt.AssertEquals @bit, @bit;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test AssertEquals fails with various datatypes of different values]
+AS
+BEGIN
+    EXEC tSQLt_testutil.assertFailCalled 'EXEC tSQLt.AssertEquals 12345.6789, 4321.1234', 'AssertEquals did not call Fail';
+    EXEC tSQLt_testutil.assertFailCalled 'EXEC tSQLt.AssertEquals ''hello'', ''goodbye''', 'AssertEquals did not call Fail';
+    EXEC tSQLt_testutil.assertFailCalled 'EXEC tSQLt.AssertEquals N''hello'', N''goodbye''', 'AssertEquals did not call Fail';
+    
+    EXEC tSQLt_testutil.assertFailCalled '
+        DECLARE @datetime1 DATETIME; SET @datetime1 = CAST(''12-13-2005'' AS DATETIME);
+        DECLARE @datetime2 DATETIME; SET @datetime2 = CAST(''6-17-2005'' AS DATETIME);
+        EXEC tSQLt.AssertEquals @datetime1, @datetime2;', 'AssertEquals did not call Fail';
+    
+    EXEC tSQLt_testutil.assertFailCalled '
+        DECLARE @bit0 BIT; SET @bit0 = CAST(0 AS BIT);
+        DECLARE @bit1 BIT; SET @bit1 = CAST(1 AS BIT);
+        EXEC tSQLt.AssertEquals @bit0, @bit1;', 'AssertEquals did not call Fail';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test AssertEquals with VARCHAR(MAX) throws error]
+AS
+BEGIN
+    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+
+    BEGIN TRY
+        DECLARE @v1 VARCHAR(MAX); SET @v1 = REPLICATE(CAST('TestString' AS VARCHAR(MAX)),1000);
+        EXEC tSQLt.AssertEquals @v1, @v1;
+    END TRY
+    BEGIN CATCH
+        SET @msg = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @msg NOT LIKE '%Operand type clash%'
+    BEGIN
+        EXEC tSQLt.Fail 'Expected operand type clash error when AssertEquals used with VARCHAR(MAX), instead was: ', @msg;
+    END
+    
+END;
+GO
+
+CREATE PROC tSQLt_test.[test getNewTranName should generate a name]
 AS
 BEGIN
    DECLARE @value CHAR(32)
@@ -696,23 +756,23 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_assertEqualsString_should_do_nothing_with_two_equal_VARCHAR_Max_Values
+CREATE PROC tSQLt_test.[test AssertEqualsString should do nothing with two equal VARCHAR Max Values]
 AS
 BEGIN
     DECLARE @TestString VARCHAR(Max);
     SET @TestString = REPLICATE(CAST('TestString' AS VARCHAR(MAX)),1000);
-    EXEC tSQLt.assertEqualsString @TestString, @TestString;
+    EXEC tSQLt.AssertEqualsString @TestString, @TestString;
 END
 GO
 
-CREATE PROC tSQLt_test.test_assertEqualsString_should_do_nothing_with_two_NULLs
+CREATE PROC tSQLt_test.[test AssertEqualsString should do nothing with two NULLs]
 AS
 BEGIN
-    EXEC tSQLt.assertEqualsString NULL, NULL;
+    EXEC tSQLt.AssertEqualsString NULL, NULL;
 END
 GO
 
-CREATE PROC tSQLt_test.test_assertEqualsString_should_call_fail_with_nonequal_VARCHAR_MAX
+CREATE PROC tSQLt_test.[test AssertEqualsString should call fail with nonequal VARCHAR MAX]
 AS
 BEGIN
     DECLARE @TestString1 VARCHAR(MAX);
@@ -720,16 +780,33 @@ BEGIN
     DECLARE @TestString2 VARCHAR(MAX);
     SET @TestString2 = REPLICATE(CAST('TestString' AS VARCHAR(MAX)),1000)+'2';
 
-    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.assertEqualsString ''' + @TestString1 + ''', ''' + @TestString2 + ''';';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsString did not call Fail';
+    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.AssertEqualsString ''' + @TestString1 + ''', ''' + @TestString2 + ''';';
+    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertEqualsString did not call Fail';
 END;
 GO
 
-CREATE PROC tSQLt_test.test_assertEqualsString_should_call_fail_with_one_value_null
+CREATE PROC tSQLt_test.[test AssertEqualsString should call fail with expected value and actual NULL]
 AS
 BEGIN
-    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.assertEqualsString ''1'', NULL;';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsString did not call Fail';
+    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.AssertEqualsString ''1'', NULL;';
+    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertEqualsString did not call Fail';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test AssertEqualsString should call fail with expected NULL and actual value]
+AS
+BEGIN
+    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.AssertEqualsString NULL, ''1'';';
+    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertEqualsString did not call Fail';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test AssertEqualsString with expected NVARCHAR(MAX) and actual VARCHAR(MAX) of same value]
+AS
+BEGIN
+    DECLARE @expected NVARCHAR(MAX); SET @expected = N'hello';
+    DECLARE @actual VARCHAR(MAX); SET @actual = 'hello';
+    EXEC tSQLt.AssertEqualsString @expected, @actual;
 END;
 GO
 
