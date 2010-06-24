@@ -76,15 +76,31 @@ namespace tSQLtCLR
         private static SqlMetaData[] createMetaDataForResultset(SqlDataReader dataReader)
         {
             DataTable schema = dataReader.GetSchemaTable();
-            int numberOfColumns = schema.Rows.Count;
-            SqlMetaData[] meta = new SqlMetaData[numberOfColumns];
+            LinkedList<DataRow> columns = getDisplayedColumns(schema);
 
-            for (int i = 0; i < numberOfColumns; i++)
+            SqlMetaData[] meta = new SqlMetaData[columns.Count];
+            int columnCount = 0;
+            foreach (DataRow column in columns)
             {
-                meta[i] = createSqlMetaDataForColumn(schema.Rows[i]);
+                meta[columnCount] = createSqlMetaDataForColumn(column);
+                columnCount++;
             }
 
             return meta;
+        }
+
+        private static LinkedList<DataRow> getDisplayedColumns(DataTable schema)
+        {
+            LinkedList<DataRow> columns = new LinkedList<DataRow>();
+
+            foreach (DataRow row in schema.Rows) {
+                if (row["IsHidden"].ToString().ToLower() != "true")
+                {
+                    columns.AddLast(row);
+                }
+            }
+
+            return columns;
         }
 
         private static SqlMetaData createSqlMetaDataForColumn(DataRow columnDetails)

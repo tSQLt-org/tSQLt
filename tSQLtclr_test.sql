@@ -1,7 +1,7 @@
 EXEC tSQLt.NewTestClass 'tSQLtclr_test';
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData does not fail for two single bigint column result sets]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData does not fail for two single bigint column result sets]
 AS
 BEGIN
     EXEC tSQLt.AssertResultSetsHaveSameMetaData
@@ -10,7 +10,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails for a schema with integer and another with bigint]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails for a schema with integer and another with bigint]
 AS
 BEGIN
     EXEC tSQLt_testutil.assertFailCalled 
@@ -19,7 +19,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData does not fail for identical single column result sets]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData does not fail for identical single column result sets]
 AS
 BEGIN
     EXEC tSQLt.AssertResultSetsHaveSameMetaData
@@ -40,7 +40,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData does not fail for identical multiple column result sets]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData does not fail for identical multiple column result sets]
 AS
 BEGIN
     EXEC tSQLt.AssertResultSetsHaveSameMetaData
@@ -49,7 +49,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails when one result set has no rows]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails when one result set has no rows]
 AS
 BEGIN
     EXEC tSQLt_testutil.assertFailCalled 
@@ -60,7 +60,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails for differing single column result sets]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails for differing single column result sets]
 AS
 BEGIN
     EXEC tSQLt_testutil.assertFailCalled 
@@ -96,7 +96,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails for result sets with different number of columns]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails for result sets with different number of columns]
 AS
 BEGIN
     EXEC tSQLt_testutil.assertFailCalled 
@@ -112,7 +112,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails if either command produces no result set]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData fails if either command produces no result set]
 AS
 BEGIN
     EXEC tSQLt_testutil.assertFailCalled 
@@ -133,7 +133,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData throws an exception if a command produces an exception]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData throws an exception if a command produces an exception]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX);
@@ -154,7 +154,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test AssertResultSetsHaveSameMetaData throws an exception if either command has a syntax error]
+CREATE PROC tSQLtclr_test.[test AssertResultSetsHaveSameMetaData throws an exception if either command has a syntax error]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX);
@@ -175,7 +175,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test ResultSetFilter returns specified result set]
+CREATE PROC tSQLtclr_test.[test ResultSetFilter returns specified result set]
 AS
 BEGIN
     CREATE TABLE Actual (val INT);
@@ -191,7 +191,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test ResultSetFilter returns specified result set with multiple columns]
+CREATE PROC tSQLtclr_test.[test ResultSetFilter returns specified result set with multiple columns]
 AS
 BEGIN
     CREATE TABLE Actual (val1 INT, val2 VARCHAR(3));
@@ -207,7 +207,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test ResultSetFilter retrieves no records if specified result set does not exist]
+CREATE PROC tSQLtclr_test.[test ResultSetFilter retrieves no records if specified result set does not exist]
 AS
 BEGIN
     CREATE TABLE Actual (val INT);
@@ -220,7 +220,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test ResultSetFilter throws error if result set number 0 specified]
+CREATE PROC tSQLtclr_test.[test ResultSetFilter throws error if result set number 0 specified]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '';
@@ -240,7 +240,7 @@ END;
 GO
 
 
-CREATE PROCEDURE tSQLtclr_test.[test ResultSetFilter throws error if result set number -1 specified]
+CREATE PROC tSQLtclr_test.[test ResultSetFilter throws error if result set number -1 specified]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '';
@@ -259,7 +259,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLtclr_test.[test ResultSetFilter can handle each datatype]
+CREATE PROC tSQLtclr_test.[test ResultSetFilter can handle each datatype]
 AS
 BEGIN
     EXEC tSQLt.AssertResultSetsHaveSameMetaData
@@ -355,4 +355,20 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLtclr_test.[test ResultSetFilter produces only requested columns when underlying table contains primary key]
+AS
+BEGIN
+    CREATE TABLE BaseTable (i INT PRIMARY KEY, v VARCHAR(15));
+    INSERT INTO BaseTable (i, v) VALUES (1, 'hello');
+    
+    CREATE TABLE Actual (v VARCHAR(15));
+    INSERT INTO Actual
+    EXEC tSQLt.ResultSetFilter 1, 'SELECT v FROM BaseTable';
+    
+    CREATE TABLE Expected (v VARCHAR(15));
+    INSERT INTO Expected (v) VALUES ('hello');
+    
+    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+END;
+GO
 --ROLLBACK
