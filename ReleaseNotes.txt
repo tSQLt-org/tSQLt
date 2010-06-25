@@ -1,6 +1,20 @@
 tSQLt Release Notes
 ===================
 
+build.8a:
+An online version of these release notes is available at:
+http://www2.sqlity.net/tsqlt/tsqlt-build8a-release-notes
+
+BUG FIXES:
+1. When executing tSQLt.ResultSetFilter, if the result set metadata contained 
+hidden columns then those columns would be returned in the result set output.
+The values of those columns would be null. Hidden columns are typically present
+when the base tables of a result set contain primary keys or other constraints 
+which were not selected. tSQLt.ResultSetFilter has been updated to not return 
+the hidden columns.
+
+---------------------------
+
 build.8:
 An online version of these release notes is available at:
 http://www2.sqlity.net/tsqlt/tsqlt-build8-release-notes

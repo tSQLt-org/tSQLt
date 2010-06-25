@@ -371,4 +371,58 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
 END;
 GO
+
+CREATE PROC tSQLtclr_test.[test ResultSetFilter produces only requested columns when a join on foreign keys is performed]
+AS
+BEGIN
+    CREATE TABLE BaseTable1 (i1 INT PRIMARY KEY, v1 VARCHAR(15));
+    INSERT INTO BaseTable1 (i1, v1) VALUES (1, 'hello');
+    
+    CREATE TABLE BaseTable2 (i2 INT PRIMARY KEY, i1 INT FOREIGN KEY REFERENCES BaseTable1(i1), v2 VARCHAR(15));
+    INSERT INTO BaseTable2 (i2, i1, v2) VALUES (1, 1, 'goodbye');
+    
+    CREATE TABLE Actual (v1 VARCHAR(15), v2 VARCHAR(15));
+    INSERT INTO Actual
+    EXEC tSQLt.ResultSetFilter 1, 'SELECT v1, v2 FROM BaseTable1 JOIN BaseTable2 ON BaseTable1.i1 = BaseTable2.i1';
+    
+    CREATE TABLE Expected (v1 VARCHAR(15), v2 VARCHAR(15));
+    INSERT INTO Expected (v1, v2) VALUES ('hello', 'goodbye');
+    
+    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+END;
+GO
+
+CREATE PROC tSQLtclr_test.[test ResultSetFilter produces only requested columns when a unique column exists]
+AS
+BEGIN
+    CREATE TABLE BaseTable1 (i1 INT UNIQUE, v1 VARCHAR(15));
+    INSERT INTO BaseTable1 (i1, v1) VALUES (1, 'hello');
+    
+    CREATE TABLE Actual (v1 VARCHAR(15));
+    INSERT INTO Actual
+    EXEC tSQLt.ResultSetFilter 1, 'SELECT v1 FROM BaseTable1';
+    
+    CREATE TABLE Expected (v1 VARCHAR(15));
+    INSERT INTO Expected (v1) VALUES ('hello');
+    
+    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+END;
+GO
+
+CREATE PROC tSQLtclr_test.[test ResultSetFilter produces only requested columns when a check constraint exists]
+AS
+BEGIN
+    CREATE TABLE BaseTable1 (i1 INT CHECK(i1 = 1), v1 VARCHAR(15));
+    INSERT INTO BaseTable1 (i1, v1) VALUES (1, 'hello');
+    
+    CREATE TABLE Actual (v1 VARCHAR(15));
+    INSERT INTO Actual
+    EXEC tSQLt.ResultSetFilter 1, 'SELECT v1 FROM BaseTable1';
+    
+    CREATE TABLE Expected (v1 VARCHAR(15));
+    INSERT INTO Expected (v1) VALUES ('hello');
+    
+    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+END;
+GO
 --ROLLBACK

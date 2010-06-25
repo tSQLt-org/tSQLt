@@ -94,10 +94,10 @@ namespace tSQLtCLR
             LinkedList<DataRow> columns = new LinkedList<DataRow>();
 
             foreach (DataRow row in schema.Rows) {
-                if (row["IsHidden"].ToString().ToLower() != "true")
-                {
+               if (row["IsHidden"].ToString().ToLower() != "true")
+               {
                     columns.AddLast(row);
-                }
+               }
             }
 
             return columns;
