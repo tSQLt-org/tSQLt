@@ -124,6 +124,7 @@ CREATE PROCEDURE tSQLt.private_Print
     @severity INT = 0
 AS 
 BEGIN
+RAISERROR('PPS',0,1)WITH NOWAIT;
     DECLARE @sPos INT;SET @sPos = 1;
     DECLARE @ePos INT;
     DECLARE @len INT; SELECT @len = LEN(@message);
@@ -143,6 +144,7 @@ BEGIN
              @severity = 0; --Print only first line with high severity
     END
 
+RAISERROR('PPE',0,1)WITH NOWAIT;
     RETURN 0;
 END;
 GO
