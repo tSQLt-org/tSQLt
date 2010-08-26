@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>tSQLtCLR</RootNamespace>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <AssemblyName>tSQLtCLR</AssemblyName>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -63,7 +63,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="StringExtensions.cs" />
     <Compile Include="tSQLtPrivate.cs" />
     <Compile Include="InvalidResultSetException.cs" />
     <Compile Include="MetaDataEqualityAsserter.cs" />
@@ -104,7 +103,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
-    <PostBuildEvent>sqlcmd -E -S localhost -d tSQLt -b -i "Z:\MacWin\tSQLt\tSQLt.class.sql"
-sqlcmd -E -S localhost -d tSQLt -b -i "Z:\MacWin\tSQLt\tSQLtCLR.sql"</PostBuildEvent>
+    <PostBuildEvent>sqlcmd -E -S localhost -d tSQLt -b -i "C:\Projects\tSQLt.sourceforge\tSQLt.class.sql"
+sqlcmd -E -S localhost -d tSQLt -b -i "C:\Projects\tSQLt.sourceforge\tSQLtCLR.sql"</PostBuildEvent>
   </PropertyGroup>
 </Project>

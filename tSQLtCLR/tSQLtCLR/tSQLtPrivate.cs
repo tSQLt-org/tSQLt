@@ -58,7 +58,6 @@ namespace tSQLtCLR
                 }
                 for (int i = 0; i < rowData.Length; i++) {
                     output.Append("|").Append(PadColumn(TrimToMaxLength(rowData[i]), ColumnLength[i]));
-                    //                    output.Insert(output.Length, " ", ColumnLength[i] - rowData[i].Length);
                 }
                 output.Append("|");
 

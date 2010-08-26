@@ -100,7 +100,10 @@ BEGIN
     CREATE TABLE #DoesExist(
       T BIGINT
     );
-    INSERT INTO #DoesExist (T)VALUES( -(POWER(CAST(-2 AS BIGINT),63)+1)),(POWER(CAST(-2 AS BIGINT),63));
+    INSERT INTO #DoesExist (T)
+    SELECT ( -(POWER(CAST(-2 AS BIGINT),63)+1)) T
+    UNION ALL
+    SELECT (POWER(CAST(-2 AS BIGINT),63)) T;
     
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
@@ -197,7 +200,25 @@ BEGIN
     DECLARE @expected NVARCHAR(MAX);
     SET @expected = '|T                 |
 +------------------+
-|0x' + CONVERT(NVARCHAR(MAX),CAST(@rowid AS VARBINARY(MAX)),2) + '|';
+|0x' + REPLACE(CAST(@rowid AS VARBINARY(MAX)), CHAR(0), '00') + '|';
+
+    DECLARE @rowIdBinary VARBINARY(MAX);
+    SET @rowIdBinary = CAST(@rowid AS VARBINARY(MAX));
+    
+    SET @expected = '0x';
+    DECLARE @i INT; SET @i = 1;
+    DECLARE @si SMALLINT;
+    WHILE (@i <= 8)
+    BEGIN
+        SET @si = CAST(0x00 + CAST(SUBSTRING(@rowIdBinary, @i, 1) AS VARBINARY(2)) AS SMALLINT);
+        SET @expected = @expected + CHAR(48 + @si / 16 + CASE WHEN @si / 16 > 9 THEN 7 ELSE 0 END)
+        SET @expected = @expected + CHAR(48 + @si % 16 + CASE WHEN @si % 16 > 9 THEN 7 ELSE 0 END)
+        SET @i = @i + 1;
+    END;
+    
+    SET @expected = '|T                 |
++------------------+
+|' + @expected + '|';
    
     EXEC tSQLt.AssertEqualsString @expected, @result;
 END;
@@ -268,74 +289,6 @@ BEGIN
     EXEC tSQLt.AssertEqualsString '|T               |
 +----------------+
 |2001-10-13 15:35|', @result;
-END;
-GO
-
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIMEOFFSET column #table]
-AS
-BEGIN
-    CREATE TABLE #DoesExist(
-      T DATETIMEOFFSET
-    );
-    INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13 12:34:56.7891234 +13:24' AS DATETIMEOFFSET));
-
-    DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
-   
-    EXEC tSQLt.AssertEqualsString '|T                                 |
-+----------------------------------+
-|2001-10-13 12:34:56.7891234 +13:24|', @result;
-END;
-GO
-
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIME2 column #table]
-AS
-BEGIN
-    CREATE TABLE #DoesExist(
-      T DATETIME2
-    );
-    INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13T12:34:56.7891234' AS DATETIME2));
-
-    DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
-   
-    EXEC tSQLt.AssertEqualsString '|T                          |
-+---------------------------+
-|2001-10-13 12:34:56.7891234|', @result;
-END;
-GO
-
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one TIME column #table]
-AS
-BEGIN
-    CREATE TABLE #DoesExist(
-      T TIME
-    );
-    INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.7871234');
-    
-    DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
-   
-    EXEC tSQLt.AssertEqualsString '|T               |
-+----------------+
-|12:34:56.7871234|', @result;
-END;
-GO
-
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATE column #table]
-AS
-BEGIN
-    CREATE TABLE #DoesExist(
-      T DATE
-    );
-    INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.787');
-    
-    DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
-   
-    EXEC tSQLt.AssertEqualsString '|T         |
-+----------+
-|2001-10-13|', @result;
 END;
 GO
 
