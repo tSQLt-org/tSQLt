@@ -30,7 +30,7 @@ namespace tSQLtCLR
         private void connect()
         {
             connection = new SqlConnection();
-            connection.ConnectionString = "Context Connection=true";
+            connection.ConnectionString = "Context Connection=true;";
             connection.Open();
         }
 

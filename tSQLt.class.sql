@@ -1,15 +1,18 @@
 DECLARE @msg NVARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(NVARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
 GO
-
 IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
     EXEC tSQLt.DropClass tSQLt;
 GO
 
+IF TYPE_ID('tSQLtPrivate') IS NOT NULL DROP TYPE tSQLtPrivate;
+GO
 IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
     DROP ASSEMBLY tSQLtCLR;
 GO
 
 CREATE SCHEMA tSQLt;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 CREATE PROCEDURE tSQLt.DropClass
     @ClassName NVARCHAR(MAX)
@@ -124,7 +127,6 @@ CREATE PROCEDURE tSQLt.private_Print
     @severity INT = 0
 AS 
 BEGIN
-RAISERROR('PPS',0,1)WITH NOWAIT;
     DECLARE @sPos INT;SET @sPos = 1;
     DECLARE @ePos INT;
     DECLARE @len INT; SELECT @len = LEN(@message);
@@ -144,7 +146,6 @@ RAISERROR('PPS',0,1)WITH NOWAIT;
              @severity = 0; --Print only first line with high severity
     END
 
-RAISERROR('PPE',0,1)WITH NOWAIT;
     RETURN 0;
 END;
 GO
