@@ -103,7 +103,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
-    <PostBuildEvent>sqlcmd -E -S localhost -d tSQLt -b -i "C:\Projects\tSQLt.sourceforge\tSQLt.class.sql"
-sqlcmd -E -S localhost -d tSQLt -b -i "C:\Projects\tSQLt.sourceforge\tSQLtCLR.sql"</PostBuildEvent>
+    <PostBuildEvent>sqlcmd -E -S localhost -d tSQLt -b -i "$(SolutionDir)\..\tSQLt.class.sql"
+sqlcmd -E -S localhost -d tSQLt -b -i "$(SolutionDir)\..\tSQLtCLR.sql" -v tSQLtCLRTargetFile="$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
 </Project>
