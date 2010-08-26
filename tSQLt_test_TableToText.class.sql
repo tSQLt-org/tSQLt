@@ -1,17 +1,49 @@
-EXEC tSQLt.NewTestClass 'tSQLt_test_TableToText';
+EXEC tSQLt.NewTestClass 'tSQLtPrivate_test';
 GO
---[skip]
-CREATE PROC tSQLt_test_TableToText.[xtest TableToText returns NULL if table does not exist]
+
+CREATE PROC tSQLtPrivate_test.[test TableToText throws exception if table does not exist]
 AS
 BEGIN
-    DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = 'DoesNotExist';
-   
-    EXEC tSQLt.AssertEqualsString NULL, @result;
+
+    DECLARE @err NVARCHAR(MAX); SET @err = 'No Exception occurred!';
+    
+    BEGIN TRY
+        DECLARE @r NVARCHAR(MAX);
+        SET @r = tSQLtPrivate::TableToString('DoesNotExist', '');
+    END TRY
+    BEGIN CATCH
+        SET @err = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @err NOT LIKE '%Invalid object name ''DoesNotExist''%'
+    BEGIN
+        EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+    END;
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText works for one column #table]
+CREATE PROC tSQLtPrivate_test.[test TableToText throws exception if tablename is NULL]
+AS
+BEGIN
+
+    DECLARE @err NVARCHAR(MAX); SET @err = 'No Exception occurred!';
+    
+    BEGIN TRY
+        DECLARE @r NVARCHAR(MAX);
+        SET @r = tSQLtPrivate::TableToString(NULL, '');
+    END TRY
+    BEGIN CATCH
+        SET @err = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @err NOT LIKE '%Object name cannot be NULL%'
+    BEGIN
+        EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+    END;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one column #table]
 AS
 BEGIN
     SELECT *
@@ -19,7 +51,7 @@ BEGIN
       FROM (SELECT 1) AS x(y);
 
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|y|
 +-+
@@ -27,7 +59,60 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText works for one TEXT column #table]
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one damn short column]
+AS
+BEGIN
+    SELECT '' [ ]
+      INTO #DoesExist
+      FROM (SELECT 1) AS x(y);
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '| |
++-+
+| |', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for a weird column name]
+AS
+BEGIN
+    DECLARE @result NVARCHAR(MAX);
+    DECLARE @cmd NVARCHAR(MAX);
+    SET @cmd ='
+    CREATE TABLE #DoesExist(['+CHAR(8)+'] VARCHAR(1));INSERT INTO #DoesExist VALUES('''');
+    SET @result = tSQLtPrivate::TableToString(''#DoesExist'', '''');
+    ';
+    EXEC sp_executesql @cmd,N'@result NVARCHAR(MAX) OUT',@result OUT;
+    
+    DECLARE @expected NVARCHAR(MAX);
+    SET @expected ='|'+CHAR(8)+'|
++-+
+| |';
+    EXEC tSQLt.AssertEqualsString @expected, @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one BIGINT column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T BIGINT
+    );
+    INSERT INTO #DoesExist (T)VALUES( -(POWER(CAST(-2 AS BIGINT),63)+1)),(POWER(CAST(-2 AS BIGINT),63));
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                   |
++--------------------+
+|9223372036854775807 |
+|-9223372036854775808|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one TEXT column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -36,7 +121,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('This is my text value');
     
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|T                    |
 +---------------------+
@@ -44,7 +129,115 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText works for one DATETIME column #table]
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one NTEXT column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T NTEXT
+    );
+    INSERT INTO #DoesExist (T)VALUES(N'This is my text value');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                    |
++---------------------+
+|This is my text value|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one DOUBLE column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T FLOAT(53)
+    );
+    INSERT INTO #DoesExist (T)VALUES(1.712345612345610E+308);
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                     |
++----------------------+
+|1.712345612345610E+308|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one DECIMAL(38, 9) column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T DECIMAL(38, 9)
+    );
+    INSERT INTO #DoesExist (T)VALUES('12345678901234567890123456789.123456789');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                                      |
++---------------------------------------+
+|12345678901234567890123456789.123456789|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one ROWVERSION column #table]
+AS
+BEGIN
+    DECLARE @rowid ROWVERSION;
+    
+    CREATE TABLE #DoesExist(
+      T ROWVERSION
+    );
+    INSERT INTO #DoesExist (T) DEFAULT VALUES;
+    
+    SELECT @rowid = T FROM #DoesExist;
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+
+    DECLARE @expected NVARCHAR(MAX);
+    SET @expected = '|T                 |
++------------------+
+|0x' + CONVERT(NVARCHAR(MAX),CAST(@rowid AS VARBINARY(MAX)),2) + '|';
+   
+    EXEC tSQLt.AssertEqualsString @expected, @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one UNIQUEID column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T UNIQUEIDENTIFIER
+    );
+    INSERT INTO #DoesExist (T)VALUES('d7b868c6-c16e-443d-9af9-b23cf83bec0b');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                                   |
++------------------------------------+
+|d7b868c6-c16e-443d-9af9-b23cf83bec0b|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one XML column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T XML
+    );
+    INSERT INTO #DoesExist (T)VALUES('<x att="1"><m><l>d1</l><l>d2</l></m></x>');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                                       |
++----------------------------------------+
+|<x att="1"><m><l>d1</l><l>d2</l></m></x>|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIME column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -53,7 +246,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.787');
     
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|T                      |
 +-----------------------+
@@ -61,7 +254,152 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText works for one VARBINARY(MAX) column #table]
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one SMALLDATETIME column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T SMALLDATETIME
+    );
+    INSERT INTO #DoesExist (T)VALUES('2001-10-13T15:34:56.787');
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T               |
++----------------+
+|2001-10-13 15:35|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIMEOFFSET column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T DATETIMEOFFSET
+    );
+    INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13 12:34:56.7891234 +13:24' AS DATETIMEOFFSET));
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                                 |
++----------------------------------+
+|2001-10-13 12:34:56.7891234 +13:24|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIME2 column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T DATETIME2
+    );
+    INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13T12:34:56.7891234' AS DATETIME2));
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                          |
++---------------------------+
+|2001-10-13 12:34:56.7891234|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one TIME column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T TIME
+    );
+    INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.7871234');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T               |
++----------------+
+|12:34:56.7871234|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATE column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T DATE
+    );
+    INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.787');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T         |
++----------+
+|2001-10-13|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one VARCHAR(MAX)>8000 column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T VARCHAR(MAX)
+    );
+    INSERT INTO #DoesExist (T)VALUES(REPLICATE(CAST('*' AS VARCHAR(MAX)),8001));
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    DECLARE @expected NVARCHAR(MAX);
+    SELECT @expected = '|T'+REPLICATE(' ',54)+'|
++' + REPLICATE('-',55) + '+
+|' + REPLICATE('*', 25) + '<...>' + REPLICATE('*', 25) + '|';
+
+    EXEC tSQLt.AssertEqualsString @expected, @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one IMAGE column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T IMAGE
+    );
+    INSERT INTO #DoesExist (T)VALUES(CAST(REPLICATE(CAST('*' AS VARCHAR(MAX)),8001) AS VARBINARY(MAX)));
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    DECLARE @expected NVARCHAR(MAX);
+    SELECT @expected = '|T'+REPLICATE(' ',54)+'|
++' + REPLICATE('-',55) + '+
+|0x2A2A2A2A2A2A2A2A2A2A2A2<...>A2A2A2A2A2A2A2A2A2A2A2A2A|';
+
+    EXEC tSQLt.AssertEqualsString @expected, @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one SQL_VARIANT column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T SQL_VARIANT
+    );
+    INSERT INTO #DoesExist (T)VALUES('hello');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    DECLARE @expected NVARCHAR(MAX);
+    SELECT @expected = '|T    |
++-----+
+|hello|';
+
+    EXEC tSQLt.AssertEqualsString @expected, @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one VARBINARY(MAX) column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -70,7 +408,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(0xfedcba9876543210);
     
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|T                 |
 +------------------+
@@ -78,26 +416,75 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText works for one column #table with several rows]
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one BINARY(77) column #table]
 AS
 BEGIN
-    SELECT no
-      INTO #DoesExist
-      FROM tSQLt.f_Num(4);
-
+    CREATE TABLE #DoesExist(
+      T VARBINARY(77)
+    );
+    INSERT INTO #DoesExist (T)VALUES(0x11121314151617181910212223242526272829203132333435363738393041424344454647484940515253545556575859506162636465666768696071727374757677);
+    
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
    
-    EXEC tSQLt.AssertEqualsString '|no|
-+--+
-|1 |
-|2 |
-|3 |
-|4 |', @result;
+    EXEC tSQLt.AssertEqualsString '|T                                                      |
++-------------------------------------------------------+
+|0x11121314151617181910212<...>5666768696071727374757677|', @result;
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText orders by @orderBy]
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one CHAR(55) column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T VARCHAR(MAX)
+    );
+    INSERT INTO #DoesExist (T)VALUES('1234567890123456789012345678901234567890123456789012345');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                                                      |
++-------------------------------------------------------+
+|1234567890123456789012345678901234567890123456789012345|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one CHAR(56) column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T VARCHAR(MAX)
+    );
+    INSERT INTO #DoesExist (T)VALUES('12345678901234567890123456789012345678901234567890123456');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T                                                      |
++-------------------------------------------------------+
+|1234567890123456789012345<...>2345678901234567890123456|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one long named column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T1234567890123456789012345678901234567890123456789012345 VARCHAR(MAX)
+    );
+    INSERT INTO #DoesExist (T1234567890123456789012345678901234567890123456789012345)VALUES('1234567890123456789012345678901234567890123456789012345');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+   
+    EXEC tSQLt.AssertEqualsString '|T123456789012345678901234<...>1234567890123456789012345|
++-------------------------------------------------------+
+|1234567890123456789012345678901234567890123456789012345|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works for one column #table with several rows]
 AS
 BEGIN
     SELECT no
@@ -105,7 +492,60 @@ BEGIN
       FROM tSQLt.f_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist', @OrderBy = '10-no+10*(no%2)';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+
+    IF (ISNULL(@result,'') NOT LIKE '|no|
++--+
+|[1234] |
+|[1234] |
+|[1234] |
+|[1234] |')
+OR (ISNULL(@result,'') NOT LIKE '%1%')
+OR (ISNULL(@result,'') NOT LIKE '%2%')
+OR (ISNULL(@result,'') NOT LIKE '%3%')
+OR (ISNULL(@result,'') NOT LIKE '%4%')
+    BEGIN
+      EXEC tSQLt.Fail 'TableToString did not return correctly formatted table. It returned: ', @result;
+    END
+END;
+GO
+
+
+CREATE PROC tSQLtPrivate_test.[test TableToText works if @OrderBy IS NULL]
+AS
+BEGIN
+    SELECT no
+      INTO #DoesExist
+      FROM tSQLt.f_Num(4);
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', NULL);
+
+    IF (ISNULL(@result,'') NOT LIKE '|no|
++--+
+|[1234] |
+|[1234] |
+|[1234] |
+|[1234] |')
+OR (ISNULL(@result,'') NOT LIKE '%1%')
+OR (ISNULL(@result,'') NOT LIKE '%2%')
+OR (ISNULL(@result,'') NOT LIKE '%3%')
+OR (ISNULL(@result,'') NOT LIKE '%4%')
+    BEGIN
+      EXEC tSQLt.Fail 'TableToString did not return correctly formatted table. It returned: ', @result;
+    END
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText orders by @orderBy]
+AS
+BEGIN
+    SELECT no
+      INTO #DoesExist
+      FROM tSQLt.f_Num(4);
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist','10-no+10*(no%2)');
    
     EXEC tSQLt.AssertEqualsString '|no|
 +--+
@@ -116,7 +556,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText with no rows]
+CREATE PROC tSQLtPrivate_test.[test TableToText with no rows]
 AS
 BEGIN
     SELECT no
@@ -124,14 +564,14 @@ BEGIN
       FROM tSQLt.f_Num(0);
 
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|no|
 +--+', @result;
 END;
 GO
 
-CREATE PROC tSQLt_test_TableToText.[test TableToText with several columns and rows]
+CREATE PROC tSQLtPrivate_test.[test TableToText with several columns and rows]
 AS
 BEGIN
     SELECT no, 10-no AS FromTen, NULL AS NullCol
@@ -139,7 +579,7 @@ BEGIN
       FROM tSQLt.f_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist', @OrderBy = 'no';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist','no');
    
     EXEC tSQLt.AssertEqualsString '|no|FromTen|NullCol|
 +--+-------+-------+
@@ -149,7 +589,27 @@ BEGIN
 |4 |6      |!NULL! |', @result;
 END;
 GO
-CREATE PROC tSQLt_test_TableToText.[test TableToText with 100 columns]
+
+CREATE PROC tSQLtPrivate_test.[test NULL values with short column name]
+AS
+BEGIN
+    SELECT NULL AS n
+      INTO #DoesExist
+      FROM tSQLt.f_num(4);
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLtPrivate::TableToString('#DoesExist','');
+   
+    EXEC tSQLt.AssertEqualsString '|n     |
++------+
+|!NULL!|
+|!NULL!|
+|!NULL!|
+|!NULL!|', @result;
+END;
+GO
+
+CREATE PROC tSQLtPrivate_test.[test TableToText with 100 columns]
 AS
 BEGIN
 /*
@@ -167,7 +627,7 @@ PRINT @cols;
       FROM tSQLt.f_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @txt = @result OUT, @TableName = '#DoesExist', @OrderBy = 'C001';
+    SET @result = tSQLtPrivate::TableToString('#DoesExist','C001');
    
     EXEC tSQLt.AssertEqualsString '|C001|C002|C003|C004|C005|C006|C007|C008|C009|C010|C011|C012|C013|C014|C015|C016|C017|C018|C019|C020|C021|C022|C023|C024|C025|C026|C027|C028|C029|C030|C031|C032|C033|C034|C035|C036|C037|C038|C039|C040|C041|C042|C043|C044|C045|C046|C047|C048|C049|C050|C051|C052|C053|C054|C055|C056|C057|C058|C059|C060|C061|C062|C063|C064|C065|C066|C067|C068|C069|C070|C071|C072|C073|C074|C075|C076|C077|C078|C079|C080|C081|C082|C083|C084|C085|C086|C087|C088|C089|C090|C091|C092|C093|C094|C095|C096|C097|C098|C099|C100|
 +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
@@ -180,4 +640,4 @@ GO
 
 
 
-EXEC tSQLt.Run 'tSQLt_test_TableToText';
+EXEC tSQLt.Run 'tSQLtPrivate_test';
