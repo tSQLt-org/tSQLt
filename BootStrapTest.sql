@@ -27,6 +27,7 @@ GO
 
 EXEC tSQLt.RunTestClass 'tSQLt_test';
 EXEC tSQLt.RunTestClass 'tSQLtclr_test';
+EXEC tSQLt.RunTestClass 'tSQLtPrivate_test';
 GO
 
 WHILE @@TRANCOUNT>0 ROLLBACK;

@@ -19,3 +19,13 @@ EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].AssertResultSetsHaveSameMetaD
 GO
 CREATE TYPE tSQLtPrivate EXTERNAL NAME tSQLtCLR.[tSQLtCLR.tSQLtPrivate];
 GO
+
+CREATE PROCEDURE tSQLt.TableToText
+    @txt NVARCHAR(MAX) OUTPUT,
+    @TableName NVARCHAR(MAX),
+    @OrderBy NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    SET @txt = tSQLtPrivate::TableToString(@TableName,@OrderBy);
+END;
+GO

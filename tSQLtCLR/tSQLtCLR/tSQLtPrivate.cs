@@ -13,7 +13,7 @@ namespace tSQLtCLR
     public struct tSQLtPrivate : INullable, IBinarySerialize
     {
         private const String NULL_STRING = "!NULL!";
-        private const int MAX_COLUMN_WIDTH = 55;
+        private const int MAX_COLUMN_WIDTH = 155;
 
         [SqlMethod(DataAccess = DataAccessKind.Read)]
         public static SqlChars TableToString(SqlString TableName, SqlString OrderOption) {
