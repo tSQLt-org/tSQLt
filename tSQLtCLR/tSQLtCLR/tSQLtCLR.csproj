@@ -56,13 +56,24 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>SigningKey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CruiseControl|AnyCPU'">
+    <OutputPath>bin\CruiseControl\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="CommandExecutor.cs" />
+    <Compile Include="CommandExecutorException.cs" />
     <Compile Include="tSQLtPrivate.cs" />
     <Compile Include="InvalidResultSetException.cs" />
     <Compile Include="MetaDataEqualityAsserter.cs" />
@@ -71,6 +82,7 @@
     <Compile Include="TestDatabaseFacade.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PostBuild.bat" />
     <None Include="SigningKey.pfx" />
     <None Include="sql.proj">
       <InProject>false</InProject>
@@ -103,7 +115,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
-    <PostBuildEvent>sqlcmd -E -S localhost -d tSQLt -b -i "$(SolutionDir)\..\tSQLt.class.sql"
-sqlcmd -E -S localhost -d tSQLt -b -i "$(SolutionDir)\..\tSQLtCLR.sql" -v tSQLtCLRTargetFile="$(TargetPath)"</PostBuildEvent>
+    <PostBuildEvent>IF ($(ConfigurationName))==(Release) "$(SolutionDir)tSQLtCLR\PostBuild.bat" "$(SolutionDir)" "$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

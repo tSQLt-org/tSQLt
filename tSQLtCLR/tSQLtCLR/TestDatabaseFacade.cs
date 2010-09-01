@@ -39,6 +39,22 @@ namespace tSQLtCLR
             connection.Dispose();
         }
 
+        public String ServerName
+        {
+            get {
+                SqlDataReader reader = executeCommand("SELECT SERVERPROPERTY('ServerName');");
+                reader.Read();
+                String serverName = reader.GetString(0);
+                reader.Close();
+                return serverName;
+            }
+        }
+
+        public String DatabaseName
+        {
+            get { return connection.Database; }
+        }
+
         public SqlDataReader executeCommand(SqlString Command)
         {
             SqlCommand cmd = new SqlCommand();

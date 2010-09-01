@@ -21,5 +21,11 @@ namespace tSQLtCLR
             ResultSetFilter filter = new ResultSetFilter(new TestDatabaseFacade());
             filter.sendSelectedResultSetToSqlContext(resultSetNo, command);
         }
+
+        public static void NewConnection(SqlString command)
+        {
+            CommandExecutor executor = new CommandExecutor();
+            executor.Execute(command);
+        }
     }
 }
