@@ -502,6 +502,8 @@ SET NOCOUNT ON;
 
     DELETE FROM tSQLt.Run_LastExecution
      WHERE session_id = @@SPID;
+     
+     
 
     SELECT @testName = CASE WHEN @testName LIKE '\[%\]' ESCAPE '\'
                              AND @testName NOT LIKE '\[%[^[]\].\[%\]' ESCAPE '\'
@@ -526,6 +528,8 @@ SET NOCOUNT ON;
 
     SELECT @testClassId = SCHEMA_ID(@testClassName),
            @testCaseId = OBJECT_ID(@testName);
+
+
 
     EXEC tSQLt.private_CleanTestResult;
     
@@ -643,11 +647,8 @@ BEGIN
   EXEC tSQLt.private_CleanTestResult;
 
   DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
-   SELECT DISTINCT s.name AS testClassName
-     FROM sys.extended_properties ep
-     JOIN sys.schemas s
-       ON ep.major_id = s.schema_id
-    WHERE ep.name = N'tSQLt.TestClass';
+   SELECT testClassName
+     FROM tSQLt.private_TestClasses;
 
   OPEN tests;
   
@@ -1372,5 +1373,31 @@ BEGIN
      ORDER BY 
         CASE WHEN name = @schemaName THEN 0 ELSE 1 END
   );
+END;
+GO
+
+CREATE VIEW tSQLt.private_TestClasses
+AS
+  SELECT DISTINCT s.name AS testClassName, s.schema_id
+    FROM sys.extended_properties ep
+    JOIN sys.schemas s
+      ON ep.major_id = s.schema_id
+   WHERE ep.name = N'tSQLt.TestClass';
+GO
+
+CREATE FUNCTION tSQLt.private_isTestClass(@testClassName NVARCHAR(MAX))
+RETURNS BIT
+AS
+BEGIN
+  RETURN 
+    CASE 
+      WHEN EXISTS(
+             SELECT 1 
+               FROM tSQLt.private_TestClasses
+              WHERE schema_id = tSQLt.private_getSchemaId(@testClassName)
+            )
+      THEN 1
+      ELSE 0
+    END;
 END;
 GO

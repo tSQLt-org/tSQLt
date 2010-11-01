@@ -2542,5 +2542,32 @@ BEGIN
 	EXEC tSQLt.AssertEquals 0, @actual;
 END;
 GO
+
+CREATE PROC tSQLt_test.[test private_isTestClass returns 1 if schema was created with NewTestClass]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'tSQLt_test_MyTestClass';
+  DECLARE @actual BIT;
+  SELECT @actual = tSQLt.private_isTestClass('tSQLt_test_MyTestClass');
+  EXEC tSQLt.AssertEquals 1, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test private_isTestClass handles bracket quoted test class names]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'tSQLt_test_MyTestClass';
+  DECLARE @actual BIT;
+  SELECT @actual = tSQLt.private_isTestClass('[tSQLt_test_MyTestClass]');
+  EXEC tSQLt.AssertEquals 1, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.Run executes a test class even if there is a dbo owned object of the same name]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'Not Implemented';
+END;
+GO
 --ROLLBACK
 --tSQLt_test
