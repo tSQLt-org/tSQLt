@@ -2379,5 +2379,168 @@ BEGIN
 END;
 GO
 
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of schema name that does not exist returns null]
+AS
+BEGIN
+	DECLARE @actual INT;
+	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test my schema');
+
+	EXEC tSQLt.AssertEquals NULL, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of simple schema name returns id of schema]
+AS
+BEGIN
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = SCHEMA_ID('tSQLt_test');
+	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of simple bracket quoted schema name returns id of schema]
+AS
+BEGIN
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = SCHEMA_ID('tSQLt_test');
+	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema with brackets in name if bracketed and unbracketed schema exists]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
+	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema without brackets in name if bracketed and unbracketed schema exists]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema without brackets in name if only unbracketed schema exists]
+AS
+BEGIN
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema when quoted with double quotes]
+AS
+BEGIN
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @actual = tSQLt.private_getSchemaId('"tSQLt_test"');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of double quoted schema when similar schema names exist]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
+
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='"tSQLt_test"');
+	SELECT @actual = tSQLt.private_getSchemaId('"tSQLt_test"');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of bracket quoted schema when similar schema names exist]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
+
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
+	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of unquoted schema when similar schema names exist]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
+
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of schema name with spaces returns not null if not quoted]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [tSQLt_test my.schema];');
+	DECLARE @actual INT;
+	DECLARE @expected INT;
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test my.schema');
+	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test my.schema');
+
+	EXEC tSQLt.AssertEquals @expected, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test private_isTestClass returns 0 if schema does not exist]
+AS
+BEGIN
+	DECLARE @actual BIT;
+	SELECT @actual = tSQLt.private_isTestClass('tSQLt_test_does_not_exist');
+	EXEC tSQLt.AssertEquals 0, @actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test private_isTestClass returns 0 if schema does exist but is not a test class]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [tSQLt_test_notATestClass];');
+	DECLARE @actual BIT;
+	SELECT @actual = tSQLt.private_isTestClass('tSQLt_test_notATestClass');
+	EXEC tSQLt.AssertEquals 0, @actual;
+END;
+GO
 --ROLLBACK
 --tSQLt_test

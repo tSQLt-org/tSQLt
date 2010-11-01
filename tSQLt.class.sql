@@ -636,6 +636,7 @@ GO
 CREATE PROCEDURE tSQLt.RunAll
 AS
 BEGIN
+  SET NOCOUNT ON;
   DECLARE @testClassName NVARCHAR(MAX);
   DECLARE @testProcName NVARCHAR(MAX);
 
@@ -671,8 +672,6 @@ AS
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM sys.procedures WHERE object_id = OBJECT_ID(@ProcedureName))
     BEGIN
-      PRINT 'GOT HERE';
-      PRINT @ProcedureName;
       RAISERROR('Cannot use SpyProcedure on %s because the procedure does not exist', 16, 10, @ProcedureName) WITH NOWAIT;
     END;
     
@@ -1359,5 +1358,19 @@ BEGIN
     DECLARE @quotedName NVARCHAR(517);
     SELECT @quotedName = QUOTENAME(OBJECT_SCHEMA_NAME(@objectid)) + '.' + QUOTENAME(OBJECT_NAME(@objectid));
     RETURN @quotedName;
+END;
+GO
+
+CREATE FUNCTION tSQLt.private_getSchemaId(@schemaName NVARCHAR(MAX))
+RETURNS INT
+AS
+BEGIN
+  RETURN (
+    SELECT TOP(1) schema_id
+      FROM sys.schemas
+     WHERE @schemaName IN (name, QUOTENAME(name), QUOTENAME(name, '"'))
+     ORDER BY 
+        CASE WHEN name = @schemaName THEN 0 ELSE 1 END
+  );
 END;
 GO
