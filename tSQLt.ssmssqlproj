@@ -3,8 +3,8 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):DLLOYD\Dennis">
-          <Created>2010-03-29T13:24:46.0291751-04:00</Created>
+        <ConnectionNode Name="(local):mini10\meinse00">
+          <Created>2010-03-29T12:24:46.0291751-05:00</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -15,12 +15,36 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="(local)\sql2008:DLLOYD\Dennis">
-          <Created>2009-07-02T09:32:02.219617-04:00</Created>
+        <ConnectionNode Name="(local)\R2A:mini10\meinse00">
+          <Created>2010-10-30T12:17:01.4116644-05:00</Created>
+          <Type>SQL</Type>
+          <Server>(local)\R2A</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>tSQLt</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="(local)\sql2008:mini10\meinse00">
+          <Created>2009-07-02T08:32:02.219617-05:00</Created>
           <Type>SQL</Type>
           <Server>(local)\sql2008</Server>
           <UserName />
           <Authentication>Windows Authentication</Authentication>
+          <InitialDB>tSQLt</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="MINI10\R2A:SA">
+          <Created>2010-10-30T11:19:34.6335199-05:00</Created>
+          <Type>SQL</Type>
+          <Server>MINI10\R2A</Server>
+          <UserName>SA</UserName>
+          <Authentication>SQL</Authentication>
           <InitialDB>tSQLt</InitialDB>
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
@@ -42,6 +66,24 @@
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>EXPERIMENTS.sql</FullPath>
+        </FileNode>
+        <FileNode Name="CreateBuildDb.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>CreateBuildDb.sql</FullPath>
+        </FileNode>
+        <FileNode Name="NameAndIdResolution_test.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MINI10\R2A:False:SA</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>MINI10\R2A</AssociatedConnSrvName>
+          <AssociatedConnUserName>SA</AssociatedConnUserName>
+          <FullPath>NameAndIdResolution_test.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.apply.sqlcmd.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\R2A:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\R2A</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.apply.sqlcmd.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_TableToText.2008.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
@@ -68,14 +110,14 @@
           <FullPath>tSQLtCLR_CreateProcs.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\R2A:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\R2A</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\R2A:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\R2A</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test.class.sql</FullPath>
         </FileNode>
@@ -100,6 +142,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ReleaseNotes.txt</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.apply.bat">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.apply.bat</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
