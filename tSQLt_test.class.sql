@@ -2566,8 +2566,78 @@ GO
 CREATE PROC tSQLt_test.[test tSQLt.Run executes a test class even if there is a dbo owned object of the same name]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'Not Implemented';
+  -- Assemble
+  EXEC tSQLt.NewTestClass 'innertest';
+  EXEC('CREATE PROC innertest.testMe as RETURN 0;');
+
+  CREATE TABLE dbo.innertest(i INT);
+
+  --Act
+  EXEC tSQLt.Run 'innertest';
+
+  --Assert
+  SELECT Class, TestCase 
+    INTO #Expected
+    FROM tSQLt.TestResult
+   WHERE 1=0;
+   
+  INSERT INTO #Expected(Class, TestCase)
+  SELECT Class = 'innertest', TestCase = 'testMe';
+
+  SELECT Class, TestCase
+    INTO #Actual
+    FROM tSQLt.TestResult;
+    
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveTestName returns mostly nulls if testname is null]
+AS
+BEGIN
+  SELECT isTestClass, isTestCase, schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName
+    INTO #actual 
+    FROM tSQLt.private_resolveTestName(null);
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (isTestClass, isTestCase, schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName)
+  VALUES
+    (0, 0, NULL, NULL, NULL, NULL, NULL);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test next steps]
+AS
+BEGIN
+--tSQLt.private_resolveTestName(testname)
+--returns table
+--->bit(class or name),
+--  schema_id,
+--  object_id (null if testname is a class),
+--  quoted schema name,
+--  quoted object name (null if testname is a class),
+--  quoted full name (quoted schema name if testname is a class)
+  
+  
+--testname is null
+--testname cannot be resolved
+--testname is a schema name
+--testname is a quoted schema name
+--testname is an object name
+--testname is a schema.object name
+--testname is a schema.object name, quoted
+--testname is a [schema.object] name, where dbo.[schema.object] exists and [schema].[object] exists
+--testname is a schema name but also an object of the same name exists in dbo
+   EXEC tSQLt.Fail 'More to do';
+END;
+GO
+
 --ROLLBACK
 --tSQLt_test

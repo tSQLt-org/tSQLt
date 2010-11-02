@@ -209,9 +209,9 @@ BEGIN
 
     SELECT @cmd = 'EXEC ' + @testName;
     
-    SELECT @testClassName = tSQLt.private_getCleanSchemaName('', @testName),
+    SELECT @testClassName = OBJECT_SCHEMA_NAME(OBJECT_ID(@testName)), --tSQLt.private_getCleanSchemaName('', @testName),
            @testProcName = tSQLt.private_getCleanObjectName(@testName);
-
+           
     INSERT INTO tSQLt.TestResult(Class, TestCase, TranName, Result) 
         SELECT @testClassName, @testProcName, @TranName, 'A severe error happened during test execution. Test did not finish.'
         OPTION(MAXDOP 1);
@@ -487,7 +487,8 @@ SET NOCOUNT ON;
 
     DECLARE @msg NVARCHAR(MAX);
     DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
-    DECLARE @isSuccess INT;
+    --DECLARE @isSuccess INT;
+    DECLARE @isTestClass BIT;
     DECLARE @severity INT;
     
     IF(LTRIM(ISNULL(@testName,'')) = '')
@@ -501,23 +502,21 @@ SET NOCOUNT ON;
     END
 
     DELETE FROM tSQLt.Run_LastExecution
-     WHERE session_id = @@SPID;
+     WHERE session_id = @@SPID;     
+
+    SELECT @testClassId = tSQLt.private_getSchemaId(@testName),
+           @testCaseId = OBJECT_ID(@testName);
      
-     
+    EXEC tSQLt.private_CleanTestResult;
 
-    SELECT @testName = CASE WHEN @testName LIKE '\[%\]' ESCAPE '\'
-                             AND @testName NOT LIKE '\[%[^[]\].\[%\]' ESCAPE '\'
-                            THEN SUBSTRING(@testName, 2, LEN(@testName) -2)
-                            ELSE @testName
-                       END; --UNQUOTENAME(@testName) for bug in SCHEMA_ID() function
-
-    SELECT @testClassName = COALESCE(SCHEMA_NAME(SCHEMA_ID(@testName)),OBJECT_SCHEMA_NAME(OBJECT_ID(@testName))),
-           @testCaseName = OBJECT_NAME(OBJECT_ID(@testName));
-
-    SELECT @fullName = QUOTENAME(@testClassName) + 
-                      COALESCE('.' + QUOTENAME(@testCaseName), '');
-
-    --SELECT OBJECT_ID(@testName),@testName, @testClassName, @testCaseName, @fullName;
+    IF @testClassId IS NULL
+    BEGIN
+      SET @fullName = tSQLt.private_GetQuotedFullName(@testCaseId);
+    END
+    ELSE
+    BEGIN
+      SET @fullName = QUOTENAME(SCHEMA_NAME(@testClassId));
+    END
 
     INSERT INTO tSQLt.Run_LastExecution(testName, session_id, login_time)
     SELECT testName = @fullName,
@@ -526,40 +525,19 @@ SET NOCOUNT ON;
       FROM sys.dm_exec_sessions
      WHERE session_id = @@SPID;
 
-    SELECT @testClassId = SCHEMA_ID(@testClassName),
-           @testCaseId = OBJECT_ID(@testName);
-
-
-
-    EXEC tSQLt.private_CleanTestResult;
-    
-    SELECT @SetUp = '['+SCHEMA_NAME(schema_id)+'].['+name+']'
-      FROM sys.procedures
-     WHERE schema_id = SCHEMA_ID(@testClassName)
-       AND name = 'SetUp';
-
-    DECLARE testCases CURSOR LOCAL FAST_FORWARD 
-        FOR
-     SELECT '['+SCHEMA_NAME(schema_id)+'].['+name+']'
-       FROM sys.procedures
-      WHERE schema_id = SCHEMA_ID(@testClassName)
-        AND ((@testCaseId IS NULL AND name LIKE 'test%')
-             OR
-             object_id = @testCaseId
-            );
-    OPEN testCases;
-    
-    FETCH NEXT FROM testCases INTO @testCaseName;
-
-    WHILE @@FETCH_STATUS = 0
+    IF @testClassId IS NOT NULL
     BEGIN
-        EXEC tSQLt.private_RunTest @testCaseName, @SetUp;
+        EXEC tSQLt.private_RunTestClass @fullName;
+    END
+    ELSE
+    BEGIN
+      SELECT @SetUp = tSQLt.private_GetQuotedFullName(object_id)
+        FROM sys.procedures
+       WHERE schema_id = SCHEMA_ID(@testClassName)
+         AND name = 'SetUp';
 
-        FETCH NEXT FROM testCases INTO @testCaseName;
+      EXEC tSQLt.private_RunTest @fullName, @SetUp;
     END;
-
-    CLOSE testCases;
-    DEALLOCATE testCases;
 
     EXEC tSQLt.RunTestClassSummary;
 END;
@@ -611,14 +589,14 @@ BEGIN
 
     SELECT @SetUp = tSQLt.private_GetQuotedFullName(object_id)
       FROM sys.procedures
-     WHERE schema_id = SCHEMA_ID(@testClassName)
+     WHERE schema_id = tSQLt.private_getSchemaId(@testClassName)
        AND name = 'SetUp';
 
     DECLARE testCases CURSOR LOCAL FAST_FORWARD 
         FOR
      SELECT tSQLt.private_GetQuotedFullName(object_id)
        FROM sys.procedures
-      WHERE schema_id = SCHEMA_ID(@testClassName)
+      WHERE schema_id = tSQLt.private_getSchemaId(@testClassName)
         AND name LIKE 'test%';
 
     OPEN testCases;
@@ -1399,5 +1377,23 @@ BEGIN
       THEN 1
       ELSE 0
     END;
+END;
+GO
+
+CREATE FUNCTION tSQLt.private_resolveTestName(@testName NVARCHAR(MAX))
+RETURNS @testNameResolution TABLE (
+  isTestClass BIT,
+  isTestCase BIT,
+  schemaId INT,
+  objectId INT,
+  quotedSchemaName NVARCHAR(MAX),
+  quotedObjectName NVARCHAR(MAX),
+  quotedFullName NVARCHAR(MAX)
+)
+AS
+BEGIN
+  INSERT INTO @testNameResolution
+  SELECT 0, 0, NULL, NULL, NULL, NULL, NULL;
+  RETURN;
 END;
 GO
