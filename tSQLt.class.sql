@@ -1379,21 +1379,30 @@ BEGIN
     END;
 END;
 GO
-
-CREATE FUNCTION tSQLt.private_resolveTestName(@testName NVARCHAR(MAX))
-RETURNS @testNameResolution TABLE (
-  isTestClass BIT,
-  isTestCase BIT,
-  schemaId INT,
-  objectId INT,
-  quotedSchemaName NVARCHAR(MAX),
-  quotedObjectName NVARCHAR(MAX),
-  quotedFullName NVARCHAR(MAX)
-)
+CREATE FUNCTION tSQLt.private_resolveName(@name NVARCHAR(MAX))
+RETURNS TABLE 
 AS
-BEGIN
-  INSERT INTO @testNameResolution
-  SELECT 0, 0, NULL, NULL, NULL, NULL, NULL;
-  RETURN;
-END;
+RETURN
+  WITH ids(schemaId, objectId) AS 
+        (SELECT COALESCE(tSQLt.private_GetSchemaId(@name), SCHEMA_ID(OBJECT_SCHEMA_NAME(OBJECT_ID(@name)))),
+                OBJECT_ID(@name)),
+       idsWithNames(schemaId, objectId, quotedSchemaName, quotedObjectName) AS
+        (SELECT schemaId, objectId,
+         QUOTENAME(SCHEMA_NAME(schemaId)) AS quotedSchemaName, 
+         QUOTENAME(OBJECT_NAME(objectId)) AS quotedObjectName
+         FROM ids
+        )
+  SELECT schemaId, 
+         objectId, 
+         quotedSchemaName,
+         quotedObjectName,
+         COALESCE('.'+quotedSchemaName,'') + quotedObjectName AS quotedFullName, 
+         CASE WHEN EXISTS(SELECT 1 FROM tSQLt.private_TestClasses WHERE private_TestClasses.schema_id = idsWithNames.schemaId)
+               THEN 1
+              ELSE 0
+         END AS isTestClass, 
+         0 AS isTestCase, 
+         CASE WHEN schemaId IS NOT NULL THEN 1 ELSE 0 END AS isSchema
+    FROM idsWithNames;
+    
 GO

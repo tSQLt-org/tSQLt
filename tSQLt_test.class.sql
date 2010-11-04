@@ -2592,12 +2592,12 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveTestName returns mostly nulls if testname is null]
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName returns mostly nulls if testname is null]
 AS
 BEGIN
-  SELECT isTestClass, isTestCase, schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName
+  SELECT * --forcing this test to test all columns
     INTO #actual 
-    FROM tSQLt.private_resolveTestName(null);
+    FROM tSQLt.private_resolveName(null);
 
   SELECT a.*
     INTO #expected
@@ -2605,17 +2605,29 @@ BEGIN
    WHERE 0 = 1;
 
   INSERT INTO #expected 
-    (isTestClass, isTestCase, schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName)
+    (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
   VALUES
-    (0, 0, NULL, NULL, NULL, NULL, NULL);
+    (NULL, NULL, NULL, NULL, NULL, 0, 0, 0);
 
   EXEC tSQLt.AssertEqualsTable '#expected','#actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test next steps]
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName if testname does not exist returns same info as if testname was null]
 AS
 BEGIN
+  SELECT *
+    INTO #actual 
+    FROM tSQLt.private_resolveName('NeitherAnObjectNorASchema');
+
+  SELECT *
+    INTO #expected
+    FROM tSQLt.private_resolveName(null);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
 --tSQLt.private_resolveTestName(testname)
 --returns table
 --->bit(class or name),
@@ -2626,18 +2638,136 @@ BEGIN
 --  quoted full name (quoted schema name if testname is a class)
   
   
---testname is null
---testname cannot be resolved
---testname is a schema name
---testname is a quoted schema name
---testname is an object name
+--x testname is null
+--x testname cannot be resolved
+--x testname is a schema name created with NewTestClass
+--x testname is a schema name not created with NewTestClass
+--x testname is a quoted schema name
+--testname is an object name that is a procedure and a test
+--testname is an object name that is not a procedure
+--testname is an object name that is a procedure but not a test
 --testname is a schema.object name
 --testname is a schema.object name, quoted
 --testname is a [schema.object] name, where dbo.[schema.object] exists and [schema].[object] exists
 --testname is a schema name but also an object of the same name exists in dbo
-   EXEC tSQLt.Fail 'More to do';
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName returns only schema info if testname is a schema created with CREATE SCHEMA]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+
+  SELECT schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema
+    INTO #actual 
+    FROM tSQLt.private_resolveName('InnerSchema');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
+  VALUES
+    (SCHEMA_ID('InnerSchema'), NULL, '[InnerSchema]', NULL, '[InnerSchema]', 0, 0, 1);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
 END;
 GO
 
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName identifies a test class]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'InnerTest';
+
+  SELECT isTestClass, isTestCase, isSchema
+    INTO #actual 
+    FROM tSQLt.private_resolveName('InnerTest');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (isTestClass, isTestCase, isSchema)
+  VALUES
+    (1, 0, 1);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName identifies a quoted test class name]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'InnerTest';
+
+  SELECT schemaId
+    INTO #actual 
+    FROM tSQLt.private_resolveName('[InnerTest]');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId)
+  VALUES
+    (SCHEMA_ID('InnerTest'));
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName return info for fully qualified object]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+  EXEC ('CREATE TABLE InnerSchema.TestObject(i INT)');
+
+  SELECT schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema
+    INTO #actual 
+    FROM tSQLt.private_resolveName('InnerSchema.TestObject');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
+  VALUES
+    (SCHEMA_ID('InnerSchema'), OBJECT_ID('InnerSchema.TestObject'), '[InnerSchema]', '[TestObject]', '[InnerSchema].[TestObject]', 0, 0, 0);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName to be named]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema1');
+  EXEC ('CREATE SCHEMA InnerSchema2');
+  EXEC ('CREATE TABLE InnerSchema1.InnerSchema2(i INT)');
+
+  SELECT schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema
+    INTO #actual 
+    FROM tSQLt.private_resolveName('InnerSchema1.InnerSchema2');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
+  VALUES
+    (SCHEMA_ID('InnerSchema1'), OBJECT_ID('InnerSchema1.InnerSchema2'), '[InnerSchema1]', '[InnerSchema2]', '[InnerSchema1].[InnerSchema2]', 0, 0, 0);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
 --ROLLBACK
 --tSQLt_test
