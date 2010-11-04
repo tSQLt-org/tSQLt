@@ -57,30 +57,30 @@
 	<target name="db.recreate">
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d master -E -I -i &quot;test/CreateBuildDb.sql&quot; -v DbName=${db.name}"/>
+			<arg value="sqlcmd -S ${db.server} -d master -E -I -i &quot;test/CreateBuildDb.sql&quot; -v DbName=${db.name} -V11"/>
 		</exec>
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/SetClrEnabled.sql&quot;"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/SetClrEnabled.sql&quot; -V11"/>
 		</exec>
 	</target>
 
 	<target name="db.install.schema">
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt.class.sql&quot;"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt.class.sql&quot; -V11"/>
 		</exec>
 	</target>
 
 	<target name="db.install.tests">
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test.class.sql&quot;"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test.class.sql&quot; -V11"/>
 		</exec>
 
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLtclr_test.sql&quot;"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLtclr_test.sql&quot; -V11"/>
 		</exec>
 	</target>
 
@@ -94,14 +94,14 @@
 	<target name="db.tests.output">
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -h-1 -y0 -E -I -i &quot;test/GetTestResults.sql&quot; -o &quot;test/results/TestResults.xml&quot;"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -h-1 -y0 -E -I -i &quot;test/GetTestResults.sql&quot; -o &quot;test/results/TestResults.xml&quot; -V11"/>
 		</exec>
 	</target>
 
 	<target name="db.tests.check.results">
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd  -S ${db.server} -d ${db.name} -h-1 -y0 -E -I -Q &quot;:EXIT(SELECT COUNT(*) FROM tSQLt.TestResult WHERE Result != 'Success')&quot;"/>
+			<arg value="sqlcmd  -S ${db.server} -d ${db.name} -h-1 -y0 -E -I -Q &quot;:EXIT(SELECT COUNT(*) FROM tSQLt.TestResult WHERE Result != 'Success')&quot; -V11"/>
 		</exec>
 	</target>
 </project>
