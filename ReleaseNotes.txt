@@ -3,7 +3,7 @@ tSQLt Release Notes
 
 build.9:
 An online version of these release notes is available at:
-http://www.tsqlt.org/tsqlt-build9-release-notes
+http://www2.sqlity.net/tsqlt/tsqlt-build9-release-notes
 
 BUG FIXES:
 1. When using tSQLt.Run or tSQLt.RunTestClass, if an object name on the dbo 
@@ -13,7 +13,8 @@ schema had the same name as a test class, the test class could not be executed.
 too long, an error was be produced.
 
 NEW FEATURES:
-1. NewConnection
+1. A new procedure, tSQLt.NewConnection, was added which allows statements to 
+be executed synchronously in a different connection context.
 
 
 ---------------------------
