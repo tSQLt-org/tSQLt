@@ -1457,7 +1457,7 @@ BEGIN
     SELECT @@SPID, '2010-10-10', '[Old2]' UNION ALL
     SELECT @@SPID+10, '2011-11-11', '[Other]';   
 
-    EXEC tSQLt.Run 'New';
+    EXEC tSQLt.Run '[New]';
     
     SELECT testName 
       INTO #Expected
@@ -2643,13 +2643,14 @@ GO
 --x testname is a schema name created with NewTestClass
 --x testname is a schema name not created with NewTestClass
 --x testname is a quoted schema name
---testname is an object name that is a procedure and a test
---testname is an object name that is not a procedure
---testname is an object name that is a procedure but not a test
---testname is a schema.object name
---testname is a schema.object name, quoted
---testname is a [schema.object] name, where dbo.[schema.object] exists and [schema].[object] exists
+--x testname is an object name that is a procedure and a test
+--x testname is an object name that is not a procedure
+--x testname is an object name that is a procedure but not a test
+--x testname is a schema.object name
+--x testname is a schema.object name, quoted
+--x testname is a [schema.object] name, where dbo.[schema.object] exists and [schema].[object] exists
 --testname is a schema name but also an object of the same name exists in dbo
+--name is [test schema].[no test]
 
 CREATE PROC tSQLt_test.[test tSQLt.private_resolveName returns only schema info if testname is a schema created with CREATE SCHEMA]
 AS
@@ -2720,7 +2721,6 @@ BEGIN
 END;
 GO
 
-
 CREATE PROC tSQLt_test.[test tSQLt.private_resolveName return info for fully qualified object]
 AS
 BEGIN
@@ -2745,7 +2745,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName to be named]
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName interprets object name correctly if schema of same name exists]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema1');
@@ -2769,5 +2769,152 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected','#actual'
 END;
 GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName return info for fully qualified quoted object]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+  EXEC ('CREATE TABLE InnerSchema.TestObject(i INT)');
+
+  SELECT schemaId, objectId
+    INTO #actual 
+    FROM tSQLt.private_resolveName('[InnerSchema].[TestObject]');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId, objectId)
+  VALUES
+    (SCHEMA_ID('InnerSchema'), OBJECT_ID('InnerSchema.TestObject'));
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName for TestProcedure]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+  EXEC ('CREATE Procedure InnerSchema.[test inside] AS RETURN 0;');
+
+  SELECT isTestClass, isTestCase
+    INTO #actual 
+    FROM tSQLt.private_resolveName('InnerSchema.[test inside]');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (isTestClass, isTestCase)
+  VALUES
+    (0, 1);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.private_resolveName for procedure that is not a test]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+  EXEC ('CREATE Procedure InnerSchema.[NOtest inside] AS RETURN 0;');
+
+  SELECT isTestCase
+    INTO #actual 
+    FROM tSQLt.private_resolveName('InnerSchema.[NOtest inside]');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (isTestCase)
+  VALUES
+    (0);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test name is a quoted {schema.object} name, where dbo.{schema.object} exists and {schema}.{object} exists]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+  EXEC ('CREATE TABLE InnerSchema.TestObject(i INT)');
+  EXEC ('CREATE TABLE dbo.[InnerSchema.TestObject](i INT)');
+
+  SELECT schemaId, objectId
+    INTO #actual 
+    FROM tSQLt.private_resolveName('[InnerSchema.TestObject]');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId, objectId)
+  VALUES
+    (SCHEMA_ID('dbo'), OBJECT_ID('dbo.[InnerSchema.TestObject]'));
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test name is a quoted {schema}.{object} name, where dbo.{schema.object} exists and {schema}.{object} exists]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+  EXEC ('CREATE TABLE InnerSchema.TestObject(i INT)');
+  EXEC ('CREATE TABLE dbo.[InnerSchema.TestObject](i INT)');
+
+  SELECT schemaId, objectId
+    INTO #actual 
+    FROM tSQLt.private_resolveName('[InnerSchema].[TestObject]');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId, objectId)
+  VALUES
+    (SCHEMA_ID('InnerSchema'), OBJECT_ID('[InnerSchema].[TestObject]'));
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
+CREATE PROC tSQLt_test.[test name is a schema name where an object of same name exists in dbo]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA InnerSchema');
+  EXEC ('CREATE TABLE dbo.InnerSchema(i INT)');
+
+  SELECT schemaId, objectId
+    INTO #actual 
+    FROM tSQLt.private_resolveName('InnerSchema');
+
+  SELECT a.*
+    INTO #expected
+    FROM #actual a
+   WHERE 0 = 1;
+
+  INSERT INTO #expected 
+    (schemaId, objectId)
+  VALUES
+    (SCHEMA_ID('InnerSchema'), NULL);
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+END;
+GO
+
 --ROLLBACK
 --tSQLt_test
