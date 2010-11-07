@@ -1,6 +1,23 @@
 tSQLt Release Notes
 ===================
 
+build.9:
+An online version of these release notes is available at:
+http://www.tsqlt.org/tsqlt-build9-release-notes
+
+BUG FIXES:
+1. When using tSQLt.Run or tSQLt.RunTestClass, if an object name on the dbo 
+schema had the same name as a test class, the test class could not be executed.
+
+2. If the output of an AssertTableEquals or the length of a test case name was 
+too long, an error was be produced.
+
+NEW FEATURES:
+1. NewConnection
+
+
+---------------------------
+
 build.8a:
 An online version of these release notes is available at:
 http://www2.sqlity.net/tsqlt/tsqlt-build8a-release-notes

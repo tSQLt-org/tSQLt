@@ -474,66 +474,79 @@ END
 GO    
 
 ----------------------------------------------------------------------
+CREATE FUNCTION tSQLt.private_GetLastTestNameIfNotProvided(@testName NVARCHAR(MAX))
+RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+  IF(LTRIM(ISNULL(@testName,'')) = '')
+  BEGIN
+    SELECT @testName = testName 
+      FROM tSQLt.Run_LastExecution le
+      JOIN sys.dm_exec_sessions es
+        ON le.session_id = es.session_id
+       AND le.login_time = es.login_time
+     WHERE es.session_id = @@SPID;
+  END
+
+  RETURN @testName;
+END
+GO
+
+CREATE PROCEDURE tSQLt.private_SaveTestNameForSession 
+  @testName NVARCHAR(MAX)
+AS
+BEGIN
+  DELETE FROM tSQLt.Run_LastExecution
+   WHERE session_id = @@SPID;  
+
+  INSERT INTO tSQLt.Run_LastExecution(testName, session_id, login_time)
+  SELECT testName = @testName,
+         session_id,
+         login_time
+    FROM sys.dm_exec_sessions
+   WHERE session_id = @@SPID;
+END
+GO
+
+----------------------------------------------------------------------
 CREATE PROCEDURE tSQLt.Run
    @testName NVARCHAR(MAX) = NULL
 AS
 BEGIN
 SET NOCOUNT ON;
-    DECLARE @testCaseName NVARCHAR(MAX);
-    DECLARE @testClassName NVARCHAR(MAX);
     DECLARE @fullName NVARCHAR(MAX);
-    DECLARE @testCaseId INT;
-    DECLARE @testClassId INT;
-
-    DECLARE @msg NVARCHAR(MAX);
-    DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
-    --DECLARE @isSuccess INT;
+    DECLARE @schemaId INT;
     DECLARE @isTestClass BIT;
-    DECLARE @severity INT;
+    DECLARE @isTestCase BIT;
+    DECLARE @isSchema BIT;
+    DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
     
-    IF(LTRIM(ISNULL(@testName,'')) = '')
-    BEGIN
-      SELECT @testName = testName 
-        FROM tSQLt.Run_LastExecution le
-        JOIN sys.dm_exec_sessions es
-          ON le.session_id = es.session_id
-         AND le.login_time = es.login_time
-       WHERE es.session_id = @@SPID;
-    END
-
-    DELETE FROM tSQLt.Run_LastExecution
-     WHERE session_id = @@SPID;     
-
-    SELECT @testClassId = tSQLt.private_getSchemaId(@testName),
-           @testCaseId = OBJECT_ID(@testName);
+    SELECT @testName = tSQLt.private_GetLastTestNameIfNotProvided(@testName);
+    EXEC tSQLt.private_SaveTestNameForSession @testName;
+    
+    SELECT @schemaId = schemaId,
+           @fullName = quotedFullName,
+           @isTestClass = isTestClass,
+           @isSchema = isSchema,
+           @isTestCase = isTestCase
+      FROM tSQLt.private_resolveName(@testName);
      
     EXEC tSQLt.private_CleanTestResult;
 
-    IF @testClassId IS NULL
-    BEGIN
-      SET @fullName = tSQLt.private_GetQuotedFullName(@testCaseId);
-    END
-    ELSE
-    BEGIN
-      SET @fullName = QUOTENAME(SCHEMA_NAME(@testClassId));
-    END
-
-    INSERT INTO tSQLt.Run_LastExecution(testName, session_id, login_time)
-    SELECT testName = @fullName,
-           session_id,
-           login_time
-      FROM sys.dm_exec_sessions
-     WHERE session_id = @@SPID;
-
-    IF @testClassId IS NOT NULL
+    IF @isSchema = 1
     BEGIN
         EXEC tSQLt.private_RunTestClass @fullName;
+        --IF @isTestCase = 0
+        --BEGIN
+        -- -- Needs to be deprecated
+        --END
     END
-    ELSE
+    
+    IF @isTestCase = 1
     BEGIN
       SELECT @SetUp = tSQLt.private_GetQuotedFullName(object_id)
         FROM sys.procedures
-       WHERE schema_id = SCHEMA_ID(@testClassName)
+       WHERE schema_id = @schemaId
          AND name = 'SetUp';
 
       EXEC tSQLt.private_RunTest @fullName, @SetUp;
@@ -1379,13 +1392,79 @@ BEGIN
     END;
 END;
 GO
-CREATE FUNCTION tSQLt.private_resolveName(@name NVARCHAR(MAX))
+
+--CREATE FUNCTION tSQLt.private_resolveName(@name NVARCHAR(MAX))
+--RETURNS TABLE 
+--AS
+--RETURN
+--  WITH ids(schemaId, objectSchemaId, objectId) AS
+--       (SELECT tSQLt.private_GetSchemaId(@name),
+--               SCHEMA_ID(OBJECT_SCHEMA_NAME(OBJECT_ID(@name))),
+--               OBJECT_ID(@name)
+--       ),
+--       combined_ids(schemaId, objectId) AS 
+--        (SELECT COALESCE(schemaId, objectSchemaId),
+--                CASE WHEN schemaId IS NULL THEN objectId ELSE NULL END
+--           FROM ids
+--        ),
+--       idsWithNames(schemaId, objectId, quotedSchemaName, quotedObjectName) AS
+--        (SELECT schemaId, objectId,
+--         QUOTENAME(SCHEMA_NAME(schemaId)) AS quotedSchemaName, 
+--         QUOTENAME(OBJECT_NAME(objectId)) AS quotedObjectName
+--         FROM combined_ids
+--        )
+--  SELECT schemaId, 
+--         objectId, 
+--         quotedSchemaName,
+--         quotedObjectName,
+--         CASE WHEN schemaId IS NOT NULL AND objectId IS NOT NULL
+--               THEN quotedSchemaName + '.' + quotedObjectName
+--              WHEN schemaId IS NOT NULL
+--               THEN quotedSchemaName
+--              ELSE NULL
+--         END AS quotedFullName, 
+--         CASE WHEN EXISTS(SELECT 1 FROM tSQLt.private_TestClasses WHERE private_TestClasses.schema_id = idsWithNames.schemaId)
+--               THEN 1
+--              ELSE 0
+--         END AS isTestClass, 
+--         CASE WHEN quotedObjectName LIKE '[[]test%]' 
+--               AND objectId = OBJECT_ID(quotedSchemaName + '.' + quotedObjectName,'P') 
+--              THEN 1 ELSE 0 END AS isTestCase, 
+--         CASE WHEN schemaId IS NOT NULL AND objectId IS NULL THEN 1 ELSE 0 END AS isSchema
+--    FROM idsWithNames;
+    
+GO
+
+CREATE FUNCTION tSQLt.private_resolveSchemaName(@name NVARCHAR(MAX))
 RETURNS TABLE 
 AS
 RETURN
-  WITH ids(schemaId, objectId) AS 
-        (SELECT COALESCE(tSQLt.private_GetSchemaId(@name), SCHEMA_ID(OBJECT_SCHEMA_NAME(OBJECT_ID(@name)))),
-                OBJECT_ID(@name)),
+  WITH ids(schemaId) AS
+       (SELECT tSQLt.private_GetSchemaId(@name)
+       ),
+       idsWithNames(schemaId, quotedSchemaName) AS
+        (SELECT schemaId,
+         QUOTENAME(SCHEMA_NAME(schemaId))
+         FROM ids
+        )
+  SELECT schemaId, 
+         quotedSchemaName,
+         CASE WHEN EXISTS(SELECT 1 FROM tSQLt.private_TestClasses WHERE private_TestClasses.schema_id = idsWithNames.schemaId)
+               THEN 1
+              ELSE 0
+         END AS isTestClass, 
+         CASE WHEN schemaId IS NOT NULL THEN 1 ELSE 0 END AS isSchema
+    FROM idsWithNames;
+GO
+
+CREATE FUNCTION tSQLt.private_resolveObjectName(@name NVARCHAR(MAX))
+RETURNS TABLE 
+AS
+RETURN
+  WITH ids(schemaId, objectId) AS
+       (SELECT SCHEMA_ID(OBJECT_SCHEMA_NAME(OBJECT_ID(@name))),
+               OBJECT_ID(@name)
+       ),
        idsWithNames(schemaId, objectId, quotedSchemaName, quotedObjectName) AS
         (SELECT schemaId, objectId,
          QUOTENAME(SCHEMA_NAME(schemaId)) AS quotedSchemaName, 
@@ -1396,13 +1475,30 @@ RETURN
          objectId, 
          quotedSchemaName,
          quotedObjectName,
-         COALESCE('.'+quotedSchemaName,'') + quotedObjectName AS quotedFullName, 
-         CASE WHEN EXISTS(SELECT 1 FROM tSQLt.private_TestClasses WHERE private_TestClasses.schema_id = idsWithNames.schemaId)
-               THEN 1
-              ELSE 0
-         END AS isTestClass, 
-         0 AS isTestCase, 
-         CASE WHEN schemaId IS NOT NULL THEN 1 ELSE 0 END AS isSchema
+         quotedSchemaName + '.' + quotedObjectName AS quotedFullName, 
+         CASE WHEN quotedObjectName LIKE '[[]test%]' 
+               AND objectId = OBJECT_ID(quotedSchemaName + '.' + quotedObjectName,'P') 
+              THEN 1 ELSE 0 END AS isTestCase
     FROM idsWithNames;
     
+GO
+
+CREATE FUNCTION tSQLt.private_resolveName(@name NVARCHAR(MAX))
+RETURNS TABLE 
+AS
+RETURN
+  WITH resolvedNames(ord, schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema) AS
+  (SELECT 1, schemaId, NULL, quotedSchemaName, NULL, quotedSchemaName, isTestClass, 0, 1
+     FROM tSQLt.private_resolveSchemaName(@name)
+    UNION ALL
+   SELECT 2, schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, 0, isTestCase, 0
+     FROM tSQLt.private_resolveObjectName(@name)
+    UNION ALL
+   SELECT 3, NULL, NULL, NULL, NULL, NULL, 0, 0, 0
+   )
+   SELECT TOP(1) schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema
+     FROM resolvedNames
+    WHERE schemaId IS NOT NULL 
+       OR ord = 3
+    ORDER BY ord
 GO
