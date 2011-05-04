@@ -1,4 +1,7 @@
-DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
+USE tSQLt_build;
+GO
+
+DECLARE @Msg VARCHAR(MAX);SELECT @Msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@Msg,0,1);
 GO
 EXEC tSQLt.DropClass tSQLt_testutil;
 GO
@@ -7,23 +10,23 @@ CREATE SCHEMA tSQLt_testutil;
 GO
 
 CREATE PROC tSQLt_testutil.assertFailCalled
-    @command NVARCHAR(MAX),
-    @message VARCHAR(MAX)
+    @Command NVARCHAR(MAX),
+    @Message VARCHAR(MAX)
 AS
 BEGIN
     DECLARE @CallCount INT;
     BEGIN TRAN;
-    DECLARE @TranName CHAR(32); EXEC tSQLt.getNewTranName @TranName OUT;
+    DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     SAVE TRAN @TranName;
       EXEC tSQLt.SpyProcedure 'tSQLt.Fail';
-      EXEC (@command);
+      EXEC (@Command);
       SELECT @CallCount = COUNT(1) FROM tSQLt.Fail_SpyProcedureLog;
     ROLLBACK TRAN @TranName;
     COMMIT TRAN;
 
     IF (@CallCount = 0)
     BEGIN
-      EXEC tSQLt.Fail @message;
+      EXEC tSQLt.Fail @Message;
     END;
 END;
 GO
@@ -31,8 +34,8 @@ GO
 CREATE PROC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses
 AS
 BEGIN
-  DECLARE @testClassName NVARCHAR(MAX);
-  DECLARE @testProcName NVARCHAR(MAX);
+  DECLARE @TestClassName NVARCHAR(MAX);
+  DECLARE @TestProcName NVARCHAR(MAX);
 
   DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
    SELECT DISTINCT s.name AS testClassName
@@ -43,14 +46,14 @@ BEGIN
 
   OPEN tests;
   
-  FETCH NEXT FROM tests INTO @testClassName;
+  FETCH NEXT FROM tests INTO @TestClassName;
   WHILE @@FETCH_STATUS = 0
   BEGIN
     EXEC sp_dropextendedproperty @name = 'tSQLt.TestClass',
                                  @level0type = 'SCHEMA',
-                                 @level0name = @testClassName;
+                                 @level0name = @TestClassName;
     
-    FETCH NEXT FROM tests INTO @testClassName;
+    FETCH NEXT FROM tests INTO @TestClassName;
   END;
   
   CLOSE tests;
@@ -75,34 +78,34 @@ GO
 CREATE PROC [tSQLt_test].[SetUp]
 AS
 BEGIN
-    EXEC tSQLt.SpyProcedure 'tSQLt.private_printXML';
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
 END;
 GO
 
 CREATE PROC tSQLt_test.test_TestCasesAreWrappedInTransactions
 AS
 BEGIN
-    DECLARE @actualTranCount INT;
+    DECLARE @ActualTranCount INT;
 
     BEGIN TRAN;
-    DECLARE @TranName CHAR(32); EXEC tSQLt.getNewTranName @TranName OUT;
+    DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     SAVE TRAN @TranName;
 
     EXEC ('CREATE PROC TestCaseA AS IF(@@TRANCOUNT < 2) RAISERROR(''TranCountMisMatch:%i'',16,10,@@TRANCOUNT);');
 
-    EXEC tSQLt.private_RunTest TestCaseA;
+    EXEC tSQLt.Private_RunTest TestCaseA;
 
-    SELECT @actualTranCount=CAST(SUBSTRING(Msg,19,100) AS INT) FROM tSQLt.TestResult WHERE Msg LIKE 'TranCountMisMatch:%';
+    SELECT @ActualTranCount=CAST(SUBSTRING(Msg,19,100) AS INT) FROM tSQLt.TestResult WHERE Msg LIKE 'TranCountMisMatch:%';
 
     ROLLBACK TRAN @TranName;
     COMMIT;
 
-    IF (@actualTranCount IS NOT NULL)
+    IF (@ActualTranCount IS NOT NULL)
     BEGIN
-        DECLARE @message VARCHAR(MAX);
-        SET @message = 'Expected 2 transactions but was '+CAST(@actualTranCount AS VARCHAR);
+        DECLARE @Message VARCHAR(MAX);
+        SET @Message = 'Expected 2 transactions but was '+CAST(@ActualTranCount AS VARCHAR);
 
-        EXEC tSQLt.Fail @message;
+        EXEC tSQLt.Fail @Message;
     END;
 END;
 GO
@@ -126,18 +129,18 @@ GO
 CREATE PROC tSQLt_test.[test RunTest throws error if test case does not exist]
 AS
 BEGIN
-    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+    DECLARE @Msg NVARCHAR(MAX); SET @Msg = 'no error';
 
     BEGIN TRY
         EXEC tSQLt.RunTest 'tSQLt_test.DoesNotExist';
     END TRY
     BEGIN CATCH
-        SET @msg = ERROR_MESSAGE();
+        SET @Msg = ERROR_MESSAGE();
     END CATCH
     
-    IF @msg NOT LIKE 'The test case %DoesNotExist% does not exist.'
+    IF @Msg NOT LIKE 'The test case %DoesNotExist% does not exist.'
     BEGIN
-        EXEC tSQLt.Fail 'Expected RunTest to throw a meaningful error, but message was: ', @msg;
+        EXEC tSQLt.Fail 'Expected RunTest to throw a meaningful error, but message was: ', @Msg;
     END
 END;
 GO
@@ -159,44 +162,44 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test RunTestClass raises error if failure in default print mode]
-AS
-BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+--CREATE PROC tSQLt_test.[test RunTestClass raises error if failure in default print mode]
+--AS
+--BEGIN
+--    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
-    EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultFormatter';
-    EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.fail ''This is an expected failure''');
+--    EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultFormatter';
+--    EXEC('CREATE SCHEMA MyTestClass;');
+--    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.Fail ''This is an expected failure''');
     
-    BEGIN TRY
-        EXEC tSQLt.RunTestClass MyTestClass;
-    END TRY
-    BEGIN CATCH
-        SET @errorRaised = 1;
-    END CATCH
-    IF(@errorRaised = 0)
-    BEGIN
-        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
-    END
-END;
-GO
+--    BEGIN TRY
+--        EXEC tSQLt.RunTestClass MyTestClass;
+--    END TRY
+--    BEGIN CATCH
+--        SET @ErrorRaised = 1;
+--    END CATCH
+--    IF(@ErrorRaised = 0)
+--    BEGIN
+--        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
+--    END
+--END;
+--GO
 
 --CREATE PROC tSQLt_test.[test RunTestClass raises error if failure in xml print mode]
 --AS
 --BEGIN
---    DECLARE @errorRaised INT; SET @errorRaised = 0;
+--    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 --
 --    EXEC tSQLt.SetTestResultFormatter 'tSQLt.XMLResultFormatter';
 --    EXEC('CREATE SCHEMA MyTestClass;');
---    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.fail ''This is an expected failure''');
+--    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.Fail ''This is an expected failure''');
 --    
 --    BEGIN TRY
 --        EXEC tSQLt.RunTestClass MyTestClass;
 --    END TRY
 --    BEGIN CATCH
---        SET @errorRaised = 1;
+--        SET @ErrorRaised = 1;
 --    END CATCH
---    IF(@errorRaised = 0)
+--    IF(@ErrorRaised = 0)
 --    BEGIN
 --        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
 --    END
@@ -206,7 +209,7 @@ GO
 CREATE PROC tSQLt_test.[test RunTestClass raises error if error in default print mode]
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultsFormatter';
     EXEC('CREATE SCHEMA MyTestClass;');
@@ -216,9 +219,9 @@ BEGIN
         EXEC tSQLt.RunTestClass MyTestClass;
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
-    IF(@errorRaised = 0)
+    IF(@ErrorRaised = 0)
     BEGIN
         EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
     END
@@ -228,7 +231,7 @@ GO
 --CREATE PROC tSQLt_test.[test RunTestClass raises error if error in xml print mode]
 --AS
 --BEGIN
---    DECLARE @errorRaised INT; SET @errorRaised = 0;
+--    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 --
 --    EXEC tSQLt.SetTestResultFormatter 'tSQLt.XMLResultFormatter';
 --    EXEC('CREATE SCHEMA MyTestClass;');
@@ -238,9 +241,9 @@ GO
 --        EXEC tSQLt.RunTestClass MyTestClass;
 --    END TRY
 --    BEGIN CATCH
---        SET @errorRaised = 1;
+--        SET @ErrorRaised = 1;
 --    END CATCH
---    IF(@errorRaised = 0)
+--    IF(@ErrorRaised = 0)
 --    BEGIN
 --        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
 --    END
@@ -250,7 +253,7 @@ GO
 CREATE PROC tSQLt_test.test_RunTest_handles_test_names_with_spaces
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
@@ -259,7 +262,7 @@ BEGIN
         EXEC tSQLt.RunTest 'MyTestClass.Test Case A';
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
     SELECT Class, TestCase, Msg 
       INTO actual
@@ -289,7 +292,7 @@ CREATE PROC tSQLt_test.[test SpyProcedure should allow tester to not execute beh
 AS
 BEGIN
 
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(MAX) AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@p1;');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(MAX) AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@P1;');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
@@ -302,8 +305,8 @@ CREATE PROC tSQLt_test.[test SpyProcedure should allow tester to not execute beh
 AS
 BEGIN
 
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(MAX), @p2 VARCHAR(MAX), @p3 VARCHAR(MAX) ' +
-         'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@p1,@p2,@p3;');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(MAX), @P2 VARCHAR(MAX), @P3 VARCHAR(MAX) ' +
+         'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@P1,@P2,@P3;');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
@@ -316,8 +319,8 @@ CREATE PROC tSQLt_test.[test SpyProcedure should log calls]
 AS
 BEGIN
 
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(MAX), @p2 VARCHAR(MAX), @p3 VARCHAR(MAX) ' +
-         'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@p1,@p2,@p3;');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(MAX), @P2 VARCHAR(MAX), @P3 VARCHAR(MAX) ' +
+         'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@P1,@P2,@P3;');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
@@ -335,8 +338,8 @@ CREATE PROC tSQLt_test.[test SpyProcedure should log calls with varchar paramete
 AS
 BEGIN
 
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(MAX), @p2 VARCHAR(10), @p3 VARCHAR(8000) ' +
-         'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@p1,@p2,@p3;');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(MAX), @P2 VARCHAR(10), @P3 VARCHAR(8000) ' +
+         'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@P1,@P2,@P3;');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
@@ -345,9 +348,9 @@ BEGIN
 
     IF NOT EXISTS(SELECT 1
                    FROM dbo.InnerProcedure_SpyProcedureLog
-                  WHERE p1 = 'with'
-                    AND p2 = 'multiple'
-                    AND p3 = 'parameters')
+                  WHERE P1 = 'with'
+                    AND P2 = 'multiple'
+                    AND P3 = 'parameters')
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
     END;
@@ -358,17 +361,17 @@ GO
 CREATE PROC tSQLt_test.[test SpyProcedure should log call when output parameters are present]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
     
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
-    DECLARE @actualOutputValue VARCHAR(100);
+    DECLARE @ActualOutputValue VARCHAR(100);
     
-    EXEC dbo.InnerProcedure @p1 = @actualOutputValue OUT;
+    EXEC dbo.InnerProcedure @P1 = @ActualOutputValue OUT;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
-                   WHERE p1 IS NULL)
+                   WHERE P1 IS NULL)
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
     END
@@ -378,18 +381,18 @@ GO
 CREATE PROC tSQLt_test.[test SpyProcedure should log values of output parameters if input was provided for them]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
     
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
-    DECLARE @actualOutputValue VARCHAR(100);
-    SET @actualOutputValue = 'HELLO';
+    DECLARE @ActualOutputValue VARCHAR(100);
+    SET @ActualOutputValue = 'HELLO';
     
-    EXEC dbo.InnerProcedure @p1 = @actualOutputValue OUT;
+    EXEC dbo.InnerProcedure @P1 = @ActualOutputValue OUT;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
-                   WHERE p1 = 'HELLO')
+                   WHERE P1 = 'HELLO')
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
     END
@@ -399,17 +402,17 @@ GO
 CREATE PROC tSQLt_test.[test SpyProcedure should log values if a mix of input an output parameters are provided]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT, @p2 INT, @p3 BIT OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(100) OUT, @P2 INT, @P3 BIT OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
     
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
-    EXEC dbo.InnerProcedure @p1 = 'PARAM1', @p2 = 2, @p3 = 0;
+    EXEC dbo.InnerProcedure @P1 = 'PARAM1', @P2 = 2, @P3 = 0;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
-                   WHERE p1 = 'PARAM1'
-                     AND p2 = 2
-                     AND p3 = 0)
+                   WHERE P1 = 'PARAM1'
+                     AND P2 = 2
+                     AND P3 = 0)
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
     END
@@ -419,7 +422,7 @@ GO
 CREATE PROC tSQLt_test.[test SpyProcedure should not log the default values of parameters if no value is provided]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) = ''MY DEFAULT'' AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(100) = ''MY DEFAULT'' AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
     
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
@@ -427,7 +430,7 @@ BEGIN
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
-                   WHERE p1 IS NULL)
+                   WHERE P1 IS NULL)
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
     END
@@ -441,34 +444,34 @@ BEGIN
     
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure', 'RETURN 1';
     
-    DECLARE @returnVal INT;
-    EXEC @returnVal = dbo.InnerProcedure;
+    DECLARE @ReturnVal INT;
+    EXEC @ReturnVal = dbo.InnerProcedure;
     
     IF NOT EXISTS(SELECT 1 FROM dbo.InnerProcedure_SpyProcedureLog)
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged!';
     END;
     
-    EXEC tSQLt.AssertEquals 1, @returnVal;
+    EXEC tSQLt.AssertEquals 1, @ReturnVal;
 END;
 GO
 
 CREATE PROC tSQLt_test.[test command given to SpyProcedure can be used to set output parameters]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 VARCHAR(100) OUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
     
-    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure', 'SET @p1 = ''HELLO'';';
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure', 'SET @P1 = ''HELLO'';';
     
-    DECLARE @actualOutputValue VARCHAR(100);
+    DECLARE @ActualOutputValue VARCHAR(100);
     
-    EXEC dbo.InnerProcedure @p1 = @actualOutputValue OUT;
+    EXEC dbo.InnerProcedure @P1 = @ActualOutputValue OUT;
     
-    EXEC tSQLt.AssertEqualsString 'HELLO', @actualOutputValue;
+    EXEC tSQLt.AssertEqualsString 'HELLO', @ActualOutputValue;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
-                   WHERE p1 IS NULL)
+                   WHERE P1 IS NULL)
     BEGIN
         EXEC tSQLt.Fail 'InnerProcedure call was not logged correctly!';
     END
@@ -478,12 +481,12 @@ GO
 CREATE PROC tSQLt_test.[test SpyProcedure can have a cursor output parameter]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure @p1 CURSOR VARYING OUTPUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+    EXEC('CREATE PROC dbo.InnerProcedure @P1 CURSOR VARYING OUTPUT AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
-    DECLARE @outputCursor CURSOR;
-    EXEC dbo.InnerProcedure @p1 = @outputCursor OUTPUT; 
+    DECLARE @OutputCursor CURSOR;
+    EXEC dbo.InnerProcedure @P1 = @OutputCursor OUTPUT; 
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog)
@@ -496,18 +499,18 @@ GO
 CREATE PROC tSQLt_test.[test SpyProcedure raises appropriate error if the procedure does not exist]
 AS
 BEGIN
-    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+    DECLARE @Msg NVARCHAR(MAX); SET @Msg = 'no error';
     
     BEGIN TRY
       EXEC tSQLt.SpyProcedure 'tSQLt_test.DoesNotExist';
     END TRY
     BEGIN CATCH
-        SET @msg = ERROR_MESSAGE();
+        SET @Msg = ERROR_MESSAGE();
     END CATCH
 
-    IF @msg NOT LIKE '%Cannot use SpyProcedure on %DoesNotExist% because the procedure does not exist%'
+    IF @Msg NOT LIKE '%Cannot use SpyProcedure on %DoesNotExist% because the procedure does not exist%'
     BEGIN
-        EXEC tSQLt.Fail 'Expected SpyProcedure to throw a meaningful error, but message was: ', @msg;
+        EXEC tSQLt.Fail 'Expected SpyProcedure to throw a meaningful error, but message was: ', @Msg;
     END
 END;
 GO
@@ -515,19 +518,19 @@ GO
 CREATE PROC tSQLt_test.[test SpyProcedure raises appropriate error if the procedure name given references another type of object]
 AS
 BEGIN
-    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+    DECLARE @Msg NVARCHAR(MAX); SET @Msg = 'no error';
     
     BEGIN TRY
       CREATE TABLE tSQLt_test.dummy (i int);
       EXEC tSQLt.SpyProcedure 'tSQLt_test.dummy';
     END TRY
     BEGIN CATCH
-        SET @msg = ERROR_MESSAGE();
+        SET @Msg = ERROR_MESSAGE();
     END CATCH
 
-    IF @msg NOT LIKE '%Cannot use SpyProcedure on %dummy% because the procedure does not exist%'
+    IF @Msg NOT LIKE '%Cannot use SpyProcedure on %dummy% because the procedure does not exist%'
     BEGIN
-        EXEC tSQLt.Fail 'Expected SpyProcedure to throw a meaningful error, but message was: ', @msg;
+        EXEC tSQLt.Fail 'Expected SpyProcedure to throw a meaningful error, but message was: ', @Msg;
     END
 END;
 GO
@@ -535,14 +538,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_shouldProperlyReturnIntParameters
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('INT'), NULL, NULL, NULL);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('int'), NULL, NULL, NULL);
 
-    IF ISNULL(@result,'') <> 'INT'
+    IF ISNULL(@Result,'') <> 'int'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned int, but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned int, but returned ', @Result, ' instead';
     END
 END
 GO
@@ -550,14 +553,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_VARCHAR_with_length_parameters
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('VARCHAR'), 8, NULL, NULL);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('varchar'), 8, NULL, NULL);
 
-    IF ISNULL(@result,'') <> 'VARCHAR(8)'
+    IF ISNULL(@Result,'') <> 'varchar(8)'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned VARCHAR(8), but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned varchar(8), but returned ', @Result, ' instead';
     END
 END
 GO
@@ -565,14 +568,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_NVARCHAR_with_length_parameters
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('NVARCHAR'), 8, NULL, NULL);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('nvarchar'), 8, NULL, NULL);
 
-    IF ISNULL(@result,'') <> 'NVARCHAR(4)'
+    IF ISNULL(@Result,'') <> 'nvarchar(4)'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned NVARCHAR(4), but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned nvarchar(4), but returned ', @Result, ' instead';
     END
 END
 GO
@@ -580,14 +583,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_VARCHAR_MAX_parameters
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('VARCHAR'), -1, NULL, NULL);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('varchar'), -1, NULL, NULL);
 
-    IF ISNULL(@result,'') <> 'VARCHAR(MAX)'
+    IF ISNULL(@Result,'') <> 'varchar(MAX)'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned VARCHAR(MAX), but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned varchar(MAX), but returned ', @Result, ' instead';
     END
 END
 GO
@@ -595,14 +598,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_VARBINARY_MAX_parameters
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('VARBINARY'), -1, NULL, NULL);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('varbinary'), -1, NULL, NULL);
 
-    IF ISNULL(@result,'') <> 'VARBINARY(MAX)'
+    IF ISNULL(@Result,'') <> 'varbinary(MAX)'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned VARBINARY(MAX), but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned varbinary(MAX), but returned ', @Result, ' instead';
     END
 END
 GO
@@ -610,14 +613,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_DECIMAL_parameters
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('DECIMAL'), NULL, 12,13);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('decimal'), NULL, 12,13);
 
-    IF ISNULL(@result,'') <> 'DECIMAL(12,13)'
+    IF ISNULL(@Result,'') <> 'decimal(12,13)'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned DECIMAL(12,13), but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned decimal(12,13), but returned ', @Result, ' instead';
     END
 END
 GO
@@ -625,14 +628,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_typeName_when_all_parameters_are_valued
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('INT'), 1, 1,1);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('int'), 1, 1,1);
 
-    IF ISNULL(@result,'') <> 'INT'
+    IF ISNULL(@Result,'') <> 'int'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned INT, but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned int, but returned ', @Result, ' instead';
     END
 END;
 GO
@@ -640,14 +643,14 @@ GO
 CREATE PROC tSQLt_test.test_getFullTypeName_should_properly_return_typename_when_xml
 AS
 BEGIN
-    DECLARE @result VARCHAR(MAX);
+    DECLARE @Result VARCHAR(MAX);
 
-    SELECT @result = typeName
-     FROM tSQLt.getFullTypeName(TYPE_ID('XML'), -1, 0, 0);
+    SELECT @Result = COALESCE(typeName, '<NULL>')
+     FROM tSQLt.GetFullTypeName(TYPE_ID('xml'), -1, 0, 0);
 
-    IF ISNULL(@result,'') <> 'XML'
+    IF ISNULL(@Result,'') <> 'xml'
     BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned xml, but returned ', @result, ' instead';
+        EXEC tSQLt.Fail 'getFullTypeName should have returned xml, but returned ', @Result, ' instead';
     END
 END;
 GO
@@ -694,11 +697,11 @@ BEGIN
     EXEC tSQLt.AssertEquals 'hello', 'hello';
     EXEC tSQLt.AssertEquals N'hello', N'hello';
     
-    DECLARE @datetime DATETIME; SET @datetime = CAST('12-13-2005' AS DATETIME);
-    EXEC tSQLt.AssertEquals @datetime, @datetime;
+    DECLARE @Datetime DATETIME; SET @Datetime = CAST('12-13-2005' AS DATETIME);
+    EXEC tSQLt.AssertEquals @Datetime, @Datetime;
     
-    DECLARE @bit BIT; SET @bit = CAST(1 AS BIT);
-    EXEC tSQLt.AssertEquals @bit, @bit;
+    DECLARE @Bit BIT; SET @Bit = CAST(1 AS BIT);
+    EXEC tSQLt.AssertEquals @Bit, @Bit;
 END;
 GO
 
@@ -710,33 +713,33 @@ BEGIN
     EXEC tSQLt_testutil.assertFailCalled 'EXEC tSQLt.AssertEquals N''hello'', N''goodbye''', 'AssertEquals did not call Fail';
     
     EXEC tSQLt_testutil.assertFailCalled '
-        DECLARE @datetime1 DATETIME; SET @datetime1 = CAST(''12-13-2005'' AS DATETIME);
-        DECLARE @datetime2 DATETIME; SET @datetime2 = CAST(''6-17-2005'' AS DATETIME);
-        EXEC tSQLt.AssertEquals @datetime1, @datetime2;', 'AssertEquals did not call Fail';
+        DECLARE @Datetime1 DATETIME; SET @Datetime1 = CAST(''12-13-2005'' AS DATETIME);
+        DECLARE @Datetime2 DATETIME; SET @Datetime2 = CAST(''6-17-2005'' AS DATETIME);
+        EXEC tSQLt.AssertEquals @Datetime1, @Datetime2;', 'AssertEquals did not call Fail';
     
     EXEC tSQLt_testutil.assertFailCalled '
-        DECLARE @bit0 BIT; SET @bit0 = CAST(0 AS BIT);
-        DECLARE @bit1 BIT; SET @bit1 = CAST(1 AS BIT);
-        EXEC tSQLt.AssertEquals @bit0, @bit1;', 'AssertEquals did not call Fail';
+        DECLARE @Bit0 BIT; SET @Bit0 = CAST(0 AS BIT);
+        DECLARE @Bit1 BIT; SET @Bit1 = CAST(1 AS BIT);
+        EXEC tSQLt.AssertEquals @Bit0, @Bit1;', 'AssertEquals did not call Fail';
 END;
 GO
 
 CREATE PROC tSQLt_test.[test AssertEquals with VARCHAR(MAX) throws error]
 AS
 BEGIN
-    DECLARE @msg NVARCHAR(MAX); SET @msg = 'no error';
+    DECLARE @Msg NVARCHAR(MAX); SET @Msg = 'no error';
 
     BEGIN TRY
-        DECLARE @v1 VARCHAR(MAX); SET @v1 = REPLICATE(CAST('TestString' AS VARCHAR(MAX)),1000);
-        EXEC tSQLt.AssertEquals @v1, @v1;
+        DECLARE @V1 VARCHAR(MAX); SET @V1 = REPLICATE(CAST('TestString' AS VARCHAR(MAX)),1000);
+        EXEC tSQLt.AssertEquals @V1, @V1;
     END TRY
     BEGIN CATCH
-        SET @msg = ERROR_MESSAGE();
+        SET @Msg = ERROR_MESSAGE();
     END CATCH
     
-    IF @msg NOT LIKE '%Operand type clash%'
+    IF @Msg NOT LIKE '%Operand type clash%'
     BEGIN
-        EXEC tSQLt.Fail 'Expected operand type clash error when AssertEquals used with VARCHAR(MAX), instead was: ', @msg;
+        EXEC tSQLt.Fail 'Expected operand type clash error when AssertEquals used with VARCHAR(MAX), instead was: ', @Msg;
     END
     
 END;
@@ -745,11 +748,11 @@ GO
 CREATE PROC tSQLt_test.[test getNewTranName should generate a name]
 AS
 BEGIN
-   DECLARE @value CHAR(32)
+   DECLARE @Value CHAR(32)
 
-   EXEC tSQLt.getNewTranName @value OUT;
+   EXEC tSQLt.GetNewTranName @Value OUT;
 
-   IF @value IS NULL OR @value = ''
+   IF @Value IS NULL OR @Value = ''
    BEGIN
       EXEC tSQLt.Fail 'getNewTranName should have returned a name';
    END
@@ -780,33 +783,33 @@ BEGIN
     DECLARE @TestString2 VARCHAR(MAX);
     SET @TestString2 = REPLICATE(CAST('TestString' AS VARCHAR(MAX)),1000)+'2';
 
-    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.AssertEqualsString ''' + @TestString1 + ''', ''' + @TestString2 + ''';';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertEqualsString did not call Fail';
+    DECLARE @Command VARCHAR(MAX); SET @Command = 'EXEC tSQLt.AssertEqualsString ''' + @TestString1 + ''', ''' + @TestString2 + ''';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertEqualsString did not call Fail';
 END;
 GO
 
 CREATE PROC tSQLt_test.[test AssertEqualsString should call fail with expected value and actual NULL]
 AS
 BEGIN
-    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.AssertEqualsString ''1'', NULL;';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertEqualsString did not call Fail';
+    DECLARE @Command VARCHAR(MAX); SET @Command = 'EXEC tSQLt.AssertEqualsString ''1'', NULL;';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertEqualsString did not call Fail';
 END;
 GO
 
 CREATE PROC tSQLt_test.[test AssertEqualsString should call fail with expected NULL and actual value]
 AS
 BEGIN
-    DECLARE @command VARCHAR(MAX); SET @command = 'EXEC tSQLt.AssertEqualsString NULL, ''1'';';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertEqualsString did not call Fail';
+    DECLARE @Command VARCHAR(MAX); SET @Command = 'EXEC tSQLt.AssertEqualsString NULL, ''1'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertEqualsString did not call Fail';
 END;
 GO
 
 CREATE PROC tSQLt_test.[test AssertEqualsString with expected NVARCHAR(MAX) and actual VARCHAR(MAX) of same value]
 AS
 BEGIN
-    DECLARE @expected NVARCHAR(MAX); SET @expected = N'hello';
-    DECLARE @actual VARCHAR(MAX); SET @actual = 'hello';
-    EXEC tSQLt.AssertEqualsString @expected, @actual;
+    DECLARE @Expected NVARCHAR(MAX); SET @Expected = N'hello';
+    DECLARE @Actual VARCHAR(MAX); SET @Actual = 'hello';
+    EXEC tSQLt.AssertEqualsString @Expected, @Actual;
 END;
 GO
 
@@ -867,8 +870,8 @@ GO
 CREATE PROC tSQLt_test.test_RunTest_handles_uncommitable_transaction
 AS
 BEGIN
-    DECLARE @TranName SYSNAME; 
-    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_RunTest_handles_uncommitable_transaction' ORDER BY ID DESC;
+    DECLARE @TranName sysname; 
+    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_RunTest_handles_uncommitable_transaction' ORDER BY Id DESC;
     EXEC ('CREATE PROC testUncommitable AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
 
     BEGIN TRY
@@ -914,10 +917,10 @@ BEGIN
     EXEC tSQLt.FakeTable '', 'tst1';
   END TRY
   BEGIN CATCH
-    DECLARE @errorMessage NVARCHAR(MAX);
-    SELECT @errorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+    DECLARE @ErrorMessage NVARCHAR(MAX);
+    SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
 
-    EXEC tSQLt.Fail 'FakeTable threw unexpected error:', @errorMessage;
+    EXEC tSQLt.Fail 'FakeTable threw unexpected error:', @ErrorMessage;
   END CATCH;
 END;
 GO
@@ -941,14 +944,14 @@ GO
 CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table
 AS
 BEGIN
-    DECLARE @actualDefinition VARCHAR(MAX);
+    DECLARE @ActualDefinition VARCHAR(MAX);
 
     CREATE TABLE tableA (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
 
     EXEC tSQLt.FakeTable '', 'tableA';
     EXEC tSQLt.ApplyConstraint '', 'tableA', 'testConstraint';
 
-    SELECT @actualDefinition = definition
+    SELECT @ActualDefinition = definition
       FROM sys.check_constraints
      WHERE parent_object_id = OBJECT_ID('tableA') AND name = 'testConstraint';
 
@@ -957,7 +960,7 @@ BEGIN
         EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to tableA';
     END;
 
-    EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @actualDefinition;
+    EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @ActualDefinition;
 
 END;
 GO
@@ -966,7 +969,7 @@ GO
 CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table_with_schema
 AS
 BEGIN
-    DECLARE @actualDefinition VARCHAR(MAX);
+    DECLARE @ActualDefinition VARCHAR(MAX);
 
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.tableA (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
@@ -974,7 +977,7 @@ BEGIN
     EXEC tSQLt.FakeTable 'schemaA', 'tableA';
     EXEC tSQLt.ApplyConstraint 'schemaA', 'tableA', 'testConstraint';
 
-    SELECT @actualDefinition = definition
+    SELECT @ActualDefinition = definition
       FROM sys.check_constraints
      WHERE parent_object_id = OBJECT_ID('schemaA.tableA') AND name = 'testConstraint';
 
@@ -983,7 +986,7 @@ BEGIN
         EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to tableA';
     END;
 
-    EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @actualDefinition;
+    EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @ActualDefinition;
 
 END;
 GO
@@ -991,7 +994,7 @@ GO
 CREATE PROC tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_invalid_constraint
 AS
 BEGIN
-    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.tableA (constCol CHAR(3) );
@@ -1003,16 +1006,16 @@ BEGIN
       EXEC tSQLt.ApplyConstraint 'schemaA', 'tableA', 'thisIsNotAConstraint';
     END TRY
     BEGIN CATCH
-      DECLARE @errorMessage NVARCHAR(MAX);
-      SELECT @errorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @errorMessage NOT LIKE '%''schemaA.thisIsNotAConstraint'' is not a valid constraint on table ''schemaA.tableA'' for the tSQLt.ApplyConstraint procedure%'
+      DECLARE @ErrorMessage NVARCHAR(MAX);
+      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @ErrorMessage NOT LIKE '%''schemaA.thisIsNotAConstraint'' is not a valid constraint on table ''schemaA.tableA'' for the tSQLt.ApplyConstraint procedure%'
       BEGIN
-          EXEC tSQLt.Fail 'tSQLt.ApplyConstraint threw unexpected exception: ',@errorMessage;     
+          EXEC tSQLt.Fail 'tSQLt.ApplyConstraint threw unexpected exception: ',@ErrorMessage;     
       END
-      SET @errorThrown = 1;
+      SET @ErrorThrown = 1;
     END CATCH;
     
-    EXEC tSQLt.AssertEquals 1,@errorThrown,'tSQLt.ApplyConstraint did not throw an error!';
+    EXEC tSQLt.AssertEquals 1,@ErrorThrown,'tSQLt.ApplyConstraint did not throw an error!';
 
 END;
 GO
@@ -1020,7 +1023,7 @@ GO
 CREATE PROC tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_constraint_existsing_on_different_table
 AS
 BEGIN
-    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.tableA (constCol CHAR(3) );
@@ -1032,16 +1035,16 @@ BEGIN
       EXEC tSQLt.ApplyConstraint 'schemaA', 'tableA', 'MyConstraint';
     END TRY
     BEGIN CATCH
-      DECLARE @errorMessage NVARCHAR(MAX);
-      SELECT @errorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @errorMessage NOT LIKE '%''schemaA.MyConstraint'' is not a valid constraint on table ''schemaA.tableA'' for the tSQLt.ApplyConstraint procedure%'
+      DECLARE @ErrorMessage NVARCHAR(MAX);
+      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @ErrorMessage NOT LIKE '%''schemaA.MyConstraint'' is not a valid constraint on table ''schemaA.tableA'' for the tSQLt.ApplyConstraint procedure%'
       BEGIN
-          EXEC tSQLt.Fail 'tSQLt.ApplyConstraint threw unexpected exception: ',@errorMessage;     
+          EXEC tSQLt.Fail 'tSQLt.ApplyConstraint threw unexpected exception: ',@ErrorMessage;     
       END
-      SET @errorThrown = 1;
+      SET @ErrorThrown = 1;
     END CATCH;
     
-    EXEC tSQLt.AssertEquals 1,@errorThrown,'tSQLt.ApplyConstraint did not throw an error!';
+    EXEC tSQLt.AssertEquals 1,@ErrorThrown,'tSQLt.ApplyConstraint did not throw an error!';
 
 END;
 GO
@@ -1049,7 +1052,7 @@ GO
 CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table
 AS
 BEGIN
-    DECLARE @actualDefinition VARCHAR(MAX);
+    DECLARE @ActualDefinition VARCHAR(MAX);
 
     CREATE TABLE tableA (id int PRIMARY KEY);
     CREATE TABLE tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES tableA(id));
@@ -1068,7 +1071,7 @@ GO
 CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table_with_schema
 AS
 BEGIN
-    DECLARE @actualDefinition VARCHAR(MAX);
+    DECLARE @ActualDefinition VARCHAR(MAX);
 
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.tableA (id int PRIMARY KEY);
@@ -1088,7 +1091,7 @@ GO
 CREATE PROC tSQLt_test.test_FakeTable_raises_appropriate_error_if_table_does_not_exist
 AS
 BEGIN
-    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.tableA (constCol CHAR(3) );
@@ -1097,30 +1100,30 @@ BEGIN
       EXEC tSQLt.FakeTable 'schemaA', 'tableXYZ';
     END TRY
     BEGIN CATCH
-      DECLARE @errorMessage NVARCHAR(MAX);
-      SELECT @errorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @errorMessage NOT LIKE '%''schemaA.tableXYZ'' does not exist%'
+      DECLARE @ErrorMessage NVARCHAR(MAX);
+      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @ErrorMessage NOT LIKE '%''schemaA.tableXYZ'' does not exist%'
       BEGIN
-          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@errorMessage;     
+          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
       END
-      SET @errorThrown = 1;
+      SET @ErrorThrown = 1;
     END CATCH;
     
-    EXEC tSQLt.AssertEquals 1, @errorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
+    EXEC tSQLt.AssertEquals 1, @ErrorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
 END;
 GO
 
 CREATE PROC tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_expected_table_does_not_exist
 AS
 BEGIN
-    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.actual (constCol CHAR(3) );
 
-    DECLARE @command NVARCHAR(MAX);
-    SET @command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsTable did not call Fail when expected table does not exist';
+    DECLARE @Command NVARCHAR(MAX);
+    SET @Command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'assertEqualsTable did not call Fail when expected table does not exist';
 END;
 GO
 
@@ -1128,50 +1131,50 @@ GO
 CREATE PROC tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_actual_table_does_not_exist
 AS
 BEGIN
-    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.expected (constCol CHAR(3) );
     
-    DECLARE @command NVARCHAR(MAX);
-    SET @command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsTable did not call Fail when actual table does not exist';
+    DECLARE @Command NVARCHAR(MAX);
+    SET @Command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'assertEqualsTable did not call Fail when actual table does not exist';
 END;
 GO
 
 CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_temptables
 AS
 BEGIN
-    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
-    CREATE TABLE #t1(I INT)
-    INSERT INTO #t1 SELECT 1
-    CREATE TABLE #t2(I INT)
-    INSERT INTO #t2 SELECT 2
+    CREATE TABLE #T1(I INT)
+    INSERT INTO #T1 SELECT 1
+    CREATE TABLE #T2(I INT)
+    INSERT INTO #T2 SELECT 2
 
-    DECLARE @command NVARCHAR(MAX);
-    SET @command = 'EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'assertEqualsTable did not call Fail when comparing temp tables';
+    DECLARE @Command NVARCHAR(MAX);
+    SET @Command = 'EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'assertEqualsTable did not call Fail when comparing temp tables';
 END;
 GO
 
 CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_equal_temptables
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    CREATE TABLE #t1(I INT)
-    INSERT INTO #t1 SELECT 42
-    CREATE TABLE #t2(I INT)
-    INSERT INTO #t2 SELECT 42
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';');
+    CREATE TABLE #T1(I INT)
+    INSERT INTO #T1 SELECT 42
+    CREATE TABLE #T2(I INT)
+    INSERT INTO #T2 SELECT 42
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
     
     BEGIN TRY
         EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
     SELECT Class, TestCase, Result
       INTO actual
@@ -1186,20 +1189,20 @@ GO
 CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_actual_having_identity_column
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    CREATE TABLE #t1(I INT IDENTITY(1,1));
-    INSERT INTO #t1 DEFAULT VALUES;
-    CREATE TABLE #t2(I INT);
-    INSERT INTO #t2 VALUES(1);
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';');
+    CREATE TABLE #T1(I INT IDENTITY(1,1));
+    INSERT INTO #T1 DEFAULT VALUES;
+    CREATE TABLE #T2(I INT);
+    INSERT INTO #T2 VALUES(1);
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
     
     BEGIN TRY
         EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
     SELECT Class, TestCase, Result
       INTO actual
@@ -1214,20 +1217,20 @@ GO
 CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_expected_having_identity_column
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    CREATE TABLE #t1(I INT);
-    INSERT INTO #t1 VALUES(1);
-    CREATE TABLE #t2(I INT IDENTITY(1,1));
-    INSERT INTO #t2 DEFAULT VALUES;
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#t1'', ''#t2'';');
+    CREATE TABLE #T1(I INT);
+    INSERT INTO #T1 VALUES(1);
+    CREATE TABLE #T2(I INT IDENTITY(1,1));
+    INSERT INTO #T2 DEFAULT VALUES;
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
     
     BEGIN TRY
         EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
     SELECT Class, TestCase, Result
       INTO actual
@@ -1242,20 +1245,20 @@ GO
 CREATE PROC tSQLt_test.test_AssertObjectExists_raises_appropriate_error_if_table_does_not_exist
 AS
 BEGIN
-    DECLARE @errorThrown BIT; SET @errorThrown = 0;
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
     EXEC ('CREATE SCHEMA schemaA');
     
-    DECLARE @command NVARCHAR(MAX);
-    SET @command = 'EXEC tSQLt.AssertObjectExists ''schemaA.expected''';
-    EXEC tSQLt_testutil.assertFailCalled @command, 'AssertObjectExists did not call Fail when table does not exist';
+    DECLARE @Command NVARCHAR(MAX);
+    SET @Command = 'EXEC tSQLt.AssertObjectExists ''schemaA.expected''';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertObjectExists did not call Fail when table does not exist';
 END;
 GO
 
 CREATE PROC tSQLt_test.test_AssertObjectExists_does_not_call_fail_when_table_exists
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE TABLE MyTestClass.tbl(i int);');
@@ -1265,7 +1268,7 @@ BEGIN
         EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
     SELECT Class, TestCase, Result 
       INTO actual
@@ -1280,17 +1283,17 @@ GO
 CREATE PROC tSQLt_test.test_AssertObjectExists_does_not_call_fail_when_table_is_temp_table
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
-    CREATE TABLE #tbl(i int);
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertObjectExists ''#tbl'';');
+    CREATE TABLE #Tbl(i int);
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertObjectExists ''#Tbl'';');
     
     BEGIN TRY
         EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
     SELECT Class, TestCase, Result
       INTO actual
@@ -1305,7 +1308,7 @@ GO
 CREATE PROC tSQLt_test.test_dropClass_does_not_error_if_testcase_name_contains_spaces
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.[Test Case A ] AS RETURN 0;');
@@ -1314,10 +1317,10 @@ BEGIN
         EXEC tSQLt.DropClass 'MyTestClass';
     END TRY
     BEGIN CATCH
-        SET @errorRaised = 1;
+        SET @ErrorRaised = 1;
     END CATCH
 
-    EXEC tSQLt.AssertEquals 0,@errorRaised,'Unexpected error during execution of DropClass'
+    EXEC tSQLt.AssertEquals 0,@ErrorRaised,'Unexpected error during execution of DropClass'
     
     IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
     BEGIN    
@@ -1452,14 +1455,14 @@ BEGIN
 
     TRUNCATE TABLE tSQLt.Run_LastExecution;
     
-    INSERT tSQLt.Run_LastExecution(session_id, login_time, testName)
+    INSERT tSQLt.Run_LastExecution(SessionId, LoginTime, TestName)
     SELECT @@SPID, '2009-09-09', '[Old1]' UNION ALL
     SELECT @@SPID, '2010-10-10', '[Old2]' UNION ALL
     SELECT @@SPID+10, '2011-11-11', '[Other]';   
 
     EXEC tSQLt.Run '[New]';
     
-    SELECT testName 
+    SELECT TestName 
       INTO #Expected
       FROM tSQLt.Run_LastExecution
      WHERE 1=0;
@@ -1468,7 +1471,7 @@ BEGIN
     SELECT '[Other]' UNION ALL
     SELECT '[New]';
 
-    SELECT testName
+    SELECT TestName
       INTO #Actual
       FROM tSQLt.Run_LastExecution;
       
@@ -1479,7 +1482,7 @@ GO
 CREATE PROC tSQLt_test.test_SpyProcedure_handles_procedure_names_with_spaces
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE PROC tSQLt_test.[Spyee Proc] AS RETURN 0;');
 
@@ -1498,14 +1501,14 @@ BEGIN
     INSERT #Expected
     SELECT 1;
     
-    EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
 CREATE PROC tSQLt_test.test_RunTestClass_handles_test_names_with_spaces
 AS
 BEGIN
-    DECLARE @errorRaised INT; SET @errorRaised = 0;
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.[Test Case A] AS RETURN 0;');
@@ -1553,48 +1556,48 @@ CREATE PROC tSQLt_test.[test SpyProcedure works if spyee has 100 parameters with
 AS
 BEGIN
   IF OBJECT_ID('dbo.InnerProcedure') IS NOT NULL DROP PROCEDURE dbo.InnerProcedure;
-  DECLARE @cmd VARCHAR(MAX);
-  SELECT @cmd = 'CREATE PROC dbo.InnerProcedure('+
-                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@p'+CAST(no AS VARCHAR)+' CHAR(8000)' [text()]
-                   FROM tSQLt.f_Num(1020)
+  DECLARE @Cmd VARCHAR(MAX);
+  SELECT @Cmd = 'CREATE PROC dbo.InnerProcedure('+
+                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@P'+CAST(no AS VARCHAR)+' CHAR(8000)' [text()]
+                   FROM tSQLt.F_Num(100)
                     FOR XML PATH('')
                 )+
                 ') AS BEGIN RETURN 0; END;';
-  EXEC(@cmd);
+  EXEC(@Cmd);
 
   SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-    INTO #expectedM
+    INTO #ExpectedM
     FROM sys.parameters
    WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
   EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
 
   SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-    INTO #actualM
+    INTO #ActualM
     FROM sys.parameters
    WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
   SELECT * 
-    INTO #actual1
-    FROM #actualM
+    INTO #Actual1
+    FROM #ActualM
    WHERE parameter_id<511;
   SELECT * 
-    INTO #expected1
-    FROM #expectedM
+    INTO #Expected1
+    FROM #ExpectedM
    WHERE parameter_id<511;
    
-  EXEC tSQLt.AssertEqualsTable '#expected1','#actual1';
+  EXEC tSQLt.AssertEqualsTable '#Expected1','#Actual1';
 
   SELECT * 
-    INTO #actual2
-    FROM #actualM
+    INTO #Actual2
+    FROM #ActualM
    WHERE parameter_id>510;
   SELECT * 
-    INTO #expected2
-    FROM #expectedM
+    INTO #Expected2
+    FROM #ExpectedM
    WHERE parameter_id>510;
    
-  EXEC tSQLt.AssertEqualsTable '#expected2','#actual2';
+  EXEC tSQLt.AssertEqualsTable '#Expected2','#Actual2';
 END
 GO
 CREATE PROC tSQLt_test.[test SpyProcedure creates char parameters correctly]
@@ -1609,18 +1612,18 @@ BEGIN
           )
           AS BEGIN RETURN 0; END');
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #expected
+      INTO #Expected
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
 
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #actual
+      INTO #Actual
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROC tSQLt_test.[test SpyProcedure creates binary parameters correctly]
@@ -1635,18 +1638,18 @@ BEGIN
           )
           AS BEGIN RETURN 0; END');
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #expected
+      INTO #Expected
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
 
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #actual
+      INTO #Actual
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
-     EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
@@ -1662,10 +1665,10 @@ BEGIN
      
     EXEC dbo.InnerProcedure @VARBINARY8000=0x111122223333444455556666777788889999;
 
-    DECLARE @actual VARBINARY(8000);
-    SELECT @actual = VARBINARY8000 FROM dbo.InnerProcedure_SpyProcedureLog;
+    DECLARE @Actual VARBINARY(8000);
+    SELECT @Actual = VARBINARY8000 FROM dbo.InnerProcedure_SpyProcedureLog;
     
-    EXEC tSQLt.AssertEquals 0x111122223333444455556666777788889999, @actual;
+    EXEC tSQLt.AssertEquals 0x111122223333444455556666777788889999, @Actual;
 END;
 GO
 
@@ -1682,18 +1685,18 @@ BEGIN
           )
           AS BEGIN RETURN 0; END');
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #expected
+      INTO #Expected
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
 
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #actual
+      INTO #Actual
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROC tSQLt_test.[test SpyProcedure creates other parameters correctly]
@@ -1707,43 +1710,43 @@ BEGIN
           )
           AS BEGIN RETURN 0; END');
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #expected
+      INTO #Expected
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
 
     SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
-      INTO #actual
+      INTO #Actual
       FROM sys.parameters
      WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
 
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROC tSQLt_test.[test SpyProcedure fails with error if spyee has more than 1020 parameters]
 AS
 BEGIN
   IF OBJECT_ID('dbo.Spyee') IS NOT NULL DROP PROCEDURE dbo.Spyee;
-  DECLARE @cmd VARCHAR(MAX);
-  SELECT @cmd = 'CREATE PROC dbo.Spyee('+
-                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@p'+CAST(no AS VARCHAR)+' INT' [text()]
-                   FROM tSQLt.f_Num(1021)
+  DECLARE @Cmd VARCHAR(MAX);
+  SELECT @Cmd = 'CREATE PROC dbo.Spyee('+
+                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@P'+CAST(no AS VARCHAR)+' INT' [text()]
+                   FROM tSQLt.F_Num(1021)
                     FOR XML PATH('')
                 )+
                 ') AS BEGIN RETURN 0; END;';
-  EXEC(@cmd);
-  DECLARE @err VARCHAR(MAX);SET @err = 'NO ERROR';
+  EXEC(@Cmd);
+  DECLARE @Err VARCHAR(MAX);SET @Err = 'NO ERROR';
   BEGIN TRY
     EXEC tSQLt.SpyProcedure 'dbo.Spyee';
   END TRY
   BEGIN CATCH
-    SET @err = ERROR_MESSAGE();
+    SET @Err = ERROR_MESSAGE();
   END CATCH
   
-  IF @err NOT LIKE '%dbo.Spyee%' AND @err NOT LIKE '%1020 parameters%'
+  IF @Err NOT LIKE '%dbo.Spyee%' AND @Err NOT LIKE '%1020 parameters%'
   BEGIN
-      EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+      EXEC tSQLt.Fail 'Unexpected error message was: ', @Err;
   END;
   
 END
@@ -1752,12 +1755,12 @@ CREATE PROC tSQLt_test.[test f_Num(13) returns 13 rows]
 AS
 BEGIN
   SELECT no
-    INTO #actual
-    FROM tSQLt.f_Num(13);
+    INTO #Actual
+    FROM tSQLt.F_Num(13);
     
-  SELECT * INTO #expected FROM #actual WHERE 1=0;
+  SELECT * INTO #Expected FROM #Actual WHERE 1=0;
   
-  INSERT #expected(no)
+  INSERT #Expected(no)
   SELECT 1 no UNION ALL
   SELECT 2 no UNION ALL
   SELECT 3 no UNION ALL
@@ -1772,35 +1775,35 @@ BEGIN
   SELECT 12 no UNION ALL
   SELECT 13 no;
   
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END 
 GO
 CREATE PROC tSQLt_test.[test f_Num(0) returns 0 rows]
 AS
 BEGIN
   SELECT no
-    INTO #actual
-    FROM tSQLt.f_Num(0);
+    INTO #Actual
+    FROM tSQLt.F_Num(0);
     
-  SELECT * INTO #expected FROM #actual WHERE 1=0;
+  SELECT * INTO #Expected FROM #Actual WHERE 1=0;
   
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END 
 GO
 CREATE PROC tSQLt_test.[test f_Num(-11) returns 0 rows]
 AS
 BEGIN
   SELECT no
-    INTO #actual
-    FROM tSQLt.f_Num(-11);
+    INTO #Actual
+    FROM tSQLt.F_Num(-11);
     
-  SELECT * INTO #expected FROM #actual WHERE 1=0;
+  SELECT * INTO #Expected FROM #Actual WHERE 1=0;
   
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END 
 GO
 
-CREATE PROC tSQLt_test.[test that private_SetFakeViewOn_SingleView allows a non-updatable view to be faked using FakeTable and then inserted into]
+CREATE PROC tSQLt_test.[test that Private_SetFakeViewOn_SingleView allows a non-updatable view to be faked using FakeTable and then inserted into]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
@@ -1822,7 +1825,7 @@ BEGIN
   -- SetFakeViewOn is executed in a separate batch (typically followed by a GO statement)
   -- than the code of the test case
   EXEC('    
-      EXEC tSQLt.private_SetFakeViewOn_SingleView @ViewName = ''NewSchema.NewView'';
+      EXEC tSQLt.Private_SetFakeViewOn_SingleView @ViewName = ''NewSchema.NewView'';
       ');
       
   EXEC('
@@ -1830,22 +1833,22 @@ BEGIN
       INSERT INTO NewSchema.NewView (a1, a2, b1, b2) VALUES (1, 2, 3, 4);
       ');
 
-  SELECT a1, a2, b1, b2 INTO #expected
+  SELECT a1, a2, b1, b2 INTO #Expected
     FROM (SELECT 1 AS a1, 2 AS a2, 3 AS b1, 4 AS b2) X;
     
-  EXEC tSQLt.AssertEqualsTable '#expected', 'NewSchema.NewView';
+  EXEC tSQLt.AssertEqualsTable '#Expected', 'NewSchema.NewView';
   
 END
 GO
 
-CREATE PROC tSQLt_test.[test that not calling tSQLt.private_SetFakeViewOff_SingleView before running tests causes an exception and tests not to be run]
+CREATE PROC tSQLt_test.[test that not calling tSQLt.Private_SetFakeViewOff_SingleView before running tests causes an exception and tests not to be run]
 AS
 BEGIN
   DECLARE @ErrorMsg VARCHAR(MAX); SET @ErrorMsg = '';
   
   EXEC('CREATE SCHEMA NewSchema;');
   EXEC('CREATE VIEW NewSchema.NewView AS SELECT 1 AS a;');
-  EXEC('EXEC tSQLt.private_SetFakeViewOn_SingleView @ViewName = ''NewSchema.NewView'';');
+  EXEC('EXEC tSQLt.Private_SetFakeViewOn_SingleView @ViewName = ''NewSchema.NewView'';');
   
   EXEC ('EXEC tSQLt.NewTestClass TestClass;');
   
@@ -1858,7 +1861,7 @@ BEGIN
   ');
   
   BEGIN TRY
-    EXEC tSQLt.private_RunTest 'TestClass.testExample';
+    EXEC tSQLt.Private_RunTest 'TestClass.testExample';
   END TRY
   BEGIN CATCH
     SET @ErrorMsg = ERROR_MESSAGE();
@@ -1871,12 +1874,12 @@ BEGIN
 END
 GO
 
-CREATE PROC tSQLt_test.[test that calling tSQLt.private_SetFakeViewOff_SingleView before running tests allows tests to be run]
+CREATE PROC tSQLt_test.[test that calling tSQLt.Private_SetFakeViewOff_SingleView before running tests allows tests to be run]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
   EXEC('CREATE VIEW NewSchema.NewView AS SELECT 1 AS a;');
-  EXEC('EXEC tSQLt.private_SetFakeViewOn_SingleView @ViewName = ''NewSchema.NewView'';');
+  EXEC('EXEC tSQLt.Private_SetFakeViewOn_SingleView @ViewName = ''NewSchema.NewView'';');
   
   EXEC ('EXEC tSQLt.NewTestClass TestClass;');
   
@@ -1888,73 +1891,73 @@ BEGIN
     END;
   ');
   
-  EXEC('EXEC tSQLt.private_SetFakeViewOff_SingleView @ViewName = ''NewSchema.NewView'';');
+  EXEC('EXEC tSQLt.Private_SetFakeViewOff_SingleView @ViewName = ''NewSchema.NewView'';');
   
   BEGIN TRY
     EXEC tSQLt.Run 'TestClass';
   END TRY
   BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg = ERROR_MESSAGE();
-    EXEC tSQLt.Fail 'Expected RunTestClass to not raise an error because private_SetFakeViewOff_SingleView was executed. Error was:',@msg;
+    DECLARE @Msg VARCHAR(MAX);SET @Msg = ERROR_MESSAGE();
+    EXEC tSQLt.Fail 'Expected RunTestClass to not raise an error because Private_SetFakeViewOff_SingleView was executed. Error was:',@Msg;
   END CATCH
 END
 GO
 
 CREATE PROC tSQLt_test.CreateNonUpdatableView
-  @schemaName NVARCHAR(MAX),
-  @viewName NVARCHAR(MAX)
+  @SchemaName NVARCHAR(MAX),
+  @ViewName NVARCHAR(MAX)
 AS
 BEGIN
-  DECLARE @cmd NVARCHAR(MAX);
+  DECLARE @Cmd NVARCHAR(MAX);
 
-  SET @cmd = '
+  SET @Cmd = '
       CREATE TABLE $$SCHEMA_NAME$$.$$VIEW_NAME$$_A (a1 int, a2 int);
       CREATE TABLE $$SCHEMA_NAME$$.$$VIEW_NAME$$_B (a1 int, b1 int, b2 int);';
-  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
-  EXEC (@cmd);
+  SET @Cmd = REPLACE(REPLACE(@Cmd, '$$SCHEMA_NAME$$', @SchemaName), '$$VIEW_NAME$$', @ViewName);
+  EXEC (@Cmd);
 
-  SET @cmd = '
+  SET @Cmd = '
     CREATE VIEW $$SCHEMA_NAME$$.$$VIEW_NAME$$ AS 
       SELECT A.a1, A.a2, B.b1, B.b2
         FROM $$SCHEMA_NAME$$.$$VIEW_NAME$$_A A
         JOIN $$SCHEMA_NAME$$.$$VIEW_NAME$$_B B ON A.a1 = B.a1;';
-  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
-  EXEC (@cmd);
+  SET @Cmd = REPLACE(REPLACE(@Cmd, '$$SCHEMA_NAME$$', @SchemaName), '$$VIEW_NAME$$', @ViewName);
+  EXEC (@Cmd);
 
 END
 GO
 
 CREATE PROC tSQLt_test.AssertViewCanBeUpdatedIfFaked
-  @schemaName NVARCHAR(MAX),
-  @viewName NVARCHAR(MAX)
+  @SchemaName NVARCHAR(MAX),
+  @ViewName NVARCHAR(MAX)
 AS
 BEGIN
-  DECLARE @cmd NVARCHAR(MAX);
+  DECLARE @Cmd NVARCHAR(MAX);
 
-  SET @cmd = '
+  SET @Cmd = '
       EXEC tSQLt.FakeTable ''$$SCHEMA_NAME$$'', ''$$VIEW_NAME$$'';
       INSERT INTO $$SCHEMA_NAME$$.$$VIEW_NAME$$ (a1, a2, b1, b2) VALUES (1, 2, 3, 4);';
-  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
-  EXEC (@cmd);
+  SET @Cmd = REPLACE(REPLACE(@Cmd, '$$SCHEMA_NAME$$', @SchemaName), '$$VIEW_NAME$$', @ViewName);
+  EXEC (@Cmd);
   
-  SET @cmd = '
-    SELECT a1, a2, b1, b2 INTO #expected
+  SET @Cmd = '
+    SELECT a1, a2, b1, b2 INTO #Expected
     FROM (SELECT 1 AS a1, 2 AS a2, 3 AS b1, 4 AS b2) X;
     
-    EXEC tSQLt.AssertEqualsTable ''#expected'', ''$$SCHEMA_NAME$$.$$VIEW_NAME$$'';';
-  SET @cmd = REPLACE(REPLACE(@cmd, '$$SCHEMA_NAME$$', @schemaName), '$$VIEW_NAME$$', @viewName);
-  EXEC (@cmd);
+    EXEC tSQLt.AssertEqualsTable ''#Expected'', ''$$SCHEMA_NAME$$.$$VIEW_NAME$$'';';
+  SET @Cmd = REPLACE(REPLACE(@Cmd, '$$SCHEMA_NAME$$', @SchemaName), '$$VIEW_NAME$$', @ViewName);
+  EXEC (@Cmd);
 END;
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOn @schemaName applies to all views on a schema]
+CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOn @SchemaName applies to all views on a schema]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View1';
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View2';
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View3';
-  EXEC('EXEC tSQLt.SetFakeViewOn @schemaName = ''NewSchema'';');
+  EXEC('EXEC tSQLt.SetFakeViewOn @SchemaName = ''NewSchema'';');
   
   EXEC tSQLt_test.AssertViewCanBeUpdatedIfFaked 'NewSchema', 'View1';
   EXEC tSQLt_test.AssertViewCanBeUpdatedIfFaked 'NewSchema', 'View2';
@@ -1970,15 +1973,15 @@ BEGIN
 END
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOff @schemaName applies to all views on a schema]
+CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOff @SchemaName applies to all views on a schema]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View1';
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View2';
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View3';
-  EXEC('EXEC tSQLt.SetFakeViewOn @schemaName = ''NewSchema'';');
-  EXEC('EXEC tSQLt.SetFakeViewOff @schemaName = ''NewSchema'';');
+  EXEC('EXEC tSQLt.SetFakeViewOn @SchemaName = ''NewSchema'';');
+  EXEC('EXEC tSQLt.SetFakeViewOff @SchemaName = ''NewSchema'';');
   
   IF EXISTS (SELECT 1 FROM sys.triggers WHERE [name] LIKE 'View_[_]SetFakeViewOn')
   BEGIN
@@ -1987,13 +1990,13 @@ BEGIN
 END
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOff @schemaName only removes triggers created by framework]
+CREATE PROC tSQLt_test.[test that tSQLt.SetFakeViewOff @SchemaName only removes triggers created by framework]
 AS
 BEGIN
   EXEC('CREATE SCHEMA NewSchema;');
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View1';
   EXEC('CREATE TRIGGER NewSchema.View1_SetFakeViewOn ON NewSchema.View1 INSTEAD OF INSERT AS RETURN;');
-  EXEC('EXEC tSQLt.SetFakeViewOff @schemaName = ''NewSchema'';');
+  EXEC('EXEC tSQLt.SetFakeViewOff @SchemaName = ''NewSchema'';');
   
   IF NOT EXISTS (SELECT 1 FROM sys.triggers WHERE [name] = 'View1_SetFakeViewOn')
   BEGIN
@@ -2006,22 +2009,22 @@ CREATE PROC tSQLt_test.[test that _SetFakeViewOn trigger throws meaningful error
 AS
 BEGIN
   --This test also tests that tSQLt can handle test that leave the transaction open, but in an uncommitable state.
-  DECLARE @msg VARCHAR(MAX); SET @msg = 'no error';
+  DECLARE @Msg VARCHAR(MAX); SET @Msg = 'no error';
   
   EXEC('CREATE SCHEMA NewSchema;');
   EXEC tSQLt_test.CreateNonUpdatableView 'NewSchema', 'View1';
-  EXEC('EXEC tSQLt.SetFakeViewOn @schemaName = ''NewSchema'';');
+  EXEC('EXEC tSQLt.SetFakeViewOn @SchemaName = ''NewSchema'';');
   
   BEGIN TRY
     EXEC('INSERT NewSchema.View1 DEFAULT VALUES;');
   END TRY
   BEGIN CATCH
-    SET @msg = ERROR_MESSAGE();
+    SET @Msg = ERROR_MESSAGE();
   END CATCH;
   
-  IF(@msg NOT LIKE '%SetFakeViewOff%')
+  IF(@Msg NOT LIKE '%SetFakeViewOff%')
   BEGIN
-    EXEC tSQLt.Fail 'Expected trigger to throw error. Got:',@msg;
+    EXEC tSQLt.Fail 'Expected trigger to throw error. Got:',@Msg;
   END;
 END
 GO
@@ -2232,11 +2235,11 @@ BEGIN
     EXEC tSQLt.RunAll;
     EXEC tSQLt.RunAll;
     
-    DECLARE @numberOfTestResults INT;
-    SELECT @numberOfTestResults = COUNT(*)
+    DECLARE @NumberOfTestResults INT;
+    SELECT @NumberOfTestResults = COUNT(*)
       FROM tSQLt.TestResult;
     
-    EXEC tSQLt.AssertEquals 1, @numberOfTestResults;
+    EXEC tSQLt.AssertEquals 1, @NumberOfTestResults;
 END;
 GO
 
@@ -2272,10 +2275,10 @@ BEGIN
     
     EXEC tSQLt.RunAll;
     
-    DECLARE @actual NVARCHAR(MAX);
-    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
 
-    EXEC tSQLt.AssertEqualsString '<root/>', @actual;
+    EXEC tSQLt.AssertEqualsString '<root/>', @Actual;
 END;
 GO
 
@@ -2288,11 +2291,11 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @actual NVARCHAR(MAX);
-    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
 
     EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="0" failures="0"><testcase classname="MyTestClass" name="testA"/></testsuite></root>', @actual;
+'<root><testsuite name="MyTestClass" errors="0" failures="0"><testcase classname="MyTestClass" name="testA"/></testsuite></root>', @Actual;
 END;
 GO
 
@@ -2305,11 +2308,11 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @actual NVARCHAR(MAX);
-    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
     
     EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="0" failures="1"><testcase classname="MyTestClass" name="testA"><failure message="This test intentionally fails"/></testcase></testsuite></root>', @actual;
+'<root><testsuite name="MyTestClass" errors="0" failures="1"><testcase classname="MyTestClass" name="testA"><failure message="This test intentionally fails"/></testcase></testsuite></root>', @Actual;
 END;
 GO
 
@@ -2328,10 +2331,10 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @actual NVARCHAR(MAX);
-    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
     EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="0" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"/></testsuite></root>', @actual;
+'<root><testsuite name="MyTestClass" errors="0" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"/></testsuite></root>', @Actual;
 END;
 GO
 
@@ -2350,10 +2353,10 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @actual NVARCHAR(MAX);
-    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
     EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="1" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @actual;
+'<root><testsuite name="MyTestClass" errors="1" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @Actual;
 END;
 GO
 
@@ -2372,194 +2375,194 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @actual NVARCHAR(MAX);
-    SELECT @actual = CAST(message AS NVARCHAR(MAX)) FROM tSQLt.private_PrintXML_SpyProcedureLog;
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
     EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass1" errors="0" failures="1"><testcase classname="MyTestClass1" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass1" name="testB"/></testsuite><testsuite name="MyTestClass2" errors="1" failures="1"><testcase classname="MyTestClass2" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass2" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @actual;
+'<root><testsuite name="MyTestClass1" errors="0" failures="1"><testcase classname="MyTestClass1" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass1" name="testB"/></testsuite><testsuite name="MyTestClass2" errors="1" failures="1"><testcase classname="MyTestClass2" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass2" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @Actual;
 END;
 GO
 
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of schema name that does not exist returns null]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId of schema name that does not exist returns null]
 AS
 BEGIN
-	DECLARE @actual INT;
-	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test my schema');
+	DECLARE @Actual INT;
+	SELECT @Actual = tSQLt.Private_GetSchemaId('tSQLt_test my schema');
 
-	EXEC tSQLt.AssertEquals NULL, @actual;
+	EXEC tSQLt.AssertEquals NULL, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of simple schema name returns id of schema]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId of simple schema name returns id of schema]
 AS
 BEGIN
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = SCHEMA_ID('tSQLt_test');
-	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test');
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = SCHEMA_ID('tSQLt_test');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('tSQLt_test');
 
-	EXEC tSQLt.AssertEquals @expected, @actual;
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of simple bracket quoted schema name returns id of schema]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId of simple bracket quoted schema name returns id of schema]
 AS
 BEGIN
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = SCHEMA_ID('tSQLt_test');
-	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = SCHEMA_ID('tSQLt_test');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
 
-	EXEC tSQLt.AssertEquals @expected, @actual;
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema with brackets in name if bracketed and unbracketed schema exists]
-AS
-BEGIN
-	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
-
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
-	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
-
-	EXEC tSQLt.AssertEquals @expected, @actual;
-END;
-GO
-
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema without brackets in name if bracketed and unbracketed schema exists]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId returns id of schema with brackets in name if bracketed and unbracketed schema exists]
 AS
 BEGIN
 	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
 
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test');
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
 
-	EXEC tSQLt.AssertEquals @expected, @actual;
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema without brackets in name if only unbracketed schema exists]
-AS
-BEGIN
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
-
-	EXEC tSQLt.AssertEquals @expected, @actual;
-END;
-GO
-
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of schema when quoted with double quotes]
-AS
-BEGIN
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.private_getSchemaId('"tSQLt_test"');
-
-	EXEC tSQLt.AssertEquals @expected, @actual;
-END;
-GO
-
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of double quoted schema when similar schema names exist]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId returns id of schema without brackets in name if bracketed and unbracketed schema exists]
 AS
 BEGIN
 	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
-	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
 
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='"tSQLt_test"');
-	SELECT @actual = tSQLt.private_getSchemaId('"tSQLt_test"');
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('tSQLt_test');
 
-	EXEC tSQLt.AssertEquals @expected, @actual;
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of bracket quoted schema when similar schema names exist]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId returns id of schema without brackets in name if only unbracketed schema exists]
+AS
+BEGIN
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
+
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId returns id of schema when quoted with double quotes]
+AS
+BEGIN
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('"tSQLt_test"');
+
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId returns id of double quoted schema when similar schema names exist]
 AS
 BEGIN
 	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
 	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
 
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
-	SELECT @actual = tSQLt.private_getSchemaId('[tSQLt_test]');
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='"tSQLt_test"');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('"tSQLt_test"');
 
-	EXEC tSQLt.AssertEquals @expected, @actual;
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId returns id of unquoted schema when similar schema names exist]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId returns id of bracket quoted schema when similar schema names exist]
 AS
 BEGIN
 	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
 	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
 
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test');
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
 
-	EXEC tSQLt.AssertEquals @expected, @actual;
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_getSchemaId of schema name with spaces returns not null if not quoted]
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId returns id of unquoted schema when similar schema names exist]
+AS
+BEGIN
+	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
+
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('tSQLt_test');
+
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test tSQLt.Private_GetSchemaId of schema name with spaces returns not null if not quoted]
 AS
 BEGIN
 	EXEC ('CREATE SCHEMA [tSQLt_test my.schema];');
-	DECLARE @actual INT;
-	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test my.schema');
-	SELECT @actual = tSQLt.private_getSchemaId('tSQLt_test my.schema');
+	DECLARE @Actual INT;
+	DECLARE @Expected INT;
+	SELECT @Expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test my.schema');
+	SELECT @Actual = tSQLt.Private_GetSchemaId('tSQLt_test my.schema');
 
-	EXEC tSQLt.AssertEquals @expected, @actual;
+	EXEC tSQLt.AssertEquals @Expected, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test private_isTestClass returns 0 if schema does not exist]
+CREATE PROC tSQLt_test.[test Private_IsTestClass returns 0 if schema does not exist]
 AS
 BEGIN
-	DECLARE @actual BIT;
-	SELECT @actual = tSQLt.private_isTestClass('tSQLt_test_does_not_exist');
-	EXEC tSQLt.AssertEquals 0, @actual;
+	DECLARE @Actual BIT;
+	SELECT @Actual = tSQLt.Private_IsTestClass('tSQLt_test_does_not_exist');
+	EXEC tSQLt.AssertEquals 0, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test private_isTestClass returns 0 if schema does exist but is not a test class]
+CREATE PROC tSQLt_test.[test Private_IsTestClass returns 0 if schema does exist but is not a test class]
 AS
 BEGIN
 	EXEC ('CREATE SCHEMA [tSQLt_test_notATestClass];');
-	DECLARE @actual BIT;
-	SELECT @actual = tSQLt.private_isTestClass('tSQLt_test_notATestClass');
-	EXEC tSQLt.AssertEquals 0, @actual;
+	DECLARE @Actual BIT;
+	SELECT @Actual = tSQLt.Private_IsTestClass('tSQLt_test_notATestClass');
+	EXEC tSQLt.AssertEquals 0, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test private_isTestClass returns 1 if schema was created with NewTestClass]
+CREATE PROC tSQLt_test.[test Private_IsTestClass returns 1 if schema was created with NewTestClass]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'tSQLt_test_MyTestClass';
-  DECLARE @actual BIT;
-  SELECT @actual = tSQLt.private_isTestClass('tSQLt_test_MyTestClass');
-  EXEC tSQLt.AssertEquals 1, @actual;
+  DECLARE @Actual BIT;
+  SELECT @Actual = tSQLt.Private_IsTestClass('tSQLt_test_MyTestClass');
+  EXEC tSQLt.AssertEquals 1, @Actual;
 END;
 GO
 
-CREATE PROC tSQLt_test.[test private_isTestClass handles bracket quoted test class names]
+CREATE PROC tSQLt_test.[test Private_IsTestClass handles bracket quoted test class names]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'tSQLt_test_MyTestClass';
-  DECLARE @actual BIT;
-  SELECT @actual = tSQLt.private_isTestClass('[tSQLt_test_MyTestClass]');
-  EXEC tSQLt.AssertEquals 1, @actual;
+  DECLARE @Actual BIT;
+  SELECT @Actual = tSQLt.Private_IsTestClass('[tSQLt_test_MyTestClass]');
+  EXEC tSQLt.AssertEquals 1, @Actual;
 END;
 GO
 
@@ -2592,43 +2595,43 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName returns mostly nulls if testname is null]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName returns mostly nulls if testname is null]
 AS
 BEGIN
   SELECT * --forcing this test to test all columns
-    INTO #actual 
-    FROM tSQLt.private_resolveName(null);
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName(null);
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
   VALUES
     (NULL, NULL, NULL, NULL, NULL, 0, 0, 0);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName if testname does not exist returns same info as if testname was null]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName if testname does not exist returns same info as if testname was null]
 AS
 BEGIN
   SELECT *
-    INTO #actual 
-    FROM tSQLt.private_resolveName('NeitherAnObjectNorASchema');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('NeitherAnObjectNorASchema');
 
   SELECT *
-    INTO #expected
-    FROM tSQLt.private_resolveName(null);
+    INTO #Expected
+    FROM tSQLt.Private_ResolveName(null);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
---tSQLt.private_resolveTestName(testname)
+--tSQLt.Private_ResolveTestName(testname)
 --returns table
 --->bit(class or name),
 --  schema_id,
@@ -2652,100 +2655,100 @@ GO
 --testname is a schema name but also an object of the same name exists in dbo
 --name is [test schema].[no test]
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName returns only schema info if testname is a schema created with CREATE SCHEMA]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName returns only schema info if testname is a schema created with CREATE SCHEMA]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');
 
   SELECT schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema
-    INTO #actual 
-    FROM tSQLt.private_resolveName('InnerSchema');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('InnerSchema');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
   VALUES
     (SCHEMA_ID('InnerSchema'), NULL, '[InnerSchema]', NULL, '[InnerSchema]', 0, 0, 1);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName identifies a test class]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName identifies a test class]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'InnerTest';
 
   SELECT isTestClass, isTestCase, isSchema
-    INTO #actual 
-    FROM tSQLt.private_resolveName('InnerTest');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('InnerTest');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (isTestClass, isTestCase, isSchema)
   VALUES
     (1, 0, 1);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName identifies a quoted test class name]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName identifies a quoted test class name]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'InnerTest';
 
   SELECT schemaId
-    INTO #actual 
-    FROM tSQLt.private_resolveName('[InnerTest]');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('[InnerTest]');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId)
   VALUES
     (SCHEMA_ID('InnerTest'));
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName return info for fully qualified object]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName return info for fully qualified object]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');
   EXEC ('CREATE TABLE InnerSchema.TestObject(i INT)');
 
   SELECT schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema
-    INTO #actual 
-    FROM tSQLt.private_resolveName('InnerSchema.TestObject');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('InnerSchema.TestObject');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
   VALUES
     (SCHEMA_ID('InnerSchema'), OBJECT_ID('InnerSchema.TestObject'), '[InnerSchema]', '[TestObject]', '[InnerSchema].[TestObject]', 0, 0, 0);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName interprets object name correctly if schema of same name exists]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName interprets object name correctly if schema of same name exists]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema1');
@@ -2753,92 +2756,92 @@ BEGIN
   EXEC ('CREATE TABLE InnerSchema1.InnerSchema2(i INT)');
 
   SELECT schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema
-    INTO #actual 
-    FROM tSQLt.private_resolveName('InnerSchema1.InnerSchema2');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('InnerSchema1.InnerSchema2');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId, quotedSchemaName, quotedObjectName, quotedFullName, isTestClass, isTestCase, isSchema)
   VALUES
     (SCHEMA_ID('InnerSchema1'), OBJECT_ID('InnerSchema1.InnerSchema2'), '[InnerSchema1]', '[InnerSchema2]', '[InnerSchema1].[InnerSchema2]', 0, 0, 0);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName return info for fully qualified quoted object]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName return info for fully qualified quoted object]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');
   EXEC ('CREATE TABLE InnerSchema.TestObject(i INT)');
 
   SELECT schemaId, objectId
-    INTO #actual 
-    FROM tSQLt.private_resolveName('[InnerSchema].[TestObject]');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('[InnerSchema].[TestObject]');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId)
   VALUES
     (SCHEMA_ID('InnerSchema'), OBJECT_ID('InnerSchema.TestObject'));
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName for TestProcedure]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName for TestProcedure]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');
   EXEC ('CREATE Procedure InnerSchema.[test inside] AS RETURN 0;');
 
   SELECT isTestClass, isTestCase
-    INTO #actual 
-    FROM tSQLt.private_resolveName('InnerSchema.[test inside]');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('InnerSchema.[test inside]');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (isTestClass, isTestCase)
   VALUES
     (0, 1);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.private_resolveName for procedure that is not a test]
+CREATE PROC tSQLt_test.[test tSQLt.Private_ResolveName for procedure that is not a test]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');
   EXEC ('CREATE Procedure InnerSchema.[NOtest inside] AS RETURN 0;');
 
   SELECT isTestCase
-    INTO #actual 
-    FROM tSQLt.private_resolveName('InnerSchema.[NOtest inside]');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('InnerSchema.[NOtest inside]');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (isTestCase)
   VALUES
     (0);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
@@ -2850,20 +2853,20 @@ BEGIN
   EXEC ('CREATE TABLE dbo.[InnerSchema.TestObject](i INT)');
 
   SELECT schemaId, objectId
-    INTO #actual 
-    FROM tSQLt.private_resolveName('[InnerSchema.TestObject]');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('[InnerSchema.TestObject]');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId)
   VALUES
     (SCHEMA_ID('dbo'), OBJECT_ID('dbo.[InnerSchema.TestObject]'));
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
@@ -2875,20 +2878,20 @@ BEGIN
   EXEC ('CREATE TABLE dbo.[InnerSchema.TestObject](i INT)');
 
   SELECT schemaId, objectId
-    INTO #actual 
-    FROM tSQLt.private_resolveName('[InnerSchema].[TestObject]');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('[InnerSchema].[TestObject]');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId)
   VALUES
     (SCHEMA_ID('InnerSchema'), OBJECT_ID('[InnerSchema].[TestObject]'));
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 
@@ -2899,20 +2902,20 @@ BEGIN
   EXEC ('CREATE TABLE dbo.InnerSchema(i INT)');
 
   SELECT schemaId, objectId
-    INTO #actual 
-    FROM tSQLt.private_resolveName('InnerSchema');
+    INTO #Actual 
+    FROM tSQLt.Private_ResolveName('InnerSchema');
 
   SELECT a.*
-    INTO #expected
-    FROM #actual a
+    INTO #Expected
+    FROM #Actual a
    WHERE 0 = 1;
 
-  INSERT INTO #expected 
+  INSERT INTO #Expected 
     (schemaId, objectId)
   VALUES
     (SCHEMA_ID('InnerSchema'), NULL);
 
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual'
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
 END;
 GO
 

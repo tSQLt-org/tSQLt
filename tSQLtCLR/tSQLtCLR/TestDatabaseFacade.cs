@@ -70,8 +70,8 @@ namespace tSQLtCLR
             SqlCommand cmd = new SqlCommand();
             cmd.Connection = connection;
             cmd.CommandText = "tSQLt.AssertEqualsString";
-            cmd.Parameters.AddWithValue("expected", expectedString);
-            cmd.Parameters.AddWithValue("actual", actualString);
+            cmd.Parameters.AddWithValue("Expected", expectedString);
+            cmd.Parameters.AddWithValue("Actual", actualString);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.ExecuteNonQuery();
         }
@@ -82,7 +82,7 @@ namespace tSQLtCLR
             SqlCommand cmd = new SqlCommand();
             cmd.Connection = connection;
             cmd.CommandText = "tSQLt.Fail";
-            cmd.Parameters.AddWithValue("message0", failureMessage);
+            cmd.Parameters.AddWithValue("Message0", failureMessage);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.ExecuteNonQuery();
         }

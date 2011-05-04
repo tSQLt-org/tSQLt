@@ -1,6 +1,16 @@
 tSQLt Release Notes
 ===================
 
+build.10:
+An online version of these release notes is available at:
+http://www2.sqlity.net/tsqlt/tsqlt-build10-release-notes
+
+BUG FIXES:
+1. Standardized casing of table, column, procedure and function names.
+
+NEW FEATURES:
+1. Added support for case sensitive databases.
+
 build.9:
 An online version of these release notes is available at:
 http://www2.sqlity.net/tsqlt/tsqlt-build9-release-notes
