@@ -53,13 +53,13 @@ EXEC('CREATE PROCEDURE TestCase AS
 EXEC tSQLt.RunTest 'TestCase';
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE msg LIKE 'TestCase was executed! (42)%')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE 'TestCase was executed! (42)%')
         RAISERROR('TestCase was not executed',16,10);
 
     PRINT 'Test passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -78,13 +78,13 @@ EXEC('CREATE PROCEDURE dbo.SucceedingTestCase AS RETURN 0;');
 EXEC tSQLt.RunTest 'dbo.SucceedingTestCase';
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'SucceedingTestCase' AND result = 'Success')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'SucceedingTestCase' AND Result = 'Success')
           RAISERROR('SucceedingTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -104,13 +104,13 @@ EXEC('CREATE PROCEDURE dbo.FailingTestCase AS EXEC tSQLt.Fail; RETURN 0;');
 EXEC tSQLt.RunTest 'dbo.FailingTestCase';
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'FailingTestCase' AND result = 'Failure')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'FailingTestCase' AND Result = 'Failure')
           RAISERROR('FailingTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -140,7 +140,7 @@ BEGIN TRY
     PRINT 'Test Passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -161,13 +161,13 @@ EXEC('CREATE PROCEDURE dbo.ErroringTestCase AS SELECT 1/0 col INTO #tmp; RETURN 
 EXEC tSQLt.RunTest 'dbo.ErroringTestCase';
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'ErroringTestCase' AND result = 'Error')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'ErroringTestCase' AND Result = 'Error')
           RAISERROR('ErroringTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -176,9 +176,9 @@ ROLLBACK
 INSERT BootStrapTestCaseFailures SELECT CASE WHEN @Failed = 1 THEN 'F' ELSE 'P' END;
 GO
 
--- Test case can pass along a failure message
+-- Test case can pass along a failure Message
 RAISERROR('------------------------------------------------------------------------',0,1) WITH NOWAIT;
-RAISERROR('---------- Test case can pass along a failure message',0,1) WITH NOWAIT;
+RAISERROR('---------- Test case can pass along a failure Message',0,1) WITH NOWAIT;
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
@@ -198,11 +198,11 @@ BEGIN TRY
     IF @actualMessage = @errorMessage
         PRINT 'Test Passed';
     ELSE
-        RAISERROR('FailingTestCase did not log the correct message in TestResult Table. Expected: <%s>, but was: <%s>', 16, 10, @errorMessage, @actualMessage);
+        RAISERROR('FailingTestCase did not log the correct Message in TestResult Table. Expected: <%s>, but was: <%s>', 16, 10, @errorMessage, @actualMessage);
 
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -230,10 +230,10 @@ BEGIN TRY
     IF @xml = @expected
         PRINT 'Test passed';
     ELSE
-        RAISERROR('FailingTestCase did not log the correct message in TestResult Table. Expected: <%s>, but was: <%s>', 16, 10, @expected, @xml);
+        RAISERROR('FailingTestCase did not log the correct Message in TestResult Table. Expected: <%s>, but was: <%s>', 16, 10, @expected, @xml);
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -242,14 +242,14 @@ INSERT BootStrapTestCaseFailures SELECT CASE WHEN @Failed = 1 THEN 'F' ELSE 'P' 
 GO
 
 
--- A single passing test should report an appropriate message
+-- A single passing test should report an appropriate Message
 RAISERROR('------------------------------------------------------------------------',0,1) WITH NOWAIT;
-RAISERROR('---------- A single passing test should report an appropriate message',0,1) WITH NOWAIT;
+RAISERROR('---------- A single passing test should report an appropriate Message',0,1) WITH NOWAIT;
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX) AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
+EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX) AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
 EXEC('CREATE PROCEDURE TestCaseA AS RETURN 0;');
 
@@ -258,18 +258,18 @@ EXEC tSQLt.RunTest 'TestCaseA';
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 1 succeeded, 0 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
-SELECT @actual = message
-  FROM tSQLt.private_Print_Log
- WHERE message LIKE 'Test Case Summary%'
+SELECT @actual = Message
+  FROM tSQLt.Private_Print_Log
+ WHERE Message LIKE 'Test Case Summary%'
 
 BEGIN TRY
     IF (@actual = @expected)
         PRINT 'Test passed';
     ELSE
-        RAISERROR('Expected message not sent to private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
+        RAISERROR('Expected Message not sent to Private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -277,14 +277,14 @@ ROLLBACK
 INSERT BootStrapTestCaseFailures SELECT CASE WHEN @Failed = 1 THEN 'F' ELSE 'P' END;
 GO
 
--- A single failing test should report an appropriate message
+-- A single failing test should report an appropriate Message
 RAISERROR('------------------------------------------------------------------------',0,1) WITH NOWAIT;
-RAISERROR('---------- A single failing test should report an appropriate message',0,1) WITH NOWAIT;
+RAISERROR('---------- A single failing test should report an appropriate Message',0,1) WITH NOWAIT;
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT = NULL AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
+EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT = NULL AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
 EXEC('CREATE PROCEDURE TestCaseA AS EXEC tSQLt.Fail ''I failed'';');
 
@@ -293,18 +293,18 @@ EXEC tSQLt.RunTest 'TestCaseA';
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 1 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
-SELECT @actual = message
-  FROM tSQLt.private_Print_Log
- WHERE message LIKE 'Test Case Summary%'
+SELECT @actual = Message
+  FROM tSQLt.Private_Print_Log
+ WHERE Message LIKE 'Test Case Summary%'
 
 BEGIN TRY
     IF (@actual = @expected)
         PRINT 'Test passed';
     ELSE
-        RAISERROR('Expected message not sent to private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
+        RAISERROR('Expected Message not sent to Private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -312,14 +312,14 @@ ROLLBACK
 INSERT BootStrapTestCaseFailures SELECT CASE WHEN @Failed = 1 THEN 'F' ELSE 'P' END;
 GO
 
--- A single erroring test should report an appropriate message
+-- A single erroring test should report an appropriate Message
 RAISERROR('------------------------------------------------------------------------',0,1) WITH NOWAIT;
-RAISERROR('---------- A single erroring test should report an appropriate message',0,1) WITH NOWAIT;
+RAISERROR('---------- A single erroring test should report an appropriate Message',0,1) WITH NOWAIT;
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT = NULL AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
+EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT = NULL AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
 EXEC('CREATE PROCEDURE TestCaseA AS SELECT 1/0 col INTO #tmp;');
 
@@ -328,18 +328,18 @@ EXEC tSQLt.RunTest 'TestCaseA';
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 0 failed, 1 errored.';
 
 DECLARE @actual VARCHAR(MAX);
-SELECT @actual = message
-  FROM tSQLt.private_Print_Log
- WHERE message LIKE 'Test Case Summary%'
+SELECT @actual = Message
+  FROM tSQLt.Private_Print_Log
+ WHERE Message LIKE 'Test Case Summary%'
 
 BEGIN TRY
     IF (@actual = @expected)
         PRINT 'Test passed';
     ELSE
-        RAISERROR('Expected message not sent to private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
+        RAISERROR('Expected Message not sent to Private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -347,14 +347,14 @@ ROLLBACK
 INSERT BootStrapTestCaseFailures SELECT CASE WHEN @Failed = 1 THEN 'F' ELSE 'P' END;
 GO
 
--- Multiple passing tests in a class should report an appropriate message
+-- Multiple passing tests in a class should report an appropriate Message
 RAISERROR('------------------------------------------------------------------------',0,1) WITH NOWAIT;
-RAISERROR('---------- Multiple passing tests in a class should report an appropriate message',0,1) WITH NOWAIT;
+RAISERROR('---------- Multiple passing tests in a class should report an appropriate Message',0,1) WITH NOWAIT;
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
+EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
@@ -365,18 +365,18 @@ EXEC tSQLt.RunTestClass 'MyTestClass';
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 2 succeeded, 0 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
-SELECT @actual = message
-  FROM tSQLt.private_Print_Log
- WHERE message LIKE 'Test Case Summary%'
+SELECT @actual = Message
+  FROM tSQLt.Private_Print_Log
+ WHERE Message LIKE 'Test Case Summary%'
 
 BEGIN TRY
     IF (@actual = @expected)
         PRINT 'Test passed';
     ELSE
-        RAISERROR('Expected message not sent to private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
+        RAISERROR('Expected Message not sent to Private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -384,14 +384,14 @@ ROLLBACK
 INSERT BootStrapTestCaseFailures SELECT CASE WHEN @Failed = 1 THEN 'F' ELSE 'P' END;
 GO
 
--- Passing and failing tests in a class should report an appropriate message
+-- Passing and failing tests in a class should report an appropriate Message
 RAISERROR('------------------------------------------------------------------------',0,1) WITH NOWAIT;
-RAISERROR('---------- Passing and failing tests in a class should report an appropriate message',0,1) WITH NOWAIT;
+RAISERROR('---------- Passing and failing tests in a class should report an appropriate Message',0,1) WITH NOWAIT;
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE TABLE tSQLt.private_Print_Log (message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.private_Print @message VARCHAR(MAX), @severity INT AS INSERT INTO tSQLt.private_Print_Log (message) VALUES (@message);');
+EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
+EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
 EXEC('CREATE SCHEMA MyTestClass;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
@@ -402,18 +402,18 @@ EXEC tSQLt.RunTestClass 'MyTestClass';
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 1 succeeded, 1 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
-SELECT @actual = message
-  FROM tSQLt.private_Print_Log
- WHERE message LIKE 'Test Case Summary%'
+SELECT @actual = Message
+  FROM tSQLt.Private_Print_Log
+ WHERE Message LIKE 'Test Case Summary%'
 
 BEGIN TRY
     IF (@actual = @expected)
         PRINT 'Test passed';
     ELSE
-        RAISERROR('Expected message not sent to private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
+        RAISERROR('Expected Message not sent to Private_Print method. Expected <%s>, but was <%s>', 16, 10, @expected, @actual);
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -439,7 +439,7 @@ BEGIN TRY
     PRINT 'Test passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -465,7 +465,7 @@ BEGIN TRY
     PRINT 'Test passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -491,7 +491,7 @@ BEGIN TRY
     PRINT 'Test passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -517,7 +517,7 @@ BEGIN TRY
     PRINT 'Test passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH
@@ -538,7 +538,7 @@ BEGIN TRY
     PRINT 'Test passed';
 END TRY
 BEGIN CATCH
-    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_MESSAGE();
+    DECLARE @msg VARCHAR(MAX);SET @msg='Test failed:'+ERROR_Message();
     RAISERROR(@msg,16,10);
     SET @Failed = 1;
 END CATCH

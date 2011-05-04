@@ -365,7 +365,7 @@ BEGIN
    
     EXEC tSQLt.AssertEqualsString '|T                 |
 +------------------+
-|0xfedcba9876543210|', @result;
+|0xFEDCBA9876543210|', @result;
 END;
 GO
 
@@ -443,7 +443,7 @@ AS
 BEGIN
     SELECT no
       INTO #DoesExist
-      FROM tSQLt.f_Num(4);
+      FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
@@ -470,7 +470,7 @@ AS
 BEGIN
     SELECT no
       INTO #DoesExist
-      FROM tSQLt.f_Num(4);
+      FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist', NULL);
@@ -496,7 +496,7 @@ AS
 BEGIN
     SELECT no
       INTO #DoesExist
-      FROM tSQLt.f_Num(4);
+      FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist','10-no+10*(no%2)');
@@ -515,7 +515,7 @@ AS
 BEGIN
     SELECT no
       INTO #DoesExist
-      FROM tSQLt.f_Num(0);
+      FROM tSQLt.F_Num(0);
 
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
@@ -530,7 +530,7 @@ AS
 BEGIN
     SELECT no, 10-no AS FromTen, NULL AS NullCol
       INTO #DoesExist
-      FROM tSQLt.f_Num(4);
+      FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist','no');
@@ -549,7 +549,7 @@ AS
 BEGIN
     SELECT NULL AS n
       INTO #DoesExist
-      FROM tSQLt.f_num(4);
+      FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist','');
@@ -571,14 +571,14 @@ DECLARE @n INT; SET @n = 100;
 DECLARE @cols VARCHAR(MAX);
 SET @cols = STUFF((
 SELECT ','+CAST(no AS VARCHAR(MAX))+'+no AS C'+RIGHT(CAST(no+100000 AS VARCHAR(MAX)),LEN(CAST(@n AS VARCHAR(MAX))))
-FROM tSQLt.f_Num(@n)
+FROM tSQLt.F_Num(@n)
 FOR XML PATH('')
 ),1,1,'')
 PRINT @cols;
 --*/
     SELECT 1+no AS C001,2+no AS C002,3+no AS C003,4+no AS C004,5+no AS C005,6+no AS C006,7+no AS C007,8+no AS C008,9+no AS C009,10+no AS C010,11+no AS C011,12+no AS C012,13+no AS C013,14+no AS C014,15+no AS C015,16+no AS C016,17+no AS C017,18+no AS C018,19+no AS C019,20+no AS C020,21+no AS C021,22+no AS C022,23+no AS C023,24+no AS C024,25+no AS C025,26+no AS C026,27+no AS C027,28+no AS C028,29+no AS C029,30+no AS C030,31+no AS C031,32+no AS C032,33+no AS C033,34+no AS C034,35+no AS C035,36+no AS C036,37+no AS C037,38+no AS C038,39+no AS C039,40+no AS C040,41+no AS C041,42+no AS C042,43+no AS C043,44+no AS C044,45+no AS C045,46+no AS C046,47+no AS C047,48+no AS C048,49+no AS C049,50+no AS C050,51+no AS C051,52+no AS C052,53+no AS C053,54+no AS C054,55+no AS C055,56+no AS C056,57+no AS C057,58+no AS C058,59+no AS C059,60+no AS C060,61+no AS C061,62+no AS C062,63+no AS C063,64+no AS C064,65+no AS C065,66+no AS C066,67+no AS C067,68+no AS C068,69+no AS C069,70+no AS C070,71+no AS C071,72+no AS C072,73+no AS C073,74+no AS C074,75+no AS C075,76+no AS C076,77+no AS C077,78+no AS C078,79+no AS C079,80+no AS C080,81+no AS C081,82+no AS C082,83+no AS C083,84+no AS C084,85+no AS C085,86+no AS C086,87+no AS C087,88+no AS C088,89+no AS C089,90+no AS C090,91+no AS C091,92+no AS C092,93+no AS C093,94+no AS C094,95+no AS C095,96+no AS C096,97+no AS C097,98+no AS C098,99+no AS C099,100+no AS C100
       INTO #DoesExist
-      FROM tSQLt.f_Num(4);
+      FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
     SET @result = tSQLtPrivate::TableToString('#DoesExist','C001');

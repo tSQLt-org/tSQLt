@@ -147,7 +147,7 @@ BEGIN
         SET @err = ERROR_MESSAGE();
     END CATCH
     
-    IF @err NOT LIKE '%divide by zero%'
+    IF @err NOT LIKE '%Divide by zero%'
     BEGIN
         EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
     END;
@@ -323,8 +323,8 @@ BEGIN
         'SELECT CAST(''ABCDEF'' AS SQL_VARIANT) AS val;',
         'EXEC tSQLt.ResultSetFilter 1, ''SELECT CAST(''''ABCDEF'''' AS SQL_VARIANT) AS val;''';
     EXEC tSQLt.AssertResultSetsHaveSameMetaData
-        'SELECT CAST(''ABCDEF'' AS SYSNAME) AS val;',
-        'EXEC tSQLt.ResultSetFilter 1, ''SELECT CAST(''''ABCDEF'''' AS SYSNAME) AS val;''';
+        'SELECT CAST(''ABCDEF'' AS sysname) AS val;',
+        'EXEC tSQLt.ResultSetFilter 1, ''SELECT CAST(''''ABCDEF'''' AS sysname) AS val;''';
     EXEC tSQLt.AssertResultSetsHaveSameMetaData
         'SELECT CAST(''ABCDEF'' AS TEXT) AS val;',
         'EXEC tSQLt.ResultSetFilter 1, ''SELECT CAST(''''ABCDEF'''' AS TEXT) AS val;''';
