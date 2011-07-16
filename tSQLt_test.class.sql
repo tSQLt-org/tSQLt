@@ -1088,6 +1088,99 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test ApplyConstraint applies a foreign key between two faked tables and insert works]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(aid));
+
+    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
+    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint';
+    
+    INSERT INTO schemaA.tableA (aid) VALUES (13);
+    INSERT INTO schemaA.tableB (aid) VALUES (13);
+END;
+GO
+
+CREATE PROC tSQLt_test.[test ApplyConstraint applies a foreign key between two faked tables and insert fails]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(aid));
+
+    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
+    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint';
+    
+    DECLARE @msg NVARCHAR(MAX);
+    SET @msg = 'No error message';
+    
+    BEGIN TRY
+      INSERT INTO schemaA.tableB (aid) VALUES (13);
+    END TRY
+    BEGIN CATCH
+      SET @msg = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @msg NOT LIKE '%testConstraint%'
+    BEGIN
+      EXEC tSQLt.Fail 'Expected Foreign Key to be applied, resulting in an FK error, however the actual error message was: ', @msg;
+    END
+END;
+GO
+
+
+CREATE PROC tSQLt_test.[test ApplyConstraint does not create additional unique index on unfaked table]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(aid));
+
+    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint';
+    
+    DECLARE @NumberOfIndexes INT;
+    SELECT @NumberOfIndexes = COUNT(1)
+      FROM sys.indexes
+     WHERE object_id = OBJECT_ID('schemaA.tableA');
+     
+    EXEC tSQLt.AssertEquals 1, @NumberOfIndexes;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test ApplyConstraint can apply two foreign keys]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid int, 
+           aid1 int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid), 
+           aid2 int CONSTRAINT testConstraint2 REFERENCES schemaA.tableA(aid));
+
+    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
+    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint1';
+    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint2';
+END;
+GO
+
+
 CREATE PROC tSQLt_test.test_FakeTable_raises_appropriate_error_if_table_does_not_exist
 AS
 BEGIN
@@ -2919,5 +3012,56 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test CreateUniqueObjectName creates a new object name that is not in sys.objects]
+AS
+BEGIN
+  DECLARE @ObjectName NVARCHAR(MAX);
+  SET @ObjectName = tSQLtPrivate::CreateUniqueObjectName();
+  
+  IF EXISTS (SELECT 1 FROM sys.objects WHERE NAME = @ObjectName)
+  BEGIN
+    EXEC tSQLt.Fail 'Created object name already exists in sys.objects, object name: ', @ObjectName;
+  END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test CreateUniqueObjectName creates a new object name that has not been previously generated]
+AS
+BEGIN
+  DECLARE @ObjectName NVARCHAR(MAX);
+  SET @ObjectName = tSQLtPrivate::CreateUniqueObjectName();
+  
+  IF (@ObjectName = tSQLtPrivate::CreateUniqueObjectName())
+  BEGIN
+    EXEC tSQLt.Fail 'Created object name was created twice, object name: ', @ObjectName;
+  END
+END;
+GO
+
+CREATE PROC tSQLt_test.[test CreateUniqueObjectName creates a name which can be used to create a table]
+AS
+BEGIN
+  DECLARE @ObjectName NVARCHAR(MAX);
+  SELECT @ObjectName = tSQLtPrivate::CreateUniqueObjectName();
+  
+  EXEC ('CREATE TABLE tSQLt_test.' + @ObjectName + '(i INT);');
+END
+GO
+
+CREATE PROC tSQLt_test.[test Private_Print handles % signs]
+AS
+BEGIN
+  DECLARE @msg NVARCHAR(MAX);
+  SET @msg = 'No Message';
+  BEGIN TRY
+    EXEC tSQLt.Private_Print 'hello % goodbye', 16;
+  END TRY
+  BEGIN CATCH
+    SET @msg = ERROR_MESSAGE();
+  END CATCH
+  
+  EXEC tSQLt.AssertEqualsString 'hello % goodbye', @msg;
+END;
+GO
 --ROLLBACK
 --tSQLt_test

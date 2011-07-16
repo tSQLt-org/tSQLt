@@ -27,7 +27,7 @@
 	<target name="package.construct.tsqlt">
                 <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
 			<arg value="/c"/>
-			<arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/Release/tSQLtCLR.dll EXTERNAL_ACCESS"/>
+			<arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll EXTERNAL_ACCESS"/>
 		</exec>
 		<concat destfile="output/tSQLt.class.sql" append="yes" fixlastline="yes" eol="crlf">
 			<filelist dir="output" files="CreateAssembly.sql"/>
@@ -49,6 +49,7 @@
 	<target name="package.extract">
 		<unzip src="output/tSQLt.zip" dest="test"/>
 		<copy file="../tSQLt_test.class.sql" todir="test"/>
+		<copy file="../tSQLt_test_TableToText.class.sql" todir="test"/>
 		<copy file="../tSQLtclr_test.sql" todir="test"/>
 		<copy file="../CreateBuildDb.sql" todir="test"/>
 		<copy file="GetTestResults.sql" todir="test"/>		
@@ -82,7 +83,13 @@
 			<arg value="/c"/>
 			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLtclr_test.sql&quot; -V11"/>
 		</exec>
-	</target>
+<!--
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test_TableToText.class.sql&quot; -V11"/>
+		</exec>
+ -->
+  </target>
 
 	<target name="db.tests.run">
 		<exec executable="cmd" failonerror="true">

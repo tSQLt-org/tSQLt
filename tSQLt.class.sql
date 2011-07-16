@@ -69,33 +69,6 @@ BEGIN
 END;
 GO
 
-CREATE FUNCTION tSQLt.Private_GetForeignKeyDefinition(
-    @SchemaName NVARCHAR(MAX),
-    @ParentTableName NVARCHAR(MAX),
-    @ForeignKeyName NVARCHAR(MAX)
-)
-RETURNS TABLE
-AS
-RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
-              parCol + ') REFERENCES ' + refName + '(' + refCol + ')' cmd
-         FROM (SELECT SCHEMA_NAME(k.schema_id) SchemaName,k.name, OBJECT_NAME(k.parent_object_id) parName,
-                      SCHEMA_NAME(refTab.schema_id)+'.'+refTab.name refName,parCol.name parCol,refCol.name refCol
-                 FROM sys.foreign_keys k
-                 JOIN sys.foreign_key_columns c
-                   ON k.object_id = c.constraint_object_id
-                 JOIN sys.columns parCol
-                   ON parCol.object_id = c.parent_object_id
-                  AND parCol.column_id = c.parent_column_id
-                 JOIN sys.columns refCol
-                   ON refCol.object_id = c.referenced_object_id
-                  AND refCol.column_id = c.referenced_column_id
-                 JOIN sys.tables refTab
-                   ON refCol.object_id = refTab.object_id
-                WHERE k.parent_object_id = OBJECT_ID(@SchemaName + '.' + @ParentTableName)
-                  AND k.object_id = OBJECT_ID(@SchemaName + '.' + @ForeignKeyName)
-               )x;
-GO
-
 CREATE TABLE tSQLt.TestResult(
     Id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
     Class NVARCHAR(MAX) NOT NULL,
@@ -124,15 +97,18 @@ AS
 BEGIN
     DECLARE @SPos INT;SET @SPos = 1;
     DECLARE @EPos INT;
-    DECLARE @Len INT; SELECT @Len = LEN(@Message);
+    DECLARE @Len INT; SET @Len = LEN(@Message);
     DECLARE @SubMsg NVARCHAR(MAX);
     DECLARE @Cmd NVARCHAR(MAX);
     
+    DECLARE @CleanedMessage NVARCHAR(MAX);
+    SET @CleanedMessage = REPLACE(@Message,'%','%%');
+    
     WHILE (@SPos <= @Len)
     BEGIN
-      SELECT @EPos = CHARINDEX(CHAR(13)+CHAR(10),@Message+CHAR(13)+CHAR(10),@SPos);
-      SELECT @SubMsg = SUBSTRING(@Message, @SPos, @EPos - @SPos);
-      SELECT @Cmd = N'RAISERROR(@Msg,@Severity,10) WITH NOWAIT;';
+      SET @EPos = CHARINDEX(CHAR(13)+CHAR(10),@CleanedMessage+CHAR(13)+CHAR(10),@SPos);
+      SET @SubMsg = SUBSTRING(@CleanedMessage, @SPos, @EPos - @SPos);
+      SET @Cmd = N'RAISERROR(@Msg,@Severity,10) WITH NOWAIT;';
       EXEC sp_executesql @Cmd, 
                          N'@Msg NVARCHAR(MAX),@Severity INT',
                          @SubMsg,
@@ -1184,13 +1160,14 @@ BEGIN
   END
   ELSE
   BEGIN
-     SELECT @Cmd = cmd 
+     DECLARE @CreateIndexCmd NVARCHAR(MAX);
+     SELECT @Cmd = cmd ,@CreateIndexCmd = CreIdxCmd
        FROM tSQLt.Private_GetForeignKeyDefinition(@SchemaName, @OrgTableName, @ConstraintName);
 
      IF @Cmd IS NOT NULL
      BEGIN
         EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName;
-        SELECT @Cmd = 'ALTER TABLE ' + @SchemaName + '.' + @TableName + ' ADD ' + @Cmd;
+        SELECT @Cmd = @CreateIndexCmd + 'ALTER TABLE ' + @SchemaName + '.' + @TableName + ' ADD ' + @Cmd;
 
         EXEC (@Cmd);
      END
@@ -1497,3 +1474,4 @@ RETURN
        OR ord = 3
     ORDER BY ord
 GO
+

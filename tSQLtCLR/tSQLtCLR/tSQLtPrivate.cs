@@ -15,6 +15,14 @@ namespace tSQLtCLR
         private const String NULL_STRING = "!NULL!";
         private const int MAX_COLUMN_WIDTH = 155;
 
+
+        [SqlMethod(DataAccess = DataAccessKind.Read)]
+        public static SqlString CreateUniqueObjectName()
+        {
+            return "tSQLt_tempobject_" + Guid.NewGuid().ToString().Replace("-", "");
+        }
+
+
         [SqlMethod(DataAccess = DataAccessKind.Read)]
         public static SqlChars TableToString(SqlString TableName, SqlString OrderOption) {
             if (TableName.IsNull) {
@@ -72,9 +80,7 @@ namespace tSQLtCLR
                 }
             }
 
-
             return new SqlChars(output.ToString());
-
         }
 
         private static String PadColumn(String input, int length) {
