@@ -1,19 +1,20 @@
 tSQLt Release Notes
 ===================
+An online version of these release notes is available at:
+http://tsqlt.org/category/release-notes/
+
 
 build.10:
-An online version of these release notes is available at:
-http://www2.sqlity.net/tsqlt/tsqlt-build10-release-notes
 
 BUG FIXES:
-1. Standardized casing of table, column, procedure and function names.
+1. Standardized capitalization of table, column, procedure and function names.
 
 NEW FEATURES:
 1. Added support for case sensitive databases.
 
+---------------------------
+
 build.9:
-An online version of these release notes is available at:
-http://www2.sqlity.net/tsqlt/tsqlt-build9-release-notes
 
 BUG FIXES:
 1. When using tSQLt.Run or tSQLt.RunTestClass, if an object name on the dbo 
@@ -26,12 +27,9 @@ NEW FEATURES:
 1. A new procedure, tSQLt.NewConnection, was added which allows statements to 
 be executed synchronously in a different connection context.
 
-
 ---------------------------
 
 build.8a:
-An online version of these release notes is available at:
-http://www2.sqlity.net/tsqlt/tsqlt-build8a-release-notes
 
 BUG FIXES:
 1. When executing tSQLt.ResultSetFilter, if the result set metadata contained 
@@ -44,8 +42,6 @@ the hidden columns.
 ---------------------------
 
 build.8:
-An online version of these release notes is available at:
-http://www2.sqlity.net/tsqlt/tsqlt-build8-release-notes
 
 NEW FEATURES:
 1. SpyProcedure now supports output parameters. Details are available in the 
@@ -57,9 +53,6 @@ http://www.tsqlt.org - On the right hand side is a link for the User Guide.
 ---------------------------
 
 build.7:
-An online version of these release notes is available at:
-http://www2.sqlity.net/content/tsqlt-build7-release-notes
-The online version is being updated with examples.
 
 IMPORTANT: tSQLt now utilizes CLR (Common Language Runtime) stored procedures. 
 In order to install tSQLt, CLRs must be enabled in SQL Server. The 
