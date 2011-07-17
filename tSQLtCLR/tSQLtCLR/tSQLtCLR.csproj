@@ -74,6 +74,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="CommandExecutor.cs" />
     <Compile Include="CommandExecutorException.cs" />
+    <Compile Include="OutputCaptor.cs" />
     <Compile Include="tSQLtPrivate.cs" />
     <Compile Include="InvalidResultSetException.cs" />
     <Compile Include="MetaDataEqualityAsserter.cs" />

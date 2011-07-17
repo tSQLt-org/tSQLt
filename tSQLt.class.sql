@@ -171,6 +171,8 @@ BEGIN
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     DECLARE @TestResultId INT;
     DECLARE @PreExecTrancount INT;
+    
+    TRUNCATE TABLE tSQLt.CaptureOutputLog;
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -942,7 +944,9 @@ BEGIN
    WHILE OBJECT_ID(@SchemaName+'.'+@NewName) IS NOT NULL  
        SELECT @NewName=left(left(@ObjectName,150)+REPLACE(CAST(NEWID() AS NVARCHAR(200)),'-',''),256)  
 
-   EXEC sp_rename @FullName, @NewName;
+   DECLARE @RenameCmd NVARCHAR(MAX);
+   SET @RenameCmd = 'EXEC sp_rename ''' + @FullName + ''', ''' + @NewName + ''';';
+   EXEC tSQLt.SuppressOutput @RenameCmd;
 END;
 GO
 

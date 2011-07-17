@@ -941,6 +941,28 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test FakeTable doesn't produce output]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.tst(i INT);
+  
+  EXEC tSQLt.CaptureOutput 'EXEC tSQLt.FakeTable ''tSQLt_test'', ''tst''';
+
+  SELECT OutputText
+  INTO #actual
+  FROM tSQLt.CaptureOutputLog;
+  
+  SELECT TOP(0) *
+  INTO #expected 
+  FROM #actual;
+  
+  INSERT INTO #expected(OutputText)VALUES(NULL);
+  
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+
+
 CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table
 AS
 BEGIN
