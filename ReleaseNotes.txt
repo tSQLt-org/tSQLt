@@ -3,6 +3,23 @@ tSQLt Release Notes
 An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
+build.11:
+
+BUG FIXES:
+1. ApplyConstraint for a Foreign Key that references a Faked Table is fixed.
+2. SetClrEnabled.sql utlity file now handles database names with spaces.
+3. Test cases whose names contain a percent sign are now displayed correctly 
+in the test case output.
+
+NEW FEATURES:
+1. Warnings about renaming objects displayed when executing FakeTable or 
+ApplyConstraint are now hidden.
+2. New method: tSQLt.SuppressOutput suppresses the console output that would
+be displayed by executing a command.
+3. New method: tSQLt.CaptureOutput logs the console output from executing a 
+command into the tSQLt.CaptureOutputLog table.
+
+---------------------------
 
 build.10:
 
