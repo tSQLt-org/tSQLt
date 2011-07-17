@@ -10,6 +10,7 @@ namespace tSQLtCLR
     class TestDatabaseFacade : IDisposable
     {
         private SqlConnection connection;
+        private SqlString infoMessage;
         Boolean disposed = false;
 
         public TestDatabaseFacade()
@@ -25,6 +26,11 @@ namespace tSQLtCLR
                 disposed = true;
             }
             GC.SuppressFinalize(this);
+        }
+
+        public SqlString InfoMessage
+        {
+            get { return infoMessage; }
         }
 
         private void connect()
@@ -57,12 +63,25 @@ namespace tSQLtCLR
 
         public SqlDataReader executeCommand(SqlString Command)
         {
+            infoMessage = SqlString.Null;
+            connection.InfoMessage += new SqlInfoMessageEventHandler(OnInfoMessage);
             SqlCommand cmd = new SqlCommand();
+            
             cmd.Connection = connection;
             cmd.CommandText = Command.ToString();
 
             SqlDataReader dataReader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
+
             return dataReader;
+        }
+
+        protected void OnInfoMessage(object sender, SqlInfoMessageEventArgs args)
+        {
+            if (infoMessage.IsNull)
+            {
+                infoMessage = "";
+            }
+            infoMessage += args.Message + "\r\n";
         }
 
         public void assertEquals(String expectedString, String actualString)
@@ -83,6 +102,16 @@ namespace tSQLtCLR
             cmd.Connection = connection;
             cmd.CommandText = "tSQLt.Fail";
             cmd.Parameters.AddWithValue("Message0", failureMessage);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.ExecuteNonQuery();
+        }
+
+        public void logCapturedOutput(SqlString text)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = connection;
+            cmd.CommandText = "tSQLt.LogCapturedOutput";
+            cmd.Parameters.AddWithValue("text", text);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.ExecuteNonQuery();
         }

@@ -23,6 +23,29 @@ BEGIN
 END;
 GO
 
+CREATE TABLE tSQLt.CaptureOutputLog (
+  Id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+  OutputText NVARCHAR(MAX)
+);
+GO
+
+CREATE PROCEDURE tSQLt.LogCapturedOutput @text NVARCHAR(MAX)
+AS
+BEGIN
+  INSERT INTO tSQLt.CaptureOutputLog (OutputText) VALUES (@text);
+END;
+GO
+
+CREATE PROCEDURE tSQLt.CaptureOutput @command NVARCHAR(MAX)
+AS
+EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].CaptureOutput;
+GO
+
+CREATE PROCEDURE tSQLt.SuppressOutput @command NVARCHAR(MAX)
+AS
+EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].SuppressOutput;
+GO
+
 ----------------------------------------------------------------
 ---- Below objects need to go back into tSQLt.class.sql     ----
 ----------------------------------------------------------------

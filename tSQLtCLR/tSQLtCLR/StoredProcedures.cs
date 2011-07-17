@@ -27,5 +27,17 @@ namespace tSQLtCLR
             CommandExecutor executor = new CommandExecutor();
             executor.Execute(command);
         }
+
+        public static void CaptureOutput(SqlString command)
+        {
+            OutputCaptor captor = new OutputCaptor(new TestDatabaseFacade());
+            captor.CaptureOutputToLogTable(command);
+        }
+
+        public static void SuppressOutput(SqlString command)
+        {
+            OutputCaptor captor = new OutputCaptor(new TestDatabaseFacade());
+            captor.SuppressOutput(command);
+        }
     }
 }
