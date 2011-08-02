@@ -903,8 +903,189 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints
+@TableName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @OldTableObjectId INT;
 
-CREATE PROC tSQLt_test.test_FakeTable_works_on_referencedTo_tables
+  IF OBJECT_ID(@TableName) IS NULL
+    EXEC tSQLt.Fail 'Table ',@TableName,' does not exist!';
+
+  SELECT @OldTableObjectId = OBJECT_ID(QUOTENAME(OBJECT_SCHEMA_NAME(major_id))+'.'+QUOTENAME(CAST(value AS NVARCHAR(4000))))
+  FROM sys.extended_properties WHERE major_id = OBJECT_ID(@TableName) and name = 'tSQLt.FakeTable_OrgTableName'
+
+  IF @OldTableObjectId IS NULL
+    EXEC tSQLt.Fail 'Table ',@TableName,' is not a fake table!';
+  
+  IF OBJECT_ID(@TableName) = @OldTableObjectId
+    EXEC tSQLt.Fail 'Table ',@TableName,' is not a new object!';
+    
+  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(object_id))+'.'+QUOTENAME(OBJECT_NAME(object_id)) ReferencingObjectName 
+  INTO #actual FROM sys.objects WHERE parent_object_id = OBJECT_ID(@TableName);
+  
+  SELECT TOP(0) * INTO #expected FROM #actual;
+  
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual','Unexpected referencing objects found!';
+END
+GO
+
+--CREATE PROC tSQLt_test.[test tSQLt.FakeTable works with 2 part names in first parameter]
+CREATE PROC tSQLt_test.[test tSQLt.FakeTable takes 2 nameless parameters containing schema and table name]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT);
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test FakeTable raises appropriate error if table does not exist]
+AS
+BEGIN
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (constCol CHAR(3) );
+
+    BEGIN TRY
+      EXEC tSQLt.FakeTable 'schemaA', 'tableXYZ';
+    END TRY
+    BEGIN CATCH
+      DECLARE @ErrorMessage NVARCHAR(MAX);
+      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @ErrorMessage NOT LIKE '%''schemaA.tableXYZ'' does not exist%'
+      BEGIN
+          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
+      END
+      SET @ErrorThrown = 1;
+    END CATCH;
+    
+    EXEC tSQLt.AssertEquals 1, @ErrorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test FakeTable raises appropriate error if schema does not exist]
+AS
+BEGIN
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
+
+    BEGIN TRY
+      EXEC tSQLt.FakeTable 'schemaB', 'tableXYZ';
+    END TRY
+    BEGIN CATCH
+      DECLARE @ErrorMessage NVARCHAR(MAX);
+      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @ErrorMessage NOT LIKE '%''schemaB.tableXYZ'' does not exist%'
+      BEGIN
+          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
+      END
+      SET @ErrorThrown = 1;
+    END CATCH;
+    
+    EXEC tSQLt.AssertEquals 1, @ErrorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test a faked table has no primary key]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT PRIMARY KEY);
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+  
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (1);
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (1);
+END;
+GO
+
+CREATE PROC tSQLt_test.[test a faked table has no check constraints]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT CHECK(i > 5));
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (5);
+END;
+GO
+
+CREATE PROC tSQLt_test.[test a faked table has no foreign keys]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable0(i INT PRIMARY KEY);
+  CREATE TABLE tSQLt_test.TempTable1(i INT REFERENCES tSQLt_test.TempTable0(i));
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (5);
+END;
+GO
+
+CREATE PROC tSQLt_test.[test a faked table has any defaults removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT DEFAULT(77));
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+  INSERT INTO tSQLt_test.TempTable1 (i) DEFAULT VALUES;
+  
+  DECLARE @value INT;
+  SELECT @value = i
+    FROM tSQLt_test.TempTable1;
+    
+  EXEC tSQLt.AssertEquals NULL, @value;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test a faked table has any unique constraints removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT UNIQUE);
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (1);
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (1);
+END;
+GO
+
+CREATE PROC tSQLt_test.[test a faked table has any unique indexes removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT);
+  CREATE UNIQUE INDEX UQ_tSQLt_test_TempTable1_i ON tSQLt_test.TempTable1(i);
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (1);
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (1);
+END;
+GO
+
+CREATE PROC tSQLt_test.[test a faked table has any not null constraints removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT NOT NULL);
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test','TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+  INSERT INTO tSQLt_test.TempTable1 (i) VALUES (NULL);
+END;
+GO
+
+CREATE PROC tSQLt_test.[test FakeTable works on referencedTo tables]
 AS
 BEGIN
   IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
@@ -1199,32 +1380,6 @@ BEGIN
 
     EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint1';
     EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint2';
-END;
-GO
-
-
-CREATE PROC tSQLt_test.test_FakeTable_raises_appropriate_error_if_table_does_not_exist
-AS
-BEGIN
-    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
-
-    EXEC ('CREATE SCHEMA schemaA');
-    CREATE TABLE schemaA.tableA (constCol CHAR(3) );
-
-    BEGIN TRY
-      EXEC tSQLt.FakeTable 'schemaA', 'tableXYZ';
-    END TRY
-    BEGIN CATCH
-      DECLARE @ErrorMessage NVARCHAR(MAX);
-      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%''schemaA.tableXYZ'' does not exist%'
-      BEGIN
-          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
-      END
-      SET @ErrorThrown = 1;
-    END CATCH;
-    
-    EXEC tSQLt.AssertEquals 1, @ErrorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
 END;
 GO
 

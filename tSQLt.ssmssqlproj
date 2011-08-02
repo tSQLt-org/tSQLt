@@ -51,6 +51,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="DLLOYD\MSSQL2008:DLLOYD\Dennis">
+          <Created>2011-08-02T15:07:18.468-04:00</Created>
+          <Type>SQL</Type>
+          <Server>DLLOYD\MSSQL2008</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="MINI10\R2A:SA">
           <Created>2010-10-30T12:19:34.6335199-04:00</Created>
           <Type>SQL</Type>
@@ -140,8 +152,8 @@
           <FullPath>tSQLtclr.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtclr_test.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DLLOYD\MSSQL2008:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DLLOYD\MSSQL2008</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLtclr_test.sql</FullPath>
         </FileNode>
