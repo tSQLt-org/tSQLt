@@ -359,9 +359,9 @@ BEGIN
     
     
     EXEC tSQLt.Private_Print @Msg4,0;
-    EXEC tSQLt.Private_Print '+---------------------+',0;
-    EXEC tSQLt.Private_Print '|Test Execution Sumary|',0;
-    EXEC tSQLt.Private_Print '+---------------------+',0;
+    EXEC tSQLt.Private_Print '+----------------------+',0;
+    EXEC tSQLt.Private_Print '|Test Execution Summary|',0;
+    EXEC tSQLt.Private_Print '+----------------------+',0;
     EXEC tSQLt.Private_Print @Msg4,0;
     EXEC tSQLt.Private_Print @Msg1,0;
     EXEC tSQLt.Private_Print @Msg2,0;

@@ -240,7 +240,7 @@ END;
 GO
 
 
-CREATE PROC tSQLtclr_test.[test ResultSetFilter throws error if result set number -1 specified]
+CREATE PROC tSQLtclr_test.[test ResultSetFilter throws error if result set number of less than 0 specified]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '';
