@@ -903,6 +903,138 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns quoted schema when schema and table provided]
+AS
+BEGIN
+  DECLARE @CleanSchemaName NVARCHAR(MAX);
+          
+  EXEC ('CREATE SCHEMA MySchema');
+  EXEC ('CREATE TABLE MySchema.MyTable (i INT)');
+          
+  SELECT @CleanSchemaName = CleanSchemaName
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('MyTable', 'MySchema');
+    
+  EXEC tSQLt.AssertEqualsString '[MySchema]', @CleanSchemaName;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility can handle quoted names]
+AS
+BEGIN
+  DECLARE @CleanSchemaName NVARCHAR(MAX);
+          
+  EXEC ('CREATE SCHEMA MySchema');
+  EXEC ('CREATE TABLE MySchema.MyTable (i INT)');
+          
+  SELECT CleanSchemaName, CleanTableName
+    INTO #actual
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('[MyTable]', '[MySchema]');
+    
+  SELECT TOP(0)* INTO #expected FROM #actual;
+  
+  INSERT INTO #expected(CleanSchemaName, CleanTableName) VALUES('[MySchema]','[MyTable]');
+
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns quoted table when schema and table provided]
+AS
+BEGIN
+  DECLARE @CleanTableName NVARCHAR(MAX);
+          
+  EXEC ('CREATE SCHEMA MySchema');
+  EXEC ('CREATE TABLE MySchema.MyTable (i INT)');
+          
+  SELECT @CleanTableName = CleanTableName
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('MyTable', 'MySchema');
+    
+  EXEC tSQLt.AssertEqualsString '[MyTable]', @CleanTableName;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULL schema name when table does not exist]
+AS
+BEGIN
+  DECLARE @CleanSchemaName NVARCHAR(MAX);
+          
+  EXEC ('CREATE SCHEMA MySchema');
+          
+  SELECT @CleanSchemaName = CleanSchemaName
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('MyTable', 'MySchema');
+    
+  EXEC tSQLt.AssertEqualsString NULL, @CleanSchemaName;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULL table name when table does not exist]
+AS
+BEGIN
+  DECLARE @CleanTableName NVARCHAR(MAX);
+          
+  EXEC ('CREATE SCHEMA MySchema');
+          
+  SELECT @CleanTableName = CleanTableName
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('MyTable', 'MySchema');
+    
+  EXEC tSQLt.AssertEqualsString NULL, @CleanTableName;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULLs when table name has special char]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA MySchema');
+  EXEC ('CREATE TABLE MySchema.[.MyTable] (i INT)');
+          
+  SELECT CleanSchemaName, CleanTableName
+    INTO #actual
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('.MyTable', 'MySchema');
+  
+  SELECT TOP(0) * INTO #expected FROM #actual;
+  
+  INSERT INTO #expected (CleanSchemaName, CleanTableName) VALUES (NULL, NULL);
+  
+  EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility accepts full name as 1st parm if 2nd parm is null]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA MySchema');
+  EXEC ('CREATE TABLE MySchema.MyTable (i INT)');
+          
+  SELECT CleanSchemaName, CleanTableName
+    INTO #actual
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('MySchema.MyTable',NULL);
+  
+  SELECT TOP(0) * INTO #expected FROM #actual;
+  
+  INSERT INTO #expected (CleanSchemaName, CleanTableName) VALUES ('[MySchema]', '[MyTable]');
+  
+  EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility accepts parms in wrong order]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA MySchema');
+  EXEC ('CREATE TABLE MySchema.MyTable (i INT)');
+          
+  SELECT CleanSchemaName, CleanTableName
+    INTO #actual
+    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('MySchema','MyTable');
+  
+  SELECT TOP(0) * INTO #expected FROM #actual;
+  
+  INSERT INTO #expected (CleanSchemaName, CleanTableName) VALUES ('[MySchema]', '[MyTable]');
+  
+  EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+
 CREATE PROCEDURE tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints
 @TableName NVARCHAR(MAX)
 AS
@@ -930,7 +1062,17 @@ BEGIN
 END
 GO
 
---CREATE PROC tSQLt_test.[test tSQLt.FakeTable works with 2 part names in first parameter]
+CREATE PROC tSQLt_test.[test tSQLt.FakeTable works with 2 part names in first parameter]
+AS
+BEGIN
+  CREATE TABLE tSQLt_test.TempTable1(i INT);
+  
+  EXEC tSQLt.FakeTable 'tSQLt_test.TempTable1';
+  
+  EXEC tSQLt_test.AssertTableIsNewObjectThatHasNoConstraints 'tSQLt_test.TempTable1';
+END;
+GO
+
 CREATE PROC tSQLt_test.[test tSQLt.FakeTable takes 2 nameless parameters containing schema and table name]
 AS
 BEGIN
@@ -1088,14 +1230,14 @@ GO
 CREATE PROC tSQLt_test.[test FakeTable works on referencedTo tables]
 AS
 BEGIN
-  IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
-  IF OBJECT_ID('tst2') IS NOT NULL DROP TABLE tst2;
+  IF OBJECT_ID('tSQLt_test.tst1') IS NOT NULL DROP TABLE tst1;
+  IF OBJECT_ID('tSQLt_test.tst2') IS NOT NULL DROP TABLE tst2;
 
-  CREATE TABLE tst1(i INT PRIMARY KEY);
-  CREATE TABLE tst2(i INT PRIMARY KEY, tst1i INT REFERENCES tst1(i));
+  CREATE TABLE tSQLt_test.tst1(i INT PRIMARY KEY);
+  CREATE TABLE tSQLt_test.tst2(i INT PRIMARY KEY, tst1i INT REFERENCES tSQLt_test.tst1(i));
   
   BEGIN TRY
-    EXEC tSQLt.FakeTable '', 'tst1';
+    EXEC tSQLt.FakeTable 'tSQLt_test', 'tst1';
   END TRY
   BEGIN CATCH
     DECLARE @ErrorMessage NVARCHAR(MAX);

@@ -3,157 +3,121 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):DLLOYD\Dennis">
-          <Created>2010-03-29T13:24:46.0291751-04:00</Created>
+        <ConnectionNode Name="Dev_2005:DLLOYD\Dennis">
+          <Created>2011-08-09T11:40:34.111-04:00</Created>
           <Type>SQL</Type>
-          <Server>(local)</Server>
+          <Server>Dev_2005</Server>
           <UserName />
           <Authentication>Windows Authentication</Authentication>
-          <InitialDB>tSQLt</InitialDB>
+          <InitialDB>tSQLt_build</InitialDB>
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="(local)\R2A:DLLOYD\Dennis">
-          <Created>2010-10-30T13:17:01.4116644-04:00</Created>
+        <ConnectionNode Name="Dev_R2:DLLOYD\Dennis">
+          <Created>2011-08-09T11:39:05.512-04:00</Created>
           <Type>SQL</Type>
-          <Server>(local)\R2A</Server>
+          <Server>Dev_R2</Server>
           <UserName />
           <Authentication>Windows Authentication</Authentication>
-          <InitialDB>tSQLt</InitialDB>
+          <InitialDB>tSQLt_build</InitialDB>
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="(local)\sql2008:DLLOYD\Dennis">
-          <Created>2009-07-02T09:32:02.219617-04:00</Created>
-          <Type>SQL</Type>
-          <Server>(local)\sql2008</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB>tSQLt</InitialDB>
-          <LoginTimeout>15</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="DLLOYD:DLLOYD\Dennis">
-          <Created>2010-11-01T13:14:57.058-04:00</Created>
-          <Type>SQL</Type>
-          <Server>DLLOYD</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB />
-          <LoginTimeout>15</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="DLLOYD\MSSQL2008:DLLOYD\Dennis">
-          <Created>2011-08-02T15:07:18.468-04:00</Created>
-          <Type>SQL</Type>
-          <Server>DLLOYD\MSSQL2008</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB />
-          <LoginTimeout>15</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="MINI10\R2A:SA">
-          <Created>2010-10-30T12:19:34.6335199-04:00</Created>
-          <Type>SQL</Type>
-          <Server>MINI10\R2A</Server>
-          <UserName>SA</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB>tSQLt</InitialDB>
-          <LoginTimeout>15</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+          <ApplicationName />
         </ConnectionNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="BootStrapTest.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>BootStrapTest.sql</FullPath>
         </FileNode>
         <FileNode Name="EXPERIMENTS.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>EXPERIMENTS.sql</FullPath>
         </FileNode>
         <FileNode Name="CreateBuildDb.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>CreateBuildDb.sql</FullPath>
         </FileNode>
         <FileNode Name="NameAndIdResolution_test.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DLLOYD:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DLLOYD</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>NameAndIdResolution_test.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="-----FakeTable_InProgress------.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>-----FakeTable_InProgress------.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SQLQuery3.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SQLQuery3.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.apply.sqlcmd.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\R2A:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)\R2A</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.apply.sqlcmd.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_TableToText.2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_TableToText.2008.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_TableToText.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_TableToText.class.sql</FullPath>
         </FileNode>
         <FileNode Name="SetClrEnabled.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SetClrEnabled.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtCLR_CreateProcs.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLtCLR_CreateProcs.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtclr.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLtclr.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtclr_test.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DLLOYD\MSSQL2008:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DLLOYD\MSSQL2008</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLtclr_test.sql</FullPath>
         </FileNode>

@@ -951,8 +951,8 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.FakeTable
-    @SchemaName NVARCHAR(MAX),
-    @TableName NVARCHAR(MAX)
+    @TableName NVARCHAR(MAX),
+    @SchemaName NVARCHAR(MAX) = NULL --parameter preserved for backward compatibility. Do not use. Will be removed soon.
 AS
 BEGIN
 
