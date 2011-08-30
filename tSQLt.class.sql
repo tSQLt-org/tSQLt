@@ -929,25 +929,17 @@ BEGIN
 END;
 GO
 
-
-CREATE PROCEDURE tSQLt.Private_RenameObjectToUniqueName
-    @SchemaName NVARCHAR(MAX),
-    @ObjectName NVARCHAR(MAX),
-    @NewName NVARCHAR(MAX) = NULL OUTPUT
-AS
-BEGIN
-   DECLARE @FullName NVARCHAR(MAX);
-
-   SET @FullName = @SchemaName + '.' + @ObjectName;
-
-   SET @NewName=@ObjectName;  
-   WHILE OBJECT_ID(@SchemaName+'.'+@NewName) IS NOT NULL  
-       SELECT @NewName=left(left(@ObjectName,150)+REPLACE(CAST(NEWID() AS NVARCHAR(200)),'-',''),256)  
-
-   DECLARE @RenameCmd NVARCHAR(MAX);
-   SET @RenameCmd = 'EXEC sp_rename ''' + @FullName + ''', ''' + @NewName + ''';';
-   EXEC tSQLt.SuppressOutput @RenameCmd;
-END;
+CREATE FUNCTION tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility 
+ (@TableName NVARCHAR(MAX), @SchemaName NVARCHAR(MAX))
+RETURNS TABLE AS 
+RETURN
+  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(object_id)) AS CleanSchemaName,
+         QUOTENAME(OBJECT_NAME(object_id)) AS CleanTableName
+     FROM (SELECT CASE
+                    WHEN @SchemaName IS NULL THEN OBJECT_ID(@TableName)
+                    ELSE COALESCE(OBJECT_ID(@SchemaName + '.' + @TableName),OBJECT_ID(@TableName + '.' + @SchemaName)) 
+                  END object_id
+          ) ids;
 GO
 
 CREATE PROCEDURE tSQLt.FakeTable
@@ -955,40 +947,46 @@ CREATE PROCEDURE tSQLt.FakeTable
     @SchemaName NVARCHAR(MAX) = NULL --parameter preserved for backward compatibility. Do not use. Will be removed soon.
 AS
 BEGIN
-
    DECLARE @OrigSchemaName NVARCHAR(MAX);
+   DECLARE @OrigTableName NVARCHAR(MAX);
    DECLARE @NewName NVARCHAR(4000);
    DECLARE @Cmd NVARCHAR(MAX);
    
-   SET @OrigSchemaName = @SchemaName;   
-   SET @SchemaName = tSQLt.Private_GetCleanSchemaName(@SchemaName, @TableName);
+   SELECT @OrigSchemaName = @SchemaName,
+          @OrigTableName = @TableName
+   
+   SELECT @SchemaName = CleanSchemaName,
+          @TableName = CleanTableName
+     FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility(@TableName, @SchemaName);
    
    IF @SchemaName IS NULL
    BEGIN
-        DECLARE @ErrorMessage NVARCHAR(MAX);
-        SET @ErrorMessage = 
-            '''' + COALESCE(@OrigSchemaName, 'NULL') + '.' + COALESCE(@TableName, 'NULL') + 
-            ''' does not exist.';
-        RAISERROR (@ErrorMessage, 16, 10);
+        DECLARE @FullName NVARCHAR(MAX); SET @FullName = @OrigTableName + COALESCE('.' + @OrigSchemaName, '');
+        
+        RAISERROR ('FakeTable could not resolve the object name, ''%s''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''', 
+                   16, 10, @FullName);
    END;
 
    EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @TableName, @NewName OUTPUT
 
    SELECT @Cmd = 'DECLARE @N TABLE(n INT IDENTITY(1,1));
       SELECT Src.*
-        INTO ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + '
-        FROM ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@NewName) + ' Src
+        INTO ' + @SchemaName + '.' + @TableName + '
+        FROM ' + @SchemaName + '.' + @NewName + ' Src
        RIGHT JOIN @N AS n
           ON n.n<>n.n
        WHERE n.n<>n.n
    ';
    EXEC (@Cmd);
 
+   DECLARE @UnquotedSchemaName NVARCHAR(MAX);SET @UnquotedSchemaName = OBJECT_SCHEMA_NAME(OBJECT_ID(@SchemaName+'.'+@TableName));
+   DECLARE @UnquotedTableName NVARCHAR(MAX);SET @UnquotedTableName = OBJECT_NAME(OBJECT_ID(@SchemaName+'.'+@TableName));
+
    EXEC sys.sp_addextendedproperty 
       @name = N'tSQLt.FakeTable_OrgTableName', 
       @value = @NewName, 
-      @level0type = N'SCHEMA', @level0name = @SchemaName, 
-      @level1type = N'TABLE',  @level1name = @TableName;
+      @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
+      @level1type = N'TABLE',  @level1name = @UnquotedTableName;
 END
 GO
 
