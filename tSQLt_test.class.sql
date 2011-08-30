@@ -3426,5 +3426,51 @@ BEGIN
   EXEC tSQLt.AssertEqualsString 'hello % goodbye', @msg;
 END;
 GO
+
+CREATE PROCEDURE tSQLt_test.[test Fail places parameters in correct order]
+AS
+BEGIN
+    BEGIN TRY
+        EXEC tSQLt.Fail 1, 2, 3, 4, 5, 6, 7, 8, 9, 0;
+    END TRY
+    BEGIN CATCH
+    END CATCH
+    
+    SELECT '{' + Msg + '}' AS BracedMsg
+      INTO #actual
+      FROM tSQLt.TestMessage;
+      
+    SELECT TOP(0) *
+      INTO #expected
+      FROM #actual;
+      
+    INSERT INTO #expected (BracedMsg) VALUES ('{1234567890}');
+    
+    EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Fail handles NULL parameters]
+AS
+BEGIN
+    BEGIN TRY
+        EXEC tSQLt.Fail NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL;
+    END TRY
+    BEGIN CATCH
+    END CATCH
+    
+    SELECT '{' + Msg + '}' AS BracedMsg
+      INTO #actual
+      FROM tSQLt.TestMessage;
+      
+    SELECT TOP(0) *
+      INTO #expected
+      FROM #actual;
+      
+    INSERT INTO #expected (BracedMsg) VALUES ('{!NULL!!NULL!!NULL!!NULL!!NULL!!NULL!!NULL!!NULL!!NULL!!NULL!}');
+    
+    EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
 --ROLLBACK
 --tSQLt_test
