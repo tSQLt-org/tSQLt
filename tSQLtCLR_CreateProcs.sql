@@ -87,3 +87,20 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
                   AND k.object_id = OBJECT_ID(@SchemaName + '.' + @ForeignKeyName)
                )x;
 GO
+
+CREATE PROCEDURE tSQLt.Private_RenameObjectToUniqueName
+    @SchemaName NVARCHAR(MAX),
+    @ObjectName NVARCHAR(MAX),
+    @NewName NVARCHAR(MAX) = NULL OUTPUT
+AS
+BEGIN
+   SET @NewName=tSQLtPrivate::CreateUniqueObjectName();
+
+   DECLARE @RenameCmd NVARCHAR(MAX);
+   SET @RenameCmd = 'EXEC sp_rename ''' + 
+                          @SchemaName + '.' + @ObjectName + ''', ''' + 
+                          @NewName + ''';';
+   
+   EXEC tSQLt.SuppressOutput @RenameCmd;
+END;
+GO

@@ -1062,7 +1062,7 @@ BEGIN
 END
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.FakeTable works with 2 part names in first parameter]
+CREATE PROC tSQLt_test.[test FakeTable works with 2 part names in first parameter]
 AS
 BEGIN
   CREATE TABLE tSQLt_test.TempTable1(i INT);
@@ -1073,7 +1073,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.FakeTable takes 2 nameless parameters containing schema and table name]
+CREATE PROC tSQLt_test.[test FakeTable takes 2 nameless parameters containing schema and table name]
 AS
 BEGIN
   CREATE TABLE tSQLt_test.TempTable1(i INT);
@@ -1098,7 +1098,7 @@ BEGIN
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%''schemaA.tableXYZ'' does not exist%'
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaA.tableXYZ''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
       END
@@ -1120,7 +1120,51 @@ BEGIN
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%''schemaB.tableXYZ'' does not exist%'
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaB.tableXYZ''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
+      BEGIN
+          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
+      END
+      SET @ErrorThrown = 1;
+    END CATCH;
+    
+    EXEC tSQLt.AssertEquals 1, @ErrorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test FakeTable raises appropriate error if called with NULL parameters]
+AS
+BEGIN
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
+
+    BEGIN TRY
+      EXEC tSQLt.FakeTable NULL;
+    END TRY
+    BEGIN CATCH
+      DECLARE @ErrorMessage NVARCHAR(MAX);
+      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''(null)''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
+      BEGIN
+          EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
+      END
+      SET @ErrorThrown = 1;
+    END CATCH;
+    
+    EXEC tSQLt.AssertEquals 1, @ErrorThrown,'tSQLt.FakeTable did not throw an error when the table does not exist.';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test FakeTable raises appropriate error if it was called with a single parameter]
+AS
+BEGIN
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
+
+    BEGIN TRY
+      EXEC tSQLt.FakeTable 'schemaB.tableXYZ';
+    END TRY
+    BEGIN CATCH
+      DECLARE @ErrorMessage NVARCHAR(MAX);
+      SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaB.tableXYZ''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
       END
@@ -1170,7 +1214,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test a faked table has any defaults removed]
+CREATE PROC tSQLt_test.[test FakeTable: a faked table has any defaults removed]
 AS
 BEGIN
   CREATE TABLE tSQLt_test.TempTable1(i INT DEFAULT(77));
@@ -1188,7 +1232,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test a faked table has any unique constraints removed]
+CREATE PROC tSQLt_test.[test FakeTable: a faked table has any unique constraints removed]
 AS
 BEGIN
   CREATE TABLE tSQLt_test.TempTable1(i INT UNIQUE);
@@ -1201,7 +1245,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test a faked table has any unique indexes removed]
+CREATE PROC tSQLt_test.[test FakeTable: a faked table has any unique indexes removed]
 AS
 BEGIN
   CREATE TABLE tSQLt_test.TempTable1(i INT);
@@ -1215,7 +1259,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test a faked table has any not null constraints removed]
+CREATE PROC tSQLt_test.[test FakeTable: a faked table has any not null constraints removed]
 AS
 BEGIN
   CREATE TABLE tSQLt_test.TempTable1(i INT NOT NULL);
@@ -3257,7 +3301,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test name is a quoted {schema.object} name, where dbo.{schema.object} exists and {schema}.{object} exists]
+CREATE PROC tSQLt_test.[test Private_ResolveName: name is a quoted {schema.object} name, where dbo.{schema.object} exists and {schema}.{object} exists]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');
@@ -3282,7 +3326,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test name is a quoted {schema}.{object} name, where dbo.{schema.object} exists and {schema}.{object} exists]
+CREATE PROC tSQLt_test.[test Private_ResolveName: name is a quoted {schema}.{object} name, where dbo.{schema.object} exists and {schema}.{object} exists]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');
@@ -3307,7 +3351,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test name is a schema name where an object of same name exists in dbo]
+CREATE PROC tSQLt_test.[test Private_ResolveName: name is a schema name where an object of same name exists in dbo]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA InnerSchema');

@@ -55,18 +55,6 @@
           <AssociatedConnUserName />
           <FullPath>NameAndIdResolution_test.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="-----FakeTable_InProgress------.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>-----FakeTable_InProgress------.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SQLQuery3.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SQLQuery3.sql</FullPath>
-        </FileNode>
         <FileNode Name="tSQLt.apply.sqlcmd.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
