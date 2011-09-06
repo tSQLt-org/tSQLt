@@ -2719,7 +2719,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter creates <root/> when no test cases in test suite]
+CREATE PROC tSQLt_test.[test XmlResultFormatter creates <testsuites/> when no test cases in test suite]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
@@ -2734,47 +2734,53 @@ BEGIN
     DECLARE @Actual NVARCHAR(MAX);
     SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
 
-    EXEC tSQLt.AssertEqualsString '<root/>', @Actual;
+    EXEC tSQLt.AssertEqualsString '<testsuites/>', @Actual;
 END;
 GO
 
 CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with test element when there is a passing test]
 AS
 BEGIN
+    DECLARE @Actual NVARCHAR(MAX);
+    DECLARE @XML XML;
+
     DELETE FROM tSQLt.TestResult;
     INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
     VALUES ('MyTestClass', 'testA', 'XYZ', 'Success');
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @Actual NVARCHAR(MAX);
-    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    SET @Actual = @XML.value('(/testsuites/testsuite/testcase/@name)[1]', 'NVARCHAR(MAX)');
 
-    EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="0" failures="0"><testcase classname="MyTestClass" name="testA"/></testsuite></root>', @Actual;
+    EXEC tSQLt.AssertEqualsString  'testA',@actual;
 END;
 GO
 
 CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with test element and failure element when there is a failing test]
 AS
 BEGIN
+    DECLARE @Actual NVARCHAR(MAX);
+    DECLARE @XML XML;
+
     DELETE FROM tSQLt.TestResult;
     INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
     VALUES ('MyTestClass', 'testA', 'XYZ', 'Failure', 'This test intentionally fails');
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @Actual NVARCHAR(MAX);
-    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    SET @Actual = @XML.value('(/testsuites/testsuite/testcase/failure/@message)[1]', 'NVARCHAR(MAX)');
     
-    EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="0" failures="1"><testcase classname="MyTestClass" name="testA"><failure message="This test intentionally fails"/></testcase></testsuite></root>', @Actual;
+    EXEC tSQLt.AssertEqualsString 'This test intentionally fails', @Actual;
 END;
 GO
 
 CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures]
 AS
 BEGIN
+    DECLARE @XML XML;
+
     DELETE FROM tSQLt.TestResult;
     INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
     VALUES ('MyTestClass', 'testA', 'XYZ', 'Failure', 'testA intentionally fails');
@@ -2787,16 +2793,26 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @Actual NVARCHAR(MAX);
-    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
-    EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="0" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"/></testsuite></root>', @Actual;
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT TestCase.value('@name','NVARCHAR(MAX)') AS TestCase, TestCase.value('failure[1]/@message','NVARCHAR(MAX)') AS Msg
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
+    
+    
+    SELECT TestCase,Msg
+    INTO #expected
+    FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
 
 CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures or errors]
 AS
 BEGIN
+    DECLARE @XML XML;
+
     DELETE FROM tSQLt.TestResult;
     INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
     VALUES ('MyTestClass', 'testA', 'XYZ', 'Failure', 'testA intentionally fails');
@@ -2809,16 +2825,71 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @Actual NVARCHAR(MAX);
-    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
-    EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass" errors="1" failures="2"><testcase classname="MyTestClass" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass" name="testB"/><testcase classname="MyTestClass" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @Actual;
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT 
+      TestCase.value('@name','NVARCHAR(MAX)') AS Class,
+      TestCase.value('@tests','NVARCHAR(MAX)') AS tests,
+      TestCase.value('@failures','NVARCHAR(MAX)') AS failures,
+      TestCase.value('@errors','NVARCHAR(MAX)') AS errors
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
+    
+    
+    SELECT N'MyTestClass' AS Class, 4 tests, 2 failures, 1 errors
+    INTO #expected
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter creates multiple testsuite elements for multiple test classes with tests]
+CREATE PROC tSQLt_test.[test XmlResultFormatter sets correct counts in testsuite attributes]
 AS
 BEGIN
+    DECLARE @XML XML;
+
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass1', 'testA', 'XYZ', 'Failure', 'testA intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass1', 'testB', 'XYZ', 'Success', NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass2', 'testC', 'XYZ', 'Failure', 'testC intentionally fails');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass2', 'testD', 'XYZ', 'Error', 'testD intentionally errored');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass2', 'testE', 'XYZ', 'Failure', 'testE intentionally fails');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT 
+      TestCase.value('@name','NVARCHAR(MAX)') AS Class,
+      TestCase.value('@tests','NVARCHAR(MAX)') AS tests,
+      TestCase.value('@failures','NVARCHAR(MAX)') AS failures,
+      TestCase.value('@errors','NVARCHAR(MAX)') AS errors
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
+    
+    
+    SELECT *
+    INTO #expected
+    FROM (
+      SELECT N'MyTestClass1' AS Class, 2 tests, 1 failures, 0 errors
+      UNION ALL
+      SELECT N'MyTestClass2' AS Class, 3 tests, 2 failures, 1 errors
+    ) AS x;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test XmlResultFormatter arranges multiple test cases into testsuites]
+AS
+BEGIN
+    DECLARE @XML XML;
+
     DELETE FROM tSQLt.TestResult;
     INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
     VALUES ('MyTestClass1', 'testA', 'XYZ', 'Failure', 'testA intentionally fails');
@@ -2831,10 +2902,20 @@ BEGIN
     
     EXEC tSQLt.XmlResultFormatter;
     
-    DECLARE @Actual NVARCHAR(MAX);
-    SELECT @Actual = CAST(Message AS NVARCHAR(MAX)) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
-    EXEC tSQLt.AssertEqualsString 
-'<root><testsuite name="MyTestClass1" errors="0" failures="1"><testcase classname="MyTestClass1" name="testA"><failure message="testA intentionally fails"/></testcase><testcase classname="MyTestClass1" name="testB"/></testsuite><testsuite name="MyTestClass2" errors="1" failures="1"><testcase classname="MyTestClass2" name="testC"><failure message="testC intentionally fails"/></testcase><testcase classname="MyTestClass2" name="testD"><failure message="testD intentionally errored"/></testcase></testsuite></root>', @Actual;
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT 
+      TestCase.value('../@name','NVARCHAR(MAX)') AS Class,
+      TestCase.value('@name','NVARCHAR(MAX)') AS TestCase
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
+    
+    
+    SELECT Class,TestCase
+    INTO #expected
+    FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
 
