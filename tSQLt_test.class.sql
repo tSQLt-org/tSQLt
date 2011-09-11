@@ -1,6 +1,3 @@
-USE tSQLt_build;
-GO
-
 DECLARE @Msg VARCHAR(MAX);SELECT @Msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@Msg,0,1);
 GO
 EXEC tSQLt.DropClass tSQLt_testutil;
