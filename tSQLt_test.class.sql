@@ -2752,6 +2752,25 @@ BEGIN
 
     EXEC tSQLt.AssertEqualsString  'testA',@actual;
 END;
+GO   
+
+CREATE PROC tSQLt_test.[test XmlResultFormatter handles even this:   ,/?'';:[o]]}\|{)(*&^%$#@""]
+AS
+BEGIN
+    DECLARE @Actual NVARCHAR(MAX);
+    DECLARE @XML XML;
+
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass', ',/?'';:[o]}\|{)(*&^%$#@""', 'XYZ', 'Success');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    SET @Actual = @XML.value('(/testsuites/testsuite/testcase/@name)[1]', 'NVARCHAR(MAX)');
+
+    EXEC tSQLt.AssertEqualsString  ',/?'';:[o]}\|{)(*&^%$#@""',@actual;
+END;
 GO
 
 CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with test element and failure element when there is a failing test]
