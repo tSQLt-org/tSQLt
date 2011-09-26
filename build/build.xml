@@ -1,6 +1,7 @@
 <project name="tSQLt.sourceforge" default="all">
 
 	<target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results"/>
+	<target name="refresh" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema"/>
 
 	<target name="init">
 		<delete dir="output"/>
@@ -70,6 +71,13 @@
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
 			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt.class.sql&quot; -V11"/>
+		</exec>
+	</target>
+
+	<target name="db.refresh.schema">
+		<exec executable="cmd" failonerror="true">
+			<arg value="/c"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;output/tSQLt.class.sql&quot; -V11"/>
 		</exec>
 	</target>
 

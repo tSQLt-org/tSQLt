@@ -1377,6 +1377,68 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test ApplyConstraint copies a check constraint even if same table/constraint names exist on another schema]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA schemaB');
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaB.testTable (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
+    CREATE TABLE schemaA.testTable (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
+
+    EXEC tSQLt.FakeTable 'schemaB.testTable';
+    EXEC tSQLt.FakeTable 'schemaA.testTable';
+    EXEC tSQLt.ApplyConstraint 'schemaB', 'testTable', 'testConstraint';
+
+    SELECT @ActualDefinition = definition
+      FROM sys.check_constraints
+     WHERE parent_object_id = OBJECT_ID('schemaB.testTable') AND name = 'testConstraint';
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to schemaB.testTable';
+    END;
+
+    EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @ActualDefinition;
+
+END;
+GO
+
+CREATE PROC tSQLt_test.[test ApplyConstraint copies a check constraint even if same table/constraint names exist on multiple other schemata]
+AS
+BEGIN
+  DECLARE @ActualDefinition VARCHAR(MAX);
+
+  DECLARE @cmd NVARCHAR(MAX);
+
+  SELECT @cmd = (
+  SELECT REPLACE(
+          'EXEC (''CREATE SCHEMA schema?'');CREATE TABLE schema?.testTable (constCol INT CONSTRAINT testConstraint CHECK (constCol = 42));EXEC tSQLt.FakeTable ''schema?.testTable'';',
+          '?',
+          CAST(no AS NVARCHAR(MAX))
+         )
+    FROM tSQLt.F_Num(10)
+    FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)');
+
+  EXEC(@cmd);
+
+  EXEC tSQLt.ApplyConstraint 'schema4', 'testTable', 'testConstraint';
+
+  SELECT @ActualDefinition = definition
+    FROM sys.check_constraints
+   WHERE parent_object_id = OBJECT_ID('schema4.testTable') AND name = 'testConstraint';
+
+  IF @@ROWCOUNT = 0
+  BEGIN
+      EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to schema42.testTable';
+  END;
+
+  EXEC tSQLt.AssertEqualsString '([constCol]=(42))', @ActualDefinition;
+
+END;
+GO
+
 CREATE PROC tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_invalid_constraint
 AS
 BEGIN
