@@ -1146,7 +1146,7 @@ GO
 /*******************************************************************************************/
 /*******************************************************************************************/
 /*******************************************************************************************/
-CREATE FUNCTION tSQLt.Private_GetOriginalTableName(@SchemaName NVARCHAR(MAX), @TableName NVARCHAR(MAX))
+CREATE FUNCTION tSQLt.Private_GetOriginalTableName(@SchemaName NVARCHAR(MAX), @TableName NVARCHAR(MAX)) --DELETE!!!
 RETURNS NVARCHAR(MAX)
 AS
 BEGIN
@@ -1160,7 +1160,7 @@ END;
 GO
 
 
-CREATE PROCEDURE tSQLt.ApplyConstraint
+CREATE PROCEDURE tSQLt.ApplyConstraint --DELETE!!!
        @SchemaName NVARCHAR(MAX),
        @TableName NVARCHAR(MAX),
        @ConstraintName NVARCHAR(MAX)
