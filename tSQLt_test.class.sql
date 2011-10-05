@@ -1351,8 +1351,7 @@ BEGIN
 END;
 GO
 
-
-CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table_with_schema
+CREATE PROC tSQLt_test.[test ApplyConstraint copies a check constraint to a fake table with schema]
 AS
 BEGIN
     DECLARE @ActualDefinition VARCHAR(MAX);
@@ -1376,6 +1375,33 @@ BEGIN
 
 END;
 GO
+
+
+CREATE PROC tSQLt_test.[test ApplyConstraint can be called with 2 parameters]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    SELECT @ActualDefinition = definition
+      FROM sys.check_constraints
+     WHERE parent_object_id = OBJECT_ID('schemaA.tableA') AND name = 'testConstraint';
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to tableA';
+    END;
+
+    EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @ActualDefinition;
+
+END;
+GO
+
 
 CREATE PROC tSQLt_test.[test ApplyConstraint copies a check constraint even if same table/constraint names exist on another schema]
 AS
@@ -1439,7 +1465,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_invalid_constraint
+CREATE PROC tSQLt_test.[test ApplyConstraint throws error if called with invalid constraint]
 AS
 BEGIN
     DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
@@ -1456,7 +1482,7 @@ BEGIN
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%''schemaA.thisIsNotAConstraint'' is not a valid constraint on table ''schemaA.tableA'' for the tSQLt.ApplyConstraint procedure%'
+      IF @ErrorMessage NOT LIKE '%ApplyConstraint could not resolve the object names, ''schemaA'', ''tableA''. Be sure to call ApplyConstraint and pass in two parameters, such as: EXEC tSQLt.ApplyConstraint ''MySchema.MyTable'', ''MyConstraint''%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.ApplyConstraint threw unexpected exception: ',@ErrorMessage;     
       END
@@ -1468,7 +1494,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_ApplyConstraint_throws_error_if_called_with_constraint_existsing_on_different_table
+CREATE PROC tSQLt_test.[test ApplyConstraint throws error if called with constraint existsing on different table]
 AS
 BEGIN
     DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
@@ -1485,7 +1511,7 @@ BEGIN
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%''schemaA.MyConstraint'' is not a valid constraint on table ''schemaA.tableA'' for the tSQLt.ApplyConstraint procedure%'
+      IF @ErrorMessage NOT LIKE '%ApplyConstraint could not resolve the object names%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.ApplyConstraint threw unexpected exception: ',@ErrorMessage;     
       END
@@ -1627,6 +1653,227 @@ BEGIN
     EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint2';
 END;
 GO
+
+CREATE PROC tSQLt_test.[test Private_GetOriginalTableInfo handles table existing in several schemata]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  EXEC ('CREATE SCHEMA schemaB');
+  EXEC ('CREATE SCHEMA schemaC');
+  EXEC ('CREATE SCHEMA schemaD');
+  EXEC ('CREATE SCHEMA schemaE');
+  CREATE TABLE schemaA.tableA (id INT);
+  CREATE TABLE schemaB.tableA (id INT);
+  CREATE TABLE schemaC.tableA (id INT);
+  CREATE TABLE schemaD.tableA (id INT);
+  CREATE TABLE schemaE.tableA (id INT);
+  
+  SET @Expected = OBJECT_ID('schemaC.tableA');
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  EXEC tSQLt.FakeTable 'schemaB.tableA';
+  EXEC tSQLt.FakeTable 'schemaC.tableA';
+  EXEC tSQLt.FakeTable 'schemaD.tableA';
+  EXEC tSQLt.FakeTable 'schemaE.tableA';
+
+  SELECT @Actual = OrgTableObjectId 
+    FROM tSQLt.Private_GetOriginalTableInfo(OBJECT_ID('schemaC.tableA'));
+    
+  EXEC tSQLt.AssertEquals @Expected,@Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_GetOriginalTableInfo handles funky schema name]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA [s.c.h.e.m.a.A]');
+  CREATE TABLE [s.c.h.e.m.a.A].tableA (id INT);
+  
+  SET @Expected = OBJECT_ID('[s.c.h.e.m.a.A].tableA');
+  
+  EXEC tSQLt.FakeTable '[s.c.h.e.m.a.A].tableA';
+
+  SELECT @Actual = OrgTableObjectId 
+    FROM tSQLt.Private_GetOriginalTableInfo(OBJECT_ID('[s.c.h.e.m.a.A].tableA'));
+    
+  EXEC tSQLt.AssertEquals @Expected,@Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns no record when constraint does not exist on given schema/table]
+AS
+BEGIN
+  DECLARE @Actual INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT);
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_ResolveApplyConstraintParameters('schemaA.tableA', 'constraint_does_not_exist', NULL);
+  
+  EXEC tSQLt.AssertEquals NULL, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns no record when constraint exists on different table in same schema]
+AS
+BEGIN
+  DECLARE @Actual INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT);
+  CREATE TABLE schemaA.tableB (id INT CONSTRAINT testConstraint CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+ 
+  SELECT ConstraintObjectId 
+    INTO #Actual
+    FROM tSQLt.Private_ResolveApplyConstraintParameters('schemaA.tableA', 'testConstraint', NULL);
+  
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns correct id using 2 parameters]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT testConstraint CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_ResolveApplyConstraintParameters('schemaA.tableA', 'testConstraint', NULL);
+  
+  SELECT @Expected = OBJECT_ID('schemaA.testConstraint');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns correct id using 2 parameters and different constraint]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT differentConstraint CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_ResolveApplyConstraintParameters('schemaA.tableA', 'differentConstraint', NULL);
+  
+  SELECT @Expected = OBJECT_ID('schemaA.differentConstraint');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns correct id using 3 parameters (Schema, Table, Constraint)]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT testConstraint2 CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_ResolveApplyConstraintParameters('schemaA', 'tableA', 'testConstraint2');
+  
+  SELECT @Expected = OBJECT_ID('schemaA.testConstraint2');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns correct id using 3 parameters (Table, Constraint, Schema)]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT testConstraint2 CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_ResolveApplyConstraintParameters('tableA', 'testConstraint2', 'schemaA');
+  
+  SELECT @Expected = OBJECT_ID('schemaA.testConstraint2');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns no record using 3 parameters in different orders]
+AS
+BEGIN
+  DECLARE @Actual INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT testConstraint2 CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  
+  SELECT parms.id,result.ConstraintObjectId
+  INTO #Actual
+  FROM ( 
+         SELECT 'SCT', 'schemaA', 'testConstraint2', 'tableA' UNION ALL
+         SELECT 'TSC', 'tableA', 'schemaA', 'testConstraint2' UNION ALL
+         SELECT 'CST', 'testConstraint2', 'schemaA', 'tableA' UNION ALL
+         SELECT 'CTS', 'testConstraint2', 'tableA', 'schemaA' UNION ALL
+         SELECT 'FNC', 'schemaA.tableA', NULL, 'testConstraint2' UNION ALL
+         SELECT 'CFN', 'testConstraint2', 'schemaA.tableA', NULL UNION ALL
+         SELECT 'CNF', 'testConstraint2', NULL, 'schemaA.tableA' UNION ALL
+         SELECT 'NCF', NULL, 'testConstraint2', 'schemaA.tableA' UNION ALL
+         SELECT 'NFC', NULL, 'schemaA.tableA', 'testConstraint2'
+       )parms(id,p1,p2,p3)
+  CROSS APPLY tSQLt.Private_ResolveApplyConstraintParameters(p1,p2,p3) result;
+
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns two records when names are reused]
+-- this might cause problems for users with weird names...
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA nameA');
+  EXEC ('CREATE SCHEMA nameC');
+  CREATE TABLE nameA.nameB (id INT CONSTRAINT nameC CHECK (id > 0));
+  CREATE TABLE nameC.nameA (id INT CONSTRAINT nameB CHECK (id > 0));
+
+  SELECT *
+    INTO #Expected
+    FROM (
+           SELECT OBJECT_ID('nameA.nameC')
+           UNION ALL
+           SELECT OBJECT_ID('nameC.nameB')
+         )X(ConstraintObjectId);
+  
+  EXEC tSQLt.FakeTable 'nameA.nameB';
+  EXEC tSQLt.FakeTable 'nameC.nameA';
+  
+  SELECT ConstraintObjectId
+    INTO #Actual
+    FROM tSQLt.Private_ResolveApplyConstraintParameters('nameA', 'nameB', 'nameC');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+----------------------------------------------------
 
 CREATE PROC tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_expected_table_does_not_exist
 AS
@@ -2520,7 +2767,7 @@ BEGIN
 END
 GO
 
-CREATE PROC tSQLt_test.[test that _SetFakeViewOn trigger throws meaningful error on execution]
+CREATE PROC tSQLt_test.[test that SetFakeViewOn trigger throws meaningful error on execution]
 AS
 BEGIN
   --This test also tests that tSQLt can handle test that leave the transaction open, but in an uncommitable state.
@@ -3631,5 +3878,6 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
+
 --ROLLBACK
 --tSQLt_test
