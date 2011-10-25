@@ -1654,6 +1654,46 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test ApplyConstraint for a foreign key can be called with quoted names]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA [sche maA]');
+    CREATE TABLE [sche maA].[tab leA] ([id col] int PRIMARY KEY);
+    CREATE TABLE [sche maA].[tab leB] ([bid col] int, [aid col] int CONSTRAINT [test Constraint] REFERENCES [sche maA].[tab leA]([id col]));
+
+    EXEC tSQLt.FakeTable '[sche maA]', '[tab leA]';
+    EXEC tSQLt.FakeTable '[sche maA]', '[tab leB]';
+
+    EXEC tSQLt.ApplyConstraint '[sche maA]', '[tab leB]', '[test Constraint]';
+
+    IF NOT EXISTS(SELECT 1 FROM sys.foreign_keys WHERE name = 'test Constraint' AND parent_object_id = OBJECT_ID('[sche maA].[tab leB]'))
+    BEGIN
+        EXEC tSQLt.Fail 'Constraint, "test Constraint", was not copied to [tab leB]';
+    END;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test ApplyConstraint for a check constraint can be called with quoted names]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA [sche maA]');
+    CREATE TABLE [sche maA].[tab leB] ([bid col] int CONSTRAINT [test Constraint] CHECK([bid col] > 5));
+
+    EXEC tSQLt.FakeTable '[sche maA]', '[tab leB]';
+
+    EXEC tSQLt.ApplyConstraint '[sche maA]', '[tab leB]', '[test Constraint]';
+
+    IF NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE name = 'test Constraint' AND parent_object_id = OBJECT_ID('[sche maA].[tab leB]'))
+    BEGIN
+        EXEC tSQLt.Fail 'Constraint, "test Constraint", was not copied to [tab leB]';
+    END;
+END;
+GO
+
 CREATE PROC tSQLt_test.[test Private_GetOriginalTableInfo handles table existing in several schemata]
 AS
 BEGIN
@@ -1846,7 +1886,7 @@ END;
 GO
 
 CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns two records when names are reused]
--- this might cause problems for users with weird names...
+-- this test is to document that users with weirdly reused names will have problems...
 AS
 BEGIN
   EXEC ('CREATE SCHEMA nameA');
@@ -1873,6 +1913,114 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns correct id using 2 parameters with quoted table name]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA [sch emaA]');
+  CREATE TABLE [sch emaA].[tab leA] (id INT CONSTRAINT testConstraint CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable '[sch emaA].[tab leA]';
+  
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_ResolveApplyConstraintParameters('[sch emaA].[tab leA]', 'testConstraint', NULL);
+  
+  SELECT @Expected = OBJECT_ID('[sch emaA].testConstraint');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_ResolveApplyConstraintParameters returns correct id using 2 parameters with quoted constraint name]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT [test constraint] CHECK(id > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_ResolveApplyConstraintParameters('schemaA.tableA', '[test constraint]', NULL);
+  
+  SELECT @Expected = OBJECT_ID('schemaA.[test constraint]');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_FindConstraint returns only one row]
+AS
+BEGIN
+  DECLARE @Actual INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT [test constraint] CHECK(id > 0),idx INT CONSTRAINT [[test constraint]]] CHECK(idx > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  
+  SELECT @Actual = COUNT(1) FROM tSQLt.Private_FindConstraint(OBJECT_ID('schemaA.tableA'), '[test constraint]');
+  
+  EXEC tSQLt.AssertEquals 1, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_FindConstraint allows constraints to be found despite seeming ambiguity in quoting (1/3)]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT [test constraint] CHECK(id > 0),
+                               idx INT CONSTRAINT [[test constraint]]] CHECK(idx > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_FindConstraint(OBJECT_ID('schemaA.tableA'), '[test constraint]');
+  
+  SELECT @Expected = OBJECT_ID('schemaA.[test constraint]');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_FindConstraint allows constraints to be found despite seeming ambiguity in quoting (2/3)]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT [test constraint] CHECK(id > 0),
+                               idx INT CONSTRAINT [[test constraint]]] CHECK(idx > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_FindConstraint(OBJECT_ID('schemaA.tableA'), '[[test constraint]]]');
+  
+  SELECT @Expected = OBJECT_ID('schemaA.[[test constraint]]]');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Private_FindConstraint allows constraints to be found despite seeming ambiguity in quoting (3/3)]
+AS
+BEGIN
+  DECLARE @Actual INT;
+  DECLARE @Expected INT;
+
+  EXEC ('CREATE SCHEMA schemaA');
+  CREATE TABLE schemaA.tableA (id INT CONSTRAINT [test constraint] CHECK(id > 0),
+                               idx INT CONSTRAINT [[test constraint]]] CHECK(idx > 0));
+  
+  EXEC tSQLt.FakeTable 'schemaA.tableA';
+  
+  SELECT @Actual = ConstraintObjectId FROM tSQLt.Private_FindConstraint(OBJECT_ID('schemaA.tableA'), 'test constraint');
+  
+  SELECT @Expected = OBJECT_ID('schemaA.[test constraint]');
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+END;
+GO
 ----------------------------------------------------
 
 CREATE PROC tSQLt_test.test_assertEqualsTable_raises_appropriate_error_if_expected_table_does_not_exist

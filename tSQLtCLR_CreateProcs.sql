@@ -64,8 +64,12 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
                   THEN 'CREATE UNIQUE INDEX ' + tSQLtPrivate::CreateUniqueObjectName() + ' ON ' + refName + '(' + refCol + ');' 
                 ELSE '' 
               END CreIdxCmd
-         FROM (SELECT SCHEMA_NAME(k.schema_id) SchemaName,k.name, OBJECT_NAME(k.parent_object_id) parName,
-                      SCHEMA_NAME(refTab.schema_id)+'.'+refTab.name refName,parCol.name parCol,refCol.name refCol,
+         FROM (SELECT QUOTENAME(SCHEMA_NAME(k.schema_id)) AS SchemaName,
+                      QUOTENAME(k.name) AS name,
+                      QUOTENAME(OBJECT_NAME(k.parent_object_id)) AS parName,
+                      QUOTENAME(SCHEMA_NAME(refTab.schema_id)) + '.' + QUOTENAME(refTab.name) AS refName,
+                      QUOTENAME(parCol.name) AS parCol,
+                      QUOTENAME(refCol.name) AS refCol,
                       CASE WHEN e.name IS NULL THEN 0
                            ELSE 1 
                        END AS RefTableIsFakedInd
