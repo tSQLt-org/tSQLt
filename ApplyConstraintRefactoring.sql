@@ -45,11 +45,12 @@ CREATE FUNCTION tSQLt.Private_FindConstraint
 RETURNS TABLE
 AS
 RETURN
-  SELECT constraints.object_id AS ConstraintObjectId, type_desc AS ConstraintType
+  SELECT TOP(1) constraints.object_id AS ConstraintObjectId, type_desc AS ConstraintType
     FROM sys.objects constraints
     CROSS JOIN tSQLt.Private_GetOriginalTableInfo(@TableObjectId) orgTbl
-   WHERE constraints.name = @ConstraintName
-     AND constraints.parent_object_id = orgTbl.OrgTableObjectId;
+   WHERE @ConstraintName IN (constraints.name, QUOTENAME(constraints.name))
+     AND constraints.parent_object_id = orgTbl.OrgTableObjectId
+   ORDER BY LEN(constraints.name) ASC;
 GO
 
 DROP FUNCTION tSQLt.Private_ResolveApplyConstraintParameters;
@@ -81,13 +82,13 @@ CREATE PROCEDURE tSQLt.Private_ApplyCheckConstraint
 AS
 BEGIN
   DECLARE @Cmd NVARCHAR(MAX);
-  SELECT @Cmd = 'CONSTRAINT ' + name + ' CHECK' + definition 
+  SELECT @Cmd = 'CONSTRAINT ' + QUOTENAME(name) + ' CHECK' + definition 
     FROM sys.check_constraints
    WHERE object_id = @ConstraintObjectId;
   
   DECLARE @QuotedTableName NVARCHAR(MAX);
   
-  SELECT @QuotedTableName = QuotedTableName FROM tSQLt.GetQuotedTableNameForConstraint(@ConstraintObjectId);
+  SELECT @QuotedTableName = QuotedTableName FROM tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId);
 
   EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ConstraintObjectId;
   SELECT @Cmd = 'ALTER TABLE ' + @QuotedTableName + ' ADD ' + @Cmd
@@ -110,8 +111,10 @@ BEGIN
   DECLARE @OrgTableName NVARCHAR(MAX);
   DECLARE @TableName NVARCHAR(MAX);
   DECLARE @ConstraintName NVARCHAR(MAX);
-  DECLARE @Cmd NVARCHAR(MAX);
+  DECLARE @CreateFkCmd NVARCHAR(MAX);
+  DECLARE @AlterTableCmd NVARCHAR(MAX);
   DECLARE @CreateIndexCmd NVARCHAR(MAX);
+  DECLARE @FinalCmd NVARCHAR(MAX);
   
   SELECT @SchemaName = SchemaName,
          @OrgTableName = OrgTableName,
@@ -119,13 +122,14 @@ BEGIN
          @ConstraintName = OBJECT_NAME(@ConstraintObjectId)
     FROM tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId);
       
-  SELECT @Cmd = cmd ,@CreateIndexCmd = CreIdxCmd
+  SELECT @CreateFkCmd = cmd, @CreateIndexCmd = CreIdxCmd
     FROM tSQLt.Private_GetForeignKeyDefinition(@SchemaName, @OrgTableName, @ConstraintName);
+  SELECT @AlterTableCmd = 'ALTER TABLE ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + 
+                          ' ADD ' + @CreateFkCmd;
+  SELECT @FinalCmd = @CreateIndexCmd + @AlterTableCmd;
 
   EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName;
-  SELECT @Cmd = @CreateIndexCmd + 'ALTER TABLE ' + @SchemaName + '.' + @TableName + ' ADD ' + @Cmd;
-
-  EXEC (@Cmd);
+  EXEC (@FinalCmd);
 END;
 GO
 
@@ -171,14 +175,5 @@ BEGIN
   RAISERROR ('ApplyConstraint could not resolve the object names, ''%s'', ''%s''. Be sure to call ApplyConstraint and pass in two parameters, such as: EXEC tSQLt.ApplyConstraint ''MySchema.MyTable'', ''MyConstraint''', 
              16, 10, @TableName, @ConstraintName);
   RETURN 0;
-END;
-GO
-
-
-
-CREATE PROC tSQLt_test.[test ApplyConstraint, next step is quoted constraint name and decide if 'schema.constraint' is a good option for parameter]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
 END;
 GO
