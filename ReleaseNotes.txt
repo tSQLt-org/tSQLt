@@ -3,6 +3,22 @@ tSQLt Release Notes
 An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
+build.12:
+
+BUG FIXES:
+1. tSQLt.Fail now handles NULL values as parameters.
+2. Corrected XmlResultFormatter to have root element of 'testsuites' instead of 'root'.
+This improves compatibility with more continuous integration servers.
+
+NEW FEATURES:
+1. FakeTable now handles a single parameter, combining the schema and table name.
+This makes FakeTable more consistent with other methods in tSQLt.
+2. ApplyConstraint now handles two parameters, combining the schema and table 
+name as the first parameter. This makes ApplyConstraint more consistent with other 
+methods in tSQLt.
+
+---------------------------
+
 build.11:
 
 BUG FIXES:
