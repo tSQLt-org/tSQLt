@@ -1326,24 +1326,49 @@ BEGIN
 END;
 GO
 
-
-CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_check_constraint_to_a_fake_table
+CREATE PROC tSQLt_test.[test ApplyConstraint copies a check constraint to a fake table]
 AS
 BEGIN
     DECLARE @ActualDefinition VARCHAR(MAX);
 
-    CREATE TABLE tableA (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
 
-    EXEC tSQLt.FakeTable '', 'tableA';
-    EXEC tSQLt.ApplyConstraint '', 'tableA', 'testConstraint';
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
 
     SELECT @ActualDefinition = definition
       FROM sys.check_constraints
-     WHERE parent_object_id = OBJECT_ID('tableA') AND name = 'testConstraint';
+     WHERE parent_object_id = OBJECT_ID('schemaA.tableA') AND name = 'testConstraint';
 
     IF @@ROWCOUNT = 0
     BEGIN
-        EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to tableA';
+        EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to schemaA.tableA';
+    END;
+
+    EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @ActualDefinition;
+
+END;
+GO
+
+CREATE PROC tSQLt_test.[test ApplyConstraint can be called with 3 parameters]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableA', 'testConstraint';
+
+    SELECT @ActualDefinition = definition
+      FROM sys.check_constraints
+     WHERE parent_object_id = OBJECT_ID('schemaA.tableA') AND name = 'testConstraint';
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to schemaA.tableA';
     END;
 
     EXEC tSQLt.AssertEqualsString '([constCol]=''XYZ'')', @ActualDefinition;
@@ -1359,8 +1384,8 @@ BEGIN
     EXEC ('CREATE SCHEMA schemaA');
     CREATE TABLE schemaA.tableA (constCol CHAR(3) CONSTRAINT testConstraint CHECK (constCol = 'XYZ'));
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
-    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableA', 'testConstraint';
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
 
     SELECT @ActualDefinition = definition
       FROM sys.check_constraints
@@ -1415,7 +1440,7 @@ BEGIN
 
     EXEC tSQLt.FakeTable 'schemaB.testTable';
     EXEC tSQLt.FakeTable 'schemaA.testTable';
-    EXEC tSQLt.ApplyConstraint 'schemaB', 'testTable', 'testConstraint';
+    EXEC tSQLt.ApplyConstraint 'schemaB.testTable', 'testConstraint';
 
     SELECT @ActualDefinition = definition
       FROM sys.check_constraints
@@ -1449,7 +1474,7 @@ BEGIN
 
   EXEC(@cmd);
 
-  EXEC tSQLt.ApplyConstraint 'schema4', 'testTable', 'testConstraint';
+  EXEC tSQLt.ApplyConstraint 'schema4.testTable', 'testConstraint';
 
   SELECT @ActualDefinition = definition
     FROM sys.check_constraints
@@ -1474,15 +1499,15 @@ BEGIN
     CREATE TABLE schemaA.tableA (constCol CHAR(3) );
     CREATE TABLE schemaA.thisIsNotAConstraint (constCol CHAR(3) );
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
     
     BEGIN TRY
-      EXEC tSQLt.ApplyConstraint 'schemaA', 'tableA', 'thisIsNotAConstraint';
+      EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'thisIsNotAConstraint';
     END TRY
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%ApplyConstraint could not resolve the object names, ''schemaA'', ''tableA''. Be sure to call ApplyConstraint and pass in two parameters, such as: EXEC tSQLt.ApplyConstraint ''MySchema.MyTable'', ''MyConstraint''%'
+      IF @ErrorMessage NOT LIKE '%ApplyConstraint could not resolve the object names, ''schemaA.tableA'', ''thisIsNotAConstraint''. Be sure to call ApplyConstraint and pass in two parameters, such as: EXEC tSQLt.ApplyConstraint ''MySchema.MyTable'', ''MyConstraint''%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.ApplyConstraint threw unexpected exception: ',@ErrorMessage;     
       END
@@ -1503,10 +1528,10 @@ BEGIN
     CREATE TABLE schemaA.tableA (constCol CHAR(3) );
     CREATE TABLE schemaA.tableB (constCol CHAR(3) CONSTRAINT MyConstraint CHECK (1=0));
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
     
     BEGIN TRY
-      EXEC tSQLt.ApplyConstraint 'schemaA', 'tableA', 'MyConstraint';
+      EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'MyConstraint';
     END TRY
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
@@ -1523,26 +1548,27 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table
+CREATE PROC tSQLt_test.[test ApplyConstraint copies a foreign key to a fake table with referenced table not faked]
 AS
 BEGIN
     DECLARE @ActualDefinition VARCHAR(MAX);
+    
+    EXEC ('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (id int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(id));
 
-    CREATE TABLE tableA (id int PRIMARY KEY);
-    CREATE TABLE tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES tableA(id));
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
 
-    EXEC tSQLt.FakeTable '', 'tableB';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint';
 
-    EXEC tSQLt.ApplyConstraint '', 'tableB', 'testConstraint';
-
-    IF NOT EXISTS(SELECT 1 FROM sys.foreign_keys WHERE name = 'testConstraint' AND parent_object_id = OBJECT_ID('tableB'))
+    IF NOT EXISTS(SELECT 1 FROM sys.foreign_keys WHERE name = 'testConstraint' AND parent_object_id = OBJECT_ID('schemaA.tableB'))
     BEGIN
         EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to tableB';
     END;
 END;
 GO
 
-CREATE PROC tSQLt_test.test_ApplyConstraint_copies_a_foreign_key_to_a_fake_table_with_schema
+CREATE PROC tSQLt_test.[test ApplyConstraint copies a foreign key to a fake table with schema]
 AS
 BEGIN
     DECLARE @ActualDefinition VARCHAR(MAX);
@@ -1551,9 +1577,9 @@ BEGIN
     CREATE TABLE schemaA.tableA (id int PRIMARY KEY);
     CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(id));
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
 
-    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint';
 
     IF NOT EXISTS(SELECT 1 FROM sys.foreign_keys WHERE name = 'testConstraint' AND parent_object_id = OBJECT_ID('schemaA.tableB'))
     BEGIN
@@ -1571,10 +1597,10 @@ BEGIN
     CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
     CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(aid));
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
-    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
 
-    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint';
     
     INSERT INTO schemaA.tableA (aid) VALUES (13);
     INSERT INTO schemaA.tableB (aid) VALUES (13);
@@ -1590,10 +1616,10 @@ BEGIN
     CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
     CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(aid));
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
-    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
 
-    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint';
     
     DECLARE @msg NVARCHAR(MAX);
     SET @msg = 'No error message';
@@ -1622,9 +1648,9 @@ BEGIN
     CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
     CREATE TABLE schemaA.tableB (bid int, aid int CONSTRAINT testConstraint REFERENCES schemaA.tableA(aid));
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
 
-    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint';
     
     DECLARE @NumberOfIndexes INT;
     SELECT @NumberOfIndexes = COUNT(1)
@@ -1646,11 +1672,11 @@ BEGIN
            aid1 int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid), 
            aid2 int CONSTRAINT testConstraint2 REFERENCES schemaA.tableA(aid));
 
-    EXEC tSQLt.FakeTable 'schemaA', 'tableA';
-    EXEC tSQLt.FakeTable 'schemaA', 'tableB';
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
 
-    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint1';
-    EXEC tSQLt.ApplyConstraint 'schemaA', 'tableB', 'testConstraint2';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint1';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint2';
 END;
 GO
 
@@ -1663,10 +1689,10 @@ BEGIN
     CREATE TABLE [sche maA].[tab leA] ([id col] int PRIMARY KEY);
     CREATE TABLE [sche maA].[tab leB] ([bid col] int, [aid col] int CONSTRAINT [test Constraint] REFERENCES [sche maA].[tab leA]([id col]));
 
-    EXEC tSQLt.FakeTable '[sche maA]', '[tab leA]';
-    EXEC tSQLt.FakeTable '[sche maA]', '[tab leB]';
+    EXEC tSQLt.FakeTable '[sche maA].[tab leA]';
+    EXEC tSQLt.FakeTable '[sche maA].[tab leB]';
 
-    EXEC tSQLt.ApplyConstraint '[sche maA]', '[tab leB]', '[test Constraint]';
+    EXEC tSQLt.ApplyConstraint '[sche maA].[tab leB]', '[test Constraint]';
 
     IF NOT EXISTS(SELECT 1 FROM sys.foreign_keys WHERE name = 'test Constraint' AND parent_object_id = OBJECT_ID('[sche maA].[tab leB]'))
     BEGIN
@@ -1683,9 +1709,9 @@ BEGIN
     EXEC ('CREATE SCHEMA [sche maA]');
     CREATE TABLE [sche maA].[tab leB] ([bid col] int CONSTRAINT [test Constraint] CHECK([bid col] > 5));
 
-    EXEC tSQLt.FakeTable '[sche maA]', '[tab leB]';
+    EXEC tSQLt.FakeTable '[sche maA].[tab leB]';
 
-    EXEC tSQLt.ApplyConstraint '[sche maA]', '[tab leB]', '[test Constraint]';
+    EXEC tSQLt.ApplyConstraint '[sche maA].[tab leB]', '[test Constraint]';
 
     IF NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE name = 'test Constraint' AND parent_object_id = OBJECT_ID('[sche maA].[tab leB]'))
     BEGIN
