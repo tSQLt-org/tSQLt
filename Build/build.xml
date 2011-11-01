@@ -1,9 +1,11 @@
 <project name="tSQLt.sourceforge" default="all">
 
-	<target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results"/>
-	<target name="refresh" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema, db.refresh.tests"/>
+ <target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results"/>
+ <target name="all2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.install.2008.tests, db.tests.run, db.tests.output, db.tests.check.results"/>
+ <target name="refresh" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema, db.refresh.tests"/>
+ <target name="refresh2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema, db.refresh.tests, db.refresh.2008.tests"/>
 
-	<target name="init">
+ <target name="init">
 		<delete dir="output"/>
 		<delete dir="test"/>
 		<mkdir dir="output"/>
@@ -51,8 +53,11 @@
 		<unzip src="output/tSQLt.zip" dest="test"/>
 		<copy file="../Tests/tSQLt_test.class.sql" todir="test"/>
 		<copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
-		<copy file="../Tests/tSQLtclr_test.sql" todir="test"/>
-		<copy file="CreateBuildDb.sql" todir="test"/>
+  <copy file="../Tests/tSQLtclr_test.sql" todir="test"/>
+  <copy file="../Tests/NameAndIdResolution_test.class.sql" todir="test"/>
+  <copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
+  <copy file="../Tests/tSQLt_test_TableToText.2008.class.sql" todir="test"/>
+  <copy file="CreateBuildDb.sql" todir="test"/>
 		<copy file="GetTestResults.sql" todir="test"/>		
 	</target>
 
@@ -91,13 +96,26 @@
 			<arg value="/c"/>
 			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLtclr_test.sql&quot; -V11"/>
 		</exec>
-<!--
-		<exec executable="cmd" failonerror="true">
-			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test_TableToText.class.sql&quot; -V11"/>
-		</exec>
- -->
-  </target>
+
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test_TableToText.class.sql&quot; -V11"/>
+  </exec>
+
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/NameAndIdResolution_test.class.sql&quot; -V11"/>
+  </exec>
+
+ </target>
+
+ <target name="db.install.2008.tests">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test_TableToText.2008.class.sql&quot; -V11"/>
+  </exec>
+
+ </target>
 
  <target name="db.refresh.tests">
   <exec executable="cmd" failonerror="true">
@@ -109,6 +127,24 @@
    <arg value="/c"/>
    <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/tSQLtclr_test.sql&quot; -V11"/>
   </exec>
+
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/tSQLt_test_TableToText.class.sql&quot; -V11"/>
+  </exec>
+
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/NameAndIdResolution_test.class.sql&quot; -V11"/>
+  </exec>
+ </target>
+
+ <target name="db.refresh.2008.tests">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/tSQLt_test_TableToText.2008.class.sql&quot; -V11"/>
+  </exec>
+
  </target>
 
  <target name="db.tests.run">
