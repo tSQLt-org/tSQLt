@@ -2,6 +2,12 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Source", "Source\Source.ssmssqlproj", "{E5760F57-8934-4790-8420-DA7032D58EB7}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests", "Tests\Tests.ssmssqlproj", "{5FFBD87D-F3CF-43CF-BD60-ED175F5B0E92}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Build", "Build\Build.ssmssqlproj", "{161EC148-F99F-4D07-A8A0-FF7ECB9A1566}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Experiments", "Experiments\Experiments.ssmssqlproj", "{923E6ED4-A955-4DCF-AB73-ABB17CB23C44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -9,6 +15,9 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E5760F57-8934-4790-8420-DA7032D58EB7}.Default|Default.ActiveCfg = Default
 		{00000000-0000-0000-0000-000000000000}.Default|Default.ActiveCfg = Default
+		{5FFBD87D-F3CF-43CF-BD60-ED175F5B0E92}.Default|Default.ActiveCfg = Default
+		{161EC148-F99F-4D07-A8A0-FF7ECB9A1566}.Default|Default.ActiveCfg = Default
+		{923E6ED4-A955-4DCF-AB73-ABB17CB23C44}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
