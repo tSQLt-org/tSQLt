@@ -19,10 +19,10 @@
 	</target>
 
 	<target name="package.files.copy">
-		<copy file="../tSQLt.class.sql" todir="output"/>
-		<copy file="../tSQLtCLR_CreateProcs.sql" todir="output"/>
-		<copy file="../SetClrEnabled.sql" todir="output"/>
-		<copy file="../ReleaseNotes.txt" todir="output"/>
+		<copy file="../Source/tSQLt.class.sql" todir="output"/>
+		<copy file="../Source/tSQLtCLR_CreateProcs.sql" todir="output"/>
+		<copy file="../Source/SetClrEnabled.sql" todir="output"/>
+		<copy file="ReleaseNotes.txt" todir="output"/>
 	</target>
 
 	<target name="package.construct.tsqlt">
@@ -49,10 +49,10 @@
 
 	<target name="package.extract">
 		<unzip src="output/tSQLt.zip" dest="test"/>
-		<copy file="../tSQLt_test.class.sql" todir="test"/>
-		<copy file="../tSQLt_test_TableToText.class.sql" todir="test"/>
-		<copy file="../tSQLtclr_test.sql" todir="test"/>
-		<copy file="../CreateBuildDb.sql" todir="test"/>
+		<copy file="../Tests/tSQLt_test.class.sql" todir="test"/>
+		<copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
+		<copy file="../Tests/tSQLtclr_test.sql" todir="test"/>
+		<copy file="CreateBuildDb.sql" todir="test"/>
 		<copy file="GetTestResults.sql" todir="test"/>		
 	</target>
 
