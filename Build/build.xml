@@ -14,7 +14,8 @@
 	</target>
 
 	<target name="clr.compile">
-		<exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
+  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+  <exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
 			<arg value="/c"/>
 			<arg value="${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
 		</exec>
