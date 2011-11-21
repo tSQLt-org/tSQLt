@@ -1,37 +1,31 @@
 USE tempdb;
-EXECUTE AS LOGIN='SA';
-GO
-IF(db_id('Practica1_ParticlesInRectangle') IS NOT NULL)
+
+IF(db_id('tSQLt_Example1') IS NOT NULL)
 EXEC('
-ALTER DATABASE Practica1_ParticlesInRectangle SET RESTRICTED_USER WITH ROLLBACK IMMEDIATE;
-USE Practica1_ParticlesInRectangle;
-ALTER DATABASE Practica1_ParticlesInRectangle SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-USE master;
-DROP DATABASE Practica1_ParticlesInRectangle;
+ALTER DATABASE tSQLt_Example1 SET RESTRICTED_USER WITH ROLLBACK IMMEDIATE;
+USE tSQLt_Example1;
+ALTER DATABASE tSQLt_Example1 SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+USE tempdb;
+DROP DATABASE tSQLt_Example1;
 ');
 
-CREATE DATABASE Practica1_ParticlesInRectangle;
-ALTER DATABASE Practica1_ParticlesInRectangle SET TRUSTWORTHY ON;
+CREATE DATABASE tSQLt_Example1;
+ALTER DATABASE tSQLt_Example1 SET TRUSTWORTHY ON;
 GO
-USE Practica1_ParticlesInRectangle;
-GO
-------------------------------------------------------------------------------------
-CREATE SCHEMA Practice;
+USE tSQLt_Example1;
 GO
 
-IF OBJECT_ID('Practice.Particle') IS NOT NULL DROP TABLE Practice.Particle;
+
+------------------------------------------------------------------------------------
+CREATE SCHEMA Accelerator;
 GO
-CREATE TABLE Practice.Particle(
+
+IF OBJECT_ID('Accelerator.Particle') IS NOT NULL DROP TABLE Practice.Particle;
+GO
+CREATE TABLE Accelerator.Particle(
   Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Point_Id PRIMARY KEY,
   X DECIMAL(10,2) NOT NULL,
   Y DECIMAL(10,2) NOT NULL,
   Value NVARCHAR(MAX) NOT NULL
 );
 GO
-------------------------------------------------------------------------------------
-GO
-USE tempdb;
-REVERT;
-GO
-
-USE Practica1_ParticlesInRectangle;

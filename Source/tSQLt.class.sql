@@ -1,8 +1,3 @@
-  SELECT DISTINCT s.name AS testClassName, s.schema_id
-    FROM sys.extended_properties ep
-    JOIN sys.schemas s
-      ON ep.major_id = s.schema_id
-   WHERE ep.name = N'tSQLt.TestClass';
 DECLARE @Msg NVARCHAR(MAX);SELECT @Msg = 'Compiled at '+CONVERT(NVARCHAR,GETDATE(),121);RAISERROR(@Msg,0,1);
 GO
 IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
