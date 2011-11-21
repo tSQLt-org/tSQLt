@@ -19,6 +19,12 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="TestThatExamplesAreDeployed.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>TestThatExamplesAreDeployed.sql</FullPath>
+        </FileNode>
         <FileNode Name="Tests.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -31,11 +37,11 @@
           <AssociatedConnUserName />
           <FullPath>Source.sql</FullPath>
         </FileNode>
-        <FileNode Name="_CreateDatabase.sql">
+        <FileNode Name="CreateDatabase.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>_CreateDatabase.sql</FullPath>
+          <FullPath>CreateDatabase.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
