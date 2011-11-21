@@ -1,0 +1,2 @@
+EXECUTE AS LOGIN = 'SA';
+GO

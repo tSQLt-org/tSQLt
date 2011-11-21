@@ -182,9 +182,14 @@
  <target name="build.example" depends="create.example.database,db.example.tests.create,db.example.tests.run,db.example.tests.output,db.example.tests.check.results"/>
 
  <target name="create.example.database">
+  <concat destfile="test/ExampleToRun.sql" append="yes" fixlastline="yes" eol="crlf">
+   <filelist dir="../Examples" files="ExecuteAsSa.sql"/>
+   <filelist dir="test" files="example.sql"/>
+  </concat>
+
   <exec executable="cmd" failonerror="true">
    <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/example.sql&quot; -V11"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/ExampleToRun.sql&quot; -V11"/>
   </exec>
  </target>
 
