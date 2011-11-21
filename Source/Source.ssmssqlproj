@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_R2:MYMACWIN7\meinse00">
+        <ConnectionNode Name="Dev_R2:DLLOYD\Dennis">
           <Created>2011-11-01T16:16:06.1091304-04:00</Created>
           <Type>SQL</Type>
           <Server>Dev_R2</Server>
@@ -19,6 +19,12 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="InWork.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>InWork.sql</FullPath>
+        </FileNode>
         <FileNode Name="SetClrEnabled.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
