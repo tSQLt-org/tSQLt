@@ -1,7 +1,7 @@
 <project name="tSQLt.sourceforge" default="all">
 
- <target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results"/>
- <target name="all2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.install.2008.tests, db.tests.run, db.tests.output, db.tests.check.results"/>
+ <target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
+ <target name="all2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.install.2008.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
  <target name="refresh" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema, db.refresh.tests"/>
  <target name="refresh2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema, db.refresh.tests, db.refresh.2008.tests"/>
 
@@ -29,7 +29,7 @@
 	</target>
 
 	<target name="package.construct.tsqlt">
-                <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
+  <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
 			<arg value="/c"/>
 			<arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll EXTERNAL_ACCESS"/>
 		</exec>
@@ -39,12 +39,22 @@
 		</concat>
 	</target>
 
-	<target name="package.create">
+ <target name="package.example">
+  <concat destfile="output/example.sql" append="yes" fixlastline="yes" eol="crlf">
+   <filelist dir="../Examples" files="CreateDatabase.sql"/>
+   <filelist dir="output" files="tSQLt.class.sql"/>
+   <filelist dir="../Examples" files="Source.sql"/>
+   <filelist dir="../Examples" files="Tests.sql"/>
+  </concat>
+ </target>
+
+ <target name="package.create">
 		<zip destfile="output/tSQLt.zip">
 			<fileset file="output/ReleaseNotes.txt"/>
 			<fileset file="output/tSQLt.class.sql"/>
 			<fileset file="output/SetClrEnabled.sql"/>
-		</zip>
+   <fileset file="output/example.sql"/>
+  </zip>
 		<delete>
 			<fileset dir="output" excludes="*.zip"/>
 		</delete>
@@ -168,4 +178,45 @@
 			<arg value="sqlcmd  -S ${db.server} -d ${db.name} -h-1 -y0 -E -I -Q &quot;:EXIT(SELECT COUNT(*) FROM tSQLt.TestResult WHERE Result != 'Success')&quot; -V11"/>
 		</exec>
 	</target>
+
+ <target name="build.example" depends="create.example.database,db.example.tests.create,db.example.tests.run,db.example.tests.output,db.example.tests.check.results"/>
+
+ <target name="create.example.database">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/example.sql&quot; -V11"/>
+  </exec>
+ </target>
+
+ 
+
+ <target name="db.example.tests.create">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d tSQLt_Example -E -I -i &quot;../Examples/TestThatExamplesAreDeployed.sql&quot; -V11"/>
+  </exec>
+ </target>
+
+ <target name="db.example.tests.run">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d tSQLt_Example -E -I -Q &quot;EXEC tSQLt.Run 'ExampleDeployed';&quot;"/>
+  </exec>
+ </target>
+
+ <target name="db.example.tests.output">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d tSQLt_Example -h-1 -y0 -E -I -i &quot;test/GetTestResults.sql&quot; -o &quot;test/results/ExampleTestResults.xml&quot; -V11"/>
+  </exec>
+ </target>
+
+ <target name="db.example.tests.check.results">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd  -S ${db.server} -d tSQLt_Example -h-1 -y0 -E -I -Q &quot;:EXIT(SELECT COUNT(*) FROM tSQLt.TestResult WHERE Result != 'Success')&quot; -V11"/>
+  </exec>
+ </target>
+
+
 </project>

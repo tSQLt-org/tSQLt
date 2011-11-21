@@ -15,3 +15,4 @@ AS RETURN (
          AND
          Y > @Y1 AND Y <= @Y2        -- "<= @Y2" instead of "< @Y2" to show missing 'actual' row
 );
+GO
