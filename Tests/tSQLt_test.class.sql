@@ -4053,7 +4053,6 @@ BEGIN
 END;
 GO
 
-
 CREATE PROCEDURE tSQLt_test.[test tSQLt.TestClasses returns no test classes when there are no test classes]
 AS
 BEGIN
@@ -4070,7 +4069,6 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
-
 
 CREATE PROCEDURE tSQLt_test.[test tSQLt.TestClasses returns single test class]
 AS
@@ -4133,5 +4131,189 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
---ROLLBACK
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests returns no tests when there are no test classes]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+  SELECT *
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+    
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests returns one test on a test class]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+  
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_A';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.testA AS RETURN 0;');
+
+  SELECT Name
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+    
+  INSERT INTO #Expected (Name) VALUES ('testA');
+    
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests returns no test on an empty test class]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+  
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_A';
+
+  SELECT Name
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+        
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests returns no tests when there is only a helper procedure]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+  
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_A';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.xyz AS RETURN 0;');
+
+  SELECT Name
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+        
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests recognizes all TeSt spellings]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+  
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_A';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.Test AS RETURN 0;');
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.TEST AS RETURN 0;');
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.tEsT AS RETURN 0;');
+
+  SELECT Name
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+
+  INSERT INTO #Expected (Name) VALUES ('Test');
+  INSERT INTO #Expected (Name) VALUES ('TEST');
+  INSERT INTO #Expected (Name) VALUES ('tEsT');
+        
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests returns tests from multiple test classes]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+  
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_A';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.test AS RETURN 0;');
+
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_B';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_B.test AS RETURN 0;');
+
+  SELECT TestClassName, Name
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+
+  INSERT INTO #Expected (TestClassName, Name) VALUES ('tSQLt_test_dummy_A', 'test');
+  INSERT INTO #Expected (TestClassName, Name) VALUES ('tSQLt_test_dummy_B', 'test');
+        
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests returns multiple tests from multiple test classes]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+  
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_A';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.test1 AS RETURN 0;');
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.test2 AS RETURN 0;');
+
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_B';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_B.test3 AS RETURN 0;');
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_B.test4 AS RETURN 0;');
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_B.test5 AS RETURN 0;');
+
+  SELECT TestClassName, Name
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+
+  INSERT INTO #Expected (TestClassName, Name) VALUES ('tSQLt_test_dummy_A', 'test1');
+  INSERT INTO #Expected (TestClassName, Name) VALUES ('tSQLt_test_dummy_A', 'test2');
+  INSERT INTO #Expected (TestClassName, Name) VALUES ('tSQLt_test_dummy_B', 'test3');
+  INSERT INTO #Expected (TestClassName, Name) VALUES ('tSQLt_test_dummy_B', 'test4');
+  INSERT INTO #Expected (TestClassName, Name) VALUES ('tSQLt_test_dummy_B', 'test5');
+        
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+
+CREATE PROCEDURE tSQLt_test.[test tSQLt.Tests returns relevant ids with tests]
+AS
+BEGIN
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+  
+  EXEC tSQLt.NewTestClass 'tSQLt_test_dummy_A';
+  EXEC ('CREATE PROCEDURE tSQLt_test_dummy_A.test1 AS RETURN 0;');
+
+  SELECT SchemaId, ObjectId
+    INTO #Actual
+    FROM tSQLt.Tests;
+    
+  SELECT TOP(0) * 
+    INTO #Expected
+    FROM #Actual;
+
+  INSERT INTO #Expected (SchemaId, ObjectId) VALUES (SCHEMA_ID('tSQLt_test_dummy_A'), OBJECT_ID('tSQLt_test_dummy_A.test1'));
+        
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO--ROLLBACK
 --tSQLt_test

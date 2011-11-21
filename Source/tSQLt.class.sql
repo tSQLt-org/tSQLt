@@ -502,6 +502,24 @@ END
 GO
 
 ----------------------------------------------------------------------
+CREATE VIEW tSQLt.TestClasses
+AS
+  SELECT s.name AS Name, s.schema_id AS SchemaId
+    FROM sys.extended_properties ep
+    JOIN sys.schemas s
+      ON ep.major_id = s.schema_id
+   WHERE ep.name = N'tSQLt.TestClass';
+GO
+
+CREATE VIEW tSQLt.Tests
+AS
+  SELECT classes.SchemaId, classes.Name AS TestClassName, 
+         procs.object_id AS ObjectId, procs.name AS Name
+    FROM tSQLt.TestClasses classes
+    JOIN sys.procedures procs ON classes.SchemaId = procs.schema_id
+   WHERE LOWER(procs.name) LIKE 'test%';
+GO
+
 CREATE PROCEDURE tSQLt.Run
    @TestName NVARCHAR(MAX) = NULL
 AS
@@ -1479,15 +1497,6 @@ BEGIN
         CASE WHEN name = @SchemaName THEN 0 ELSE 1 END
   );
 END;
-GO
-
-CREATE VIEW tSQLt.TestClasses
-AS
-  SELECT s.name AS Name, s.schema_id AS SchemaId
-    FROM sys.extended_properties ep
-    JOIN sys.schemas s
-      ON ep.major_id = s.schema_id
-   WHERE ep.name = N'tSQLt.TestClass';
 GO
 
 CREATE FUNCTION tSQLt.Private_IsTestClass(@TestClassName NVARCHAR(MAX))
