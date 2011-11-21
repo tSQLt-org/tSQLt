@@ -1,3 +1,8 @@
+  SELECT DISTINCT s.name AS testClassName, s.schema_id
+    FROM sys.extended_properties ep
+    JOIN sys.schemas s
+      ON ep.major_id = s.schema_id
+   WHERE ep.name = N'tSQLt.TestClass';
 DECLARE @Msg NVARCHAR(MAX);SELECT @Msg = 'Compiled at '+CONVERT(NVARCHAR,GETDATE(),121);RAISERROR(@Msg,0,1);
 GO
 IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
@@ -626,8 +631,8 @@ BEGIN
   EXEC tSQLt.Private_CleanTestResult;
 
   DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
-   SELECT testClassName
-     FROM tSQLt.Private_TestClasses;
+   SELECT Name
+     FROM tSQLt.TestClasses;
 
   OPEN tests;
   
@@ -1476,9 +1481,9 @@ BEGIN
 END;
 GO
 
-CREATE VIEW tSQLt.Private_TestClasses
+CREATE VIEW tSQLt.TestClasses
 AS
-  SELECT DISTINCT s.name AS testClassName, s.schema_id
+  SELECT s.name AS Name, s.schema_id AS SchemaId
     FROM sys.extended_properties ep
     JOIN sys.schemas s
       ON ep.major_id = s.schema_id
@@ -1493,8 +1498,8 @@ BEGIN
     CASE 
       WHEN EXISTS(
              SELECT 1 
-               FROM tSQLt.Private_TestClasses
-              WHERE schema_id = tSQLt.Private_GetSchemaId(@TestClassName)
+               FROM tSQLt.TestClasses
+              WHERE SchemaId = tSQLt.Private_GetSchemaId(@TestClassName)
             )
       THEN 1
       ELSE 0
@@ -1558,7 +1563,7 @@ RETURN
         )
   SELECT schemaId, 
          quotedSchemaName,
-         CASE WHEN EXISTS(SELECT 1 FROM tSQLt.Private_TestClasses WHERE Private_TestClasses.schema_id = idsWithNames.schemaId)
+         CASE WHEN EXISTS(SELECT 1 FROM tSQLt.TestClasses WHERE TestClasses.SchemaId = idsWithNames.schemaId)
                THEN 1
               ELSE 0
          END AS isTestClass, 
@@ -1611,4 +1616,3 @@ RETURN
        OR ord = 3
     ORDER BY ord
 GO
-
