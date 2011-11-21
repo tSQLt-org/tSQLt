@@ -4,7 +4,7 @@ IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
     EXEC tSQLt.DropClass tSQLt;
 GO
 
-IF TYPE_ID('tSQLtPrivate') IS NOT NULL DROP TYPE tSQLtPrivate;
+IF TYPE_ID('tSQLt.Private') IS NOT NULL DROP TYPE tSQLt.Private;
 GO
 IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
     DROP ASSEMBLY tSQLtCLR;
@@ -1619,4 +1619,15 @@ RETURN
     WHERE schemaId IS NOT NULL 
        OR ord = 3
     ORDER BY ord
+GO
+
+CREATE PROCEDURE tSQLt.Uninstall
+AS
+BEGIN
+  DROP TYPE tSQLt.Private;
+
+  EXEC tSQLt.DropClass 'tSQLt';  
+  
+  DROP ASSEMBLY tSQLtCLR;
+END;
 GO

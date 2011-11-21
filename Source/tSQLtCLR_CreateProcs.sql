@@ -6,7 +6,7 @@ CREATE PROCEDURE tSQLt.AssertResultSetsHaveSameMetaData @expectedCommand NVARCHA
 AS
 EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].AssertResultSetsHaveSameMetaData;
 GO
-CREATE TYPE tSQLtPrivate EXTERNAL NAME tSQLtCLR.[tSQLtCLR.tSQLtPrivate];
+CREATE TYPE tSQLt.[Private] EXTERNAL NAME tSQLtCLR.[tSQLtCLR.tSQLtPrivate];
 GO
 CREATE PROCEDURE tSQLt.NewConnection @command NVARCHAR(MAX)
 AS
@@ -19,7 +19,7 @@ CREATE PROCEDURE tSQLt.TableToText
     @OrderBy NVARCHAR(MAX) = NULL
 AS
 BEGIN
-    SET @txt = tSQLtPrivate::TableToString(@TableName,@OrderBy);
+    SET @txt = tSQLt.Private::TableToString(@TableName,@OrderBy);
 END;
 GO
 
@@ -61,7 +61,7 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
               parCol + ') REFERENCES ' + refName + '(' + refCol + ')' cmd,
               CASE 
                 WHEN RefTableIsFakedInd = 1
-                  THEN 'CREATE UNIQUE INDEX ' + tSQLtPrivate::CreateUniqueObjectName() + ' ON ' + refName + '(' + refCol + ');' 
+                  THEN 'CREATE UNIQUE INDEX ' + tSQLt.Private::CreateUniqueObjectName() + ' ON ' + refName + '(' + refCol + ');' 
                 ELSE '' 
               END CreIdxCmd
          FROM (SELECT QUOTENAME(SCHEMA_NAME(k.schema_id)) AS SchemaName,
@@ -98,7 +98,7 @@ CREATE PROCEDURE tSQLt.Private_RenameObjectToUniqueName
     @NewName NVARCHAR(MAX) = NULL OUTPUT
 AS
 BEGIN
-   SET @NewName=tSQLtPrivate::CreateUniqueObjectName();
+   SET @NewName=tSQLt.Private::CreateUniqueObjectName();
 
    DECLARE @RenameCmd NVARCHAR(MAX);
    SET @RenameCmd = 'EXEC sp_rename ''' + 

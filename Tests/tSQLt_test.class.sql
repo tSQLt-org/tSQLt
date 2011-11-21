@@ -3959,7 +3959,7 @@ CREATE PROC tSQLt_test.[test CreateUniqueObjectName creates a new object name th
 AS
 BEGIN
   DECLARE @ObjectName NVARCHAR(MAX);
-  SET @ObjectName = tSQLtPrivate::CreateUniqueObjectName();
+  SET @ObjectName = tSQLt.Private::CreateUniqueObjectName();
   
   IF EXISTS (SELECT 1 FROM sys.objects WHERE NAME = @ObjectName)
   BEGIN
@@ -3972,9 +3972,9 @@ CREATE PROC tSQLt_test.[test CreateUniqueObjectName creates a new object name th
 AS
 BEGIN
   DECLARE @ObjectName NVARCHAR(MAX);
-  SET @ObjectName = tSQLtPrivate::CreateUniqueObjectName();
+  SET @ObjectName = tSQLt.Private::CreateUniqueObjectName();
   
-  IF (@ObjectName = tSQLtPrivate::CreateUniqueObjectName())
+  IF (@ObjectName = tSQLt.Private::CreateUniqueObjectName())
   BEGIN
     EXEC tSQLt.Fail 'Created object name was created twice, object name: ', @ObjectName;
   END
@@ -3985,7 +3985,7 @@ CREATE PROC tSQLt_test.[test CreateUniqueObjectName creates a name which can be 
 AS
 BEGIN
   DECLARE @ObjectName NVARCHAR(MAX);
-  SELECT @ObjectName = tSQLtPrivate::CreateUniqueObjectName();
+  SELECT @ObjectName = tSQLt.Private::CreateUniqueObjectName();
   
   EXEC ('CREATE TABLE tSQLt_test.' + @ObjectName + '(i INT);');
 END
@@ -4315,5 +4315,42 @@ BEGIN
         
   EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
-GO--ROLLBACK
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Uninstall removes schema tSQLt]
+AS
+BEGIN
+  EXEC tSQLt.Uninstall;
+  
+  IF SCHEMA_ID('tSQLt') IS NOT NULL
+  BEGIN
+    RAISERROR ('tSQLt schema not removed', 16, 10);
+  END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Uninstall removes data type tSQLt.Private]
+AS
+BEGIN
+  EXEC tSQLt.Uninstall;
+  
+  IF TYPE_ID('tSQLt.Private') IS NOT NULL
+  BEGIN
+    RAISERROR ('tSQLt.Private data type not removed', 16, 10);
+  END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Uninstall removes the tSQLt Assembly]
+AS
+BEGIN
+  EXEC tSQLt.Uninstall;
+  
+  IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
+  BEGIN
+    RAISERROR ('tSQLtCLR assembly not removed', 16, 10);
+  END;
+END;
+GO
+--ROLLBACK
 --tSQLt_test

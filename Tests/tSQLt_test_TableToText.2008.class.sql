@@ -7,7 +7,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13 12:34:56.7891234 +13:24' AS DATETIMEOFFSET));
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|T                                 |
 +----------------------------------+
@@ -24,7 +24,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13T12:34:56.7891234' AS DATETIME2));
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|T                          |
 +---------------------------+
@@ -41,7 +41,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.7871234');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|T               |
 +----------------+
@@ -58,7 +58,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.787');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLtPrivate::TableToString('#DoesExist', '');
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '');
    
     EXEC tSQLt.AssertEqualsString '|T         |
 +----------+
