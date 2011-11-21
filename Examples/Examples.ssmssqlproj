@@ -9,7 +9,7 @@
           <Server>Dev_R2</Server>
           <UserName />
           <Authentication>Windows Authentication</Authentication>
-          <InitialDB>Practica1_ParticlesInRectangle</InitialDB>
+          <InitialDB>tSQLt_Example</InitialDB>
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
