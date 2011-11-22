@@ -28,6 +28,8 @@ BEGIN
        VALUES ('test a particle is included only if it fits inside the boundaries of the rectangle', 'Failure');
   INSERT INTO #Expected (TestCase, Result)
        VALUES ('test email is sent if we detected a higgs-boson', 'Success');
+  INSERT INTO #Expected (TestCase, Result)
+       VALUES ('test email is not sent if we detected something other than higgs-boson', 'Success');
   
   EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
