@@ -1,10 +1,12 @@
 EXEC tSQLt.NewTestClass 'AcceleratorTests';
 GO
 
-CREATE PROCEDURE AcceleratorTests.[test we are ready for experimentation if there are at least 2 particles]
+CREATE PROCEDURE 
+  AcceleratorTests.[test ready for experimentation if 2 particles]
 AS
 BEGIN
-  --Assemble: Fake the Particle table to make sure it is empty and has no constraints
+  --Assemble: Fake the Particle table to make sure 
+  --          it is empty and has no constraints
   EXEC tSQLt.FakeTable 'Accelerator.Particle';
   INSERT INTO Accelerator.Particle (Id) VALUES (1);
   INSERT INTO Accelerator.Particle (Id) VALUES (2);
