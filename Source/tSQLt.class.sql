@@ -5,6 +5,7 @@ IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
 GO
 
 IF TYPE_ID('tSQLt.Private') IS NOT NULL DROP TYPE tSQLt.Private;
+IF TYPE_ID('tSQLtPrivate') IS NOT NULL DROP TYPE tSQLtPrivate;
 GO
 IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
     DROP ASSEMBLY tSQLtCLR;
@@ -516,6 +517,14 @@ AS
 GO
 
 CREATE PROCEDURE tSQLt.Run
+   @TestName NVARCHAR(MAX) = NULL
+AS
+BEGIN
+  EXEC tSQLt.Private_Run @TestName;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_Run
    @TestName NVARCHAR(MAX) = NULL
 AS
 BEGIN
