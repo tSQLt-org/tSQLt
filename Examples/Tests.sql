@@ -1,6 +1,43 @@
 EXEC tSQLt.NewTestClass 'AcceleratorTests';
 GO
 
+CREATE PROCEDURE AcceleratorTests.[test we are ready for experimentation if there are at least 2 particles]
+AS
+BEGIN
+  --Assemble: Fake the Particle table to make sure it is empty and has no constraints
+  EXEC tSQLt.FakeTable 'Accelerator.Particle';
+  INSERT INTO Accelerator.Particle (Id) VALUES (1);
+  INSERT INTO Accelerator.Particle (Id) VALUES (2);
+  
+  DECLARE @Ready BIT;
+  
+  --Act: Call the IsExperimentReady function
+  SELECT @Ready = Accelerator.IsExperimentReady();
+  
+  --Assert: Check that 1 is returned from IsExperimentReady
+  EXEC tSQLt.AssertEquals 1, @Ready;
+  
+END;
+GO
+
+CREATE PROCEDURE AcceleratorTests.[test we are not ready for experimentation if there is only 1 particle]
+AS
+BEGIN
+  --Assemble: Fake the Particle table to make sure it is empty and has no constraints
+  EXEC tSQLt.FakeTable 'Accelerator.Particle';
+  INSERT INTO Accelerator.Particle (Id) VALUES (1);
+  
+  DECLARE @Ready BIT;
+  
+  --Act: Call the IsExperimentReady function
+  SELECT @Ready = Accelerator.IsExperimentReady();
+  
+  --Assert: Check that 0 is returned from IsExperimentReady
+  EXEC tSQLt.AssertEquals 0, @Ready;
+  
+END;
+GO
+
 CREATE PROCEDURE AcceleratorTests.[test no particles are in a rectangle when there are no particles in the table]
 AS
 BEGIN

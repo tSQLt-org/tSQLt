@@ -1,3 +1,22 @@
+IF OBJECT_ID('Accelerator.IsExperimentReady') IS NOT NULL DROP FUNCTION Accelerator.IsExperimentReady;
+GO
+
+CREATE FUNCTION Accelerator.IsExperimentReady()
+RETURNS BIT
+AS
+BEGIN 
+  DECLARE @NumParticles INT;
+  
+  SELECT @NumParticles = COUNT(1) FROM Accelerator.Particle;
+  
+  IF @NumParticles > 2
+    RETURN 1;
+
+  RETURN 0;
+END;
+GO
+
+
 IF OBJECT_ID('Accelerator.GetParticlesInRectangle') IS NOT NULL DROP FUNCTION Accelerator.GetParticlesInRectangle;
 GO
 
@@ -11,9 +30,9 @@ RETURNS TABLE
 AS RETURN (
   SELECT Id, X, Y, Value 
     FROM Accelerator.Particle
-   WHERE X > @X1 + 0.01 AND X < @X2  -- " + 0.01" added to show missing 'expected' row
+   WHERE X > @X1 AND X < @X2
          AND
-         Y > @Y1 AND Y <= @Y2        -- "<= @Y2" instead of "< @Y2" to show missing 'actual' row
+         Y > @Y1 AND Y < @Y2
 );
 GO
 
