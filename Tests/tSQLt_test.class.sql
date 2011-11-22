@@ -4352,5 +4352,41 @@ BEGIN
   END;
 END;
 GO
+
+CREATE PROCEDURE tSQLt_test.[test Run calls Private_Run with DefaultResultFormatter]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+  
+  EXEC tSQLt.Run 'SomeTest';
+  
+  SELECT TestName,TestResultFormatter
+    INTO #Actual
+    FROM tSQLt.Private_Run_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','DefaultResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_Run calls tSQLt.RunTestClassSummary with passed in TestResultFormatter]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.RunTestClassSummary';
+  
+  EXEC tSQLt.Private_Run 'NoTestSchema.NoTest','SomeTestResultFormatter';
+  
+  SELECT TestResultFormatter
+    INTO #Actual
+    FROM tSQLt.RunTestClassSummary_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #expected(TestResultFormatter)VALUES('SomeTestResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
 --ROLLBACK
 --tSQLt_test
