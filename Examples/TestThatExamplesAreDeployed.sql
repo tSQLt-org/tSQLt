@@ -19,7 +19,7 @@ BEGIN
     FROM #Actual;
 
   INSERT INTO #Expected (TestCase, Result) 
-       VALUES ('test we are ready for experimentation if there are at least 2 particles', 'Failure');
+       VALUES ('test ready for experimentation if 2 particles', 'Failure');
   INSERT INTO #Expected (TestCase, Result) 
        VALUES ('test we are not ready for experimentation if there is only 1 particle', 'Success');
   INSERT INTO #Expected (TestCase, Result) 
