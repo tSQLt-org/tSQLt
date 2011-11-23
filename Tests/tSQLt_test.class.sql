@@ -107,38 +107,19 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test RunTest truncates TestResult table]
+CREATE PROC tSQLt_test.[test Run truncates TestResult table]
 AS
 BEGIN
     INSERT tSQLt.TestResult(Class, TestCase, TranName) VALUES('TestClass', 'TestCaseDummy','');
 
     EXEC ('CREATE PROC TestCaseA AS IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Class = ''TestClass'' AND TestCase = ''TestCaseDummy'')) RAISERROR(''NoTruncationError'',16,10);');
 
-    EXEC tSQLt.RunTest TestCaseA;
+    EXEC tSQLt.Run TestCaseA;
 
     IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE '%NoTruncationError%'))
     BEGIN
-        EXEC tSQLt.Fail 'tSQLt.RunTest did not truncate tSQLt.TestResult!';
+        EXEC tSQLt.Fail 'tSQLt.Run did not truncate tSQLt.TestResult!';
     END;
-END;
-GO
-
-CREATE PROC tSQLt_test.[test RunTest throws error if test case does not exist]
-AS
-BEGIN
-    DECLARE @Msg NVARCHAR(MAX); SET @Msg = 'no error';
-
-    BEGIN TRY
-        EXEC tSQLt.RunTest 'tSQLt_test.DoesNotExist';
-    END TRY
-    BEGIN CATCH
-        SET @Msg = ERROR_MESSAGE();
-    END CATCH
-    
-    IF @Msg NOT LIKE 'The test case %DoesNotExist% does not exist.'
-    BEGIN
-        EXEC tSQLt.Fail 'Expected RunTest to throw a meaningful error, but message was: ', @Msg;
-    END
 END;
 GO
 
@@ -154,55 +135,11 @@ BEGIN
    
     IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE '%NoTruncationError%'))
     BEGIN
-        EXEC tSQLt.Fail 'tSQLt.RunTest did not truncate tSQLt.TestResult!';
+        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not truncate tSQLt.TestResult!';
     END;
 END;
 GO
 
---CREATE PROC tSQLt_test.[test RunTestClass raises error if failure in default print mode]
---AS
---BEGIN
---    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
-
---    EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultFormatter';
---    EXEC('CREATE SCHEMA MyTestClass;');
---    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.Fail ''This is an expected failure''');
-    
---    BEGIN TRY
---        EXEC tSQLt.RunTestClass MyTestClass;
---    END TRY
---    BEGIN CATCH
---        SET @ErrorRaised = 1;
---    END CATCH
---    IF(@ErrorRaised = 0)
---    BEGIN
---        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
---    END
---END;
---GO
-
---CREATE PROC tSQLt_test.[test RunTestClass raises error if failure in xml print mode]
---AS
---BEGIN
---    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
---
---    EXEC tSQLt.SetTestResultFormatter 'tSQLt.XMLResultFormatter';
---    EXEC('CREATE SCHEMA MyTestClass;');
---    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.Fail ''This is an expected failure''');
---    
---    BEGIN TRY
---        EXEC tSQLt.RunTestClass MyTestClass;
---    END TRY
---    BEGIN CATCH
---        SET @ErrorRaised = 1;
---    END CATCH
---    IF(@ErrorRaised = 0)
---    BEGIN
---        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
---    END
---END;
---GO
---
 CREATE PROC tSQLt_test.[test RunTestClass raises error if error in default print mode]
 AS
 BEGIN
@@ -225,29 +162,7 @@ BEGIN
 END;
 GO
 
---CREATE PROC tSQLt_test.[test RunTestClass raises error if error in xml print mode]
---AS
---BEGIN
---    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
---
---    EXEC tSQLt.SetTestResultFormatter 'tSQLt.XMLResultFormatter';
---    EXEC('CREATE SCHEMA MyTestClass;');
---    EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 1/0;');
---    
---    BEGIN TRY
---        EXEC tSQLt.RunTestClass MyTestClass;
---    END TRY
---    BEGIN CATCH
---        SET @ErrorRaised = 1;
---    END CATCH
---    IF(@ErrorRaised = 0)
---    BEGIN
---        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
---    END
---END;
---GO
-
-CREATE PROC tSQLt_test.test_RunTest_handles_test_names_with_spaces
+CREATE PROC tSQLt_test.test_Run_handles_test_names_with_spaces
 AS
 BEGIN
     DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
@@ -256,7 +171,7 @@ BEGIN
     EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
     
     BEGIN TRY
-        EXEC tSQLt.RunTest 'MyTestClass.Test Case A';
+        EXEC tSQLt.Run 'MyTestClass.Test Case A';
     END TRY
     BEGIN CATCH
         SET @ErrorRaised = 1;
@@ -864,15 +779,14 @@ END;
 GO
 
 
-CREATE PROC tSQLt_test.test_RunTest_handles_uncommitable_transaction
+CREATE PROC tSQLt_test.test_Run_handles_uncommitable_transaction
 AS
 BEGIN
     DECLARE @TranName sysname; 
-    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_RunTest_handles_uncommitable_transaction' ORDER BY Id DESC;
+    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_Run_handles_uncommitable_transaction' ORDER BY Id DESC;
     EXEC ('CREATE PROC testUncommitable AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
-
     BEGIN TRY
-        EXEC tSQLt.RunTest 'testUncommitable';
+        EXEC tSQLt.Run 'testUncommitable';
     END TRY
     BEGIN CATCH
       IF NOT EXISTS(SELECT 1
@@ -883,11 +797,11 @@ BEGIN
                        AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
                    )
       BEGIN
-        EXEC tSQLt.Fail 'runTest ''testUncommitable'' did not error correctly';
+        EXEC tSQLt.Fail 'tSQLt.Run ''testUncommitable'' did not error correctly';
       END;
       IF(@@TRANCOUNT > 0)
       BEGIN
-        EXEC tSQLt.Fail 'runTest ''testUncommitable'' did not rollback the transactions';
+        EXEC tSQLt.Fail 'tSQLt.Run ''testUncommitable'' did not rollback the transactions';
       END
       DELETE FROM tSQLt.TestResult
              WHERE TestCase = 'testUncommitable'
@@ -2107,7 +2021,7 @@ BEGIN
     EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
     
     BEGIN TRY
-        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
         SET @ErrorRaised = 1;
@@ -2135,7 +2049,7 @@ BEGIN
     EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
     
     BEGIN TRY
-        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
         SET @ErrorRaised = 1;
@@ -2163,7 +2077,7 @@ BEGIN
     EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
     
     BEGIN TRY
-        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
         SET @ErrorRaised = 1;
@@ -2201,7 +2115,7 @@ BEGIN
     EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertObjectExists ''MyTestClass.tbl'';');
     
     BEGIN TRY
-        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
         SET @ErrorRaised = 1;
@@ -2226,7 +2140,7 @@ BEGIN
     EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertObjectExists ''#Tbl'';');
     
     BEGIN TRY
-        EXEC tSQLt.RunTest 'MyTestClass.TestCaseA';
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
     END TRY
     BEGIN CATCH
         SET @ErrorRaised = 1;
@@ -3149,12 +3063,12 @@ AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
     DELETE FROM tSQLt.TestResult;
-    EXEC tSQLt.SpyProcedure 'tSQLt.RunTestClassSummary';
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
 
     EXEC tSQLt.RunAll;
 
     DECLARE @CallCount INT;
-    SELECT @CallCount = COUNT(1) FROM tSQLt.RunTestClassSummary_SpyProcedureLog;
+    SELECT @CallCount = COUNT(1) FROM tSQLt.Private_OutputTestResults_SpyProcedureLog;
     EXEC tSQLt.AssertEquals 1, @CallCount;
 END;
 GO
@@ -4373,16 +4287,16 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_Run calls tSQLt.RunTestClassSummary with passed in TestResultFormatter]
+CREATE PROCEDURE tSQLt_test.[test Private_Run calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.RunTestClassSummary';
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
   
   EXEC tSQLt.Private_Run 'NoTestSchema.NoTest','SomeTestResultFormatter';
   
   SELECT TestResultFormatter
     INTO #Actual
-    FROM tSQLt.RunTestClassSummary_SpyProcedureLog;
+    FROM tSQLt.Private_OutputTestResults_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
   INSERT INTO #Expected(TestResultFormatter)VALUES('SomeTestResultFormatter');
@@ -4391,13 +4305,13 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunTestClassSummary uses the TestResultFormatter parameter]
+CREATE PROCEDURE tSQLt_test.[test Private_OutputTestResults uses the TestResultFormatter parameter]
 AS
 BEGIN
   EXEC('CREATE PROC tSQLt_test.TemporaryTestResultFormatter AS RAISERROR(''GotHere'',16,10);');
   
   BEGIN TRY
-    EXEC tSQLt.RunTestClassSummary 'tSQLt_test.TemporaryTestResultFormatter';
+    EXEC tSQLt.Private_OutputTestResults 'tSQLt_test.TemporaryTestResultFormatter';
   END TRY
   BEGIN CATCH
     IF(ERROR_MESSAGE() LIKE '%GotHere%') RETURN 0;
@@ -4426,20 +4340,56 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_RunAll calls tSQLt.RunTestClassSummary with passed in TestResultFormatter]
+CREATE PROCEDURE tSQLt_test.[test Private_RunAll calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.RunTestClassSummary';
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_RunTestClass';
   
   EXEC tSQLt.Private_RunAll 'SomeTestResultFormatter';
   
   SELECT TestResultFormatter
     INTO #Actual
-    FROM tSQLt.RunTestClassSummary_SpyProcedureLog;
+    FROM tSQLt.Private_OutputTestResults_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
   INSERT INTO #Expected(TestResultFormatter)VALUES('SomeTestResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test RunWithXmlResults calls Private_Run with XmlTestResultFormatter]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+ 
+  EXEC tSQLt.RunWithXmlResults 'SomeTest';
+  
+  SELECT TestName,TestResultFormatter
+    INTO #Actual
+    FROM tSQLt.Private_Run_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.XmlResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test RunWithXmlResults passes NULL as TestName if called without parmameters]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+ 
+  EXEC tSQLt.RunWithXmlResults;
+  
+  SELECT TestName
+    INTO #Actual
+    FROM tSQLt.Private_Run_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #expected(TestName)VALUES(NULL);
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;

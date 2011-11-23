@@ -282,25 +282,7 @@ CREATE PROCEDURE tSQLt.RunTest
    @TestName NVARCHAR(MAX)
 AS
 BEGIN
-SET NOCOUNT ON;
-    DECLARE @Msg NVARCHAR(MAX),
-            @ResolvedTestName NVARCHAR(MAX);
-    
-    SELECT @ResolvedTestName = '['+OBJECT_SCHEMA_NAME(OBJECT_ID(@TestName))+'].['+OBJECT_NAME(OBJECT_ID(@TestName))+']';
-
-    IF @ResolvedTestName IS NULL
-    BEGIN
-        RAISERROR ('The test case %s does not exist.', 16, 10, @TestName) WITH NOWAIT;
-        RETURN -1;
-    END
-
-    EXEC tSQLt.Private_CleanTestResult;
-    EXEC tSQLt.Private_RunTest @ResolvedTestName
-
-    SELECT @Msg = Msg
-      FROM tSQLt.TestCaseSummary();
-
-    EXEC tSQLt.Private_Print @Msg;
+  RAISERROR('tSQLt.RunTest has been retired. Please use tSQLt.Run instead.', 16, 10);
 END;
 GO
 
@@ -314,7 +296,7 @@ BEGIN
                                     @level0type = 'SCHEMA',
                                     @level0name = 'tSQLt',
                                     @level1type = 'PROCEDURE',
-                                    @level1name = 'RunTestClassSummary';
+                                    @level1name = 'Private_OutputTestResults';
     END;
 
     EXEC sp_addextendedproperty @name = N'tSQLt.ResultsFormatter', 
@@ -322,7 +304,7 @@ BEGIN
                                 @level0type = 'SCHEMA',
                                 @level0name = 'tSQLt',
                                 @level1type = 'PROCEDURE',
-                                @level1name = 'RunTestClassSummary';
+                                @level1name = 'Private_OutputTestResults';
 END;
 GO
 
@@ -335,7 +317,7 @@ BEGIN
     SELECT @FormatterName = CAST(value AS NVARCHAR(MAX))
     FROM sys.extended_properties
     WHERE name = N'tSQLt.ResultsFormatter'
-      AND major_id = OBJECT_ID('tSQLt.RunTestClassSummary');
+      AND major_id = OBJECT_ID('tSQLt.Private_OutputTestResults');
       
     SELECT @FormatterName = COALESCE(@FormatterName, 'tSQLt.DefaultResultFormatter');
     
@@ -446,7 +428,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt.RunTestClassSummary
+CREATE PROCEDURE tSQLt.Private_OutputTestResults
   @TestResultFormatter NVARCHAR(MAX) = NULL
 AS
 BEGIN
@@ -529,6 +511,14 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.RunWithXmlResults
+   @TestName NVARCHAR(MAX) = NULL
+AS
+BEGIN
+  EXEC tSQLt.Private_Run @TestName, 'tSQLt.XmlResultFormatter';
+END;
+GO
+
 CREATE PROCEDURE tSQLt.Private_Run
    @TestName NVARCHAR(MAX),
    @TestResultFormatter NVARCHAR(MAX)
@@ -569,7 +559,7 @@ SET NOCOUNT ON;
       EXEC tSQLt.Private_RunTest @FullName, @SetUp;
     END;
 
-    EXEC tSQLt.RunTestClassSummary @TestResultFormatter;
+    EXEC tSQLt.Private_OutputTestResults @TestResultFormatter;
 END;
 GO
 
@@ -682,7 +672,7 @@ BEGIN
   CLOSE tests;
   DEALLOCATE tests;
   
-  EXEC tSQLt.RunTestClassSummary @TestResultFormatter;
+  EXEC tSQLt.Private_OutputTestResults @TestResultFormatter;
 END;
 GO
 
