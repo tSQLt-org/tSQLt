@@ -36,6 +36,10 @@ BEGIN
        VALUES ('test email is not sent if we detected something other than higgs-boson', 'Success');
   INSERT INTO #Expected (TestCase, Result)
        VALUES ('test status message includes the number of particles', 'Success');
+  INSERT INTO #Expected (TestCase, Result)
+       VALUES ('test foreign key is not violated if Particle color is in Color table', 'Success');
+  INSERT INTO #Expected (TestCase, Result)
+       VALUES ('test foreign key violated if Particle color is not in Color table', 'Success');
   
   EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
