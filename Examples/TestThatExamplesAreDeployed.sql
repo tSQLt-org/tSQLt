@@ -34,6 +34,8 @@ BEGIN
        VALUES ('test email is sent if we detected a higgs-boson', 'Success');
   INSERT INTO #Expected (TestCase, Result)
        VALUES ('test email is not sent if we detected something other than higgs-boson', 'Success');
+  INSERT INTO #Expected (TestCase, Result)
+       VALUES ('test status message includes the number of particles', 'Success');
   
   EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
