@@ -2402,6 +2402,81 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt_test.[test NewTestClass should throw an error if the schema exists and is not a test schema]
+AS
+BEGIN
+    DECLARE @Err NVARCHAR(MAX); SET @Err = 'NO ERROR';
+    EXEC('CREATE SCHEMA MySchema;');
+
+    BEGIN TRY
+      EXEC tSQLt.NewTestClass 'MySchema';
+    END TRY
+    BEGIN CATCH
+      SET @Err = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @Err NOT LIKE '%Attempted to execute tSQLt.NewTestClass on ''MySchema''. However, ''MySchema'' is an existing schema and not a test class%'
+    BEGIN
+        EXEC tSQLt.Fail 'Unexpected error message was: ', @Err;
+    END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test NewTestClass should not drop an existing schema if it was not a test class]
+AS
+BEGIN
+    EXEC('CREATE SCHEMA MySchema;');
+    EXEC tSQLt.SpyProcedure 'tSQLt.DropClass';
+
+    BEGIN TRY
+      EXEC tSQLt.NewTestClass 'MySchema';
+    END TRY
+    BEGIN CATCH
+    END CATCH
+    
+    IF EXISTS(SELECT * FROM tSQLt.DropClass_SpyProcedureLog WHERE ClassName = 'MySchema') 
+    BEGIN
+        EXEC tSQLt.Fail 'Should not have called tSQLt.DropClass ''MySchema''';
+    END
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test NewTestClass can create schemas with the space character]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'My Test Class';
+  
+  IF SCHEMA_ID('My Test Class') IS NULL
+  BEGIN
+    EXEC tSQLt.Fail 'Should be able to create test class: My Test Class';
+  END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test NewTestClass can create schemas with the other special characters]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'My!@#$%^&*()Test-+=|\<>,.?/Class';
+  
+  IF SCHEMA_ID('My!@#$%^&*()Test-+=|\<>,.?/Class') IS NULL
+  BEGIN
+    EXEC tSQLt.Fail 'Should be able to create test class: My!@#$%^&*()Test-+=|\<>,.?/Class';
+  END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test NewTestClass can create schemas when the name is already quoted]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass '[My Test Class]';
+  
+  IF SCHEMA_ID('My Test Class') IS NULL
+  BEGIN
+    EXEC tSQLt.Fail 'Should be able to create test class: My Test Class';
+  END;
+END;
+GO
+
 CREATE PROC tSQLt_test.[test SpyProcedure works if spyee has 100 parameters with 8000 bytes each]
 AS
 BEGIN
