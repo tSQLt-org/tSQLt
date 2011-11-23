@@ -57,17 +57,58 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.Private_DisallowOverwritingNonTestSchema
+  @ClassName NVARCHAR(MAX)
+AS
+BEGIN
+  IF SCHEMA_ID(@ClassName) IS NOT NULL AND tSQLt.Private_IsTestClass(@ClassName) = 0
+  BEGIN
+    RAISERROR('Attempted to execute tSQLt.NewTestClass on ''%s''. However, ''MySchema'' is an existing schema and not a test class', 16, 10, @ClassName);
+  END
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_MarkSchemaAsTestClass
+  @QuotedClassName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @UnquotedClassName NVARCHAR(MAX);
+
+  SELECT @UnquotedClassName = name
+    FROM sys.schemas
+   WHERE QUOTENAME(name) = @QuotedClassName;
+
+  EXEC sp_addextendedproperty @name = N'tSQLt.TestClass', 
+                              @value = 1,
+                              @level0type = 'SCHEMA',
+                              @level0name = @UnquotedClassName;
+END;
+GO
+
+CREATE FUNCTION tSQLt.Private_QuoteClassNameForNewTestClass(@ClassName NVARCHAR(MAX))
+  RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+  RETURN 
+    CASE WHEN @ClassName LIKE '[[]%]' THEN @ClassName
+         ELSE QUOTENAME(@ClassName)
+     END;
+END;
+GO
+
 CREATE PROCEDURE tSQLt.NewTestClass
     @ClassName NVARCHAR(MAX)
 AS
 BEGIN
-    EXEC tSQLt.DropClass @ClassName = @ClassName;
-    EXEC ('CREATE SCHEMA ' + @ClassName);
-    
-    EXEC sp_addextendedproperty @name = N'tSQLt.TestClass', 
-                                @value = 1,
-                                @level0type = 'SCHEMA',
-                                @level0name = @ClassName;
+  EXEC tSQLt.Private_DisallowOverwritingNonTestSchema @ClassName;
+
+  EXEC tSQLt.DropClass @ClassName = @ClassName;
+
+  DECLARE @QuotedClassName NVARCHAR(MAX);
+  SELECT @QuotedClassName = tSQLt.Private_QuoteClassNameForNewTestClass(@ClassName);
+
+  EXEC ('CREATE SCHEMA ' + @QuotedClassName);  
+  EXEC tSQLt.Private_MarkSchemaAsTestClass @QuotedClassName;
 END;
 GO
 
@@ -1521,48 +1562,6 @@ BEGIN
       ELSE 0
     END;
 END;
-GO
-
---CREATE FUNCTION tSQLt.Private_ResolveName(@Name NVARCHAR(MAX))
---RETURNS TABLE 
---AS
---RETURN
---  WITH ids(schemaId, objectSchemaId, objectId) AS
---       (SELECT tSQLt.Private_GetSchemaId(@Name),
---               SCHEMA_ID(OBJECT_SCHEMA_NAME(OBJECT_ID(@Name))),
---               OBJECT_ID(@Name)
---       ),
---       combined_ids(schemaId, objectId) AS 
---        (SELECT COALESCE(schemaId, objectSchemaId),
---                CASE WHEN schemaId IS NULL THEN objectId ELSE NULL END
---           FROM ids
---        ),
---       idsWithNames(schemaId, objectId, quotedSchemaName, quotedObjectName) AS
---        (SELECT schemaId, objectId,
---         QUOTENAME(SCHEMA_NAME(schemaId)) AS quotedSchemaName, 
---         QUOTENAME(OBJECT_NAME(objectId)) AS quotedObjectName
---         FROM combined_ids
---        )
---  SELECT schemaId, 
---         objectId, 
---         quotedSchemaName,
---         quotedObjectName,
---         CASE WHEN schemaId IS NOT NULL AND objectId IS NOT NULL
---               THEN quotedSchemaName + '.' + quotedObjectName
---              WHEN schemaId IS NOT NULL
---               THEN quotedSchemaName
---              ELSE NULL
---         END AS quotedFullName, 
---         CASE WHEN EXISTS(SELECT 1 FROM tSQLt.Private_TestClasses WHERE Private_TestClasses.schema_id = idsWithNames.schemaId)
---               THEN 1
---              ELSE 0
---         END AS isTestClass, 
---         CASE WHEN quotedObjectName LIKE '[[]test%]' 
---               AND objectId = OBJECT_ID(quotedSchemaName + '.' + quotedObjectName,'P') 
---              THEN 1 ELSE 0 END AS isTestCase, 
---         CASE WHEN schemaId IS NOT NULL AND objectId IS NULL THEN 1 ELSE 0 END AS isSchema
---    FROM idsWithNames;
-    
 GO
 
 CREATE FUNCTION tSQLt.Private_ResolveSchemaName(@Name NVARCHAR(MAX))
