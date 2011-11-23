@@ -25,8 +25,9 @@
 		<copy file="../Source/tSQLt.class.sql" todir="output"/>
 		<copy file="../Source/tSQLtCLR_CreateProcs.sql" todir="output"/>
 		<copy file="../Source/SetClrEnabled.sql" todir="output"/>
-		<copy file="ReleaseNotes.txt" todir="output"/>
-	</target>
+  <copy file="ReleaseNotes.txt" todir="output"/>
+  <copy file="License.txt" todir="output"/>
+ </target>
 
 	<target name="package.construct.tsqlt">
   <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
@@ -40,7 +41,7 @@
 	</target>
 
  <target name="package.example">
-  <concat destfile="output/example.sql" append="yes" fixlastline="yes" eol="crlf">
+  <concat destfile="output/Example.sql" append="yes" fixlastline="yes" eol="crlf">
    <filelist dir="../Examples" files="CreateDatabase.sql"/>
    <filelist dir="output" files="tSQLt.class.sql"/>
    <filelist dir="../Examples" files="Source.sql"/>
@@ -50,10 +51,11 @@
 
  <target name="package.create">
 		<zip destfile="output/tSQLt.zip">
-			<fileset file="output/ReleaseNotes.txt"/>
-			<fileset file="output/tSQLt.class.sql"/>
+   <fileset file="output/ReleaseNotes.txt"/>
+   <fileset file="output/License.txt"/>
+   <fileset file="output/tSQLt.class.sql"/>
 			<fileset file="output/SetClrEnabled.sql"/>
-   <fileset file="output/example.sql"/>
+   <fileset file="output/Example.sql"/>
   </zip>
 		<delete>
 			<fileset dir="output" excludes="*.zip"/>
@@ -184,7 +186,7 @@
  <target name="create.example.database">
   <concat destfile="test/ExampleToRun.sql" append="yes" fixlastline="yes" eol="crlf">
    <filelist dir="../Examples" files="ExecuteAsSa.sql"/>
-   <filelist dir="test" files="example.sql"/>
+   <filelist dir="test" files="Example.sql"/>
   </concat>
 
   <exec executable="cmd" failonerror="true">
