@@ -1,12 +1,13 @@
 DECLARE @Msg NVARCHAR(MAX);SELECT @Msg = 'Compiled at '+CONVERT(NVARCHAR,GETDATE(),121);RAISERROR(@Msg,0,1);
 GO
-IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
-    EXEC tSQLt.DropClass tSQLt;
-GO
 
 IF TYPE_ID('tSQLt.Private') IS NOT NULL DROP TYPE tSQLt.Private;
 IF TYPE_ID('tSQLtPrivate') IS NOT NULL DROP TYPE tSQLtPrivate;
 GO
+IF OBJECT_ID('tSQLt.DropClass') IS NOT NULL
+    EXEC tSQLt.DropClass tSQLt;
+GO
+
 IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
     DROP ASSEMBLY tSQLtCLR;
 GO
@@ -446,10 +447,11 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.RunTestClassSummary
+  @TestResultFormatter NVARCHAR(MAX) = NULL
 AS
 BEGIN
     DECLARE @Formatter NVARCHAR(MAX);
-    SELECT @Formatter = tSQLt.GetTestResultFormatter();
+    SELECT @Formatter = COALESCE(@TestResultFormatter, tSQLt.GetTestResultFormatter());
     EXEC (@Formatter);
 END
 GO
@@ -520,12 +522,16 @@ CREATE PROCEDURE tSQLt.Run
    @TestName NVARCHAR(MAX) = NULL
 AS
 BEGIN
-  EXEC tSQLt.Private_Run @TestName;
+  DECLARE @TestResultFormatter NVARCHAR(MAX);
+  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
+  
+  EXEC tSQLt.Private_Run @TestName, @TestResultFormatter;
 END;
 GO
 
 CREATE PROCEDURE tSQLt.Private_Run
-   @TestName NVARCHAR(MAX) = NULL
+   @TestName NVARCHAR(MAX),
+   @TestResultFormatter NVARCHAR(MAX)
 AS
 BEGIN
 SET NOCOUNT ON;
@@ -551,10 +557,6 @@ SET NOCOUNT ON;
     IF @IsSchema = 1
     BEGIN
         EXEC tSQLt.Private_RunTestClass @FullName;
-        --IF @IsTestCase = 0
-        --BEGIN
-        -- -- Needs to be deprecated
-        --END
     END
     
     IF @IsTestCase = 1
@@ -567,7 +569,7 @@ SET NOCOUNT ON;
       EXEC tSQLt.Private_RunTest @FullName, @SetUp;
     END;
 
-    EXEC tSQLt.RunTestClassSummary;
+    EXEC tSQLt.RunTestClassSummary @TestResultFormatter;
 END;
 GO
 
@@ -646,6 +648,17 @@ GO
 CREATE PROCEDURE tSQLt.RunAll
 AS
 BEGIN
+  DECLARE @TestResultFormatter NVARCHAR(MAX);
+  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
+  
+  EXEC tSQLt.Private_RunAll @TestResultFormatter;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_RunAll
+  @TestResultFormatter NVARCHAR(MAX)
+AS
+BEGIN
   SET NOCOUNT ON;
   DECLARE @TestClassName NVARCHAR(MAX);
   DECLARE @TestProcName NVARCHAR(MAX);
@@ -669,7 +682,7 @@ BEGIN
   CLOSE tests;
   DEALLOCATE tests;
   
-  EXEC tSQLt.RunTestClassSummary;
+  EXEC tSQLt.RunTestClassSummary @TestResultFormatter;
 END;
 GO
 

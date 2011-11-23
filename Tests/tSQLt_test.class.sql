@@ -4353,11 +4353,13 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Run calls Private_Run with DefaultResultFormatter]
+CREATE PROCEDURE tSQLt_test.[test Run calls Private_Run with configured Test Result Formatter]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
-  
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt',@ObjectName='GetTestResultFormatter';
+  EXEC('CREATE FUNCTION tSQLt.GetTestResultFormatter() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''CorrectResultFormatter''; END;');
+ 
   EXEC tSQLt.Run 'SomeTest';
   
   SELECT TestName,TestResultFormatter
@@ -4365,7 +4367,7 @@ BEGIN
     FROM tSQLt.Private_Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','DefaultResultFormatter');
+  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','CorrectResultFormatter');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -4383,10 +4385,65 @@ BEGIN
     FROM tSQLt.RunTestClassSummary_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #expected(TestResultFormatter)VALUES('SomeTestResultFormatter');
+  INSERT INTO #Expected(TestResultFormatter)VALUES('SomeTestResultFormatter');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+
+CREATE PROCEDURE tSQLt_test.[test RunTestClassSummary uses the TestResultFormatter parameter]
+AS
+BEGIN
+  EXEC('CREATE PROC tSQLt_test.TemporaryTestResultFormatter AS RAISERROR(''GotHere'',16,10);');
+  
+  BEGIN TRY
+    EXEC tSQLt.RunTestClassSummary 'tSQLt_test.TemporaryTestResultFormatter';
+  END TRY
+  BEGIN CATCH
+    IF(ERROR_MESSAGE() LIKE '%GotHere%') RETURN 0;
+  END CATCH
+  EXEC tSQLt.Fail 'tSQLt_test.TemporaryTestResultFormatter did not get called correctly';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test RunAll calls Private_RunAll with configured Test Result Formatter]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_RunAll';
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt',@ObjectName='GetTestResultFormatter';
+  EXEC('CREATE FUNCTION tSQLt.GetTestResultFormatter() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''CorrectResultFormatter''; END;');
+ 
+  EXEC tSQLt.RunAll;
+  
+  SELECT TestResultFormatter
+    INTO #Actual
+    FROM tSQLt.Private_RunAll_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #Expected(TestResultFormatter) VALUES ('CorrectResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test Private_RunAll calls tSQLt.RunTestClassSummary with passed in TestResultFormatter]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.RunTestClassSummary';
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_RunTestClass';
+  
+  EXEC tSQLt.Private_RunAll 'SomeTestResultFormatter';
+  
+  SELECT TestResultFormatter
+    INTO #Actual
+    FROM tSQLt.RunTestClassSummary_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #Expected(TestResultFormatter)VALUES('SomeTestResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
 --ROLLBACK
 --tSQLt_test
