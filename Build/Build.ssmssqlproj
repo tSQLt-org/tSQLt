@@ -41,6 +41,12 @@
           <AssociatedConnUserName />
           <FullPath>CreateAssemblyGenerator.exe</FullPath>
         </FileNode>
+        <FileNode Name="License.txt">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>License.txt</FullPath>
+        </FileNode>
         <FileNode Name="NewRelease.doc">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
