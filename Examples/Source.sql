@@ -60,3 +60,16 @@ BEGIN
   END;
 END;
 GO
+
+IF OBJECT_ID('Accelerator.GetStatusMessage') IS NOT NULL DROP FUNCTION Accelerator.GetStatusMessage;
+GO
+
+CREATE FUNCTION Accelerator.GetStatusMessage()
+  RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @NumParticles INT;
+  SELECT @NumParticles = COUNT(1) FROM Accelerator.Particle;
+  RETURN 'The Accelerator is prepared with ' + CAST(@NumParticles AS NVARCHAR(MAX)) + ' particles.';
+END;
+GO
