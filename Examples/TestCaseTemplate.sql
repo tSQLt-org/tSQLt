@@ -20,5 +20,3 @@ BEGIN
   EXEC tSQLt.Fail 'TODO:Implement this test.'
   
 END;
-GO
-
