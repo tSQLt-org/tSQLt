@@ -1,6 +1,6 @@
 <project name="tSQLt.sourceforge" default="all">
 
- <target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
+ <target name="all" depends="init, clr.compile, package.files.copy, set.build.version, package.construct.tsqlt, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
  <target name="all2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.install.2008.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
  <target name="refresh" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema, db.refresh.tests"/>
  <target name="refresh2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, db.refresh.schema, db.refresh.tests, db.refresh.2008.tests"/>
@@ -19,6 +19,13 @@
 			<arg value="/c"/>
 			<arg value="${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
 		</exec>
+
+  <exec executable="cmd" dir="." failonerror="true" outputproperty="clr.version">
+   <arg value="/c"/>
+   <arg value="cscript //nologo VersionInfo.vbs ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll"/>
+  </exec>
+
+  <echo message="CLR Version is: ${clr.version}"/>
 	</target>
 
 	<target name="package.files.copy">
@@ -29,7 +36,11 @@
   <copy file="License.txt" todir="output"/>
  </target>
 
-	<target name="package.construct.tsqlt">
+ <target name="set.build.version">
+  <replace file="output/ReleaseNotes.txt" token="LATEST-BUILD-NUMBER" value="${clr.version}"/>
+ </target>
+   
+ <target name="package.construct.tsqlt">
   <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
 			<arg value="/c"/>
 			<arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll EXTERNAL_ACCESS"/>

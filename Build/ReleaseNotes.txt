@@ -3,7 +3,7 @@ tSQLt Release Notes
 An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
-build.13:
+Release: LATEST-BUILD-NUMBER
 
 BUG FIXES:
 1. tSQLt.NewTestClass now handles schema names with spaces and other special characters
