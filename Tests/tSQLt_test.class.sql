@@ -4485,5 +4485,64 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt_test.[test NullTestResultFormatter prints no results from the tests]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable 'tSQLt.TestResult';
+  
+  INSERT INTO tSQLt.TestResult (TestCase) VALUES ('MyTest');
+  
+  EXEC tSQLt.CaptureOutput 'EXEC tSQLt.NullTestResultFormatter';
+  
+  SELECT OutputText
+  INTO #actual
+  FROM tSQLt.CaptureOutputLog;
+  
+  SELECT TOP(0) *
+  INTO #expected 
+  FROM #actual;
+  
+  INSERT INTO #expected(OutputText)VALUES(NULL);
+  
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+
+
+CREATE PROCEDURE tSQLt_test.[test RunWithNullResults calls Private_Run with NullTestResultFormatter]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+ 
+  EXEC tSQLt.RunWithNullResults 'SomeTest';
+  
+  SELECT TestName,TestResultFormatter
+    INTO #Actual
+    FROM tSQLt.Private_Run_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.NullTestResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE tSQLt_test.[test RunWithNullResults passes NULL as TestName if called without parmameters]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+ 
+  EXEC tSQLt.RunWithNullResults;
+  
+  SELECT TestName
+    INTO #Actual
+    FROM tSQLt.Private_Run_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #expected(TestName)VALUES(NULL);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
 --ROLLBACK
 --tSQLt_test

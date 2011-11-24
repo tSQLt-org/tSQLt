@@ -484,6 +484,13 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.NullTestResultFormatter
+AS
+BEGIN
+  RETURN 0;
+END;
+GO
+
 CREATE PROCEDURE tSQLt.Private_OutputTestResults
   @TestResultFormatter NVARCHAR(MAX) = NULL
 AS
@@ -572,6 +579,14 @@ CREATE PROCEDURE tSQLt.RunWithXmlResults
 AS
 BEGIN
   EXEC tSQLt.Private_Run @TestName, 'tSQLt.XmlResultFormatter';
+END;
+GO
+
+CREATE PROCEDURE tSQLt.RunWithNullResults
+    @TestName NVARCHAR(MAX) = NULL
+AS
+BEGIN
+  EXEC tSQLt.Private_Run @TestName, 'tSQLt.NullTestResultFormatter';
 END;
 GO
 
