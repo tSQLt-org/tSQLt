@@ -3,6 +3,22 @@ tSQLt Release Notes
 An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
+build.13:
+
+BUG FIXES:
+1. tSQLt.NewTestClass now handles schema names with spaces and other special characters
+2. tSQLt.NewTestClass now handles if a quoted name is passed for the new schema name
+
+NEW FEATURES:
+1. tSQLt.Uninstall removes tSQLt from the database
+2. tSQLt.RunWithXmlResults executes like tSQLt.Run, but produces results is XML
+3. tSQLt.TestClasses is a view that lists properties of test classes
+4. tSQLt.Tests is a view that lists properties of test cases
+5. Example.sql includes an example database and is referenced by the updated Quick Start
+(http://tsqlt.org/quick-start)
+
+---------------------------
+
 build.12:
 
 BUG FIXES:
