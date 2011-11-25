@@ -38,6 +38,7 @@
 
  <target name="set.build.version">
   <replace file="output/ReleaseNotes.txt" token="LATEST-BUILD-NUMBER" value="${clr.version}"/>
+  <replace file="output/tSQLtCLR_CreateProcs.sql" token="$LATEST-BUILD-NUMBER$" value="${clr.version}"/>
  </target>
    
  <target name="package.construct.tsqlt">
