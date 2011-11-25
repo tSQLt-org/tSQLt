@@ -139,3 +139,11 @@ BEGIN
    EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName,@ObjectName, @NewName OUTPUT;
 END;
 GO
+
+CREATE FUNCTION tSQLt.Info()
+RETURNS TABLE
+AS
+RETURN
+SELECT
+Version = '$LATEST-BUILD-NUMBER$';
+GO
