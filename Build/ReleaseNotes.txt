@@ -3,7 +3,7 @@ tSQLt Release Notes
 An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
-Release: LATEST-BUILD-NUMBER
+Release: LATEST-BUILD-NUMBER 
 
 BUG FIXES:
 1. tSQLt.NewTestClass now handles schema names with spaces and other special characters
@@ -15,8 +15,11 @@ NEW FEATURES:
 3. tSQLt.TestClasses is a view that lists properties of test classes
 4. tSQLt.Tests is a view that lists properties of test cases
 5. Example.sql includes an example database and is referenced by the updated Quick Start
-(http://tsqlt.org/quick-start)
+   (http://tsqlt.org/quick-start)
+6. tSQLt.Info() provides information about the installed version of tSQLt.
 
+OTHER:
+1. New numbering system for the tSQLt builds. The current version is: LATEST-BUILD-NUMBER
 ---------------------------
 
 build.12:
