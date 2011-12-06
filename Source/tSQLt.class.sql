@@ -652,22 +652,23 @@ RETURN WITH A(Cnt, SuccessCnt, FailCnt, ErrorCnt) AS (
          FROM A;
 GO
 
-CREATE FUNCTION tSQLt.GetFullTypeName(@TypeId INT, @Length INT, @Precision INT, @Scale INT )
+CREATE FUNCTION tSQLt.Private_GetFullTypeName(@TypeId INT, @Length INT, @Precision INT, @Scale INT )
 RETURNS TABLE
 AS
-RETURN SELECT typeName = TYPE_NAME(@TypeId) +
-              CASE WHEN TYPE_NAME(@TypeId) = 'xml'
+RETURN SELECT typeName = QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) +
+              CASE WHEN name = 'xml'
                     THEN ''
                    WHEN @Length = -1
                     THEN '(MAX)'
-                   WHEN TYPE_NAME(@TypeId) LIKE 'n%char'
+                   WHEN name LIKE 'n%char'
                     THEN '(' + CAST(@Length / 2 AS NVARCHAR) + ')'
-                   WHEN TYPE_NAME(@TypeId) LIKE '%char' OR TYPE_NAME(@TypeId) LIKE '%binary'
+                   WHEN name LIKE '%char' OR name LIKE '%binary'
                     THEN '(' + CAST(@Length AS NVARCHAR) + ')'
-                   WHEN TYPE_NAME(@TypeId) IN ('decimal', 'numeric')
+                   WHEN name IN ('decimal', 'numeric')
                     THEN '(' + CAST(@Precision AS NVARCHAR) + ',' + CAST(@Scale AS NVARCHAR) + ')'
                    ELSE ''
-               END;
+               END
+          FROM sys.types WHERE user_type_id = @TypeId;
 
 GO
 
@@ -793,7 +794,7 @@ BEGIN
     DECLARE Parameters CURSOR FOR
      SELECT p.name, t.typeName, is_output, is_cursor_ref
        FROM sys.parameters p
-       CROSS APPLY tSQLt.GetFullTypeName(p.user_type_id,p.max_length,p.precision,p.scale) t
+       CROSS APPLY tSQLt.Private_GetFullTypeName(p.user_type_id,p.max_length,p.precision,p.scale) t
       WHERE object_id = OBJECT_ID(@ProcedureName);
     
     OPEN Parameters;
@@ -816,7 +817,7 @@ BEGIN
                                WHEN @TypeName LIKE '%char%'
                                THEN 'varchar(MAX)'
                                ELSE @TypeName
-                          END;
+                          END + ' NULL';
 
             SELECT @Seperator = ',';        
             SELECT @ProcParmTypeListSeparater = ',';
