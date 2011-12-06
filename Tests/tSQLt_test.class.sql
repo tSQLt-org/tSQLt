@@ -285,6 +285,56 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test SpyProcedure should allow NULL values for sysname parms]
+AS
+BEGIN
+  EXEC('CREATE PROC dbo.InnerProcedure @P1 sysname ' +
+       'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@P1;');
+
+  EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
+
+  EXEC dbo.InnerProcedure NULL;
+
+  SELECT P1
+    INTO #Actual
+    FROM dbo.InnerProcedure_SpyProcedureLog;
+
+  SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+
+  INSERT INTO #Expected(P1) VALUES(NULL);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC tSQLt_test.[test SpyProcedure should allow NULL values for user defined types created as not nullable]
+AS
+BEGIN
+  EXEC ('CREATE TYPE tSQLt_test.MyType FROM INT NOT NULL;');
+  
+  EXEC('CREATE PROC dbo.InnerProcedure @P1 tSQLt_test.MyType ' +
+       'AS EXEC tSQLt.Fail ''InnerProcedure was executed '',@P1;');
+
+  EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
+
+  EXEC dbo.InnerProcedure NULL;
+
+  SELECT P1
+    INTO #Actual
+    FROM dbo.InnerProcedure_SpyProcedureLog;
+
+  SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+
+  INSERT INTO #Expected(P1) VALUES(NULL);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
 CREATE PROC tSQLt_test.[test SpyProcedure should log call when output parameters are present]
 AS
 BEGIN
@@ -462,18 +512,41 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test.[test SpyProcedure handles procedure names with spaces]
+AS
+BEGIN
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
+
+    EXEC('CREATE PROC tSQLt_test.[Spyee Proc] AS RETURN 0;');
+
+    EXEC tSQLt.SpyProcedure 'tSQLt_test.[Spyee Proc]'
+    
+    EXEC tSQLt_test.[Spyee Proc];
+    
+    SELECT *
+      INTO #Actual
+      FROM tSQLt_test.[Spyee Proc_SpyProcedureLog];
+    
+    SELECT 1 _id_
+      INTO #Expected
+     WHERE 0=1;
+
+    INSERT #Expected
+    SELECT 1;
+    
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
 CREATE PROC tSQLt_test.test_getFullTypeName_shouldProperlyReturnIntParameters
 AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('int'), NULL, NULL, NULL);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('int'), NULL, NULL, NULL);
 
-    IF ISNULL(@Result,'') <> 'int'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned int, but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[int]', @Result;
 END
 GO
 
@@ -482,13 +555,10 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('varchar'), 8, NULL, NULL);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('varchar'), 8, NULL, NULL);
 
-    IF ISNULL(@Result,'') <> 'varchar(8)'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned varchar(8), but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[varchar](8)', @Result;
 END
 GO
 
@@ -497,13 +567,10 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('nvarchar'), 8, NULL, NULL);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('nvarchar'), 8, NULL, NULL);
 
-    IF ISNULL(@Result,'') <> 'nvarchar(4)'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned nvarchar(4), but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[nvarchar](4)', @Result;
 END
 GO
 
@@ -512,13 +579,10 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('varchar'), -1, NULL, NULL);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('varchar'), -1, NULL, NULL);
 
-    IF ISNULL(@Result,'') <> 'varchar(MAX)'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned varchar(MAX), but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[varchar](MAX)', @Result;
 END
 GO
 
@@ -527,13 +591,10 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('varbinary'), -1, NULL, NULL);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('varbinary'), -1, NULL, NULL);
 
-    IF ISNULL(@Result,'') <> 'varbinary(MAX)'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned varbinary(MAX), but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[varbinary](MAX)', @Result;
 END
 GO
 
@@ -542,13 +603,10 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('decimal'), NULL, 12,13);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('decimal'), NULL, 12,13);
 
-    IF ISNULL(@Result,'') <> 'decimal(12,13)'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned decimal(12,13), but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[decimal](12,13)', @Result;
 END
 GO
 
@@ -557,13 +615,10 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('int'), 1, 1,1);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('int'), 1, 1,1);
 
-    IF ISNULL(@Result,'') <> 'int'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned int, but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[int]', @Result;
 END;
 GO
 
@@ -572,13 +627,10 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = COALESCE(typeName, '<NULL>')
-     FROM tSQLt.GetFullTypeName(TYPE_ID('xml'), -1, 0, 0);
+    SELECT @Result = typeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('xml'), -1, 0, 0);
 
-    IF ISNULL(@Result,'') <> 'xml'
-    BEGIN
-        EXEC tSQLt.Fail 'getFullTypeName should have returned xml, but returned ', @Result, ' instead';
-    END
+    EXEC tSQLt.AssertEqualsString '[sys].[xml]', @Result;
 END;
 GO
 
@@ -2341,32 +2393,6 @@ BEGIN
       FROM tSQLt.Run_LastExecution;
       
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
-END;
-GO
-
-CREATE PROC tSQLt_test.test_SpyProcedure_handles_procedure_names_with_spaces
-AS
-BEGIN
-    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
-
-    EXEC('CREATE PROC tSQLt_test.[Spyee Proc] AS RETURN 0;');
-
-    EXEC tSQLt.SpyProcedure 'tSQLt_test.[Spyee Proc]'
-    
-    EXEC tSQLt_test.[Spyee Proc];
-    
-    SELECT *
-      INTO #Actual
-      FROM tSQLt_test.[Spyee Proc_SpyProcedureLog];
-    
-    SELECT 1 _id_
-      INTO #Expected
-     WHERE 0=1;
-
-    INSERT #Expected
-    SELECT 1;
-    
-    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
