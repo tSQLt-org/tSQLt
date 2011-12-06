@@ -3113,25 +3113,65 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test RunTestClass executes the SetUp for each test case]
+CREATE PROC tSQLt_test.[test SetUp can be spelled with any casing]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+    EXEC tSQLt.NewTestClass 'A';
+    EXEC tSQLt.NewTestClass 'B';
+    
+    CREATE TABLE A.SetUpLog (i INT DEFAULT 1);
+    CREATE TABLE B.SetUpLog (i INT DEFAULT 1);
+    
+    CREATE TABLE tSQLt_test.SetUpLog (i INT);
+    INSERT INTO tSQLt_test.SetUpLog (i) VALUES (1);
+    
+    EXEC ('CREATE PROC A.setup AS INSERT INTO A.SetUpLog DEFAULT VALUES;');
+    EXEC ('CREATE PROC A.testA AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''A.SetUpLog'';');
+    EXEC ('CREATE PROC B.SETUP AS INSERT INTO B.SetUpLog DEFAULT VALUES;');
+    EXEC ('CREATE PROC B.testB AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''B.SetUpLog'';');
+    
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.RunAll;
+
+    SELECT Class, TestCase, Result
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected (Class, TestCase, Result)
+    SELECT Class = 'A', TestCase = 'testA', Result = 'Success' UNION ALL
+    SELECT Class = 'B', TestCase = 'testB', Result = 'Success';
+
+    SELECT Class, TestCase, Result
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Run executes the SetUp for each test case in test class]
 AS
 BEGIN
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
     
-    CREATE TABLE MyTestClass.SetUpLog (i INT DEFAULT 1);
+    CREATE TABLE MyTestClass.SetUpLog (SetupCalled INT);
     
-    CREATE TABLE tSQLt_test.SetUpLog (i INT);
-    INSERT INTO tSQLt_test.SetUpLog (i) VALUES (1);
+    CREATE TABLE tSQLt_test.SetUpLog (SetupCalled INT);
+    INSERT INTO tSQLt_test.SetUpLog VALUES (1);
     
-    EXEC ('CREATE PROC MyTestClass.SetUp AS INSERT INTO MyTestClass.SetUpLog DEFAULT VALUES;');
+    EXEC ('CREATE PROC MyTestClass.SetUp AS INSERT INTO MyTestClass.SetUpLog VALUES (1);');
     EXEC ('CREATE PROC MyTestClass.test1 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''MyTestClass.SetUpLog'';');
     EXEC ('CREATE PROC MyTestClass.test2 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''MyTestClass.SetUpLog'';');
     
     DELETE FROM tSQLt.TestResult;
     
-    EXEC tSQLt.RunTestClass 'MyTestClass';
+    EXEC tSQLt.RunWithNullResults 'MyTestClass';
 
     SELECT Class, TestCase, Result
       INTO #Expected
@@ -3141,6 +3181,41 @@ BEGIN
     INSERT INTO #Expected (Class, TestCase, Result)
     SELECT Class = 'MyTestClass', TestCase = 'test1', Result = 'Success' UNION ALL
     SELECT Class = 'MyTestClass', TestCase = 'test2', Result = 'Success';
+
+    SELECT Class, TestCase, Result
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
+END;
+GO
+
+CREATE PROC tSQLt_test.[test Run executes the SetUp if called for single test]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    
+    CREATE TABLE MyTestClass.SetUpLog (SetupCalled INT);
+    
+    CREATE TABLE tSQLt_test.SetUpLog (SetupCalled INT);
+    INSERT INTO tSQLt_test.SetUpLog VALUES (1);
+    
+    EXEC ('CREATE PROC MyTestClass.SetUp AS INSERT INTO MyTestClass.SetUpLog VALUES (1);');
+    EXEC ('CREATE PROC MyTestClass.test1 AS EXEC tSQLt.AssertEqualsTable ''tSQLt_test.SetUpLog'', ''MyTestClass.SetUpLog'';');
+    
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.RunWithNullResults 'MyTestClass.test1';
+
+    SELECT Class, TestCase, Result
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected (Class, TestCase, Result)
+    SELECT Class = 'MyTestClass', TestCase = 'test1', Result = 'Success';
 
     SELECT Class, TestCase, Result
       INTO #Actual

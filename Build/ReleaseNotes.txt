@@ -9,6 +9,10 @@ Release: LATEST-BUILD-NUMBER
 BUG FIXES:
 1. tSQLt.SpyProcedure can handle user defined types. User defined types may be in schemas and
    may also be not nullable.
+
+NEW FEATURES:   
+1. SetUp can be named in any combination of upper or lower case characters (e.g. setup, SETUP,
+   SeTuP, etc). 
 ---------------------------
 
 Release: V1.0.4351.28410

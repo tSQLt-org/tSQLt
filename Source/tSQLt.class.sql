@@ -563,33 +563,6 @@ AS
    WHERE LOWER(procs.name) LIKE 'test%';
 GO
 
-CREATE PROCEDURE tSQLt.Run
-   @TestName NVARCHAR(MAX) = NULL
-AS
-BEGIN
-  DECLARE @TestResultFormatter NVARCHAR(MAX);
-  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
-  
-  EXEC tSQLt.Private_Run @TestName, @TestResultFormatter;
-END;
-GO
-
-CREATE PROCEDURE tSQLt.RunWithXmlResults
-   @TestName NVARCHAR(MAX) = NULL
-AS
-BEGIN
-  EXEC tSQLt.Private_Run @TestName, 'tSQLt.XmlResultFormatter';
-END;
-GO
-
-CREATE PROCEDURE tSQLt.RunWithNullResults
-    @TestName NVARCHAR(MAX) = NULL
-AS
-BEGIN
-  EXEC tSQLt.Private_Run @TestName, 'tSQLt.NullTestResultFormatter';
-END;
-GO
-
 CREATE PROCEDURE tSQLt.Private_Run
    @TestName NVARCHAR(MAX),
    @TestResultFormatter NVARCHAR(MAX)
@@ -633,6 +606,34 @@ SET NOCOUNT ON;
     EXEC tSQLt.Private_OutputTestResults @TestResultFormatter;
 END;
 GO
+
+CREATE PROCEDURE tSQLt.Run
+   @TestName NVARCHAR(MAX) = NULL
+AS
+BEGIN
+  DECLARE @TestResultFormatter NVARCHAR(MAX);
+  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
+  
+  EXEC tSQLt.Private_Run @TestName, @TestResultFormatter;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.RunWithXmlResults
+   @TestName NVARCHAR(MAX) = NULL
+AS
+BEGIN
+  EXEC tSQLt.Private_Run @TestName, 'tSQLt.XmlResultFormatter';
+END;
+GO
+
+CREATE PROCEDURE tSQLt.RunWithNullResults
+    @TestName NVARCHAR(MAX) = NULL
+AS
+BEGIN
+  EXEC tSQLt.Private_Run @TestName, 'tSQLt.NullTestResultFormatter';
+END;
+GO
+
 
 CREATE FUNCTION tSQLt.TestCaseSummary()
 RETURNS TABLE
@@ -682,7 +683,7 @@ BEGIN
     SELECT @SetUp = tSQLt.Private_GetQuotedFullName(object_id)
       FROM sys.procedures
      WHERE schema_id = tSQLt.Private_GetSchemaId(@TestClassName)
-       AND name = 'SetUp';
+       AND LOWER(name) = 'setup';
 
     DECLARE testCases CURSOR LOCAL FAST_FORWARD 
         FOR
