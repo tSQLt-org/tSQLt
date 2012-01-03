@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_R2:DLLOYD\Dennis">
+        <ConnectionNode Name="Dev_R2:MYMACWIN7\meinse00">
           <Created>2011-11-01T16:16:06.1091304-04:00</Created>
           <Type>SQL</Type>
           <Server>Dev_R2</Server>
