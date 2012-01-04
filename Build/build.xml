@@ -29,7 +29,12 @@
 	</target>
 
 	<target name="package.files.copy">
-		<copy file="../Source/tSQLt.class.sql" todir="output"/>
+  <exec executable="cmd" dir="../Source/" failonerror="true" outputproperty="clr.version">
+   <arg value="/c"/>
+   <arg value="../Build/BuildHelper.exe BuildOrder.txt ../Build/output/test.sql"/>
+  </exec>
+
+  <copy file="../Source/tSQLt.class.sql" todir="output"/>
 		<copy file="../Source/tSQLtCLR_CreateProcs.sql" todir="output"/>
 		<copy file="../Source/SetClrEnabled.sql" todir="output"/>
   <copy file="ReleaseNotes.txt" todir="output"/>
