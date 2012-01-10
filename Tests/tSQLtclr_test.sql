@@ -606,8 +606,8 @@ GO
 CREATE PROC tSQLtclr_test.[test tSQLt.Info.Version and tSQLt.Private::info() return the same value]
 AS
 BEGIN
-  DECLARE @tSQLtVersion NVARCHAR(MAX) = (SELECT Version FROM tSQLt.Info());
-  DECLARE @tSQLtPrivateVersion NVARCHAR(MAX) = (SELECT tSQLt.Private::Info());
+  DECLARE @tSQLtVersion NVARCHAR(MAX); SET @tSQLtVersion = (SELECT Version FROM tSQLt.Info());
+  DECLARE @tSQLtPrivateVersion NVARCHAR(MAX); SET @tSQLtPrivateVersion = (SELECT tSQLt.Private::Info());
   EXEC tSQLt.AssertEqualsString @tSQLtVersion, @tSQLtPrivateVersion;
 END;
 GO
@@ -615,8 +615,8 @@ GO
 CREATE PROC tSQLtclr_test.[test tSQLt.Info.ClrVersion and tSQLt.Private::info() return the same value]
 AS
 BEGIN
-  DECLARE @tSQLtClrVersion NVARCHAR(MAX) = (SELECT ClrVersion FROM tSQLt.Info());
-  DECLARE @tSQLtPrivateVersion NVARCHAR(MAX) = (SELECT tSQLt.Private::Info());
+  DECLARE @tSQLtClrVersion NVARCHAR(MAX); SET @tSQLtClrVersion = (SELECT ClrVersion FROM tSQLt.Info());
+  DECLARE @tSQLtPrivateVersion NVARCHAR(MAX); SET @tSQLtPrivateVersion = (SELECT tSQLt.Private::Info());
   EXEC tSQLt.AssertEqualsString @tSQLtClrVersion, @tSQLtPrivateVersion;
 END;
 GO
@@ -624,7 +624,7 @@ GO
 CREATE PROC tSQLtclr_test.[test tSQLt.Info.ClrVersion uses tSQLt.Private::info()]
 AS
 BEGIN
-  DECLARE @tSQLtInfoText NVARCHAR(MAX) = OBJECT_DEFINITION(OBJECT_ID('tSQLt.Info'));
+  DECLARE @tSQLtInfoText NVARCHAR(MAX); SET @tSQLtInfoText = OBJECT_DEFINITION(OBJECT_ID('tSQLt.Info'));
   IF( @tSQLtInfoText NOT LIKE '%ClrVersion = (SELECT tSQLt.Private::Info())%')
   BEGIN
     EXEC tSQLt.Fail 'Expected @tSQLtInfoText LIKE ''ClrVersion = (SELECT tSQLt.Private::Info())'' but was:',@tSQLtInfoText;
