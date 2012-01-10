@@ -1,9 +1,14 @@
 <project name="tSQLt.sourceforge" default="all">
 
- <target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
- <target name="all2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.install.2008.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
- <target name="refresh" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, db.refresh.schema, db.refresh.tests"/>
- <target name="refresh2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, db.refresh.schema, db.refresh.tests, db.refresh.2008.tests"/>
+ <target name="all"         depends="build.and.extract.package, db.recreate, install, execute.tests"/>
+ <target name="all2008"     depends="build.and.extract.package, db.recreate, install.2008, execute.tests"/>
+ <target name="refresh"     depends="build.and.extract.package, install"/>
+ <target name="refresh2008" depends="build.and.extract.package, install.2008"/>
+
+ <target name="build.and.extract.package" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, package.extract"/>
+ <target name="install" depends="db.install.schema, db.install.tests"/>
+ <target name="install.2008" depends="install, db.install.2008.tests"/>
+ <target name="execute.tests" depends="db.tests.run, db.tests.output, db.tests.check.results, execute.example.tests"/>
 
  <target name="init">
 		<delete dir="output"/>
@@ -46,12 +51,6 @@
    <arg value="../Source/BuildOrder.txt"/>
    <arg value="output/tSQLt.class.sql"/>
   </exec>
-  <!--
-		<concat destfile="output/tSQLt.class.sql" append="yes" fixlastline="yes" eol="crlf">
-			<filelist dir="output" files="CreateAssembly.sql"/>
-			<filelist dir="output" files="tSQLtCLR_CreateProcs.sql"/>
-		</concat>
-		-->
 	</target>
 
  <target name="set.build.version">
@@ -83,13 +82,22 @@
 
 	<target name="package.extract">
 		<unzip src="output/tSQLt.zip" dest="test"/>
+
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests/BuildOrder.txt"/>
+   <arg value="test/AllTests.sql"/>
+  </exec>
+
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests/BuildOrder.2008.txt"/>
+   <arg value="test/AllTests.2008.sql"/>
+  </exec>
+
   <copy file="../Tests/BootStrapTest.sql" todir="test"/>
-  <copy file="../Tests/tSQLt_test.class.sql" todir="test"/>
-  <copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
-  <copy file="../Tests/tSQLtclr_test.sql" todir="test"/>
-  <copy file="../Tests/NameAndIdResolution_test.class.sql" todir="test"/>
-  <copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
-  <copy file="../Tests/tSQLt_test_TableToText.2008.class.sql" todir="test"/>
   <copy file="CreateBuildDb.sql" todir="test"/>
 		<copy file="GetTestResults.sql" todir="test"/>		
 	</target>
@@ -112,72 +120,18 @@
 		</exec>
 	</target>
 
-	<target name="db.refresh.schema">
-		<exec executable="cmd" failonerror="true">
-			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;output/tSQLt.class.sql&quot; -V11"/>
-		</exec>
-	</target>
-
 	<target name="db.install.tests">
 		<exec executable="cmd" failonerror="true">
 			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test.class.sql&quot; -V11"/>
+			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/AllTests.sql&quot; -V11"/>
 		</exec>
-
-		<exec executable="cmd" failonerror="true">
-			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLtclr_test.sql&quot; -V11"/>
-		</exec>
-
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test_TableToText.class.sql&quot; -V11"/>
-  </exec>
-
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/NameAndIdResolution_test.class.sql&quot; -V11"/>
-  </exec>
-
  </target>
 
  <target name="db.install.2008.tests">
   <exec executable="cmd" failonerror="true">
    <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/tSQLt_test_TableToText.2008.class.sql&quot; -V11"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/AllTests.2008.sql&quot; -V11"/>
   </exec>
-
- </target>
-
- <target name="db.refresh.tests">
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/tSQLt_test.class.sql&quot; -V11"/>
-  </exec>
-
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/tSQLtclr_test.sql&quot; -V11"/>
-  </exec>
-
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/tSQLt_test_TableToText.class.sql&quot; -V11"/>
-  </exec>
-
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/NameAndIdResolution_test.class.sql&quot; -V11"/>
-  </exec>
- </target>
-
- <target name="db.refresh.2008.tests">
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;../Tests/tSQLt_test_TableToText.2008.class.sql&quot; -V11"/>
-  </exec>
-
  </target>
 
  <target name="db.tests.run">
@@ -205,7 +159,7 @@
 		</exec>
 	</target>
 
- <target name="build.example" depends="create.example.database,db.example.tests.create,db.example.tests.run,db.example.tests.output,db.example.tests.check.results"/>
+ <target name="execute.example.tests" depends="create.example.database,db.example.tests.create,db.example.tests.run,db.example.tests.output,db.example.tests.check.results"/>
 
  <target name="create.example.database">
   <concat destfile="test/ExampleToRun.sql" append="yes" fixlastline="yes" eol="crlf">
