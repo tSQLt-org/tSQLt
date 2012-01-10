@@ -15,6 +15,10 @@ namespace tSQLtCLR
         private const String NULL_STRING = "!NULL!";
         private const int MAX_COLUMN_WIDTH = 155;
 
+        public static SqlString Info()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        }
 
         [SqlMethod(DataAccess = DataAccessKind.Read)]
         public static SqlString CreateUniqueObjectName()

@@ -1,9 +1,9 @@
 <project name="tSQLt.sourceforge" default="all">
 
- <target name="all" depends="init, clr.compile, package.files.copy, set.build.version, package.construct.tsqlt, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
- <target name="all2008" depends="init, clr.compile, package.files.copy, set.build.version, package.construct.tsqlt, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.install.2008.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
- <target name="refresh" depends="init, clr.compile, package.files.copy, set.build.version, package.construct.tsqlt, db.refresh.schema, db.refresh.tests"/>
- <target name="refresh2008" depends="init, clr.compile, package.files.copy, set.build.version, package.construct.tsqlt, db.refresh.schema, db.refresh.tests, db.refresh.2008.tests"/>
+ <target name="all" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
+ <target name="all2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, package.extract, db.recreate, db.install.schema, db.install.tests, db.install.2008.tests, db.tests.run, db.tests.output, db.tests.check.results, build.example"/>
+ <target name="refresh" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, db.refresh.schema, db.refresh.tests"/>
+ <target name="refresh2008" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, db.refresh.schema, db.refresh.tests, db.refresh.2008.tests"/>
 
  <target name="init">
 		<delete dir="output"/>
@@ -29,33 +29,35 @@
 	</target>
 
 	<target name="package.files.copy">
-  <exec executable="cmd" dir="../Source/" failonerror="true" outputproperty="clr.version">
-   <arg value="/c"/>
-   <arg value="../Build/BuildHelper.exe BuildOrder.txt ../Build/output/test.sql"/>
-  </exec>
-
-  <copy file="../Source/tSQLt.class.sql" todir="output"/>
-		<copy file="../Source/tSQLtCLR_CreateProcs.sql" todir="output"/>
-		<copy file="../Source/SetClrEnabled.sql" todir="output"/>
+  <copy file="../Source/SetClrEnabled.sql" todir="output"/>
   <copy file="ReleaseNotes.txt" todir="output"/>
   <copy file="License.txt" todir="output"/>
  </target>
 
- <target name="set.build.version">
-  <replace file="output/ReleaseNotes.txt" token="LATEST-BUILD-NUMBER" value="${clr.version}"/>
-  <replace file="output/tSQLtCLR_CreateProcs.sql" token="$LATEST-BUILD-NUMBER$" value="${clr.version}"/>
- </target>
-   
  <target name="package.construct.tsqlt">
   <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
-			<arg value="/c"/>
-			<arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll EXTERNAL_ACCESS"/>
-		</exec>
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll EXTERNAL_ACCESS"/>
+  </exec>
+
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Source/BuildOrder.txt"/>
+   <arg value="output/tSQLt.class.sql"/>
+  </exec>
+  <!--
 		<concat destfile="output/tSQLt.class.sql" append="yes" fixlastline="yes" eol="crlf">
 			<filelist dir="output" files="CreateAssembly.sql"/>
 			<filelist dir="output" files="tSQLtCLR_CreateProcs.sql"/>
 		</concat>
+		-->
 	</target>
+
+ <target name="set.build.version">
+  <replace file="output/ReleaseNotes.txt" token="LATEST-BUILD-NUMBER" value="${clr.version}"/>
+  <replace file="output/tSQLt.class.sql" token="$LATEST-BUILD-NUMBER$" value="${clr.version}"/>
+ </target>
 
  <target name="package.example">
   <concat destfile="output/Example.sql" append="yes" fixlastline="yes" eol="crlf">

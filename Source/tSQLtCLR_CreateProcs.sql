@@ -145,5 +145,6 @@ RETURNS TABLE
 AS
 RETURN
 SELECT
-Version = '$LATEST-BUILD-NUMBER$';
+Version = '$LATEST-BUILD-NUMBER$',
+ClrVersion = (SELECT tSQLt.Private::Info());
 GO
