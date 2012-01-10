@@ -1,0 +1,4 @@
+tSQLt_test.class.sql
+tSQLt_test_TableToText.class.sql
+tSQLtclr_test.sql
+NameAndIdResolution_test.class.sql
