@@ -656,4 +656,11 @@ RAISERROR('---------------------------------------------------------------------
 SELECT COUNT(1) NoOfTestCases, COUNT(CASE WHEN c = 'P' THEN 1 END) PassingTests, COUNT(CASE WHEN c = 'F' THEN 1 END) FailingTests
   FROM BootStrapTestCaseFailures;
 
+DECLARE @ExpectedNumberOfTests INT;SET @ExpectedNumberOfTests = 17;
+
+IF (@ExpectedNumberOfTests != (SELECT COUNT(1) FROM BootStrapTestCaseFailures WHERE c = 'P'))
+BEGIN
+  RAISERROR('There was at least one test that did not (successfully) execute!',16,10);
+END;
+
 DROP TABLE BootStrapTestCaseFailures;
