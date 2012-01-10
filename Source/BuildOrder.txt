@@ -1,2 +1,3 @@
-
+tSQLt.class.sql
+../Build/output/CreateAssembly.sql
 tSQLtCLR_CreateProcs.sql
