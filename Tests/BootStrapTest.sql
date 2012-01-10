@@ -39,13 +39,6 @@ GO
 SET NOCOUNT ON
 WHILE @@TRANCOUNT>0 ROLLBACK;
 GO
-
-EXEC tSQLt.RunTestClass 'tSQLt_test';
-EXEC tSQLt.RunTestClass 'tSQLtclr_test';
-EXEC tSQLt.RunTestClass 'tSQLtPrivate_test';
-GO
-
-WHILE @@TRANCOUNT>0 ROLLBACK;
 -------------------------------------------------------------------------------------------------------
 RAISERROR('',0,1) WITH NOWAIT;
 RAISERROR('------------------------------------------------------------------------',0,1) WITH NOWAIT;
@@ -60,12 +53,20 @@ RAISERROR('---------- Test case can be executed',0,1) WITH NOWAIT;
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE PROCEDURE TestCase AS
+EXEC tSQLt.NewTestClass 'MyTestClass';
+
+EXEC('CREATE PROCEDURE MyTestClass.TestCase AS
        DECLARE @m VARCHAR(MAX);
        SET @m=''TestCase was executed! (42)'';
        RAISERROR(@m,16,10);');
-
-EXEC tSQLt.RunTest 'TestCase';
+BEGIN TRY
+  EXEC tSQLt.Run 'MyTestClass.TestCase';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 BEGIN TRY
     IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE 'TestCase was executed! (42)%')
@@ -88,13 +89,21 @@ RAISERROR('---------- Test case execution reports success of the test',0,1) WITH
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE PROCEDURE dbo.SucceedingTestCase AS RETURN 0;');
-
-EXEC tSQLt.RunTest 'dbo.SucceedingTestCase';
+EXEC tSQLt.NewTestClass 'MyTestClass';
+EXEC('CREATE PROCEDURE MyTestClass.testSucceedingTestCase AS RETURN 0;');
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'SucceedingTestCase' AND Result = 'Success')
-          RAISERROR('SucceedingTestCase was not logged correctly in TestResult Table.',16,10);
+  EXEC tSQLt.Run 'MyTestClass.testSucceedingTestCase';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
+
+BEGIN TRY
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'testSucceedingTestCase' AND Result = 'Success')
+          RAISERROR('testSucceedingTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
 END TRY
@@ -114,13 +123,21 @@ RAISERROR('---------- Test case execution reports failure of the test',0,1) WITH
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE PROCEDURE dbo.FailingTestCase AS EXEC tSQLt.Fail; RETURN 0;');
-
-EXEC tSQLt.RunTest 'dbo.FailingTestCase';
+EXEC tSQLt.NewTestClass 'MyTestClass';
+EXEC('CREATE PROCEDURE MyTestClass.testFailingTestCase AS EXEC tSQLt.Fail; RETURN 0;');
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'FailingTestCase' AND Result = 'Failure')
-          RAISERROR('FailingTestCase was not logged correctly in TestResult Table.',16,10);
+  EXEC tSQLt.Run 'MyTestClass.testFailingTestCase';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
+
+BEGIN TRY
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'testFailingTestCase' AND Result = 'Failure')
+          RAISERROR('testFailingTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
 END TRY
@@ -140,17 +157,25 @@ RAISERROR('---------- Test case execution reports only one result record when it
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
+EXEC tSQLt.NewTestClass 'MyTestClass';
 
-EXEC('CREATE PROCEDURE dbo.FailingTestCase AS EXEC tSQLt.Fail; RETURN 0;');
+EXEC('CREATE PROCEDURE MyTestClass.testFailingTestCase AS EXEC tSQLt.Fail; RETURN 0;');
 
-EXEC tSQLt.RunTest 'dbo.FailingTestCase';
+BEGIN TRY
+  EXEC tSQLt.Run 'MyTestClass.testFailingTestCase';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 BEGIN TRY
     DECLARE @actualCount INT;
-    SELECT @actualCount = COUNT(*) FROM tSQLt.TestResult WHERE TestCase = 'FailingTestCase';
+    SELECT @actualCount = COUNT(*) FROM tSQLt.TestResult WHERE TestCase = 'testFailingTestCase';
 
     IF 1 <> @actualCount
-        RAISERROR('FailingTestCase was not logged exactly once in TestResult Table. (%i)', 16, 10, @actualCount);
+        RAISERROR('testFailingTestCase was not logged exactly once in TestResult Table. (%i)', 16, 10, @actualCount);
 
     PRINT 'Test Passed';
 END TRY
@@ -170,14 +195,22 @@ RAISERROR('---------- Test case execution reports error when it errors',0,1) WIT
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
+EXEC tSQLt.NewTestClass 'MyTestClass';
 
-EXEC('CREATE PROCEDURE dbo.ErroringTestCase AS SELECT 1/0 col INTO #tmp; RETURN 0;');
-
-EXEC tSQLt.RunTest 'dbo.ErroringTestCase';
+EXEC('CREATE PROCEDURE MyTestClass.testErroringTestCase AS SELECT 1/0 col INTO #tmp; RETURN 0;');
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'ErroringTestCase' AND Result = 'Error')
-          RAISERROR('ErroringTestCase was not logged correctly in TestResult Table.',16,10);
+  EXEC tSQLt.Run 'MyTestClass.testErroringTestCase';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
+
+BEGIN TRY
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE TestCase = 'testErroringTestCase' AND Result = 'Error')
+          RAISERROR('testErroringTestCase was not logged correctly in TestResult Table.',16,10);
 
     PRINT 'Test Passed';
 END TRY
@@ -198,22 +231,30 @@ RAISERROR('---------- Test case can pass along a failure Message',0,1) WITH NOWA
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 DECLARE @errorMessage VARCHAR(MAX); SET @errorMessage = 'There is a reason I failed' + REPLICATE('*', 2400);
+EXEC tSQLt.NewTestClass 'MyTestClass';
 
-EXEC('CREATE PROCEDURE dbo.FailingTestCase AS EXEC tSQLt.Fail ''' + @errorMessage + '''; RETURN 0;');
+EXEC('CREATE PROCEDURE MyTestClass.testFailingTestCase AS EXEC tSQLt.Fail ''' + @errorMessage + '''; RETURN 0;');
 
-EXEC tSQLt.RunTest 'dbo.FailingTestCase';
+BEGIN TRY
+  EXEC tSQLt.Run 'MyTestClass.testFailingTestCase';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 BEGIN TRY
     DECLARE @actualMessage VARCHAR(MAX);
 
     SELECT @actualMessage = Msg
       FROM tSQLt.TestResult
-     WHERE TestCase = 'FailingTestCase';
+     WHERE TestCase = 'testFailingTestCase';
 
     IF @actualMessage = @errorMessage
         PRINT 'Test Passed';
     ELSE
-        RAISERROR('FailingTestCase did not log the correct Message in TestResult Table. Expected: <%s>, but was: <%s>', 16, 10, @errorMessage, @actualMessage);
+        RAISERROR('testFailingTestCase did not log the correct Message in TestResult Table. Expected: <%s>, but was: <%s>', 16, 10, @errorMessage, @actualMessage);
 
 END TRY
 BEGIN CATCH
@@ -232,11 +273,18 @@ RAISERROR('---------- All TestCases of a TestClass can be executed',0,1) WITH NO
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
-EXEC('CREATE SCHEMA MyTestClass');
+EXEC('EXEC tSQLt.NewTestClass ''MyTestClass'';');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseB AS RETURN 0;');
 
-EXEC tSQLt.RunTestClass 'MyTestClass';
+BEGIN TRY
+  EXEC tSQLt.RunTestClass 'MyTestClass';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 DECLARE @xml VARCHAR(MAX);
 DECLARE @expected VARCHAR(MAX); SET @expected = '<Class>MyTestClass</Class><TestCase>TestCaseA</TestCase><Class>MyTestClass</Class><TestCase>TestCaseB</TestCase>';
@@ -264,11 +312,20 @@ RAISERROR('---------- A single passing test should report an appropriate Message
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
-EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX) AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
+EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message0 VARCHAR(MAX),  @Message1 VARCHAR(MAX) = NULL,  @Message2 VARCHAR(MAX) = NULL,  @Message3 VARCHAR(MAX) = NULL,  @Message4 VARCHAR(MAX) = NULL,  @Message5 VARCHAR(MAX) = NULL,  @Message6 VARCHAR(MAX) = NULL,  @Message7 VARCHAR(MAX) = NULL,  @Message8 VARCHAR(MAX) = NULL AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message0);');
 
-EXEC('CREATE PROCEDURE TestCaseA AS RETURN 0;');
+EXEC tSQLt.NewTestClass 'MyTestClass';
 
-EXEC tSQLt.RunTest 'TestCaseA';
+EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
+
+BEGIN TRY
+  EXEC tSQLt.Run 'MyTestClass.TestCaseA';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 1 succeeded, 0 failed, 0 errored.';
 
@@ -298,12 +355,20 @@ RAISERROR('---------- A single failing test should report an appropriate Message
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
+EXEC tSQLt.NewTestClass 'MyTestClass';
 EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
 EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT = NULL AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
-EXEC('CREATE PROCEDURE TestCaseA AS EXEC tSQLt.Fail ''I failed'';');
+EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS EXEC tSQLt.Fail ''I failed'';');
 
-EXEC tSQLt.RunTest 'TestCaseA';
+BEGIN TRY
+  EXEC tSQLt.Run 'MyTestClass.TestCaseA';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 1 failed, 0 errored.';
 
@@ -333,12 +398,20 @@ RAISERROR('---------- A single erroring test should report an appropriate Messag
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
+EXEC tSQLt.NewTestClass 'MyTestClass';
 EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
 EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT = NULL AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
-EXEC('CREATE PROCEDURE TestCaseA AS SELECT 1/0 col INTO #tmp;');
+EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS SELECT 1/0 col INTO #tmp;');
 
-EXEC tSQLt.RunTest 'TestCaseA';
+BEGIN TRY
+  EXEC tSQLt.Run 'MyTestClass.TestCaseA';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 0 failed, 1 errored.';
 
@@ -368,14 +441,22 @@ RAISERROR('---------- Multiple passing tests in a class should report an appropr
 
 DECLARE @Failed INT;SET @Failed = 0;
 BEGIN TRAN
+
 EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
 EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
-EXEC('CREATE SCHEMA MyTestClass;');
+EXEC tSQLt.NewTestClass 'MyTestClass';
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseB AS RETURN 0;');
 
-EXEC tSQLt.RunTestClass 'MyTestClass';
+BEGIN TRY
+  EXEC tSQLt.RunTestClass 'MyTestClass';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 2 succeeded, 0 failed, 0 errored.';
 
@@ -408,11 +489,18 @@ BEGIN TRAN
 EXEC('CREATE TABLE tSQLt.Private_Print_Log (Message VARCHAR(MAX));');
 EXEC('ALTER PROCEDURE tSQLt.Private_Print @Message VARCHAR(MAX), @Severity INT AS INSERT INTO tSQLt.Private_Print_Log (Message) VALUES (@Message);');
 
-EXEC('CREATE SCHEMA MyTestClass;');
+EXEC tSQLt.NewTestClass 'MyTestClass';
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseA AS RETURN 0;');
 EXEC('CREATE PROCEDURE MyTestClass.TestCaseB AS EXEC tSQLt.Fail;');
 
-EXEC tSQLt.RunTestClass 'MyTestClass';
+BEGIN TRY
+  EXEC tSQLt.RunTestClass 'MyTestClass';
+END TRY
+BEGIN CATCH
+  DECLARE @m NVARCHAR(MAX);
+  SET @m=ERROR_MESSAGE();
+  RAISERROR(@m,0,1);
+END CATCH;
 
 DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 1 succeeded, 1 failed, 0 errored.';
 
