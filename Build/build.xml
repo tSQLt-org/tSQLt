@@ -83,8 +83,9 @@
 
 	<target name="package.extract">
 		<unzip src="output/tSQLt.zip" dest="test"/>
-		<copy file="../Tests/tSQLt_test.class.sql" todir="test"/>
-		<copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
+  <copy file="../Tests/BootStrapTest.sql" todir="test"/>
+  <copy file="../Tests/tSQLt_test.class.sql" todir="test"/>
+  <copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
   <copy file="../Tests/tSQLtclr_test.sql" todir="test"/>
   <copy file="../Tests/NameAndIdResolution_test.class.sql" todir="test"/>
   <copy file="../Tests/tSQLt_test_TableToText.class.sql" todir="test"/>
@@ -180,11 +181,15 @@
  </target>
 
  <target name="db.tests.run">
-		<exec executable="cmd" failonerror="true">
-			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -Q &quot;EXEC tSQLt.RunAll;&quot;"/>
-		</exec>
-	</target>
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/BootStrapTest.sql&quot; -V11"/>
+  </exec>
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -Q &quot;EXEC tSQLt.RunAll;&quot;"/>
+  </exec>
+ </target>
 
 	<target name="db.tests.output">
 		<exec executable="cmd" failonerror="true">
