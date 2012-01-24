@@ -353,4 +353,3 @@ BEGIN
 END;
 GO
 
-EXEC tSQLt.Run 'NameAndIdResolutionTests';
