@@ -37,6 +37,42 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.FakeTable.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_BuildIdentityClause.sfn.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_BuildIdentityClause.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_CreateFakeOfTable.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CreateFakeOfTable.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_GetFullTypeName.sfn.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetFullTypeName.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_MarkFakeTable.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_MarkFakeTable.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_ValidateFakeTableParameters.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_ValidateFakeTableParameters.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt._Header.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt._Header.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
