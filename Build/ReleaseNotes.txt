@@ -6,6 +6,15 @@ http://tsqlt.org/category/release-notes/
 
 Release: LATEST-BUILD-NUMBER 
 
+NEW FEATURES:   
+1. tSQLt.Info() now reports Version and CLRVersion. These should always match!
+2. tSQLt.FakeTable now supports @Identity parameter. If @Identity = 1 the 
+   identity property of the table is preserved.
+
+---------------------------
+
+Release: V1.0.4357.27914
+
 BUG FIXES:
 1. tSQLt.SpyProcedure can handle user defined types. User defined types may be in schemas and
    may also be not nullable.
