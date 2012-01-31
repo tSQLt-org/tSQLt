@@ -1,3 +1,4 @@
 tSQLt.class.sql
 ../Build/output/CreateAssembly.sql
 tSQLtCLR_CreateProcs.sql
+tSQLt.FakeTable.ssp.sql
