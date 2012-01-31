@@ -130,7 +130,7 @@ tSQLt.SpyProcedure
       FROM (SELECT OBJECT_ID(@ProcedureName) AS ObjId)X;
 
     DECLARE Parameters CURSOR FOR
-     SELECT p.name, t.typeName, is_output, is_cursor_ref
+     SELECT p.name, t.TypeName, is_output, is_cursor_ref
        FROM sys.parameters p
        CROSS APPLY tSQLt.getFullTypeName(p.user_type_id,p.max_length,p.precision,p.scale) t
       WHERE object_id = OBJECT_ID(@ProcedureName);

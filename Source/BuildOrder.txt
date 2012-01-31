@@ -1,4 +1,10 @@
+tSQLt._Header.sql
+tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.class.sql
 ../Build/output/CreateAssembly.sql
 tSQLtCLR_CreateProcs.sql
+tSQLt.Private_ValidateFakeTableParameters.ssp.sql
+tSQLt.Private_BuildIdentityClause.sfn.sql
+tSQLt.Private_CreateFakeOfTable.ssp.sql
+tSQLt.Private_MarkFakeTable.ssp.sql
 tSQLt.FakeTable.ssp.sql

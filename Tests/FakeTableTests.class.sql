@@ -386,5 +386,146 @@ BEGIN
 END;
 GO
  
+CREATE PROC FakeTableTests.[test FakeTable works with ugly column and table names]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.[tst!@#$%^&*()_+ 1]') IS NOT NULL DROP TABLE dbo.[tst!@#$%^&*()_+ 1];
+
+  CREATE TABLE dbo.[tst!@#$%^&*()_+ 1]([col!@#$%^&*()_+ 1] INT);
+
+  SELECT column_id,name
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.[tst!@#$%^&*()_+ 1]')
+  
+  EXEC tSQLt.FakeTable 'dbo.[tst!@#$%^&*()_+ 1]';
+
+  SELECT column_id,name
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.[tst!@#$%^&*()_+ 1]')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable does preserve identity base and step-size]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(i INT IDENTITY(42,13));
+  INSERT INTO dbo.tst1 DEFAULT VALUES;
+  INSERT INTO dbo.tst1 DEFAULT VALUES;
+
+  SELECT i 
+    INTO #Expected
+    FROM dbo.tst1;
+  
+  EXEC tSQLt.FakeTable 'dbo.tst1',@Identity=1;
+  
+  INSERT INTO dbo.tst1 DEFAULT VALUES;
+  INSERT INTO dbo.tst1 DEFAULT VALUES;
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected', 'dbo.tst1';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable preserves data type of identity column with @Identity=0]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(i BIGINT IDENTITY(1,1));
+
+  SELECT TYPE_NAME(user_type_id) type_name
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+  
+  EXEC tSQLt.FakeTable 'tst1',@Identity = 0;
+
+  SELECT TYPE_NAME(user_type_id) type_name
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable preserves data type of identity column with @Identity=1]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(i [DECIMAL](4) IDENTITY(1,1));
+
+  SELECT TYPE_NAME(user_type_id) TYPE_NAME,max_length,precision,scale
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+  
+  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+
+  SELECT TYPE_NAME(user_type_id) type_name,max_length,precision,scale
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable works if IDENTITYCOL is not the first column (with @Identity=1)]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT, i INT IDENTITY(1,1), y VARCHAR(30));
+
+  SELECT name, is_identity
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+  
+  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+
+  SELECT name, is_identity
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable works if there is no IDENTITYCOL and @Identity = 1]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT, y VARCHAR(30));
+
+  SELECT name, is_identity
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+  
+  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+
+  SELECT name, is_identity
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
 
 --ROLLBACK

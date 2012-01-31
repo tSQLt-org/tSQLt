@@ -543,7 +543,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('int'), NULL, NULL, NULL);
 
     EXEC tSQLt.AssertEqualsString '[sys].[int]', @Result;
@@ -555,7 +555,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('varchar'), 8, NULL, NULL);
 
     EXEC tSQLt.AssertEqualsString '[sys].[varchar](8)', @Result;
@@ -567,7 +567,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('nvarchar'), 8, NULL, NULL);
 
     EXEC tSQLt.AssertEqualsString '[sys].[nvarchar](4)', @Result;
@@ -579,7 +579,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('varchar'), -1, NULL, NULL);
 
     EXEC tSQLt.AssertEqualsString '[sys].[varchar](MAX)', @Result;
@@ -591,7 +591,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('varbinary'), -1, NULL, NULL);
 
     EXEC tSQLt.AssertEqualsString '[sys].[varbinary](MAX)', @Result;
@@ -603,7 +603,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('decimal'), NULL, 12,13);
 
     EXEC tSQLt.AssertEqualsString '[sys].[decimal](12,13)', @Result;
@@ -615,7 +615,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('int'), 1, 1,1);
 
     EXEC tSQLt.AssertEqualsString '[sys].[int]', @Result;
@@ -627,7 +627,7 @@ AS
 BEGIN
     DECLARE @Result VARCHAR(MAX);
 
-    SELECT @Result = typeName
+    SELECT @Result = TypeName
      FROM tSQLt.Private_GetFullTypeName(TYPE_ID('xml'), -1, 0, 0);
 
     EXEC tSQLt.AssertEqualsString '[sys].[xml]', @Result;
