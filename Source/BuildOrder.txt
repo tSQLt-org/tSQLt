@@ -12,3 +12,5 @@ tSQLt.Private_BuildIdentityClause.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
 tSQLt.Private_MarkFakeTable.ssp.sql
 tSQLt.FakeTable.ssp.sql
+tSQLt.Private_CreateProcedureSpy.ssp.sql
+tSQLt.SpyProcedure.ssp.sql
