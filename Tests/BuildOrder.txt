@@ -4,3 +4,4 @@ tSQLt_test_TableToText.class.sql
 tSQLtclr_test.sql
 NameAndIdResolution_test.class.sql
 Private_RenameObjectToUniqueNameTests.class.sql
+SpyProcedureTests.class.sql
