@@ -25,6 +25,30 @@
           <AssociatedConnUserName />
           <FullPath>InWork.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_CreateProcedureSpy.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CreateProcedureSpy.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_RenamedObjectLog.tbl.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_RenamedObjectLog.tbl.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_MarkObjectBeforeRename.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_MarkObjectBeforeRename.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_RenameObjectToUniqueName.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_RenameObjectToUniqueName.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="SetClrEnabled.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -61,11 +85,23 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_MarkFakeTable.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ValidateFakeTableParameters.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ValidateFakeTableParameters.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.SpyProcedure.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.SpyProcedure.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt._Header.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
