@@ -3,6 +3,10 @@ tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.class.sql
 ../Build/output/CreateAssembly.sql
 tSQLtCLR_CreateProcs.sql
+tSQLt.Private_RenamedObjectLog.tbl.sql
+tSQLt.Private_MarkObjectBeforeRename.ssp.sql
+tSQLt.Private_RenameObjectToUniqueName.ssp.sql
+tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.Private_ValidateFakeTableParameters.ssp.sql
 tSQLt.Private_BuildIdentityClause.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
