@@ -17,7 +17,7 @@
 EXEC tSQLt.NewTestClass 'FakeTableTests';
 GO
 
-CREATE PROCEDURE FakeTableTests.[test that no disabled tests exist]
+CREATE PROC FakeTableTests.[test that no disabled tests exist]
 AS
 BEGIN
   SELECT name 
@@ -36,7 +36,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints
+CREATE PROC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints
 @TableName NVARCHAR(MAX)
 AS
 BEGIN
@@ -525,6 +525,29 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable optionally creates computed columns]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT, y AS x + 5);
+
+  SELECT name, is_computed, definition
+    INTO #Expected
+    FROM sys.computed_columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+  
+  EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 1;
+
+  SELECT name, is_computed, definition
+    INTO #Actual
+    FROM sys.computed_columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 
