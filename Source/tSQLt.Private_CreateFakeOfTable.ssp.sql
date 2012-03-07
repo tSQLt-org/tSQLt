@@ -6,7 +6,8 @@ CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
   @TableName NVARCHAR(MAX),
   @NewNameOfOriginalTable NVARCHAR(MAX),
   @Identity BIT,
-  @ComputedColumns BIT
+  @ComputedColumns BIT,
+  @Defaults BIT
 AS
 BEGIN
    DECLARE @Cmd NVARCHAR(MAX);
@@ -24,6 +25,12 @@ BEGIN
                                    AND sys.computed_columns.column_id = sys.columns.column_id)
                   ELSE (SELECT Name + Suffix FROM tSQLt.Private_GetFullTypeName(user_type_id, max_length, precision, scale))
              END +
+       ' ' + CASE WHEN default_object_id IS NOT NULL AND @Defaults = 1
+                  THEN 'DEFAULT ' + (SELECT definition
+                                      FROM sys.default_constraints
+                                     WHERE sys.default_constraints.parent_object_id = sys.columns.object_id)
+                  ELSE ''
+             END + 
        ' ' + CASE WHEN is_identity = 1 AND @Identity = 1 
                   THEN (SELECT IdentityClause 
                           FROM tSQLt.Private_BuildIdentityClause(user_type_id, precision, @SchemaName + '.' + @NewNameOfOriginalTable))
