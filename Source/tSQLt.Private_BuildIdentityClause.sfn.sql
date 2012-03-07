@@ -6,8 +6,6 @@ RETURNS TABLE
 AS
 RETURN SELECT IdentityClause = 
               'IDENTITY(' + 
-              (SELECT Name+Suffix FROM tSQLt.Private_GetFullTypeName(@TypeId,0,@Precision,0))+ 
-               ',' +
                CAST(IDENT_SEED(@TableName) AS NVARCHAR(MAX)) +
                ',' +
                CAST(IDENT_INCR(@TableName) AS NVARCHAR(MAX)) +
