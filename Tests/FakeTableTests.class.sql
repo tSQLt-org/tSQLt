@@ -535,14 +535,14 @@ BEGIN
 
   CREATE TABLE dbo.tst1(x INT, y AS x + 5);
 
-  SELECT name, is_computed, definition
+  SELECT name, definition
     INTO #Expected
     FROM sys.computed_columns
    WHERE object_id = OBJECT_ID('dbo.tst1')
   
   EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 1;
 
-  SELECT name, is_computed, definition
+  SELECT name, definition
     INTO #Actual
     FROM sys.computed_columns
    WHERE object_id = OBJECT_ID('dbo.tst1')
