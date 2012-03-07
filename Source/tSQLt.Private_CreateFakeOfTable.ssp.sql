@@ -18,7 +18,10 @@ BEGIN
        ',' +
        QUOTENAME(name) + 
        ' ' + CASE WHEN is_computed = 1 AND @ComputedColumns = 1
-                  THEN 'AS ' + (SELECT definition FROM sys.computed_columns WHERE sys.computed_columns.object_id = sys.columns.object_id AND sys.computed_columns.column_id = sys.columns.column_id)
+                  THEN 'AS ' + (SELECT definition + CASE WHEN is_persisted = 1 THEN ' PERSISTED' ELSE '' END
+                                  FROM sys.computed_columns 
+                                 WHERE sys.computed_columns.object_id = sys.columns.object_id 
+                                   AND sys.computed_columns.column_id = sys.columns.column_id)
                   ELSE (SELECT Name + Suffix FROM tSQLt.Private_GetFullTypeName(user_type_id, max_length, precision, scale))
              END +
        ' ' + CASE WHEN is_identity = 1 AND @Identity = 1 

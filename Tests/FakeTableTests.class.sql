@@ -442,14 +442,14 @@ BEGIN
   SELECT TYPE_NAME(user_type_id) type_name
     INTO #Expected
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
   
   EXEC tSQLt.FakeTable 'tst1',@Identity = 0;
 
   SELECT TYPE_NAME(user_type_id) type_name
     INTO #Actual
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -466,14 +466,14 @@ BEGIN
   SELECT TYPE_NAME(user_type_id) TYPE_NAME,max_length,precision,scale
     INTO #Expected
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
   
   EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
 
   SELECT TYPE_NAME(user_type_id) type_name,max_length,precision,scale
     INTO #Actual
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -490,14 +490,14 @@ BEGIN
   SELECT name, is_identity
     INTO #Expected
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
   
   EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
 
   SELECT name, is_identity
     INTO #Actual
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -514,38 +514,83 @@ BEGIN
   SELECT name, is_identity
     INTO #Expected
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
   
   EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
 
   SELECT name, is_identity
     INTO #Actual
     FROM sys.columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
 END;
 GO
 
-CREATE PROC FakeTableTests.[test FakeTable optionally creates computed columns]
+CREATE PROC FakeTableTests.[test FakeTable preserves computed columns if @ComputedColumns = 1]
 AS
 BEGIN
   IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
 
   CREATE TABLE dbo.tst1(x INT, y AS x + 5);
 
-  SELECT name, definition
+  SELECT name, definition, is_persisted
     INTO #Expected
     FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
   
   EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 1;
 
-  SELECT name, definition
+  SELECT name, definition, is_persisted
     INTO #Actual
     FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1')
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable preserves persisted computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
+
+  SELECT name, definition, is_persisted
+    INTO #Expected
+    FROM sys.computed_columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+  
+  EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 1;
+
+  SELECT name, definition, is_persisted
+    INTO #Actual
+    FROM sys.computed_columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable does not preserve persisted computed columns if @ComputedColumns = 0]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
+
+  SELECT TOP(0) name, definition, is_persisted
+    INTO #Expected
+    FROM sys.computed_columns;
+  
+  EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 0;
+
+  SELECT name, definition, is_persisted
+    INTO #Actual
+    FROM sys.computed_columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
