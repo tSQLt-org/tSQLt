@@ -346,7 +346,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC FakeTableTests.[test FakeTable does preserve identity if @identity parameter is 1]
+CREATE PROC FakeTableTests.[test FakeTable preserves identity if @identity parameter is 1]
 AS
 BEGIN
   IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
@@ -409,7 +409,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC FakeTableTests.[test FakeTable does preserve identity base and step-size]
+CREATE PROC FakeTableTests.[test FakeTable preserves identity base and step-size]
 AS
 BEGIN
   IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
@@ -596,4 +596,98 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test FakeTable does not preserve persisted computed columns if @ComputedColumns is not specified]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
+
+  SELECT TOP(0) name, definition, is_persisted
+    INTO #Expected
+    FROM sys.computed_columns;
+  
+  EXEC tSQLt.FakeTable 'tst1';
+
+  SELECT name, definition, is_persisted
+    INTO #Actual
+    FROM sys.computed_columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable does not preserve defaults if @Defaults is not specified]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT DEFAULT(5));
+
+  SELECT TOP(0) sys.columns.name, definition
+    INTO #Expected
+    FROM sys.default_constraints
+    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id;
+  
+  EXEC tSQLt.FakeTable 'tst1';
+
+  SELECT sys.columns.name, definition
+    INTO #Actual
+    FROM sys.default_constraints
+    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
+   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable does not preserve defaults if @Defaults = 0]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT DEFAULT(5));
+
+  SELECT TOP(0) sys.columns.name, definition
+    INTO #Expected
+    FROM sys.default_constraints
+    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id;
+  
+  EXEC tSQLt.FakeTable 'tst1', @Defaults = 0;
+
+  SELECT sys.columns.name, definition
+    INTO #Actual
+    FROM sys.default_constraints
+    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
+   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable preserves defaults if @Defaults = 1]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x INT DEFAULT(5));
+
+  SELECT sys.columns.name, definition
+    INTO #Expected
+    FROM sys.default_constraints
+    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
+   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
+  
+  EXEC tSQLt.FakeTable 'tst1', @Defaults = 1;
+
+  SELECT sys.columns.name, definition
+    INTO #Actual
+    FROM sys.default_constraints
+    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
+   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
 --ROLLBACK
