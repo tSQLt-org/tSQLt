@@ -18,32 +18,17 @@ BEGIN
     SELECT
        ',' +
        QUOTENAME(name) + 
-       ' ' + CASE WHEN is_computed = 1 AND @ComputedColumns = 1
-                  THEN 'AS ' + (SELECT definition + CASE WHEN is_persisted = 1 THEN ' PERSISTED' ELSE '' END
-                                  FROM sys.computed_columns cc
-                                 WHERE cc.object_id = c.object_id 
-                                   AND cc.column_id = c.column_id)
-                  ELSE (SELECT Name + Suffix FROM tSQLt.Private_GetFullTypeName(user_type_id, max_length, precision, scale))
-             END +
-       ' ' + CASE WHEN default_object_id <> 0 AND @Defaults = 1
-                  THEN 'DEFAULT ' + (SELECT definition
-                                      FROM sys.default_constraints dc
-                                     WHERE dc.parent_object_id = c.object_id
-                                       AND dc.parent_column_id = c.column_id)
-                  ELSE ''
-             END + 
-       ' ' + CASE WHEN is_identity = 1 AND @Identity = 1 
-                  THEN (SELECT IdentityClause 
-                          FROM tSQLt.Private_BuildIdentityClause(user_type_id, precision, @SchemaName + '.' + @NewNameOfOriginalTable))
-                  ELSE '' 
-             END + 
-       ' ' + CASE WHEN is_computed = 1 AND @ComputedColumns = 1 
-                  THEN ''
-                  WHEN is_identity = 1 AND @Identity = 1 
-                  THEN ''
-                  ELSE 'NULL'
-             END
+       cc.ColumnDefinition +
+       dc.DefaultDefinition + 
+       id.IdentityDefinition +
+       CASE WHEN cc.IsComputedColumn = 1 OR id.IsIdentityColumn = 1 
+            THEN ''
+            ELSE ' NULL'
+       END
       FROM sys.columns c
+     CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(user_type_id, max_length, precision, scale, c.object_id, c.column_id, @ComputedColumns) cc
+     CROSS APPLY tSQLt.Private_GetDefaultConstraintDefinition(c.object_id, c.column_id, @Defaults) AS dc
+     CROSS APPLY tSQLt.Private_GetIdentityDefinition(c.object_id, c.column_id, @Identity) AS id
      WHERE object_id = OBJECT_ID(@SchemaName + '.' + @NewNameOfOriginalTable)
      ORDER BY column_id
      FOR XML PATH(''), TYPE
