@@ -8,7 +8,9 @@ tSQLt.Private_MarkObjectBeforeRename.ssp.sql
 tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.Private_ValidateFakeTableParameters.ssp.sql
-tSQLt.Private_BuildIdentityClause.sfn.sql
+tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
+tSQLt.Private_GetIdentityDefinition.sfn.sql
+tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
 tSQLt.Private_MarkFakeTable.ssp.sql
 tSQLt.FakeTable.ssp.sql
