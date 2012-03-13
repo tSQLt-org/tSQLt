@@ -26,7 +26,7 @@ BEGIN
             ELSE ' NULL'
        END
       FROM sys.columns c
-     CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(user_type_id, max_length, precision, scale, c.object_id, c.column_id, @ComputedColumns) cc
+     CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(c.user_type_id, c.max_length, c.precision, c.scale, c.collation_name, c.object_id, c.column_id, @ComputedColumns) cc
      CROSS APPLY tSQLt.Private_GetDefaultConstraintDefinition(c.object_id, c.column_id, @Defaults) AS dc
      CROSS APPLY tSQLt.Private_GetIdentityDefinition(c.object_id, c.column_id, @Identity) AS id
      WHERE object_id = OBJECT_ID(@SchemaName + '.' + @NewNameOfOriginalTable)
