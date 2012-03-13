@@ -734,4 +734,31 @@ BEGIN
   EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
 END;
 GO
+
+CREATE PROC FakeTableTests.[test FakeTable preserves the collation of a column]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(x VARCHAR(30) COLLATE Latin1_General_BIN,
+                        y VARCHAR(40));
+
+  SELECT name, collation_name
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+  
+  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+
+  SELECT name, collation_name
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 --ROLLBACK
+

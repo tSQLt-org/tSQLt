@@ -1,13 +1,13 @@
 IF OBJECT_ID('tSQLt.Private_GetFullTypeName') IS NOT NULL DROP FUNCTION tSQLt.Private_GetFullTypeName;
 ---Build+
 GO
-CREATE FUNCTION tSQLt.Private_GetFullTypeName(@TypeId INT, @Length INT, @Precision INT, @Scale INT )
+CREATE FUNCTION tSQLt.Private_GetFullTypeName(@TypeId INT, @Length INT, @Precision INT, @Scale INT, @CollationName NVARCHAR(MAX))
 RETURNS TABLE
 AS
-RETURN SELECT TypeName = SchemaName + '.' + Name + Suffix, SchemaName, Name, Suffix
+RETURN SELECT SchemaName + '.' + Name + Suffix + Collation AS TypeName, SchemaName, Name, Suffix
 FROM(
   SELECT QUOTENAME(SCHEMA_NAME(schema_id)) SchemaName, QUOTENAME(name) Name,
-              CASE WHEN name = 'xml'
+              CASE WHEN max_length = -1
                     THEN ''
                    WHEN @Length = -1
                     THEN '(MAX)'
@@ -18,7 +18,10 @@ FROM(
                    WHEN name IN ('decimal', 'numeric')
                     THEN '(' + CAST(@Precision AS NVARCHAR) + ',' + CAST(@Scale AS NVARCHAR) + ')'
                    ELSE ''
-               END Suffix
+               END Suffix,
+              CASE WHEN @CollationName IS NULL THEN ''
+                   ELSE ' COLLATE ' + @CollationName
+               END Collation
           FROM sys.types WHERE user_type_id = @TypeId
           )X;
 ---Build-

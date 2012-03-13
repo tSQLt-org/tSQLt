@@ -29,7 +29,7 @@ BEGIN
     DECLARE Parameters CURSOR FOR
      SELECT p.name, t.TypeName, is_output, is_cursor_ref
        FROM sys.parameters p
-       CROSS APPLY tSQLt.Private_GetFullTypeName(p.user_type_id,p.max_length,p.precision,p.scale) t
+       CROSS APPLY tSQLt.Private_GetFullTypeName(p.user_type_id,p.max_length,p.precision,p.scale,NULL) t
       WHERE object_id = @ProcedureObjectId;
     
     OPEN Parameters;
