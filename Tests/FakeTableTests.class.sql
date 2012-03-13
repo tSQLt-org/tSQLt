@@ -528,26 +528,59 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForComputedCols
+   @TableName NVARCHAR(MAX),
+   @Cmd NVARCHAR(MAX),
+   @ClearComputedCols INT
+AS
+BEGIN
+  SELECT c.column_id, CASE WHEN cc.column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, cc.is_persisted, c.name, cc.definition, c.user_type_id
+    INTO #Expected
+    FROM sys.columns c
+    LEFT OUTER JOIN sys.computed_columns cc ON cc.object_id = c.object_id
+                                              AND cc.column_id = c.column_id
+                                              AND @ClearComputedCols = 0
+   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC (@Cmd);  
+
+  SELECT c.column_id, CASE WHEN cc.column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, cc.is_persisted, c.name, cc.definition, c.user_type_id
+    INTO #Actual
+    FROM sys.columns c
+    LEFT OUTER JOIN sys.computed_columns cc ON cc.object_id = c.object_id
+                                              AND cc.column_id = c.column_id
+   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols
+   @TableName NVARCHAR(MAX),
+   @Cmd NVARCHAR(MAX)
+AS
+BEGIN
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForComputedCols @TableName, @Cmd, 0;
+END
+GO
+
+CREATE PROC FakeTableTests.AssertTableAfterCommandHasNoComputedCols
+   @TableName NVARCHAR(MAX),
+   @Cmd NVARCHAR(MAX)
+AS
+BEGIN
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForComputedCols @TableName, @Cmd, 1;
+END
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves computed columns if @ComputedColumns = 1]
 AS
 BEGIN
   IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
 
   CREATE TABLE dbo.tst1(x INT, y AS x + 5);
-
-  SELECT name, definition, is_persisted
-    INTO #Expected
-    FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 1;
-
-  SELECT name, definition, is_persisted
-    INTO #Actual
-    FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1');
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @ComputedColumns = 1;';
 END;
 GO
 
@@ -557,20 +590,8 @@ BEGIN
   IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
 
   CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
-
-  SELECT name, definition, is_persisted
-    INTO #Expected
-    FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 1;
-
-  SELECT name, definition, is_persisted
-    INTO #Actual
-    FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1');
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @ComputedColumns = 1;';
 END;
 GO
 
@@ -581,18 +602,7 @@ BEGIN
 
   CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
 
-  SELECT TOP(0) name, definition, is_persisted
-    INTO #Expected
-    FROM sys.computed_columns;
-  
-  EXEC tSQLt.FakeTable 'tst1', @ComputedColumns = 0;
-
-  SELECT name, definition, is_persisted
-    INTO #Actual
-    FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1');
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @ComputedColumns = 0;';
 END;
 GO
 
@@ -603,19 +613,64 @@ BEGIN
 
   CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
 
-  SELECT TOP(0) name, definition, is_persisted
-    INTO #Expected
-    FROM sys.computed_columns;
-  
-  EXEC tSQLt.FakeTable 'tst1';
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'';';
+END;
+GO
 
-  SELECT name, definition, is_persisted
+CREATE PROC FakeTableTests.[test FakeTable preserves multiple mixed persisted computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(NotComputed INT, ComputedAndPersisted AS (NotComputed + 5) PERSISTED, ComputedNotPersisted AS (NotComputed + 7), AnotherComputed AS (GETDATE()));
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @ComputedColumns = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForDefaults
+   @TableName NVARCHAR(MAX),
+   @Cmd NVARCHAR(MAX),
+   @ClearDefaults INT
+AS
+BEGIN
+  SELECT c.column_id, CASE WHEN dc.parent_column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, c.name, dc.definition, c.user_type_id
+    INTO #Expected
+    FROM sys.columns c
+    LEFT OUTER JOIN sys.default_constraints dc ON dc.parent_object_id = c.object_id
+                                              AND dc.parent_column_id = c.column_id
+                                              AND @ClearDefaults = 0
+   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC (@Cmd);  
+
+  SELECT c.column_id, CASE WHEN dc.parent_column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, c.name, dc.definition, c.user_type_id
     INTO #Actual
-    FROM sys.computed_columns
-   WHERE object_id = OBJECT_ID('dbo.tst1');
+    FROM sys.columns c
+    LEFT OUTER JOIN sys.default_constraints dc ON dc.parent_object_id = c.object_id
+                                              AND dc.parent_column_id = c.column_id
+   WHERE c.object_id = OBJECT_ID('dbo.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+
+CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults
+   @TableName NVARCHAR(MAX),
+   @Cmd NVARCHAR(MAX)
+AS
+BEGIN
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForDefaults @TableName, @Cmd, 0;
+END
+GO
+
+CREATE PROC FakeTableTests.AssertTableAfterCommandHasNoDefaults
+   @TableName NVARCHAR(MAX),
+   @Cmd NVARCHAR(MAX)
+AS
+BEGIN
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForDefaults @TableName, @Cmd, 1;
+END
 GO
 
 CREATE PROC FakeTableTests.[test FakeTable does not preserve defaults if @Defaults is not specified]
@@ -624,21 +679,8 @@ BEGIN
   IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
 
   CREATE TABLE dbo.tst1(x INT DEFAULT(5));
-
-  SELECT TOP(0) sys.columns.name, definition
-    INTO #Expected
-    FROM sys.default_constraints
-    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id;
   
-  EXEC tSQLt.FakeTable 'tst1';
-
-  SELECT sys.columns.name, definition
-    INTO #Actual
-    FROM sys.default_constraints
-    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
-   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''tst1''';
 END;
 GO
 
@@ -649,20 +691,7 @@ BEGIN
 
   CREATE TABLE dbo.tst1(x INT DEFAULT(5));
 
-  SELECT TOP(0) sys.columns.name, definition
-    INTO #Expected
-    FROM sys.default_constraints
-    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id;
-  
-  EXEC tSQLt.FakeTable 'tst1', @Defaults = 0;
-
-  SELECT sys.columns.name, definition
-    INTO #Actual
-    FROM sys.default_constraints
-    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
-   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''tst1'', @Defaults = 0;';
 END;
 GO
 
@@ -672,22 +701,37 @@ BEGIN
   IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
 
   CREATE TABLE dbo.tst1(x INT DEFAULT(5));
-
-  SELECT sys.columns.name, definition
-    INTO #Expected
-    FROM sys.default_constraints
-    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
-   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1', @Defaults = 1;
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
+END;
+GO
 
-  SELECT sys.columns.name, definition
-    INTO #Actual
-    FROM sys.default_constraints
-    JOIN sys.columns ON sys.default_constraints.parent_object_id = sys.columns.object_id
-   WHERE sys.columns.object_id = OBJECT_ID('dbo.tst1');
+CREATE PROC FakeTableTests.[test FakeTable preserves defaults if @Defaults = 1 when multiple columns exist on table]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
 
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  CREATE TABLE dbo.tst1(
+    ColWithNoDefault CHAR(3),
+    ColWithDefault DATETIME DEFAULT(GETDATE())
+  );
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable preserves defaults if @Defaults = 1 when multiple varied columns exist on table]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(
+    ColWithNoDefault CHAR(3),
+    ColWithDefault DATETIME DEFAULT(GETDATE()),
+    ColWithDiffDefault INT DEFAULT(-3)
+  );
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
 END;
 GO
 --ROLLBACK

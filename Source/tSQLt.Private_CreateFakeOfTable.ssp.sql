@@ -20,15 +20,16 @@ BEGIN
        QUOTENAME(name) + 
        ' ' + CASE WHEN is_computed = 1 AND @ComputedColumns = 1
                   THEN 'AS ' + (SELECT definition + CASE WHEN is_persisted = 1 THEN ' PERSISTED' ELSE '' END
-                                  FROM sys.computed_columns 
-                                 WHERE sys.computed_columns.object_id = sys.columns.object_id 
-                                   AND sys.computed_columns.column_id = sys.columns.column_id)
+                                  FROM sys.computed_columns cc
+                                 WHERE cc.object_id = c.object_id 
+                                   AND cc.column_id = c.column_id)
                   ELSE (SELECT Name + Suffix FROM tSQLt.Private_GetFullTypeName(user_type_id, max_length, precision, scale))
              END +
-       ' ' + CASE WHEN default_object_id IS NOT NULL AND @Defaults = 1
+       ' ' + CASE WHEN default_object_id <> 0 AND @Defaults = 1
                   THEN 'DEFAULT ' + (SELECT definition
-                                      FROM sys.default_constraints
-                                     WHERE sys.default_constraints.parent_object_id = sys.columns.object_id)
+                                      FROM sys.default_constraints dc
+                                     WHERE dc.parent_object_id = c.object_id
+                                       AND dc.parent_column_id = c.column_id)
                   ELSE ''
              END + 
        ' ' + CASE WHEN is_identity = 1 AND @Identity = 1 
@@ -42,7 +43,7 @@ BEGIN
                   THEN ''
                   ELSE 'NULL'
              END
-      FROM sys.columns
+      FROM sys.columns c
      WHERE object_id = OBJECT_ID(@SchemaName + '.' + @NewNameOfOriginalTable)
      ORDER BY column_id
      FOR XML PATH(''), TYPE
