@@ -114,6 +114,8 @@ namespace tSQLtCLR
         {
             SqlDbType dbType = (SqlDbType)columnDetails["ProviderType"];
             String colName = (String)columnDetails["ColumnName"];
+            //String colTypeName = (String)columnDetails["TypeName"];
+            Type colType = (Type)columnDetails["DataType"];
 
             switch (dbType)
             {
@@ -151,6 +153,8 @@ namespace tSQLtCLR
                     return new SqlMetaData(colName, dbType, length);
                 case SqlDbType.Decimal:
                     return new SqlMetaData(colName, dbType, Convert.ToByte(columnDetails["NumericPrecision"], CultureInfo.InvariantCulture), Convert.ToByte(columnDetails["NumericScale"], CultureInfo.InvariantCulture));
+                case SqlDbType.Udt:
+                    return new SqlMetaData(colName, dbType, colType);
                 default:
                     throw new ArgumentException("Argument [" + dbType.ToString() + "] is not valid for ResultSetFilter.");
             }
