@@ -70,7 +70,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter retrieves no records if 0 is specified]
+CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter retrieves no records and throws no error if 0 is specified]
 AS
 BEGIN
     CREATE TABLE Actual (val INT);
@@ -80,6 +80,25 @@ BEGIN
     CREATE TABLE Expected (val INT);
     
     EXEC tSQLt.AssertEqualsTable 'Actual', 'Expected';
+END;
+GO
+
+CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter retrieves no result set if 0 is specified]
+AS
+BEGIN
+    DECLARE @err NVARCHAR(MAX); SET @err = '--NO Error Thrown!--';
+    
+    BEGIN TRY
+      EXEC tSQLt.ResultSetFilter 1,'EXEC tSQLt.ResultSetFilter 0, ''SELECT 1 AS val; SELECT 2 AS val; SELECT 3 AS val;'';';  
+    END TRY
+    BEGIN CATCH
+        SET @err = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @err NOT LIKE '%Execution returned only 0 ResultSets. ResultSet [[]1] does not exist.%'
+    BEGIN
+        EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+    END;
 END;
 GO
 
