@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_R2:troilo\dennis">
+        <ConnectionNode Name="Dev_R2:MYMACWIN7\meinse00">
           <Created>2011-11-01T16:16:28.6301397-04:00</Created>
           <Type>SQL</Type>
           <Server>Dev_R2</Server>
@@ -66,6 +66,12 @@
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt_test_ResultSetFilter.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt_test_ResultSetFilter.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_TableToText.2008.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>

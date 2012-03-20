@@ -34,13 +34,18 @@ namespace tSQLtCLR
                     break;
                 }
             } while (dataReader.NextResult());
-
+            
             dataReader.Close();
+
+            if(ResultsetCount < resultsetNo)
+            {
+                throw new InvalidResultSetException("Execution returned only " + ResultsetCount.ToString() + " ResultSets. ResultSet [" + resultsetNo.ToString() + "] does not exist.");
+            }
         }
 
         private void validateResultSetNumber(SqlInt32 resultsetNo)
         {
-            if (resultsetNo < 1)
+            if (resultsetNo < 0 || resultsetNo.IsNull)
             {
                 throw new InvalidResultSetException("ResultSet index begins at 1. ResultSet index [" + resultsetNo.ToString() + "] is invalid.");
             }
