@@ -3,32 +3,32 @@ GO
 CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter returns specified result set]
 AS
 BEGIN
-    CREATE TABLE Actual (val INT);
+    CREATE TABLE #Actual (val INT);
     
-    INSERT INTO Actual (val)
+    INSERT INTO #Actual (val)
     EXEC tSQLt.ResultSetFilter 3, 'SELECT 1 AS val; SELECT 2 AS val; SELECT 3 AS val UNION ALL SELECT 4 UNION ALL SELECT 5;';
     
-    CREATE TABLE Expected (val INT);
-    INSERT INTO Expected
+    CREATE TABLE #Expected (val INT);
+    INSERT INTO #Expected
     SELECT 3 AS val UNION ALL SELECT 4 UNION ALL SELECT 5;
     
-    EXEC tSQLt.AssertEqualsTable 'Actual', 'Expected';
+    EXEC tSQLt.AssertEqualsTable '#Actual', '#Expected';
 END;
 GO
 
 CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter returns specified result set with multiple columns]
 AS
 BEGIN
-    CREATE TABLE Actual (val1 INT, val2 VARCHAR(3));
+    CREATE TABLE #Actual (val1 INT, val2 VARCHAR(3));
     
-    INSERT INTO Actual (val1, val2)
+    INSERT INTO #Actual (val1, val2)
     EXEC tSQLt.ResultSetFilter 2, 'SELECT 1 AS val; SELECT 3 AS val1, ''ABC'' AS val2 UNION ALL SELECT 4, ''DEF'' UNION ALL SELECT 5, ''GHI''; SELECT 2 AS val;';
     
-    CREATE TABLE Expected (val1 INT, val2 VARCHAR(3));
-    INSERT INTO Expected
+    CREATE TABLE #Expected (val1 INT, val2 VARCHAR(3));
+    INSERT INTO #Expected
     SELECT 3 AS val1, 'ABC' AS val2 UNION ALL SELECT 4, 'DEF' UNION ALL SELECT 5, 'GHI';
     
-    EXEC tSQLt.AssertEqualsTable 'Actual', 'Expected';
+    EXEC tSQLt.AssertEqualsTable '#Actual', '#Expected';
 END;
 GO
 
@@ -73,13 +73,13 @@ GO
 CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter retrieves no records and throws no error if 0 is specified]
 AS
 BEGIN
-    CREATE TABLE Actual (val INT);
-    INSERT INTO Actual
+    CREATE TABLE #Actual (val INT);
+    INSERT INTO #Actual
     EXEC tSQLt.ResultSetFilter 0, 'SELECT 1 AS val; SELECT 2 AS val; SELECT 3 AS val;';
     
-    CREATE TABLE Expected (val INT);
+    CREATE TABLE #Expected (val INT);
     
-    EXEC tSQLt.AssertEqualsTable 'Actual', 'Expected';
+    EXEC tSQLt.AssertEqualsTable '#Actual', '#Expected';
 END;
 GO
 
@@ -269,14 +269,14 @@ BEGIN
     CREATE TABLE BaseTable (i INT PRIMARY KEY, v VARCHAR(15));
     INSERT INTO BaseTable (i, v) VALUES (1, 'hello');
     
-    CREATE TABLE Actual (v VARCHAR(15));
-    INSERT INTO Actual
+    CREATE TABLE #Actual (v VARCHAR(15));
+    INSERT INTO #Actual
     EXEC tSQLt.ResultSetFilter 1, 'SELECT v FROM BaseTable';
     
-    CREATE TABLE Expected (v VARCHAR(15));
-    INSERT INTO Expected (v) VALUES ('hello');
+    CREATE TABLE #Expected (v VARCHAR(15));
+    INSERT INTO #Expected (v) VALUES ('hello');
     
-    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
@@ -289,14 +289,14 @@ BEGIN
     CREATE TABLE BaseTable2 (i2 INT PRIMARY KEY, i1 INT FOREIGN KEY REFERENCES BaseTable1(i1), v2 VARCHAR(15));
     INSERT INTO BaseTable2 (i2, i1, v2) VALUES (1, 1, 'goodbye');
     
-    CREATE TABLE Actual (v1 VARCHAR(15), v2 VARCHAR(15));
-    INSERT INTO Actual
+    CREATE TABLE #Actual (v1 VARCHAR(15), v2 VARCHAR(15));
+    INSERT INTO #Actual
     EXEC tSQLt.ResultSetFilter 1, 'SELECT v1, v2 FROM BaseTable1 JOIN BaseTable2 ON BaseTable1.i1 = BaseTable2.i1';
     
-    CREATE TABLE Expected (v1 VARCHAR(15), v2 VARCHAR(15));
-    INSERT INTO Expected (v1, v2) VALUES ('hello', 'goodbye');
+    CREATE TABLE #Expected (v1 VARCHAR(15), v2 VARCHAR(15));
+    INSERT INTO #Expected (v1, v2) VALUES ('hello', 'goodbye');
     
-    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
@@ -306,14 +306,14 @@ BEGIN
     CREATE TABLE BaseTable1 (i1 INT UNIQUE, v1 VARCHAR(15));
     INSERT INTO BaseTable1 (i1, v1) VALUES (1, 'hello');
     
-    CREATE TABLE Actual (v1 VARCHAR(15));
-    INSERT INTO Actual
+    CREATE TABLE #Actual (v1 VARCHAR(15));
+    INSERT INTO #Actual
     EXEC tSQLt.ResultSetFilter 1, 'SELECT v1 FROM BaseTable1';
     
-    CREATE TABLE Expected (v1 VARCHAR(15));
-    INSERT INTO Expected (v1) VALUES ('hello');
+    CREATE TABLE #Expected (v1 VARCHAR(15));
+    INSERT INTO #Expected (v1) VALUES ('hello');
     
-    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
@@ -323,13 +323,13 @@ BEGIN
     CREATE TABLE BaseTable1 (i1 INT CHECK(i1 = 1), v1 VARCHAR(15));
     INSERT INTO BaseTable1 (i1, v1) VALUES (1, 'hello');
     
-    CREATE TABLE Actual (v1 VARCHAR(15));
-    INSERT INTO Actual
+    CREATE TABLE #Actual (v1 VARCHAR(15));
+    INSERT INTO #Actual
     EXEC tSQLt.ResultSetFilter 1, 'SELECT v1 FROM BaseTable1';
     
-    CREATE TABLE Expected (v1 VARCHAR(15));
-    INSERT INTO Expected (v1) VALUES ('hello');
+    CREATE TABLE #Expected (v1 VARCHAR(15));
+    INSERT INTO #Expected (v1) VALUES ('hello');
     
-    EXEC tSQLt.AssertEqualsTable 'Expected', 'Actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
