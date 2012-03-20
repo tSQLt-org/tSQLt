@@ -6,6 +6,16 @@ http://tsqlt.org/category/release-notes/
 
 Release: LATEST-BUILD-NUMBER 
 
+NEW FEATURES:
+1. tSQLt.FakeTable now supports @Defaults parameter. If @Defaults = 1 default
+   constraints will be preserved on columns.
+2. tSQLt.FakeTable now supports @ComputedColumns parameter. If 
+   @ComputedColumns = 1 computed columns will be preserved.
+
+---------------------------
+
+Release: 1.0.4413.31717
+
 NEW FEATURES:   
 1. tSQLt.Info() now reports Version and CLRVersion. These should always match!
 2. tSQLt.FakeTable now supports @Identity parameter. If @Identity = 1 the 
