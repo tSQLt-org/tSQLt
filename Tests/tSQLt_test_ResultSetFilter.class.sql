@@ -102,6 +102,32 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter handles code not returning a result set]
+AS
+BEGIN
+    DECLARE @err NVARCHAR(MAX); SET @err = '--NO Error Thrown!--';
+    
+    BEGIN TRY
+      EXEC tSQLt.ResultSetFilter 1,'DECLARE @NoOp INT;';  
+    END TRY
+    BEGIN CATCH
+        SET @err = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @err NOT LIKE '%Execution returned only 0 ResultSets. ResultSet [[]1] does not exist.%'
+    BEGIN
+        EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+    END;
+END;
+GO
+
+CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter throws no error if code is not returning a result set and 0 is passed in]
+AS
+BEGIN
+      EXEC tSQLt.ResultSetFilter 0,'DECLARE @NoOp INT;';  
+END;
+GO
+
 CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter throws error if result set number NULL specified]
 AS
 BEGIN
