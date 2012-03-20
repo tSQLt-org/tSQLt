@@ -25,16 +25,18 @@ namespace tSQLtCLR
             SqlDataReader dataReader = testDatabaseFacade.executeCommand(command);
 
             int ResultsetCount = 0;
-            do
+            if (dataReader.FieldCount > 0)
             {
-                ResultsetCount++;
-                if (ResultsetCount == resultsetNo)
+                do
                 {
-                    sendResultsetRecords(dataReader);
-                    break;
-                }
-            } while (dataReader.NextResult());
-            
+                    ResultsetCount++;
+                    if (ResultsetCount == resultsetNo)
+                    {
+                        sendResultsetRecords(dataReader);
+                        break;
+                    }
+                } while (dataReader.NextResult());
+            }
             dataReader.Close();
 
             if(ResultsetCount < resultsetNo)
