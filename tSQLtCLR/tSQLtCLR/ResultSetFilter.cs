@@ -137,6 +137,8 @@ namespace tSQLtCLR
                 case SqlDbType.Timestamp:
                 case SqlDbType.UniqueIdentifier:
                 case SqlDbType.Xml:
+                case SqlDbType.Date:
+                case SqlDbType.Time:
                     return new SqlMetaData(colName, dbType);
                 case SqlDbType.Binary:
                 case SqlDbType.Char:
@@ -152,6 +154,8 @@ namespace tSQLtCLR
                     }
                     return new SqlMetaData(colName, dbType, length);
                 case SqlDbType.Decimal:
+                case SqlDbType.DateTime2:
+                case SqlDbType.DateTimeOffset:
                     return new SqlMetaData(colName, dbType, Convert.ToByte(columnDetails["NumericPrecision"], CultureInfo.InvariantCulture), Convert.ToByte(columnDetails["NumericScale"], CultureInfo.InvariantCulture));
                 case SqlDbType.Udt:
                     return new SqlMetaData(colName, dbType, colType);
