@@ -6,6 +6,16 @@ http://tsqlt.org/category/release-notes/
 
 Release: LATEST-BUILD-NUMBER 
 
+BUG FIXES:
+1. tSQLt.ResultSetFilter now supports data types introduced in SQL Server 2008 and CLR
+   datatypes.
+2. tSLQt.AssertResultSetsHaveSameMetaData now ignores "hidden" columns. For example,
+   when comparing the metadata of a view, this procedure had been including underlying
+   columns.
+
+---------------------------
+Release: V1.0.4462.23207 
+
 NEW FEATURES:
 1. tSQLt.FakeTable now supports @Defaults parameter. If @Defaults = 1 default
    constraints will be preserved on columns.
