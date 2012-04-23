@@ -86,22 +86,25 @@ namespace tSQLtCLR
 
             foreach (DataRow row in schema.Rows)
             {
-                schemaString += "[";
-                foreach (DataColumn column in schema.Columns)
+                if (row["IsHidden"].ToString() != "True")
                 {
-                    if (columnPropertyIsValidForMetaDataComparison(column))
+                    schemaString += "[";
+                    foreach (DataColumn column in schema.Columns)
                     {
-                        schemaString += "{" + column.ColumnName + ":" + row[column.ColumnName] + "}";
+                        if (columnPropertyIsValidForMetaDataComparison(column))
+                        {
+                            schemaString += "{" + column.ColumnName + ":" + row[column.ColumnName] + "}";
+                        }
                     }
+                    schemaString += "]";
                 }
-                schemaString += "]";
             }
             return schemaString;
         }
 
         private static bool columnPropertyIsValidForMetaDataComparison(DataColumn column)
         {
-            return !(column.ColumnName.StartsWith("Is", StringComparison.OrdinalIgnoreCase) || 
+            return !(column.ColumnName.StartsWith("Is", StringComparison.OrdinalIgnoreCase) ||
                 column.ColumnName.StartsWith("Base", StringComparison.OrdinalIgnoreCase));
         }
     }
