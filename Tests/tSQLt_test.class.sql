@@ -78,13 +78,7 @@ GO
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-EXEC tSQLt.DropClass tSQLt_test;
-GO
-
-IF OBJECT_ID('tSQLt.NewTestClass') IS NOT NULL
-    EXEC tSQLt.NewTestClass 'tSQLt_test';
-ELSE
-    EXEC('CREATE SCHEMA tSQLt_test;');
+EXEC tSQLt.NewTestClass 'tSQLt_test';
 GO
 
 CREATE PROC [tSQLt_test].[SetUp]
@@ -1495,30 +1489,6 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_dropClass_does_not_error_if_testcase_name_contains_spaces
-AS
-BEGIN
-    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
-
-    EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.[Test Case A ] AS RETURN 0;');
-    
-    BEGIN TRY
-        EXEC tSQLt.DropClass 'MyTestClass';
-    END TRY
-    BEGIN CATCH
-        SET @ErrorRaised = 1;
-    END CATCH
-
-    EXEC tSQLt.AssertEquals 0,@ErrorRaised,'Unexpected error during execution of DropClass'
-    
-    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
-    BEGIN    
-      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
-    END
-END;
-GO
-
 CREATE PROC tSQLt_test.[test that tSQLt.Run executes all tests in test class when called with class name]
 AS
 BEGIN
@@ -1687,107 +1657,6 @@ BEGIN
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
-END;
-GO
-
-CREATE PROC tSQLt_test.[test NewTestClass creates a new schema]
-AS
-BEGIN
-    EXEC tSQLt.NewTestClass 'MyTestClass';
-    
-    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'MyTestClass')
-    BEGIN
-        EXEC tSQLt.Fail 'Should have created schema: MyTestClass';
-    END;
-END;
-GO
-
-CREATE PROC tSQLt_test.[test NewTestClass calls tSQLt.DropClass]
-AS
-BEGIN
-    EXEC tSQLt.SpyProcedure 'tSQLt.DropClass';
-    
-    EXEC tSQLt.NewTestClass 'MyTestClass';
-    
-    IF NOT EXISTS(SELECT * FROM tSQLt.DropClass_SpyProcedureLog WHERE ClassName = 'MyTestClass') 
-    BEGIN
-        EXEC tSQLt.Fail 'Should have called tSQLt.DropClass ''MyTestClass''';
-    END
-END;
-GO
-
-CREATE PROCEDURE tSQLt_test.[test NewTestClass should throw an error if the schema exists and is not a test schema]
-AS
-BEGIN
-    DECLARE @Err NVARCHAR(MAX); SET @Err = 'NO ERROR';
-    EXEC('CREATE SCHEMA MySchema;');
-
-    BEGIN TRY
-      EXEC tSQLt.NewTestClass 'MySchema';
-    END TRY
-    BEGIN CATCH
-      SET @Err = ERROR_MESSAGE();
-    END CATCH
-    
-    IF @Err NOT LIKE '%Attempted to execute tSQLt.NewTestClass on ''MySchema''. However, ''MySchema'' is an existing schema and not a test class%'
-    BEGIN
-        EXEC tSQLt.Fail 'Unexpected error message was: ', @Err;
-    END;
-END;
-GO
-
-CREATE PROCEDURE tSQLt_test.[test NewTestClass should not drop an existing schema if it was not a test class]
-AS
-BEGIN
-    EXEC('CREATE SCHEMA MySchema;');
-    EXEC tSQLt.SpyProcedure 'tSQLt.DropClass';
-
-    BEGIN TRY
-      EXEC tSQLt.NewTestClass 'MySchema';
-    END TRY
-    BEGIN CATCH
-    END CATCH
-    
-    IF EXISTS(SELECT * FROM tSQLt.DropClass_SpyProcedureLog WHERE ClassName = 'MySchema') 
-    BEGIN
-        EXEC tSQLt.Fail 'Should not have called tSQLt.DropClass ''MySchema''';
-    END
-END;
-GO
-
-CREATE PROCEDURE tSQLt_test.[test NewTestClass can create schemas with the space character]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'My Test Class';
-  
-  IF SCHEMA_ID('My Test Class') IS NULL
-  BEGIN
-    EXEC tSQLt.Fail 'Should be able to create test class: My Test Class';
-  END;
-END;
-GO
-
-CREATE PROCEDURE tSQLt_test.[test NewTestClass can create schemas with the other special characters]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'My!@#$%^&*()Test-+=|\<>,.?/Class';
-  
-  IF SCHEMA_ID('My!@#$%^&*()Test-+=|\<>,.?/Class') IS NULL
-  BEGIN
-    EXEC tSQLt.Fail 'Should be able to create test class: My!@#$%^&*()Test-+=|\<>,.?/Class';
-  END;
-END;
-GO
-
-CREATE PROCEDURE tSQLt_test.[test NewTestClass can create schemas when the name is already quoted]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass '[My Test Class]';
-  
-  IF SCHEMA_ID('My Test Class') IS NULL
-  BEGIN
-    EXEC tSQLt.Fail 'Should be able to create test class: My Test Class';
-  END;
 END;
 GO
 

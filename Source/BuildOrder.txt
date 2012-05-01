@@ -1,5 +1,10 @@
 tSQLt._Header.sql
+tSQLt.DropClass.ssp.sql
 tSQLt.Private_GetFullTypeName.sfn.sql
+tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql
+tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql
+tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
+tSQLt.NewTestClass.ssp.sql
 tSQLt.class.sql
 tSQLt.CaptureOutputLog.tbl.sql
 tSQLt.LogCapturedOutput.ssp.sql

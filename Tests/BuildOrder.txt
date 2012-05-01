@@ -1,4 +1,6 @@
 tSQLt_test.class.sql
+NewTestClassTests.class.sql
+DropClassTests.class.sql
 FakeTableTests.class.sql
 tSQLt_test_TableToText.class.sql
 tSQLtclr_test.sql
