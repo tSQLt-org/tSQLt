@@ -31,6 +31,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.CaptureOutputLog.tbl.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.DropClass.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.DropClass.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Info.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -43,11 +49,23 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.LogCapturedOutput.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.NewTestClass.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.NewTestClass.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_CreateProcedureSpy.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CreateProcedureSpy.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
@@ -66,6 +84,18 @@
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetForeignKeyDefinition.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_MarkSchemaAsTestClass.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_MarkSchemaAsTestClass.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_RenamedObjectLog.tbl.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
