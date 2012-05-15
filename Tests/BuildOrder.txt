@@ -11,3 +11,4 @@ SpyProcedureTests.class.sql
 Private_GetFullTypeNameTests.class.sql
 tSQLt_test_ResultSetFilter.class.sql
 tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql
+AssertEqualsTableTests.class.sql
