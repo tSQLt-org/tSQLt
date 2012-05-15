@@ -4,7 +4,13 @@ An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
 
-Release: VLATEST-BUILD-NUMBER 
+Release: VLATEST-BUILD-NUMBER (in progress)
+
+OTHER:
+1. Removed unused procedure: StubRecord
+
+---------------------------
+Release: V1.0.4504.21220
 
 BUG FIXES:
 1. tSQLt.NewTestClass now does not drop schema objects if the schema is not a test class
