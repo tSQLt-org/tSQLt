@@ -26,3 +26,4 @@ tSQLt.Private_MarkFakeTable.ssp.sql
 tSQLt.FakeTable.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql
 tSQLt.SpyProcedure.ssp.sql
+tSQLt.AssertEqualsTable.ssp.sql
