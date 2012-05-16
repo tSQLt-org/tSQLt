@@ -30,8 +30,12 @@ BEGIN
     BEGIN TRAN;
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     SAVE TRAN @TranName;
-      EXEC tSQLt.SpyProcedure 'tSQLt.Fail';
-      EXEC (@Command);
+      EXEC tSQLt.SpyProcedure 'tSQLt.Fail','RAISERROR(''tSQLt_testutil.assertFailCalled.INTERNAL'',16,10);';
+      BEGIN TRY
+        EXEC (@Command);
+      END TRY
+      BEGIN CATCH
+      END CATCH;
       SELECT @CallCount = COUNT(1) FROM tSQLt.Fail_SpyProcedureLog;
     ROLLBACK TRAN @TranName;
     COMMIT TRAN;
@@ -54,8 +58,12 @@ BEGIN
     BEGIN TRAN;
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     SAVE TRAN @TranName;
-      EXEC tSQLt.SpyProcedure 'tSQLt.Fail';
-      EXEC (@Command);
+      EXEC tSQLt.SpyProcedure 'tSQLt.Fail','RAISERROR(''tSQLt_testutil.assertFailCalled.INTERNAL'',16,10);';
+      BEGIN TRY
+        EXEC (@Command);
+      END TRY
+      BEGIN CATCH
+      END CATCH;
       SELECT @ActualMessage = 
           COALESCE(Message0, '')--should be '!NULL!' but default parameters are not currently supported by SpyProcedure
         + COALESCE(Message1, '')
