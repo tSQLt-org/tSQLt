@@ -1,10 +1,39 @@
-
-
+IF OBJECT_ID('tSQLt.AssertEqualsTable') IS NOT NULL DROP PROCEDURE tSQLt.AssertEqualsTable;
+GO
+---BUILD+
+/*
+CREATE PROCEDURE tSQLt.AssertEqualsTable
+    @Expected NVARCHAR(MAX),
+    @Actual NVARCHAR(MAX),
+    @FailMsg NVARCHAR(MAX) = 'unexpected/missing resultset rows!'
+AS
+BEGIN
+    EXEC tSQLt.AssertObjectExists @Actual;
+    EXEC tSQLt.AssertObjectExists @Expected;
+    
+    CREATE TABLE #tmp ([_m_] CHAR(1), i INT);
+    DECLARE @cmd NVARCHAR(MAX);
+    
+    SELECT @cmd = 'INSERT INTO #tmp
+    SELECT ''<'' AS [_m_], *
+    FROM ' + @Expected;
+    
+    EXEC (@cmd);
+    
+    DECLARE @TableToTextResult NVARCHAR(MAX);
+    EXEC tSQLt.TableToText @TableName = '#tmp', @OrderBy = '_m_', @txt = @TableToTextResult OUTPUT;
+    
+    EXEC tSQLt.Fail @TableToTextResult;
+END;
+--*/
+---Build-
 
 /*******************************************************************************************/
 /*******************************************************************************************/
 /*******************************************************************************************/
 --/*
+IF OBJECT_ID('tSQLt.TableCompare') IS NOT NULL DROP PROCEDURE tSQLt.TableCompare;
+GO
 CREATE PROCEDURE tSQLt.AssertEqualsTable
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),
