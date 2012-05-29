@@ -14,16 +14,32 @@ BEGIN
     CREATE TABLE #tmp ([_m_] CHAR(1), i INT);
     DECLARE @cmd NVARCHAR(MAX);
     
-    SELECT @cmd = 'INSERT INTO #tmp
-    SELECT ''<'' AS [_m_], *
-    FROM ' + @Expected;
+    SELECT @cmd = 
+    'INSERT INTO #tmp
+    SELECT CASE WHEN SUM([_m_]) < 0 THEN ''<'' 
+               WHEN SUM([_m_]) > 0 THEN ''>''
+               ELSE ''='' END AS [_m_], i 
+    FROM (
+      SELECT -1 AS [_m_], i
+        FROM ' + @Expected + '
+      UNION 
+      SELECT 1 AS [_m_], i 
+        FROM ' + @Actual + '
+    ) AS X 
+    GROUP BY i ';
     
     EXEC (@cmd);
     
     DECLARE @TableToTextResult NVARCHAR(MAX);
     EXEC tSQLt.TableToText @TableName = '#tmp', @OrderBy = '_m_', @txt = @TableToTextResult OUTPUT;
     
-    EXEC tSQLt.Fail @TableToTextResult;
+    DECLARE @Message NVARCHAR(MAX);
+    SET @Message = 'unexpected/missing resultset rows!' + CHAR(13) + CHAR(10);
+    
+    IF EXISTS (SELECT 1 FROM #tmp WHERE [_m_] IN ('<', '>'))
+    BEGIN
+      EXEC tSQLt.Fail @Message, @TableToTextResult;
+    END;
 END;
 --*/
 ---Build-
