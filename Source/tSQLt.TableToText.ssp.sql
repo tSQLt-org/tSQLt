@@ -4,9 +4,10 @@ GO
 CREATE PROCEDURE tSQLt.TableToText
     @txt NVARCHAR(MAX) OUTPUT,
     @TableName NVARCHAR(MAX),
-    @OrderBy NVARCHAR(MAX) = NULL
+    @OrderBy NVARCHAR(MAX) = NULL,
+    @ColumnList NVARCHAR(MAX) = NULL
 AS
 BEGIN
-    SET @txt = tSQLt.Private::TableToString(@TableName,@OrderBy);
+    SET @txt = tSQLt.Private::TableToString(@TableName, @OrderBy, @ColumnList);
 END;
 ---Build-

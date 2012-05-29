@@ -1307,7 +1307,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_actual_having_identity_column
+CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_expected_having_identity_column
 AS
 BEGIN
     DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
@@ -1335,7 +1335,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_expected_having_identity_column
+CREATE PROC tSQLt_test.test_AssertEqualsTable_works_with_actual_having_identity_column
 AS
 BEGIN
     DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;

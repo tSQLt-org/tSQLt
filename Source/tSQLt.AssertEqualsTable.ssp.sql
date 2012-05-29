@@ -1,43 +1,55 @@
 IF OBJECT_ID('tSQLt.AssertEqualsTable') IS NOT NULL DROP PROCEDURE tSQLt.AssertEqualsTable;
 GO
 ---BUILD+
-/*
+--/*
 CREATE PROCEDURE tSQLt.AssertEqualsTable
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),
     @FailMsg NVARCHAR(MAX) = 'unexpected/missing resultset rows!'
 AS
 BEGIN
-    EXEC tSQLt.AssertObjectExists @Actual;
     EXEC tSQLt.AssertObjectExists @Expected;
+    EXEC tSQLt.AssertObjectExists @Actual;
     
-    CREATE TABLE #tmp ([_m_] CHAR(1), i INT);
+    
+    /*
+    CreateTableAndGetColumnList
+    Compare
+    TableToText
+    DROP
+    Fail
+    
+    */
+
+    DECLARE @NewName NVARCHAR(MAX);    
+    DECLARE @ColumnList NVARCHAR(MAX);    
     DECLARE @cmd NVARCHAR(MAX);
-    
-    SELECT @cmd = 
-    'INSERT INTO #tmp
-    SELECT CASE WHEN SUM([_m_]) < 0 THEN ''<'' 
-               WHEN SUM([_m_]) > 0 THEN ''>''
-               ELSE ''='' END AS [_m_], i 
-    FROM (
-      SELECT -1 AS [_m_], i
-        FROM ' + @Expected + '
-      UNION 
-      SELECT 1 AS [_m_], i 
-        FROM ' + @Actual + '
-    ) AS X 
-    GROUP BY i ';
-    
-    EXEC (@cmd);
-    
-    DECLARE @TableToTextResult NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @TableName = '#tmp', @OrderBy = '_m_', @txt = @TableToTextResult OUTPUT;
-    
-    DECLARE @Message NVARCHAR(MAX);
-    SET @Message = 'unexpected/missing resultset rows!' + CHAR(13) + CHAR(10);
-    
-    IF EXISTS (SELECT 1 FROM #tmp WHERE [_m_] IN ('<', '>'))
+    DECLARE @UnequalRowsExist INT;
+
+    SET @NewName=tSQLt.Private::CreateUniqueObjectName();
+
+    SET @cmd = '
+       DECLARE @N TABLE(I INT); INSERT INTO @N DEFAULT VALUES;
+       SELECT ''='' AS ' + @NewName + ', Expected.* INTO ' + @NewName + ' 
+         FROM @N N 
+         LEFT JOIN ' + @Expected + ' AS Expected ON N.I <> N.I 
+       TRUNCATE TABLE ' + @NewName + ';' --Need to insert an actual row to prevent IDENTITY property from transfering (IDENTITY_COL can't be NULLable);
+    EXEC(@cmd);
+        
+    SET @ColumnList = STUFF((SELECT ','+name FROM sys.columns WHERE object_id = OBJECT_ID(@NewName) AND name <> @NewName FOR XML PATH(''), TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
+  
+    EXEC @UnequalRowsExist = tSQLt.Private_CompareTables @Expected, @Actual, @NewName, @ColumnList, @NewName;
+        
+    IF @UnequalRowsExist > 0
     BEGIN
+     DECLARE @TableToTextResult NVARCHAR(MAX);
+     DECLARE @AliasedColumnList NVARCHAR(MAX);
+     SET @AliasedColumnList = '_m_,' + @ColumnList;
+     EXEC tSQLt.TableToText @TableName = @NewName, @OrderBy = @NewName, @ColumnList = @AliasedColumnList, @txt = @TableToTextResult OUTPUT;
+     
+     DECLARE @Message NVARCHAR(MAX);
+     SET @Message = 'unexpected/missing resultset rows!' + CHAR(13) + CHAR(10);
+
       EXEC tSQLt.Fail @Message, @TableToTextResult;
     END;
 END;
@@ -47,7 +59,7 @@ END;
 /*******************************************************************************************/
 /*******************************************************************************************/
 /*******************************************************************************************/
---/*
+/*
 IF OBJECT_ID('tSQLt.TableCompare') IS NOT NULL DROP PROCEDURE tSQLt.TableCompare;
 GO
 CREATE PROCEDURE tSQLt.AssertEqualsTable

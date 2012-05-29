@@ -28,19 +28,25 @@ namespace tSQLtCLR
 
 
         [SqlMethod(DataAccess = DataAccessKind.Read)]
-        public static SqlChars TableToString(SqlString TableName, SqlString OrderOption) {
+        public static SqlChars TableToString(SqlString TableName, SqlString OrderOption, SqlString ColumnList) {
             if (TableName.IsNull) {
                 throw new Exception("Object name cannot be NULL");
             }
 
-            if (OrderOption.IsNull) {
+            if (OrderOption.IsNull)
+            {
                 OrderOption = "";
+            }
+
+            if (ColumnList.IsNull)
+            {
+                ColumnList = "";
             }
 
             TestDatabaseFacade testDbFacade = new TestDatabaseFacade();
             String selectStmt = getSqlStatement(ref TableName, ref OrderOption);
             SqlDataReader reader = testDbFacade.executeCommand(selectStmt);
-            List<String[]> results = getTableStringArray(reader);
+            List<String[]> results = getTableStringArray(reader, ColumnList);
 
             int numRows = 0;
             int[] ColumnLength = new int[results[0].Length];
@@ -107,19 +113,27 @@ namespace tSQLtCLR
             return selectStmt;
         }
 
-        private static List<String[]> getTableStringArray(SqlDataReader reader) {
+        private static List<String[]> getTableStringArray(SqlDataReader reader, SqlString ColumnList) {
             DataTable schema = reader.GetSchemaTable();
 
             List<String[]> results = new List<string[]>();
 
             int numCols = schema.Rows.Count;
 
-            String[] header = new String[numCols];
-            for (int i = 0; i < numCols; i++) {
-                DataRow row = schema.Rows[i];
-                header[i] = row["ColumnName"].ToString();
+            if (ColumnList.ToString().Equals(""))
+            {
+                String[] header = new String[numCols];
+                for (int i = 0; i < numCols; i++)
+                {
+                    DataRow row = schema.Rows[i];
+                    header[i] = row["ColumnName"].ToString();
+                }
+                results.Add(header);
             }
-            results.Add(header);
+            else
+            {
+                results.Add(ColumnList.ToString().Split(','));
+            }
 
             while (reader.Read()) {
                 String[] rowData = new String[numCols];
