@@ -1,7 +1,7 @@
 IF OBJECT_ID('tSQLt.AssertEqualsTable') IS NOT NULL DROP PROCEDURE tSQLt.AssertEqualsTable;
 GO
 ---BUILD+
---/*
+/*
 CREATE PROCEDURE tSQLt.AssertEqualsTable
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),
@@ -59,7 +59,7 @@ END;
 /*******************************************************************************************/
 /*******************************************************************************************/
 /*******************************************************************************************/
-/*
+--/*
 IF OBJECT_ID('tSQLt.TableCompare') IS NOT NULL DROP PROCEDURE tSQLt.TableCompare;
 GO
 CREATE PROCEDURE tSQLt.AssertEqualsTable
