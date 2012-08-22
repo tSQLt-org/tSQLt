@@ -45,6 +45,8 @@ BEGIN
 --  Test: Use window aggregate instead of agregate followed by join
 --  Test: Use 1[_{Left}_], 0[_{Right}_],ROW_NUMBER()OVER(PARTITION BY' + @ColumnList + ' ORDER BY (SELECT 1)) [_{RowNumber}_]
 --  Test: Using a #tbl instead of a @tbl in AssertEqualsTable might be faster?
+--  Testcases:
+--    all data types, including different CLRs
 --
 --  Change [_{xxx}_] into [_{xxx}_' + @ResultTable + ']
 --Should @ResultTable contain the schema name?
@@ -145,3 +147,30 @@ SELECT 'DROP TABLE '+name+';' FROM sys.tables WHERE name LIKE 'tSQLt_tempobject%
 
 --*/
 
+
+
+/* ---Spatial Data
+
+
+IF OBJECT_ID('ttttt') IS NOT NULL DROP TABLE dbo.ttttt;
+
+CREATE TABLE ttttt(i INT, g1 geometry, g2 geography)
+
+INSERT INTO ttttt VALUES(1,geometry::STGeomFromText('MULTILINESTRING((0 2, 1 1), (1 0, 1 1))', 0),geography::STGeomFromText('LINESTRING(-122.360 47.656, -122.343 47.656)', 4326));
+
+INSERT INTO ttttt VALUES(1,geometry::STGeomFromText('MULTILINESTRING((1 0, 1 1), (0 2, 1 1))', 0),geography::STGeomFromText('LINESTRING(-122.360 47.656, -122.343 47.656)', 4326));
+
+
+SELECT 
+--COUNT(1),
+i,g1.AsTextZM(),g2.AsTextZM(),g1.ToString(),g2.ToString(),g1.AsGml(),g2.AsGml(),g1.AsGml(),g2.AsGml()
+FROM dbo.ttttt
+--GROUP BY i,g1.AsTextZM(),g1.AsGml(),g2.AsTextZM(),g2.AsGml()
+
+SELECT geometry::STGeomFromText('MULTILINESTRING((0 2, 1 1), (1 0, 1 1))', 0).STEquals(geometry::STGeomFromText('MULTILINESTRING((1 0, 1 1), (0 2, 1 1))', 0))
+
+
+For XML check out:
+http://web.archive.org/web/20090629063725/http://www.pluralsight.com/community/blogs/dan/archive/2006/09/01/36829.aspx
+http://web.archive.org/web/20081026094705/http://www.sqlserverandxml.com/2008/09/xquery-lab-36-writing-tsql-function-to.html
+--*/
