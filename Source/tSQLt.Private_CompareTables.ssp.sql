@@ -25,17 +25,15 @@ BEGIN
         ELSE ''>'' 
       END AS ' + @MatchIndicatorColumnName + ', ' + @ColumnList + '
     FROM(
-      SELECT MAX([_{Left}_]) AS [_{Left}_], 
-             MAX([_{Right}_]) AS [_{Right}_], 
+      SELECT SUM([_{Left}_]) AS [_{Left}_], 
+             SUM([_{Right}_]) AS [_{Right}_], 
              ' + @ColumnList + ' 
       FROM (
-        SELECT COUNT(1) AS [_{Left}_], 0[_{Right}_], ' + @ColumnList + '
+        SELECT 1 AS [_{Left}_], 0[_{Right}_], ' + @ColumnList + '
           FROM ' + @Expected + '
-         GROUP BY ' + @ColumnList + ' 
         UNION ALL 
-        SELECT 0[_{Left}_], COUNT(1) AS [_{Right}_], ' + @ColumnList + ' 
+        SELECT 0[_{Left}_], 1 AS [_{Right}_], ' + @ColumnList + ' 
           FROM ' + @Actual + '
-         GROUP BY ' + @ColumnList + ' 
       ) AS X 
       GROUP BY ' + @ColumnList + ' 
     ) AS CollapsedRows
