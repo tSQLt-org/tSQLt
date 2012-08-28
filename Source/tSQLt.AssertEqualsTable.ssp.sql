@@ -1,8 +1,4 @@
 
-IF OBJECT_ID('tSQLt.AssertEqualsTable_v') IS NOT NULL DROP TABLE tSQLt.AssertEqualsTable_v;
-GO
-SELECT NULL I INTO tSQLt.AssertEqualsTable_v;
-GO
 IF OBJECT_ID('tSQLt.AssertEqualsTable') IS NOT NULL DROP PROCEDURE tSQLt.AssertEqualsTable;
 GO
 ---BUILD+

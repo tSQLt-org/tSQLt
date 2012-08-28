@@ -399,3 +399,18 @@ END;
 GO
 
 
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle INT data type]
+AS
+BEGIN
+   CREATE TABLE AssertEqualsTableTests.LeftTable (a INT);
+   INSERT INTO AssertEqualsTableTests.LeftTable VALUES (10);
+   INSERT INTO AssertEqualsTableTests.LeftTable VALUES (11);
+
+   CREATE TABLE AssertEqualsTableTests.RightTable (a INT);
+   INSERT INTO AssertEqualsTableTests.RightTable VALUES (10);
+   INSERT INTO AssertEqualsTableTests.RightTable VALUES (12);
+   
+   EXEC tSQLt.Fail 'Implement next time, also with all other data types';
+   
+END;
+GO
