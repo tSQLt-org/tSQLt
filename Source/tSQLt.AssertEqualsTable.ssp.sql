@@ -1,3 +1,8 @@
+
+IF OBJECT_ID('tSQLt.AssertEqualsTable_v') IS NOT NULL DROP TABLE tSQLt.AssertEqualsTable_v;
+GO
+SELECT NULL I INTO tSQLt.AssertEqualsTable_v;
+GO
 IF OBJECT_ID('tSQLt.AssertEqualsTable') IS NOT NULL DROP PROCEDURE tSQLt.AssertEqualsTable;
 GO
 ---BUILD+
@@ -8,6 +13,7 @@ CREATE PROCEDURE tSQLt.AssertEqualsTable
     @FailMsg NVARCHAR(MAX) = 'unexpected/missing resultset rows!'
 AS
 BEGIN
+
     EXEC tSQLt.AssertObjectExists @Expected;
     EXEC tSQLt.AssertObjectExists @Actual;
     
@@ -29,9 +35,8 @@ BEGIN
     SET @NewName=tSQLt.Private::CreateUniqueObjectName();
 
     SET @cmd = '
-       DECLARE @N TABLE(I INT); INSERT INTO @N DEFAULT VALUES;
        SELECT ''='' AS ' + @NewName + ', Expected.* INTO ' + @NewName + ' 
-         FROM @N N 
+         FROM tSQLt.AssertEqualsTable_v N 
          LEFT JOIN ' + @Expected + ' AS Expected ON N.I <> N.I 
        TRUNCATE TABLE ' + @NewName + ';' --Need to insert an actual row to prevent IDENTITY property from transfering (IDENTITY_COL can't be NULLable);
     EXEC(@cmd);
