@@ -39,7 +39,13 @@ BEGIN
       ) AS X 
       GROUP BY ' + @ColumnList + ' 
     ) AS CollapsedRows
-    CROSS APPLY (SELECT TOP(CASE WHEN [_{Left}_]>[_{Right}_] THEN [_{Left}_] ELSE [_{Right}_] END) ROW_NUMBER()OVER(ORDER BY(SELECT 1)) FROM '+@Actual+') AS RestoredRowIndex('+@RestoredRowIndexCounterColName+');';
+    CROSS APPLY (
+       SELECT TOP(CASE WHEN [_{Left}_]>[_{Right}_] THEN [_{Left}_] 
+                       ELSE [_{Right}_] END) 
+              ROW_NUMBER() OVER(ORDER BY(SELECT 1)) 
+         FROM (SELECT 1 
+                 FROM ' + @Actual + ' UNION ALL SELECT 1 FROM ' + @Expected + ') X(X)
+              ) AS RestoredRowIndex(' + @RestoredRowIndexCounterColName + ');';
 --TODO:                                                                                                         need to create enough rows here --^
 --  Test: use SUM([_{Left}_])[_{Left}_],SUM([_{Right}_])[_{Right}_] with single GROUP BY instead of three GROUP BY statements
 --  Test: Use window aggregate instead of agregate followed by join
@@ -56,7 +62,7 @@ BEGIN
 --Old version:
 --    CROSS APPLY (SELECT * FROM tSQLt.F_Num(CASE WHEN [_{Left}_]>[_{Right}_] THEN [_{Left}_] ELSE [_{Right}_] END)) AS RestoredRowIndex('+@RestoredRowIndexCounterColName+');';
     
-    EXEC (@cmd);
+    EXEC (@cmd);--MainGroupQuery
     
     SET @cmd = 'SET @r = 
          CASE WHEN EXISTS(
@@ -79,71 +85,6 @@ END;
 
 
 /*--Performance Testing Material...
-
-
-
-IF OBJECT_ID('A') IS NOT NULL DROP TABLE A;
-IF OBJECT_ID('B') IS NOT NULL DROP TABLE B;
-
-CREATE TABLE A (i INT, b VARCHAR(50), c VARCHAR(50), d FLOAT);
-CREATE TABLE B (i INT, b VARCHAR(50), c VARCHAR(50), d FLOAT);
-
-INSERT INTO A (i, b, c, d) VALUES (1, 'asdf', 'ewfq', 34.5);
-INSERT INTO A (i, b, c, d) VALUES (2, 'asdf', 'ewfq', 34.5);
-INSERT INTO A (i, b, c, d) VALUES (3, 'asdf', 'ewfq', 34.5);
-INSERT INTO A (i, b, c, d) VALUES (4, 'asdf', 'ewfq', 34.5);
-
-INSERT INTO B (i, b, c, d) VALUES (1, 'asdf', 'ewfq', 34.5);
-INSERT INTO B (i, b, c, d) VALUES (7, 'asdf', 'ewfq', 34.5);
-INSERT INTO B (i, b, c, d) VALUES (3, 'ewqfwef', 'ewfq', 34.5);
-INSERT INTO B (i, b, c, d) VALUES (4, 'asdf', 'ewfq', 34.5);
-
-
---SET STATISTICS TIME ON;
-DECLARE @cntr INT = 0;
-WHILE @cntr < 1000
-BEGIN
-  SET @cntr = @cntr + 1;
-  EXEC tSQLt.AssertEqualsTable 'A', 'B';
-END;
-
---SET STATISTICS TIME OFF;
-
-
---SELECT DB_ID()
-SELECT 
-Duration,CPU,Reads,CAST(TextData AS NVARCHAR(MAX)) TextData
-INTO tempdb.dbo.trc4
-FROM tempdb..trc3
-
-SELECT TOP(10)* FROM(
-SELECT COUNT(1) Cnt,AVG(Duration) ADur,AVG(CPU)ACPU,AVG(Reads)AReads,CAST(TextData AS NVARCHAR(MAX)) TextData
-FROM tempdb..trc2
-GROUP BY CAST(TextData AS NVARCHAR(MAX))
-HAVING COUNT(1)>1
-)x
-ORDER BY ACPU DESC, AReads DESC
-SELECT TOP(10)* FROM(
-SELECT COUNT(1) Cnt,AVG(Duration) ADur,AVG(CPU)ACPU,AVG(Reads)AReads,CAST(TextData AS NVARCHAR(MAX)) TextData
-FROM tempdb..trc4
-GROUP BY CAST(TextData AS NVARCHAR(MAX))
-HAVING COUNT(1)>1
-)x
-ORDER BY ACPU DESC, AReads DESC
-
-SELECT MIN(StartTime),MAX(StartTime) FROM tempdb..trc3
-
-UPDATE tempdb..trc4
-SET TextData = 
-'SELECT _=_ AS tSQLt_tempobject_________________________________, Expected.* INTO tSQLt_tempobject_________________________________            FROM @N N            LEFT JOIN A AS Expected ON N.I <> N.I          '
-WHERE TextData LIKE 'SELECT _=_ AS tSQLt_tempobject_________________________________, Expected.* INTO tSQLt_tempobject_________________________________%'
-
-SELECT * FROM tempdb..trc2
-WHERE TextData LIKE 'SELECT _=_ AS tSQLt_tempobject_________________________________, Expected.* INTO tSQLt_tempobject_________________________________%'
-
-DROP TABLE dbo.expected
-SELECT 'DROP TABLE '+name+';' FROM sys.tables WHERE name LIKE 'tSQLt_tempobject%'
-
 
 --*/
 
