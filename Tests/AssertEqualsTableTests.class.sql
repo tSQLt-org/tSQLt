@@ -94,17 +94,17 @@ CREATE PROCEDURE AssertEqualsTableTests.[test one row in each table, but row is 
 AS
 BEGIN
    CREATE TABLE AssertEqualsTableTests.LeftTable (i INT);
-   INSERT INTO AssertEqualsTableTests.LeftTable VALUES (1);
+   INSERT INTO AssertEqualsTableTests.LeftTable VALUES (13);
 
    CREATE TABLE AssertEqualsTableTests.RightTable (i INT);
-   INSERT INTO AssertEqualsTableTests.RightTable VALUES (2);
+   INSERT INTO AssertEqualsTableTests.RightTable VALUES (42);
    
    CREATE TABLE AssertEqualsTableTests.ResultTable ([_m_] CHAR(1),i INT);
    INSERT INTO AssertEqualsTableTests.ResultTable ([_m_],i)
-   SELECT '<',1;
+   SELECT '<',13;
    
    INSERT INTO AssertEqualsTableTests.ResultTable ([_m_],i)
-   SELECT '>',2;
+   SELECT '>',42;
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
    SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
