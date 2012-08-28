@@ -18,32 +18,26 @@ BEGIN
     INSERT INTO ' + @ResultTable + '
     SELECT 
       CASE 
-        WHEN RestoredRowIndex.'+@RestoredRowIndexCounterColName+' <= CASE WHEN [_{Left}_]<[_{Right}_] THEN [_{Left}_] ELSE [_{Right}_] END
+        WHEN [_{Left}_] = [_{Right}_]
          THEN ''='' 
-        WHEN RestoredRowIndex.'+@RestoredRowIndexCounterColName+' <= [_{Left}_] 
+        WHEN  [_{Left}_] = 1
          THEN ''<'' 
         ELSE ''>'' 
       END AS ' + @MatchIndicatorColumnName + ', ' + @ColumnList + '
     FROM(
       SELECT SUM([_{Left}_]) AS [_{Left}_], 
              SUM([_{Right}_]) AS [_{Right}_], 
+             [_{RowNumber}_],
              ' + @ColumnList + ' 
       FROM (
-        SELECT 1 AS [_{Left}_], 0[_{Right}_], ' + @ColumnList + '
+        SELECT ROW_NUMBER()OVER(PARTITION BY ' + @ColumnList + ' ORDER BY (SELECT 1)) AS [_{RowNumber}_], 1 AS [_{Left}_], 0[_{Right}_], ' + @ColumnList + '
           FROM ' + @Expected + '
         UNION ALL 
-        SELECT 0[_{Left}_], 1 AS [_{Right}_], ' + @ColumnList + ' 
+        SELECT ROW_NUMBER()OVER(PARTITION BY ' + @ColumnList + ' ORDER BY (SELECT 1)) AS [_{RowNumber}_], 0[_{Left}_], 1 AS [_{Right}_], ' + @ColumnList + ' 
           FROM ' + @Actual + '
       ) AS X 
-      GROUP BY ' + @ColumnList + ' 
-    ) AS CollapsedRows
-    CROSS APPLY (
-       SELECT TOP(CASE WHEN [_{Left}_]>[_{Right}_] THEN [_{Left}_] 
-                       ELSE [_{Right}_] END) 
-              ROW_NUMBER() OVER(ORDER BY(SELECT 1)) 
-         FROM (SELECT 1 
-                 FROM ' + @Actual + ' UNION ALL SELECT 1 FROM ' + @Expected + ') X(X)
-              ) AS RestoredRowIndex(' + @RestoredRowIndexCounterColName + ');';
+      GROUP BY ' + @ColumnList + ',[_{RowNumber}_] 
+    ) AS CollapsedRows;';
 --TODO:                                                                                                         need to create enough rows here --^
 --  Test: use SUM([_{Left}_])[_{Left}_],SUM([_{Right}_])[_{Right}_] with single GROUP BY instead of three GROUP BY statements
 --  Test: Use window aggregate instead of agregate followed by join
