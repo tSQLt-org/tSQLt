@@ -399,18 +399,161 @@ END;
 GO
 
 
-CREATE PROCEDURE AssertEqualsTableTests.[test can handle INT data type]
+CREATE PROCEDURE AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype]
+ @DataType NVARCHAR(MAX),
+ @Values NVARCHAR(MAX)
 AS
 BEGIN
-   CREATE TABLE AssertEqualsTableTests.LeftTable (a INT);
-   INSERT INTO AssertEqualsTableTests.LeftTable VALUES (10);
-   INSERT INTO AssertEqualsTableTests.LeftTable VALUES (11);
+  DECLARE @cmd NVARCHAR(MAX);
+  
+  SET @Cmd = '
+   CREATE TABLE AssertEqualsTableTests.ResultTable ([_m_] CHAR(1), a <<DATATYPE>>);
+   CREATE TABLE AssertEqualsTableTests.LeftTable (a <<DATATYPE>>);
+   CREATE TABLE AssertEqualsTableTests.RightTable (a <<DATATYPE>>);
 
-   CREATE TABLE AssertEqualsTableTests.RightTable (a INT);
-   INSERT INTO AssertEqualsTableTests.RightTable VALUES (10);
-   INSERT INTO AssertEqualsTableTests.RightTable VALUES (12);
+   INSERT INTO AssertEqualsTableTests.ResultTable ([_m_], a)
+   SELECT e,v FROM(
+    SELECT <<VALUES>>
+   )X([=],[<],[>])
+   UNPIVOT (v FOR e IN ([=],[<],[>])) AS u;
+   ';
    
-   EXEC tSQLt.Fail 'Implement next time, also with all other data types';
+   SET @Cmd = REPLACE(@Cmd, '<<DATATYPE>>', @DataType);
+   SET @Cmd = REPLACE(@Cmd, '<<VALUES>>', @Values);
    
+   EXEC(@Cmd);
+   
+   
+   INSERT INTO AssertEqualsTableTests.LeftTable (a)
+   SELECT a FROM AssertEqualsTableTests.ResultTable WHERE [_m_] <> '>';
+
+   INSERT INTO AssertEqualsTableTests.RightTable (a)
+   SELECT a FROM AssertEqualsTableTests.ResultTable WHERE [_m_] <> '<';
+
+   DECLARE @ExpectedMessage NVARCHAR(MAX);
+   EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
+   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+
+   EXEC tSQLt_testutil.AssertFailMessageEquals 
+     'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
+     @ExpectedMessage,
+     'Fail was not called with expected message for datatype ',
+     @DataType,
+     ':';
+   
+   DROP TABLE AssertEqualsTableTests.ResultTable;  
+   DROP TABLE AssertEqualsTableTests.LeftTable;  
+   DROP TABLE AssertEqualsTableTests.RightTable;  
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle integer data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'BIT', '1,1,0';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'TINYINT', '10,11,12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'SMALLINT', '10,11,12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'INT', '10,11,12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'BIGINT', '10,11,12';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle binary data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'BINARY(1)', '0x10,0x11,0x12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'VARBINARY(2)', '0x10,0x11,0x12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'VARBINARY(MAX)', '0x10,0x11,0x12';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle char data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'CHAR(2)', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'NCHAR(2)', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'VARCHAR(2)', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'NVARCHAR(2)', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'VARCHAR(MAX)', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'NVARCHAR(MAX)', '''10'',''11'',''12''';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle decimal data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DECIMAL(10,2)', '0.10, 0.11, 0.12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'NUMERIC(10,2)', '0.10, 0.11, 0.12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'SMALLMONEY', '0.10, 0.11, 0.12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'MONEY', '0.10, 0.11, 0.12';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle floating point data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'FLOAT', '1E-10, 1E-11, 1E-12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'REAL', '1E-10, 1E-11, 1E-12';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle 2008 date data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DATE', '''2012-01-01'',''2012-06-19'',''2012-10-25''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'TIME', '''10:10:10'',''11:11:11'',''12:12:12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DATETIMEOFFSET', '''2012-01-01 10:10:10.101010 +10:10'',''2012-06-19 11:11:11.111111 +11:11'',''2012-10-25 12:12:12.121212 -12:12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DATETIME2', '''2012-01-01 10:10:10.101010'',''2012-06-19 11:11:11.111111'',''2012-10-25 12:12:12.121212''';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle date data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'SMALLDATETIME', '''2012-01-01 12:00'',''2012-06-19 12:00'',''2012-10-25 12:00''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DATETIME', '''2012-01-01 12:00'',''2012-06-19 12:00'',''2012-10-25 12:00''';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle uniqueidentifier data type]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'UNIQUEIDENTIFIER', '''10101010-1010-1010-1010-101010101010'',''11111111-1111-1111-1111-111111111111'',''12121212-1212-1212-1212-121212121212''';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle hierarchyid data type]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'HIERARCHYID', '''/10/'',''/11/'',''/12/''';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle rowversion data type]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle sql_variant data type]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'SQL_VARIANT', '10,11,12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'SQL_VARIANT', '''A'',''B'',''C''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'SQL_VARIANT', 'CAST(''2010-10-10'' AS DATETIME),CAST(''2011-11-11'' AS DATETIME),CAST(''2012-12-12'' AS DATETIME)';
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[unsupported data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'TEXT', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'NTEXT', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'IMAGE', '0x10,0x11,0x12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'XML', '0x10,0x11,0x12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'INT, c ROWVERSION', '0,0,0';--ROWVERSION is automatically valued
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'GEOMETRY', 'geometry::STPointFromText(''POINT (10 10)'', 0),geometry::STPointFromText(''POINT (11 11)'', 0),geometry::STPointFromText(''POINT (12 12)'', 0)';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
 END;
 GO

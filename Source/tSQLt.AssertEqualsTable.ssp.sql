@@ -32,7 +32,7 @@ BEGIN
 
     SET @cmd = '
        SELECT ''='' AS ' + @NewName + ', Expected.* INTO ' + @NewName + ' 
-         FROM tSQLt.AssertEqualsTable_v N 
+         FROM tSQLt.Private_NullCellTable N 
          LEFT JOIN ' + @Expected + ' AS Expected ON N.I <> N.I 
        TRUNCATE TABLE ' + @NewName + ';' --Need to insert an actual row to prevent IDENTITY property from transfering (IDENTITY_COL can't be NULLable);
     EXEC(@cmd);
