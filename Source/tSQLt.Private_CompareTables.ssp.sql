@@ -45,10 +45,6 @@ BEGIN
                  FROM ' + @Actual + ' UNION ALL SELECT 1 FROM ' + @Expected + ') X(X)
               ) AS RestoredRowIndex(' + @RestoredRowIndexCounterColName + ');';
 --TODO:                                                                                                         need to create enough rows here --^
---  Test: use SUM([_{Left}_])[_{Left}_],SUM([_{Right}_])[_{Right}_] with single GROUP BY instead of three GROUP BY statements
---  Test: Use window aggregate instead of agregate followed by join
---  Test: Use 1[_{Left}_], 0[_{Right}_],ROW_NUMBER()OVER(PARTITION BY' + @ColumnList + ' ORDER BY (SELECT 1)) [_{RowNumber}_]
---  Test: Using a #tbl instead of a @tbl in AssertEqualsTable might be faster?
 --  Testcases:
 --    all data types, including different CLRs
 --
