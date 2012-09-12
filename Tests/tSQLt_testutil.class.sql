@@ -15,6 +15,8 @@
 */
 DECLARE @Msg VARCHAR(MAX);SELECT @Msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@Msg,0,1);
 GO
+IF OBJECT_ID('tSQLt_testutil.Private_Drop_tSQLtTestUtilCLR_objects') IS NOT NULL EXEC('EXEC tSQLt_testutil.Private_Drop_tSQLtTestUtilCLR_objects');
+GO
 EXEC tSQLt.DropClass tSQLt_testutil;
 GO
 
@@ -130,6 +132,21 @@ BEGIN
   DEALLOCATE tests;
 END;
 GO
+
+CREATE PROCEDURE tSQLt_testutil.AssertLike 
+  @ExpectedPattern NVARCHAR(MAX),
+  @Actual NVARCHAR(MAX),
+  @Message NVARCHAR(MAX) = ''
+AS
+BEGIN
+    IF ((@Actual LIKE @ExpectedPattern) OR (@Actual IS NULL AND @ExpectedPattern IS NULL))
+      RETURN 0;
+
+    DECLARE @Msg NVARCHAR(MAX);
+    SELECT @Msg = CHAR(13)+CHAR(10)+'Expected: <' + ISNULL(@ExpectedPattern, 'NULL') + 
+                  '>'+CHAR(13)+CHAR(10)+' but was: <' + ISNULL(@Actual, 'NULL') + '>';
+    EXEC tSQLt.Fail @Message, @Msg;
+END
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

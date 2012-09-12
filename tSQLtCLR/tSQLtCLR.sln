@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tSQLtCLR", "tSQLtCLR\tSQLtCLR.csproj", "{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tSQLtTestUtilCLR", "tSQLtTestUtilCLR\tSQLtTestUtilCLR.csproj", "{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,6 +18,12 @@ Global
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CruiseControl|Any CPU.ActiveCfg = Release|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CruiseControl|Any CPU.Build.0 = Release|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

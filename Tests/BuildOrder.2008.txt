@@ -1,3 +1,4 @@
 tSQLt_test_TableToText.2008.class.sql
 Private_GetFullTypeNameTests_2008.class.sql
 tSQLt_test_ResultSetFilter_2008.class.sql
+AssertEqualsTableTests.2008.class.sql

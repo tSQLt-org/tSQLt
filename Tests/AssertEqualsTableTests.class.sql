@@ -447,6 +447,17 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE AssertEqualsTableTests.[test considers NULL values identical]
+AS
+BEGIN
+  SELECT *
+    INTO AssertEqualsTableTests.NullCellTableCopy
+    FROM tSQLt.Private_NullCellTable;
+  
+  EXEC tSQLt.AssertEqualsTable 'tSQLt.Private_NullCellTable', 'AssertEqualsTableTests.NullCellTableCopy';
+END;
+GO
+
 CREATE PROCEDURE AssertEqualsTableTests.[test can handle integer data types]
 AS
 BEGIN
@@ -497,16 +508,6 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE AssertEqualsTableTests.[test can handle 2008 date data types]
-AS
-BEGIN
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DATE', '''2012-01-01'',''2012-06-19'',''2012-10-25''';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'TIME', '''10:10:10'',''11:11:11'',''12:12:12''';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DATETIMEOFFSET', '''2012-01-01 10:10:10.101010 +10:10'',''2012-06-19 11:11:11.111111 +11:11'',''2012-10-25 12:12:12.121212 -12:12''';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'DATETIME2', '''2012-01-01 10:10:10.101010'',''2012-06-19 11:11:11.111111'',''2012-10-25 12:12:12.121212''';
-END;
-GO
-
 CREATE PROCEDURE AssertEqualsTableTests.[test can handle date data types]
 AS
 BEGIN
@@ -526,13 +527,6 @@ CREATE PROCEDURE AssertEqualsTableTests.[test can handle hierarchyid data type]
 AS
 BEGIN
   EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'HIERARCHYID', '''/10/'',''/11/'',''/12/''';
-END;
-GO
-
-CREATE PROCEDURE AssertEqualsTableTests.[test can handle rowversion data type]
-AS
-BEGIN
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
 END;
 GO
 
@@ -557,3 +551,22 @@ BEGIN
   EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
 END;
 GO
+
+CREATE PROC AssertEqualsTableTests.[test TODO]
+AS
+BEGIN
+  EXEC tSQLt.Fail '
+  
+  - Deal with unsupported data types
+  - what to do with CLR 
+    - tSQLt_testutil.DataTypeNoEqual
+    - tSQLt_testutil.DataTypeWithEqual
+    - tSQLt_testutil.DataTypeByteOrdered
+  - TableToText can`t handle BINARY datatypes
+  - AssertEquals can`t handle BINARY datatypes
+  
+  - NTH: move tSQLt_testutil.AssertLike to tSQLt.AssertLike. Needs Tests...
+  
+  - !! needs now v4.0.30319 compiler!
+  ';
+END;
