@@ -523,13 +523,6 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE AssertEqualsTableTests.[test can handle hierarchyid data type]
-AS
-BEGIN
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'HIERARCHYID', '''/10/'',''/11/'',''/12/''';
-END;
-GO
-
 CREATE PROCEDURE AssertEqualsTableTests.[test can handle sql_variant data type]
 AS
 BEGIN
