@@ -561,5 +561,8 @@ BEGIN
   - NTH: move tSQLt_testutil.AssertLike to tSQLt.AssertLike. Needs Tests...
   
   - !! needs now v4.0.30319 compiler!
+  
+  -- 2012 tests are failing
+  -- feature: open more than 1 tran before test execution
   ';
 END;
