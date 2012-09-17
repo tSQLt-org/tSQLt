@@ -26,6 +26,9 @@ tSQLt.Private_MarkFakeTable.ssp.sql
 tSQLt.FakeTable.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql
 tSQLt.SpyProcedure.ssp.sql
+tSQLt.Private_GetCommaSeparatedColumnList.sfn.sql
+tSQLt.Private_CreateResultTableForCompareTables.ssp.sql
+tSQLt.Private_CompareTablesFailIfUnequalRowsExists.ssp.sql
 tSQLt.Private_CompareTables.ssp.sql
 tSQLt.Private_NullCellTable.tbl.sql
 tSQLt.AssertEqualsTable.ssp.sql
