@@ -15,7 +15,7 @@ BEGIN
     
     SELECT @cmd = 
     '
-    INSERT INTO ' + @ResultTable + '
+    INSERT INTO ' + @ResultTable + ' (' + @MatchIndicatorColumnName + ', ' + @ColumnList + ') 
     SELECT 
       CASE 
         WHEN RestoredRowIndex.'+@RestoredRowIndexCounterColName+' <= CASE WHEN [_{Left}_]<[_{Right}_] THEN [_{Left}_] ELSE [_{Right}_] END
