@@ -26,6 +26,8 @@ BEGIN
       @BaseTable = @Expected;
         
     SELECT @ColumnList = tSQLt.Private_GetCommaSeparatedColumnList(@ResultTable, @ResultColumn);
+
+    EXEC tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported @ResultTable, @ColumnList;    
     
     EXEC @UnequalRowsExist = tSQLt.Private_CompareTables 
       @Expected = @Expected,
@@ -42,7 +44,7 @@ BEGIN
 END;
 --*/
 ---Build-
-
+GO
 /*******************************************************************************************/
 /*******************************************************************************************/
 /*******************************************************************************************/
