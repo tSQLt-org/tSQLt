@@ -247,7 +247,7 @@ BEGIN
   
 END
 GO
-CREATE PROCEDURE tSQLt_testutil_test.[test DataTypeByteOrdered cannot GROUP BY]
+CREATE PROCEDURE tSQLt_testutil_test.[test DataTypeByteOrdered can GROUP BY]
 AS
 BEGIN
   DECLARE @Message NVARCHAR(MAX);

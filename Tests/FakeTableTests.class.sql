@@ -550,7 +550,7 @@ BEGIN
     LEFT OUTER JOIN sys.computed_columns cc ON cc.object_id = c.object_id
                                               AND cc.column_id = c.column_id
    WHERE c.object_id = OBJECT_ID('dbo.tst1');
-
+   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
