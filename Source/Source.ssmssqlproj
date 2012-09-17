@@ -67,17 +67,35 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CompareTables.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_CompareTablesFailIfUnequalRowsExists.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CompareTablesFailIfUnequalRowsExists.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_CreateProcedureSpy.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CreateProcedureSpy.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_CreateResultTableForCompareTables.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CreateResultTableForCompareTables.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_GetCommaSeparatedColumnList.sfn.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetCommaSeparatedColumnList.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>

@@ -1,4 +1,3 @@
-
 IF OBJECT_ID('tSQLt.AssertEqualsTable') IS NOT NULL DROP PROCEDURE tSQLt.AssertEqualsTable;
 GO
 ---BUILD+
@@ -12,47 +11,34 @@ BEGIN
 
     EXEC tSQLt.AssertObjectExists @Expected;
     EXEC tSQLt.AssertObjectExists @Actual;
-    
-    
-    /*
-    CreateTableAndGetColumnList
-    Compare
-    TableToText
-    DROP
-    Fail
-    
-    */
 
-    DECLARE @NewName NVARCHAR(MAX);    
+    DECLARE @ResultTable NVARCHAR(MAX);    
+    DECLARE @ResultColumn NVARCHAR(MAX);    
     DECLARE @ColumnList NVARCHAR(MAX);    
-    DECLARE @cmd NVARCHAR(MAX);
     DECLARE @UnequalRowsExist INT;
 
-    SET @NewName=tSQLt.Private::CreateUniqueObjectName();
+    SELECT @ResultTable = tSQLt.Private::CreateUniqueObjectName();
+    SELECT @ResultColumn = 'RC_' + @ResultTable;
 
-    SET @cmd = '
-       SELECT ''='' AS ' + @NewName + ', Expected.* INTO ' + @NewName + ' 
-         FROM tSQLt.Private_NullCellTable N 
-         LEFT JOIN ' + @Expected + ' AS Expected ON N.I <> N.I 
-       TRUNCATE TABLE ' + @NewName + ';' --Need to insert an actual row to prevent IDENTITY property from transfering (IDENTITY_COL can't be NULLable);
-    EXEC(@cmd);
+    EXEC tSQLt.Private_CreateResultTableForCompareTables 
+      @ResultTable = @ResultTable,
+      @ResultColumn = @ResultColumn,
+      @BaseTable = @Expected;
         
-    SET @ColumnList = STUFF((SELECT ','+name FROM sys.columns WHERE object_id = OBJECT_ID(@NewName) AND name <> @NewName FOR XML PATH(''), TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
-  
-    EXEC @UnequalRowsExist = tSQLt.Private_CompareTables @Expected, @Actual, @NewName, @ColumnList, @NewName;
+    SELECT @ColumnList = tSQLt.Private_GetCommaSeparatedColumnList(@ResultTable, @ResultColumn);
+    
+    EXEC @UnequalRowsExist = tSQLt.Private_CompareTables 
+      @Expected = @Expected,
+      @Actual = @Actual,
+      @ResultTable = @ResultTable,
+      @ColumnList = @ColumnList,
+      @MatchIndicatorColumnName = @ResultColumn;
         
-    IF @UnequalRowsExist > 0
-    BEGIN
-     DECLARE @TableToTextResult NVARCHAR(MAX);
-     DECLARE @AliasedColumnList NVARCHAR(MAX);
-     SET @AliasedColumnList = '_m_,' + @ColumnList;
-     EXEC tSQLt.TableToText @TableName = @NewName, @OrderBy = @NewName, @ColumnList = @AliasedColumnList, @txt = @TableToTextResult OUTPUT;
-     
-     DECLARE @Message NVARCHAR(MAX);
-     SET @Message = 'unexpected/missing resultset rows!' + CHAR(13) + CHAR(10);
-
-      EXEC tSQLt.Fail @Message, @TableToTextResult;
-    END;
+    EXEC tSQLt.Private_CompareTablesFailIfUnequalRowsExists 
+      @UnequalRowsExist = @UnequalRowsExist,
+      @ResultTable = @ResultTable,
+      @ResultColumn = @ResultColumn,
+      @ColumnList = @ColumnList;   
 END;
 --*/
 ---Build-
