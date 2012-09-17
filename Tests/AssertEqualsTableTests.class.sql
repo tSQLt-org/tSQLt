@@ -399,7 +399,7 @@ END;
 GO
 
 
-CREATE PROCEDURE AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype]
+CREATE PROCEDURE AssertEqualsTableTests.[Create tables to compare]
  @DataType NVARCHAR(MAX),
  @Values NVARCHAR(MAX)
 AS
@@ -429,7 +429,27 @@ BEGIN
 
    INSERT INTO AssertEqualsTableTests.RightTable (a)
    SELECT a FROM AssertEqualsTableTests.ResultTable WHERE [_m_] <> '<';
+END;
+GO
 
+
+CREATE PROCEDURE AssertEqualsTableTests.[Drop tables to compare]
+AS
+BEGIN
+   DROP TABLE AssertEqualsTableTests.ResultTable;  
+   DROP TABLE AssertEqualsTableTests.LeftTable;  
+   DROP TABLE AssertEqualsTableTests.RightTable;  
+END;
+GO
+
+
+CREATE PROCEDURE AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype]
+ @DataType NVARCHAR(MAX),
+ @Values NVARCHAR(MAX)
+AS
+BEGIN
+   EXEC AssertEqualsTableTests.[Create tables to compare] @DataType, @Values;
+   
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
    SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
@@ -441,9 +461,7 @@ BEGIN
      @DataType,
      ':';
    
-   DROP TABLE AssertEqualsTableTests.ResultTable;  
-   DROP TABLE AssertEqualsTableTests.LeftTable;  
-   DROP TABLE AssertEqualsTableTests.RightTable;  
+   EXEC AssertEqualsTableTests.[Drop tables to compare];
 END;
 GO
 
@@ -532,20 +550,52 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE AssertEqualsTableTests.[unsupported data types]
+CREATE PROCEDURE AssertEqualsTableTests.[test can handle byte ordered comparable CLR data type]
 AS
 BEGIN
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'TEXT', '''10'',''11'',''12''';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'NTEXT', '''10'',''11'',''12''';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'IMAGE', '0x10,0x11,0x12';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'XML', '0x10,0x11,0x12';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'INT, c ROWVERSION', '0,0,0';--ROWVERSION is automatically valued
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'GEOMETRY', 'geometry::STPointFromText(''POINT (10 10)'', 0),geometry::STPointFromText(''POINT (11 11)'', 0),geometry::STPointFromText(''POINT (12 12)'', 0)';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can handle a datatype] 'tSQLt_testutil.DataTypeByteOrdered', '''10'',''11'',''12''';
 END;
 GO
 
-CREATE PROC AssertEqualsTableTests.[test TODO]
+CREATE PROCEDURE AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype]
+ @DataType NVARCHAR(MAX),
+ @Values NVARCHAR(MAX)
+AS
+BEGIN
+   EXEC AssertEqualsTableTests.[Create tables to compare] @DataType, @Values;
+   
+   DECLARE @Message NVARCHAR(MAX);
+   SET @Message = 'No Error';
+
+   BEGIN TRY
+     EXEC tSQLt.AssertEqualsTable 'AssertEqualsTableTests.LeftTable', 'AssertEqualsTableTests.RightTable';
+   END TRY
+   BEGIN CATCH
+     SELECT @Message = ERROR_MESSAGE();
+   END CATCH
+   
+   EXEC tSQLt_testutil.AssertLike '%The table contains a datatype that is not supported for tSQLt.AssertEqualsTable%Please refer to http://tsqlt.org/user-guide/assertions/assertequalstable/ for a list of unsupported datatypes%',@Message;
+
+   EXEC AssertEqualsTableTests.[Drop tables to compare];
+END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test all unsupported data types]
+AS
+BEGIN
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'tSQLt_testutil.DataTypeNoEqual', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'tSQLt_testutil.DataTypeWithEqual', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'TEXT', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'NTEXT', '''10'',''11'',''12''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'IMAGE', '0x10,0x11,0x12';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'XML', '''<X1 />'',''<X2 />'',''<X3 />''';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'INT, c ROWVERSION', '0,0,0';--ROWVERSION is automatically valued
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'GEOMETRY', 'geometry::STPointFromText(''POINT (10 10)'', 0),geometry::STPointFromText(''POINT (11 11)'', 0),geometry::STPointFromText(''POINT (12 12)'', 0)';
+  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
+END;
+GO
+
+CREATE PROC AssertEqualsTableTests.[-test TODO]
 AS
 BEGIN
   EXEC tSQLt.Fail '

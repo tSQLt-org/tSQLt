@@ -6,7 +6,7 @@ RETURNS NVARCHAR(MAX)
 AS 
 BEGIN
   RETURN STUFF((
-     SELECT ','+name 
+     SELECT ',' + CASE WHEN system_type_id = TYPE_ID('timestamp') THEN ';TIMESTAMP columns are unsupported!;' ELSE name END 
        FROM sys.columns 
       WHERE object_id = OBJECT_ID(@Table) 
         AND name <> @ExcludeColumn 
