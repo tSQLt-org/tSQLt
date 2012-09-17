@@ -4,10 +4,14 @@ An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
 
-Release: VLATEST-BUILD-NUMBER (in progress)
+Release: VLATEST-BUILD-NUMBER
 
 OTHER:
 1. Removed unused procedure: StubRecord
+2. Improved the performance of AssertEqualsTable
+3. AssertEqualsTable now gives reasonalbe error messages for unsupported datatypes. More
+   information on unsupported datatypes is available on the documentation page for 
+   AssertEqualsTable: http://tsqlt.org/user-guide/assertions/assertequalstable/
 
 ---------------------------
 Release: V1.0.4504.21220
