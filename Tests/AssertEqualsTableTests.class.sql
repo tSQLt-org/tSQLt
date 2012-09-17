@@ -590,8 +590,6 @@ BEGIN
   EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'IMAGE', '0x10,0x11,0x12';
   EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'XML', '''<X1 />'',''<X2 />'',''<X3 />''';
   EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'INT, c ROWVERSION', '0,0,0';--ROWVERSION is automatically valued
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'GEOMETRY', 'geometry::STPointFromText(''POINT (10 10)'', 0),geometry::STPointFromText(''POINT (11 11)'', 0),geometry::STPointFromText(''POINT (12 12)'', 0)';
-  EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
 END;
 GO
 
@@ -599,14 +597,6 @@ CREATE PROC AssertEqualsTableTests.[-test TODO]
 AS
 BEGIN
   EXEC tSQLt.Fail '
-  
-  - Deal with unsupported data types
-  - what to do with CLR 
-    - tSQLt_testutil.DataTypeNoEqual
-    - tSQLt_testutil.DataTypeWithEqual
-    - tSQLt_testutil.DataTypeByteOrdered
-  - TableToText can`t handle BINARY datatypes
-  - AssertEquals can`t handle BINARY datatypes
   
   - NTH: move tSQLt_testutil.AssertLike to tSQLt.AssertLike. Needs Tests...
   
