@@ -217,6 +217,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.SpyProcedure.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.StubRecord.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.StubRecord.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.TableToText.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>

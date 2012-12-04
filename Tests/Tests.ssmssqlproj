@@ -91,6 +91,12 @@
           <AssociatedConnUserName />
           <FullPath>Run_Methods_Tests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="StubRecordTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>StubRecordTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLtTestUtilCLR_CreateItems.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
