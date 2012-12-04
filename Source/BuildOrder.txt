@@ -34,3 +34,4 @@ tSQLt.Private_CompareTablesFailIfUnequalRowsExists.ssp.sql
 tSQLt.Private_CompareTables.ssp.sql
 tSQLt.Private_NullCellTable.tbl.sql
 tSQLt.AssertEqualsTable.ssp.sql
+tSQLt.StubRecord.ssp.sql
