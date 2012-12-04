@@ -10,13 +10,14 @@ tSQLt.CaptureOutputLog.tbl.sql
 tSQLt.LogCapturedOutput.ssp.sql
 ../Build/output/CreateAssembly.sql
 tSQLtCLR_CreateProcs.sql
-tSQLt.Info.sfn.sql
 tSQLt.TableToText.ssp.sql
-tSQLt.Private_GetForeignKeyDefinition.sfn.sql
 tSQLt.Private_RenamedObjectLog.tbl.sql
 tSQLt.Private_MarkObjectBeforeRename.ssp.sql
 tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
+Run_Methods.sql
+tSQLt.Info.sfn.sql
+tSQLt.Private_GetForeignKeyDefinition.sfn.sql
 tSQLt.Private_ValidateFakeTableParameters.ssp.sql
 tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
 tSQLt.Private_GetIdentityDefinition.sfn.sql
