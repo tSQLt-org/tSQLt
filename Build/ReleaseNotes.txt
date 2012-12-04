@@ -6,6 +6,16 @@ http://tsqlt.org/category/release-notes/
 
 Release: VLATEST-BUILD-NUMBER
 
+BUG FIXES:
+1. When executing tSQLt.Run on an individual test, the setup procedure was sometimes not
+   called based on the case of the setup procedure name.
+OTHER:
+1. Added StubRecord procedure back in, however it is marked as 'not supported'.
+
+---------------------------
+
+Release: V1.0.4643.26915
+
 OTHER:
 1. Removed unused procedure: StubRecord
 2. Improved the performance of AssertEqualsTable
