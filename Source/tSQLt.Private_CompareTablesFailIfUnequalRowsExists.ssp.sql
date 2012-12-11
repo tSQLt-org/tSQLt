@@ -12,7 +12,7 @@ BEGIN
   BEGIN
    DECLARE @TableToTextResult NVARCHAR(MAX);
    DECLARE @OutputColumnList NVARCHAR(MAX);
-   SELECT @OutputColumnList = '_m_,' + @ColumnList;
+   SELECT @OutputColumnList = '[_m_],' + @ColumnList;
    EXEC tSQLt.TableToText @TableName = @ResultTable, @OrderBy = @ResultColumn, @ColumnList = @OutputColumnList, @txt = @TableToTextResult OUTPUT;
    
    DECLARE @Message NVARCHAR(MAX);
