@@ -593,15 +593,22 @@ BEGIN
 END;
 GO
 
-CREATE PROC AssertEqualsTableTests.[-test TODO]
-AS
+CREATE PROCEDURE AssertEqualsTableTests.[test column name can be reserved word]
+AS 
 BEGIN
-  EXEC tSQLt.Fail '
-  
-  - NTH: move tSQLt_testutil.AssertLike to tSQLt.AssertLike. Needs Tests...
-  
-  - !! needs now v4.0.30319 compiler!
-  
-  -- feature: open more than 1 tran before test execution
-  ';
+   CREATE TABLE AssertEqualsTableTests.LeftTable ([key] INT);
+   CREATE TABLE AssertEqualsTableTests.RightTable ([key] INT);
+   
+   EXEC tSQLt.AssertEqualsTable 'AssertEqualsTableTests.LeftTable', 'AssertEqualsTableTests.RightTable';
 END;
+GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test column name can contain garbage]
+AS 
+BEGIN
+   CREATE TABLE AssertEqualsTableTests.LeftTable ([column with key G@r8'a9/;GO create table] INT);
+   CREATE TABLE AssertEqualsTableTests.RightTable ([column with key G@r8'a9/;GO create table] INT);
+   
+   EXEC tSQLt.AssertEqualsTable 'AssertEqualsTableTests.LeftTable', 'AssertEqualsTableTests.RightTable';
+END;
+GO

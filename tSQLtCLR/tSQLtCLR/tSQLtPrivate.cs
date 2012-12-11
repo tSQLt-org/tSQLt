@@ -6,6 +6,7 @@ using Microsoft.SqlServer.Server;
 using System.Runtime.Serialization;
 using System.Data.SqlClient;
 using System.Data;
+using System.Text.RegularExpressions;
 
 namespace tSQLtCLR
 {
@@ -126,13 +127,24 @@ namespace tSQLtCLR
                 for (int i = 0; i < numCols; i++)
                 {
                     DataRow row = schema.Rows[i];
-                    header[i] = row["ColumnName"].ToString();
+                    header[i] = (row["ColumnName"].ToString());
                 }
                 results.Add(header);
             }
             else
             {
-                results.Add(ColumnList.ToString().Split(','));
+                var colListArray = SplitColumnNameList(ref ColumnList);
+                var unquotedColList = new List<string>();
+                
+                foreach(var colName in colListArray)
+                {
+                    if (colName.Length != 0)
+                    {
+                        unquotedColList.Add(colName.Replace("]]", "]"));
+                    }
+                }
+                
+                results.Add(unquotedColList.ToArray());
             }
 
             while (reader.Read()) {
@@ -181,6 +193,17 @@ namespace tSQLtCLR
                 results.Add(rowData);
             }
             return results;
+        }
+
+        private static string[] SplitColumnNameList(ref SqlString ColumnList)
+        {
+            var colListArray = Regex.Split("]," + ColumnList.ToString() + ",[", "\\],\\[");
+            return colListArray;
+        }
+
+        private static string unquote(string columnName)
+        {
+            return columnName.Replace("[","").Replace("]","");
         }
 
         private static string SqlDateToString(SqlDateTime dtValue) {
