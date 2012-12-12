@@ -13,7 +13,7 @@ BEGIN
    DECLARE @TableToTextResult NVARCHAR(MAX);
    DECLARE @OutputColumnList NVARCHAR(MAX);
    SELECT @OutputColumnList = '[_m_],' + @ColumnList;
-   EXEC tSQLt.TableToText @TableName = @ResultTable, @OrderBy = @ResultColumn, @ColumnList = @OutputColumnList, @txt = @TableToTextResult OUTPUT;
+   EXEC tSQLt.TableToText @TableName = @ResultTable, @OrderBy = @ResultColumn, @PrintOnlyColumnNameAliasList = @OutputColumnList, @txt = @TableToTextResult OUTPUT;
    
    DECLARE @Message NVARCHAR(MAX);
    SELECT @Message = 'unexpected/missing resultset rows!' + CHAR(13) + CHAR(10);

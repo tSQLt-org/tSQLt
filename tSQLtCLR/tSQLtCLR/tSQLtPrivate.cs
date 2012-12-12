@@ -114,14 +114,14 @@ namespace tSQLtCLR
             return selectStmt;
         }
 
-        private static List<String[]> getTableStringArray(SqlDataReader reader, SqlString ColumnList) {
+        private static List<String[]> getTableStringArray(SqlDataReader reader, SqlString PrintOnlyColumnNameAliasList) {
             DataTable schema = reader.GetSchemaTable();
 
             List<String[]> results = new List<string[]>();
 
             int numCols = schema.Rows.Count;
 
-            if (ColumnList.ToString().Equals(""))
+            if (PrintOnlyColumnNameAliasList.ToString().Equals(""))
             {
                 String[] header = new String[numCols];
                 for (int i = 0; i < numCols; i++)
@@ -133,7 +133,7 @@ namespace tSQLtCLR
             }
             else
             {
-                var colListArray = SplitColumnNameList(ref ColumnList);
+                var colListArray = SplitColumnNameList(ref PrintOnlyColumnNameAliasList);
                 var unquotedColList = new List<string>();
                 
                 foreach(var colName in colListArray)
