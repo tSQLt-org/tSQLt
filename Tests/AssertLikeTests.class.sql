@@ -83,6 +83,17 @@ BEGIN
 END;
 GO
 
+CREATE PROC [AssertLikeTests].[test AssertLike can handle length of @Actual greater than 4000 characters]
+AS
+BEGIN
+  DECLARE @LongActual NVARCHAR(MAX); 
+  SET @LongActual = REPLICATE(CAST(N'x' AS NVARCHAR(MAX)),4000)+'cat'+
+                    REPLICATE(CAST(N'x' AS NVARCHAR(MAX)),4000)+'mouse'+
+                    REPLICATE(CAST(N'x' AS NVARCHAR(MAX)),4000);
+  EXEC tSQLt.AssertLike '%cat%mouse%', @LongActual;
+END;
+GO
+
 CREATE PROC [AssertLikeTests].[test AssertLike returns helpful message on failure]
 AS
 BEGIN

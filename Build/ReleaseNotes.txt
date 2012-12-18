@@ -7,6 +7,16 @@ http://tsqlt.org/category/release-notes/
 Release: VLATEST-BUILD-NUMBER
 
 BUG FIXES:
+1. AssertEqualsTable did not quote columns.
+NEW FEATURES:
+1. Added AssertLike procedure.
+2. Added support for multi-column foreign keys in ApplyConstraint.
+
+---------------------------
+
+Release: V1.0.4721.29450
+
+BUG FIXES:
 1. When executing tSQLt.Run on an individual test, the setup procedure was sometimes not
    called based on the case of the setup procedure name.
 OTHER:
