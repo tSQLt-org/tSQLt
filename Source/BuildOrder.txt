@@ -18,6 +18,7 @@ tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 Run_Methods.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_GetForeignKeyDefinition.sfn.sql
+ApplyConstraint_Methods.sql
 tSQLt.Private_ValidateFakeTableParameters.ssp.sql
 tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
 tSQLt.Private_GetIdentityDefinition.sfn.sql
