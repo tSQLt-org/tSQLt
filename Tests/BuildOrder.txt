@@ -17,3 +17,4 @@ tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql
 AssertEqualsTableTests.class.sql
 Run_Methods_Tests.class.sql
 StubRecordTests.class.sql
+AssertLikeTests.class.sql

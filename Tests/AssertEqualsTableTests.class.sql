@@ -574,7 +574,7 @@ BEGIN
      SELECT @Message = ERROR_MESSAGE();
    END CATCH
    
-   EXEC tSQLt_testutil.AssertLike '%The table contains a datatype that is not supported for tSQLt.AssertEqualsTable%Please refer to http://tsqlt.org/user-guide/assertions/assertequalstable/ for a list of unsupported datatypes%',@Message;
+   EXEC tSQLt.AssertLike '%The table contains a datatype that is not supported for tSQLt.AssertEqualsTable%Please refer to http://tsqlt.org/user-guide/assertions/assertequalstable/ for a list of unsupported datatypes%',@Message;
 
    EXEC AssertEqualsTableTests.[Drop tables to compare];
 END;
