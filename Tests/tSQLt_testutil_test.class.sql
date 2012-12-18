@@ -131,7 +131,7 @@ BEGIN
     SELECT @Message = ERROR_MESSAGE()
   END CATCH
   
-  EXEC tSQLt_testutil.AssertLike '%Object is not a DataTypeWithEqual.%',@Message;
+  EXEC tSQLt.AssertLike '%Object is not a DataTypeWithEqual.%',@Message;
 
 END
 GO
@@ -230,7 +230,7 @@ BEGIN
     SELECT @Message = ERROR_MESSAGE()
   END CATCH
   
-  EXEC tSQLt_testutil.AssertLike '%Object is not a DataTypeByteOrdered.%',@Message;
+  EXEC tSQLt.AssertLike '%Object is not a DataTypeByteOrdered.%',@Message;
 
 END
 GO

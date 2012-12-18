@@ -13,26 +13,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-/*
-TODO
-====
-- Test SCHEMA name same as existing dbo. procedure name prevents running test cases! ->Rule: SCHEMA wins
-- table compare of table compare result fails???
-- inject code in spyproc and store all execs for all spys in one table (NO XML :( )
-- cleanup hanging transactions on start???
-- asserSpyProc[Not]Called
-- applyConstraint and triggers
-- make parameters for procedures consistent (either always pass schema name or pass schema.object)See: select OBJECT_NAME(id) ProcName,* from syscolumns where id in (select object_id from sys.procedures where schema_id = SCHEMA_ID('tSQLt')) ORDER BY ProcName
-
--- rewrite AssertEqualsTable
-  - varbinary
-  - large number of rows
--- AssertLike
--- TryBlockHelperProcedure
--- DropObject
--- UndoLog
--- Create Class should add extended property
-*/
 
 DECLARE @msg VARCHAR(MAX);SELECT @msg = 'Executed at '+CONVERT(VARCHAR,GETDATE(),121);RAISERROR(@msg,0,1);
 GO
