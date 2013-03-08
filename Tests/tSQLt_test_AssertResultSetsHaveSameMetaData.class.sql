@@ -51,11 +51,20 @@ GO
 CREATE PROC tSQLt_test_AssertResultSetsHaveSameMetaData.[test AssertResultSetsHaveSameMetaData fails when one result set has no rows]
 AS
 BEGIN
-    EXEC tSQLt_testutil.assertFailCalled 
-        'EXEC tSQLt.AssertResultSetsHaveSameMetaData
-            ''SELECT CAST(1 AS INT) A'', 
-            ''SELECT CAST(A AS INT) A FROM (SELECT CAST(3 AS INT) A) X WHERE 1 = 0''',
-            'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with result set which returns no metadata';
+    IF (SELECT CAST(SUBSTRING(product_version, 1, 2) AS INT) FROM sys.dm_os_loaded_modules WHERE name LIKE '%\sqlservr.exe') >= 11
+    BEGIN
+      EXEC tSQLt.AssertResultSetsHaveSameMetaData
+          'SELECT CAST(1 AS INT) A', 
+          'SELECT CAST(A AS INT) A FROM (SELECT CAST(3 AS INT) A) X WHERE 1 = 0';
+    END
+    ELSE
+    BEGIN
+      EXEC tSQLt_testutil.assertFailCalled 
+          'EXEC tSQLt.AssertResultSetsHaveSameMetaData
+              ''SELECT CAST(1 AS INT) A'', 
+              ''SELECT CAST(A AS INT) A FROM (SELECT CAST(3 AS INT) A) X WHERE 1 = 0''',
+              'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with result set which returns no metadata';
+    END;
 END;
 GO
 
