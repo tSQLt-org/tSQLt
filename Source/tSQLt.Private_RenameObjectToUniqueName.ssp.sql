@@ -16,6 +16,7 @@ BEGIN
    
    EXEC tSQLt.Private_MarkObjectBeforeRename @SchemaName, @ObjectName;
 
+
    EXEC tSQLt.SuppressOutput @RenameCmd;
 
 END;
