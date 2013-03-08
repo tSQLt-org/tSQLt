@@ -48,7 +48,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_AssertResultSetsHaveSameMetaData.[test AssertResultSetsHaveSameMetaData fails when one result set has no rows]
+CREATE PROC tSQLt_test_AssertResultSetsHaveSameMetaData.[test AssertResultSetsHaveSameMetaData fails when one result set has no rows for versions before SQL Server 2012]
 AS
 BEGIN
     IF (SELECT CAST(SUBSTRING(product_version, 1, 2) AS INT) FROM sys.dm_os_loaded_modules WHERE name LIKE '%\sqlservr.exe') >= 11
