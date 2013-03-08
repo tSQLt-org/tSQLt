@@ -13,5 +13,5 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-EXECUTE AS LOGIN = 'SA';
+EXECUTE AS LOGIN = 'sa';
 GO

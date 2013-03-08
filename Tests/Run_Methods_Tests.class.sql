@@ -218,7 +218,7 @@ BEGIN
       FROM tSQLt.Run_LastExecution
      WHERE 1=0;
      
-    INSERT INTO #Expected(testName)
+    INSERT INTO #Expected(TestName)
     SELECT '[Other]' UNION ALL
     SELECT '[New]';
 
@@ -284,17 +284,17 @@ CREATE PROCEDURE tSQLt_test.[test Run calls Private_Run with configured Test Res
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
-  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt',@ObjectName='GetTestResultFormatter';
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt', @ObjectName='GetTestResultFormatter';
   EXEC('CREATE FUNCTION tSQLt.GetTestResultFormatter() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''CorrectResultFormatter''; END;');
  
   EXEC tSQLt.Run 'SomeTest';
   
-  SELECT TestName,TestResultFormatter
+  SELECT TestName, TestResultFormatter
     INTO #Actual
     FROM tSQLt.Private_Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','CorrectResultFormatter');
+  INSERT INTO #Expected (TestName, TestResultFormatter)VALUES('SomeTest', 'CorrectResultFormatter');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -384,7 +384,7 @@ BEGIN
     FROM tSQLt.Private_Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.XmlResultFormatter');
+  INSERT INTO #Expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.XmlResultFormatter');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -402,7 +402,7 @@ BEGIN
     FROM tSQLt.Private_Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #expected(TestName)VALUES(NULL);
+  INSERT INTO #Expected(TestName)VALUES(NULL);
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -485,7 +485,7 @@ BEGIN
     SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
     SET @Actual = @XML.value('(/testsuites/testsuite/testcase/@name)[1]', 'NVARCHAR(MAX)');
 
-    EXEC tSQLt.AssertEqualsString  'testA',@actual;
+    EXEC tSQLt.AssertEqualsString  'testA', @Actual;
 END;
 GO   
 
@@ -504,7 +504,7 @@ BEGIN
     SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
     SET @Actual = @XML.value('(/testsuites/testsuite/testcase/@name)[1]', 'NVARCHAR(MAX)');
 
-    EXEC tSQLt.AssertEqualsString  ',/?'';:[o]}\|{)(*&^%$#@""',@actual;
+    EXEC tSQLt.AssertEqualsString  ',/?'';:[o]}\|{)(*&^%$#@""', @Actual;
 END;
 GO
 
@@ -682,7 +682,7 @@ BEGIN
     FROM tSQLt.Private_Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.NullTestResultFormatter');
+  INSERT INTO #Expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.NullTestResultFormatter');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -700,7 +700,7 @@ BEGIN
     FROM tSQLt.Private_Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #expected(TestName)VALUES(NULL);
+  INSERT INTO #Expected(TestName)VALUES(NULL);
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
