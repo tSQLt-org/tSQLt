@@ -27,16 +27,64 @@ BEGIN
    EXEC tSQLt.SpyProcedure 'tSQLt.Private_MarkObjectBeforeRename';
    
    DECLARE @NewName NVARCHAR(MAX);
-   EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName = 'Private_RenameObjectToUniqueNameTests', @ObjectName = 'aTestObject', @NewName = @NewName OUTPUT;
+   EXEC tSQLt.RemoveObject @ObjectName = 'Private_RenameObjectToUniqueNameTests.aTestObject', @NewName = @NewName OUTPUT;
    
    SELECT SchemaName, OriginalName
      INTO #Actual
      FROM tSQLt.Private_MarkObjectBeforeRename_SpyProcedureLog;
      
-   SELECT 'Private_RenameObjectToUniqueNameTests' AS SchemaName, 'aTestObject' AS OriginalName
-     INTO #Expected;
+   SELECT TOP(0) *
+     INTO #Expected
+     FROM #Actual;
+
+   INSERT INTO #Expected (SchemaName, OriginalName) VALUES ('[Private_RenameObjectToUniqueNameTests]', '[aTestObject]');
      
    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROCEDURE Private_RenameObjectToUniqueNameTests.[test RemoveObject removes a table]
+AS
+BEGIN
+   CREATE TABLE Private_RenameObjectToUniqueNameTests.aTestObject(i INT);
+
+   DECLARE @NewName NVARCHAR(MAX);
+   EXEC tSQLt.RemoveObject @ObjectName = 'Private_RenameObjectToUniqueNameTests.aTestObject', @NewName = @NewName OUTPUT;
+
+   IF EXISTS(SELECT 1 FROM sys.objects WHERE name = 'aTestObject')
+   BEGIN
+     EXEC tSQLt.Fail 'table object should have been removed';
+   END;
+END;
+GO
+
+CREATE PROCEDURE Private_RenameObjectToUniqueNameTests.[test RemoveObject removes a procedure]
+AS
+BEGIN
+   EXEC('CREATE PROCEDURE Private_RenameObjectToUniqueNameTests.aTestObject AS BEGIN RETURN 0; END;');
+
+   DECLARE @NewName NVARCHAR(MAX);
+   EXEC tSQLt.RemoveObject @ObjectName = 'Private_RenameObjectToUniqueNameTests.aTestObject', @NewName = @NewName OUTPUT;
+
+   IF EXISTS(SELECT 1 FROM sys.objects WHERE name = 'aTestObject')
+   BEGIN
+     EXEC tSQLt.Fail 'procedure object should have been removed';
+   END;
+END;
+GO
+
+CREATE PROCEDURE Private_RenameObjectToUniqueNameTests.[test RemoveObject removes a view]
+AS
+BEGIN
+   EXEC ('CREATE VIEW Private_RenameObjectToUniqueNameTests.aTestObject AS SELECT 1 AS X');
+
+   DECLARE @NewName NVARCHAR(MAX);
+   EXEC tSQLt.RemoveObject @ObjectName = 'Private_RenameObjectToUniqueNameTests.aTestObject', @NewName = @NewName OUTPUT;
+
+   IF EXISTS(SELECT 1 FROM sys.objects WHERE name = 'aTestObject')
+   BEGIN
+     EXEC tSQLt.Fail 'view object should have been removed';
+   END;
 END;
 GO
 
