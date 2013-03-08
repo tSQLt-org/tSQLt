@@ -463,7 +463,7 @@ BEGIN
 
   CREATE TABLE dbo.tst1(i [DECIMAL](4) IDENTITY(1,1));
 
-  SELECT TYPE_NAME(user_type_id) TYPE_NAME,max_length,precision,scale
+  SELECT TYPE_NAME(user_type_id) type_name,max_length,precision,scale
     INTO #Expected
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
