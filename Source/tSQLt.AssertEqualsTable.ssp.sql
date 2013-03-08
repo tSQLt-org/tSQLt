@@ -39,7 +39,8 @@ BEGIN
       @UnequalRowsExist = @UnequalRowsExist,
       @ResultTable = @ResultTable,
       @ResultColumn = @ResultColumn,
-      @ColumnList = @ColumnList;   
+      @ColumnList = @ColumnList,
+      @FailMsg = @FailMsg;   
 END;
 ---Build-
 GO

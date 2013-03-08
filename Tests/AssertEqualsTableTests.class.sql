@@ -404,7 +404,7 @@ CREATE PROCEDURE AssertEqualsTableTests.[Create tables to compare]
  @Values NVARCHAR(MAX)
 AS
 BEGIN
-  DECLARE @cmd NVARCHAR(MAX);
+  DECLARE @Cmd NVARCHAR(MAX);
   
   SET @Cmd = '
    CREATE TABLE AssertEqualsTableTests.ResultTable ([_m_] CHAR(1), a <<DATATYPE>>);
@@ -612,3 +612,26 @@ BEGIN
    EXEC tSQLt.AssertEqualsTable 'AssertEqualsTableTests.LeftTable', 'AssertEqualsTableTests.RightTable';
 END;
 GO
+
+CREATE PROCEDURE AssertEqualsTableTests.[test custom failure message is included in failure result]
+AS
+BEGIN
+   CREATE TABLE AssertEqualsTableTests.LeftTable (i INT);
+   INSERT INTO AssertEqualsTableTests.LeftTable VALUES (1);
+   CREATE TABLE AssertEqualsTableTests.RightTable (i INT);
+   
+   CREATE TABLE AssertEqualsTableTests.ResultTable ([_m_] CHAR(1),i INT);
+   INSERT INTO AssertEqualsTableTests.ResultTable ([_m_],i)
+   SELECT '<',1;
+   DECLARE @ExpectedMessage NVARCHAR(MAX);
+   EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
+   SET @ExpectedMessage = 'Custom failure message'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+
+   EXEC tSQLt_testutil.AssertFailMessageEquals 
+     'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'', ''Custom failure message'';',
+     @ExpectedMessage,
+     'Fail was not called with expected message:';
+   
+END;
+GO
+
