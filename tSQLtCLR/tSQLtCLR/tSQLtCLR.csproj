@@ -85,6 +85,7 @@
   <ItemGroup>
     <None Include="PostBuild.bat" />
     <None Include="SigningKey.pfx" />
+    <None Include="SigningKeyNoPassword.snk" />
     <None Include="sql.proj">
       <InProject>false</InProject>
     </None>
