@@ -15,6 +15,7 @@ tSQLt.Private_RenamedObjectLog.tbl.sql
 tSQLt.Private_MarkObjectBeforeRename.ssp.sql
 tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
+tSQLt.RemoveObject.ssp.sql
 Run_Methods.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_GetForeignKeyDefinition.sfn.sql
