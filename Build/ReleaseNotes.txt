@@ -7,6 +7,15 @@ http://tsqlt.org/category/release-notes/
 Release: VLATEST-BUILD-NUMBER
 
 BUG FIXES:
+1. Corrected defect in AssertEqualsTable where the custom error message was not being displayed.
+NEW FEATURES:
+1. Added tSQLt.RemoveObject procedure.
+
+---------------------------
+
+Release: V1.0.4735.30771
+
+BUG FIXES:
 1. AssertEqualsTable did not quote columns.
 NEW FEATURES:
 1. Added AssertLike procedure.
