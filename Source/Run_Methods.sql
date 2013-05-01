@@ -78,11 +78,12 @@ BEGIN
         ROLLBACK TRAN @TranName;
     END TRY
     BEGIN CATCH
-        SET @PreExecTrancount = @PreExecTrancount - @@TRANCOUNT;
+        DECLARE @PostExecTrancount INT;
+        SET @PostExecTrancount = @PreExecTrancount - @@TRANCOUNT;
         IF (@@TRANCOUNT > 0) ROLLBACK;
         BEGIN TRAN;
         IF(   @Result <> 'Success'
-           OR @PreExecTrancount <> 0
+           OR @PostExecTrancount <> 0
           )
         BEGIN
           SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '})';
@@ -92,7 +93,7 @@ BEGIN
 
     If(@Result <> 'Success') 
     BEGIN
-      SET @Msg2 = @TestName + ' failed: ' + @Msg;
+      SET @Msg2 = @TestName + ' failed: (' + @Result + ') ' + @Msg;
       EXEC tSQLt.Private_Print @Message = @Msg2, @Severity = 0;
     END
 

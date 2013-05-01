@@ -972,3 +972,138 @@ BEGIN
    END;
 END;
 GO
+
+CREATE PROC Run_Methods_Tests.[test RunAll runs all test classes created with NewTestClass]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+    EXEC tSQLt.NewTestClass 'A';
+    EXEC tSQLt.NewTestClass 'B';
+    EXEC tSQLt.NewTestClass 'C';
+    
+    EXEC ('CREATE PROC A.testA AS RETURN 0;');
+    EXEC ('CREATE PROC B.testB AS RETURN 0;');
+    EXEC ('CREATE PROC C.testC AS RETURN 0;');
+    
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.RunAll;
+
+    SELECT Class, TestCase 
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected (Class, TestCase)
+    SELECT Class = 'A', TestCase = 'testA' UNION ALL
+    SELECT Class = 'B', TestCase = 'testB' UNION ALL
+    SELECT Class = 'C', TestCase = 'testC';
+
+    SELECT Class, TestCase
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
+END;
+GO
+
+CREATE PROC Run_Methods_Tests.[test RunAll runs all test classes created with NewTestClass when there are multiple tests in each class]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+    EXEC tSQLt.NewTestClass 'A';
+    EXEC tSQLt.NewTestClass 'B';
+    EXEC tSQLt.NewTestClass 'C';
+    
+    EXEC ('CREATE PROC A.testA1 AS RETURN 0;');
+    EXEC ('CREATE PROC A.testA2 AS RETURN 0;');
+    EXEC ('CREATE PROC B.testB1 AS RETURN 0;');
+    EXEC ('CREATE PROC B.testB2 AS RETURN 0;');
+    EXEC ('CREATE PROC C.testC1 AS RETURN 0;');
+    EXEC ('CREATE PROC C.testC2 AS RETURN 0;');
+    
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.RunAll;
+
+    SELECT Class, TestCase
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+     
+    INSERT INTO #Expected (Class, TestCase)
+    SELECT Class = 'A', TestCase = 'testA1' UNION ALL
+    SELECT Class = 'A', TestCase = 'testA2' UNION ALL
+    SELECT Class = 'B', TestCase = 'testB1' UNION ALL
+    SELECT Class = 'B', TestCase = 'testB2' UNION ALL
+    SELECT Class = 'C', TestCase = 'testC1' UNION ALL
+    SELECT Class = 'C', TestCase = 'testC2';
+
+    SELECT Class, TestCase
+      INTO #Actual
+      FROM tSQLt.TestResult;
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
+END;
+GO
+
+CREATE PROC Run_Methods_Tests.[test TestResult record with Class and TestCase has Name value of quoted class name and test case name]
+AS
+BEGIN
+    DELETE FROM tSQLt.TestResult;
+
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName)
+    VALUES ('MyClassName', 'MyTestCaseName', 'XYZ');
+    
+    SELECT Class, TestCase, Name
+      INTO #Expected
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+    
+    INSERT INTO #Expected (Class, TestCase, Name)
+    VALUES ('MyClassName', 'MyTestCaseName', '[MyClassName].[MyTestCaseName]');
+    
+    SELECT Class, TestCase, Name
+      INTO #Actual
+      FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROC Run_Methods_Tests.[test RunAll produces a test case summary]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+    DELETE FROM tSQLt.TestResult;
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
+
+    EXEC tSQLt.RunAll;
+
+    DECLARE @CallCount INT;
+    SELECT @CallCount = COUNT(1) FROM tSQLt.Private_OutputTestResults_SpyProcedureLog;
+    EXEC tSQLt.AssertEquals 1, @CallCount;
+END;
+GO
+
+CREATE PROC Run_Methods_Tests.[test RunAll clears test results between each execution]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+    DELETE FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC ('CREATE PROC MyTestClass.test1 AS RETURN 0;');
+
+    EXEC tSQLt.RunAll;
+    EXEC tSQLt.RunAll;
+    
+    DECLARE @NumberOfTestResults INT;
+    SELECT @NumberOfTestResults = COUNT(*)
+      FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.AssertEquals 1, @NumberOfTestResults;
+END;
+GO
