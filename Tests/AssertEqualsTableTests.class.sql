@@ -635,3 +635,130 @@ BEGIN
 END;
 GO
 
+CREATE PROC AssertEqualsTableTests.test_assertEqualsTable_raises_appropriate_error_if_expected_table_does_not_exist
+AS
+BEGIN
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.actual (constCol CHAR(3) );
+
+    DECLARE @Command NVARCHAR(MAX);
+    SET @Command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'assertEqualsTable did not call Fail when expected table does not exist';
+END;
+GO
+
+CREATE PROC AssertEqualsTableTests.test_assertEqualsTable_raises_appropriate_error_if_actual_table_does_not_exist
+AS
+BEGIN
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
+
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.expected (constCol CHAR(3) );
+    
+    DECLARE @Command NVARCHAR(MAX);
+    SET @Command = 'EXEC tSQLt.AssertEqualsTable ''schemaA.expected'', ''schemaA.actual'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'assertEqualsTable did not call Fail when actual table does not exist';
+END;
+GO
+
+CREATE PROC AssertEqualsTableTests.test_AssertEqualsTable_works_with_temptables
+AS
+BEGIN
+    DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
+
+    CREATE TABLE #T1(I INT)
+    INSERT INTO #T1 SELECT 1
+    CREATE TABLE #T2(I INT)
+    INSERT INTO #T2 SELECT 2
+
+    DECLARE @Command NVARCHAR(MAX);
+    SET @Command = 'EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'assertEqualsTable did not call Fail when comparing temp tables';
+END;
+GO
+
+CREATE PROC AssertEqualsTableTests.test_AssertEqualsTable_works_with_equal_temptables
+AS
+BEGIN
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #T1(I INT)
+    INSERT INTO #T1 SELECT 42
+    CREATE TABLE #T2(I INT)
+    INSERT INTO #T2 SELECT 42
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @ErrorRaised = 1;
+    END CATCH
+    SELECT Class, TestCase, Result
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT 'MyTestClass' Class, 'TestCaseA' TestCase, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+CREATE PROC AssertEqualsTableTests.test_AssertEqualsTable_works_with_expected_having_identity_column
+AS
+BEGIN
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #T1(I INT IDENTITY(1,1));
+    INSERT INTO #T1 DEFAULT VALUES;
+    CREATE TABLE #T2(I INT);
+    INSERT INTO #T2 VALUES(1);
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @ErrorRaised = 1;
+    END CATCH
+    SELECT Class, TestCase, Result
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT 'MyTestClass' Class, 'TestCaseA' TestCase, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO
+
+CREATE PROC AssertEqualsTableTests.test_AssertEqualsTable_works_with_actual_having_identity_column
+AS
+BEGIN
+    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    CREATE TABLE #T1(I INT);
+    INSERT INTO #T1 VALUES(1);
+    CREATE TABLE #T2(I INT IDENTITY(1,1));
+    INSERT INTO #T2 DEFAULT VALUES;
+    EXEC('CREATE PROC MyTestClass.TestCaseA AS EXEC tSQLt.AssertEqualsTable ''#T1'', ''#T2'';');
+    
+    BEGIN TRY
+        EXEC tSQLt.Run 'MyTestClass.TestCaseA';
+    END TRY
+    BEGIN CATCH
+        SET @ErrorRaised = 1;
+    END CATCH
+    SELECT Class, TestCase, Result
+      INTO actual
+      FROM tSQLt.TestResult;
+    SELECT 'MyTestClass' Class, 'TestCaseA' TestCase, 'Success' Result
+      INTO expected;
+    
+    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+END;
+GO

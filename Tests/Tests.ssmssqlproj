@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_R2:MYMACWIN7\meinse00">
+        <ConnectionNode Name="Dev_R2:troilo\dennis">
           <Created>2011-11-01T16:16:28.6301397-04:00</Created>
           <Type>SQL</Type>
           <Server>Dev_R2</Server>
@@ -37,6 +37,12 @@
           <AssociatedConnUserName />
           <FullPath>AssertEqualsTableTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="AssertEqualsTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AssertEqualsTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="AssertLikeTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -54,6 +60,12 @@
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>DropClassTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="FailTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>FailTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="FakeTableTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>

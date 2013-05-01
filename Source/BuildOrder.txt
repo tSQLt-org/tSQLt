@@ -5,6 +5,7 @@ tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql
 tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql
 tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
 tSQLt.NewTestClass.ssp.sql
+tSQLt.Fail.ssp.sql
 tSQLt.class.sql
 tSQLt.CaptureOutputLog.tbl.sql
 tSQLt.LogCapturedOutput.ssp.sql
