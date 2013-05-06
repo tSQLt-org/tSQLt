@@ -20,5 +20,6 @@ AssertEqualsTableTests.class.sql
 Run_Methods_Tests.class.sql
 StubRecordTests.class.sql
 AssertLikeTests.class.sql
+AssertNotEqualsTests.class.sql
 ApplyConstraintTests.class.sql
 FailTests.class.sql

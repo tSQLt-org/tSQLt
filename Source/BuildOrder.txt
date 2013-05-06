@@ -39,3 +39,4 @@ tSQLt.Private_NullCellTable.tbl.sql
 tSQLt.AssertEqualsTable.ssp.sql
 tSQLt.StubRecord.ssp.sql
 tSQLt.AssertLike.ssp.sql
+tSQLt.AssertNotEquals.ssp.sql

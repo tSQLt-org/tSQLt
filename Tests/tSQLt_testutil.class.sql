@@ -26,9 +26,13 @@ CREATE PROC tSQLt_testutil.ReThrow @msg NVARCHAR(MAX) = '' AS SET @msg = @msg + 
 GO
 CREATE PROC tSQLt_testutil.assertFailCalled
     @Command NVARCHAR(MAX),
-    @Message VARCHAR(MAX)
+    @Message VARCHAR(MAX) = NULL
 AS
 BEGIN
+    IF(@Message IS NULL)
+    BEGIN
+      SET @Message = 'Fail not called when executing <' + @Command + '>';
+    END
     DECLARE @CallCount INT;
     BEGIN TRAN;
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
@@ -48,6 +52,42 @@ BEGIN
       EXEC tSQLt.Fail @Message;
     END;
 END;
+GO
+
+CREATE PROCEDURE tSQLt_testutil.CaptureFailMessage
+  @Command NVARCHAR(MAX),
+  @FailMessage NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+  BEGIN TRAN;
+  DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
+  SAVE TRAN @TranName;
+    EXEC tSQLt.SpyProcedure 'tSQLt.Fail','RAISERROR(''tSQLt_testutil.assertFailCalled.INTERNAL'',16,10);';
+    BEGIN TRY
+      EXEC (@Command);
+    END TRY
+    BEGIN CATCH
+      IF(ISNULL(ERROR_PROCEDURE(),'')<>'Fail')
+      BEGIN
+        ROLLBACK TRAN @TranName;
+        COMMIT;
+        EXEC tSQLt_testutil.ReThrow;
+      END
+    END CATCH;
+    SELECT @FailMessage = 
+        COALESCE(Message0, '')--should be '!NULL!' but default parameters are not currently supported by SpyProcedure
+      + COALESCE(Message1, '')
+      + COALESCE(Message2, '')
+      + COALESCE(Message3, '')
+      + COALESCE(Message4, '')
+      + COALESCE(Message5, '')
+      + COALESCE(Message6, '')
+      + COALESCE(Message7, '')
+      + COALESCE(Message8, '')
+      + COALESCE(Message9, '') FROM tSQLt.Fail_SpyProcedureLog;
+  ROLLBACK TRAN @TranName;
+  COMMIT TRAN;
+END
 GO
 
 CREATE PROC tSQLt_testutil.AssertFailMessageEquals
@@ -70,36 +110,39 @@ BEGIN
 
     DECLARE @ActualMessage NVARCHAR(MAX);
 
-    BEGIN TRAN;
-    DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
-    SAVE TRAN @TranName;
-      EXEC tSQLt.SpyProcedure 'tSQLt.Fail','RAISERROR(''tSQLt_testutil.assertFailCalled.INTERNAL'',16,10);';
-      BEGIN TRY
-        EXEC (@Command);
-      END TRY
-      BEGIN CATCH
-        IF(ISNULL(ERROR_PROCEDURE(),'')<>'Fail')
-        BEGIN
-          ROLLBACK TRAN @TranName;
-          COMMIT;
-          EXEC tSQLt_testutil.ReThrow;
-        END
-      END CATCH;
-      SELECT @ActualMessage = 
-          COALESCE(Message0, '')--should be '!NULL!' but default parameters are not currently supported by SpyProcedure
-        + COALESCE(Message1, '')
-        + COALESCE(Message2, '')
-        + COALESCE(Message3, '')
-        + COALESCE(Message4, '')
-        + COALESCE(Message5, '')
-        + COALESCE(Message6, '')
-        + COALESCE(Message7, '')
-        + COALESCE(Message8, '')
-        + COALESCE(Message9, '') FROM tSQLt.Fail_SpyProcedureLog;
-    ROLLBACK TRAN @TranName;
-    COMMIT TRAN;
+    EXEC tSQLt_testutil.CaptureFailMessage 
+            @Command ,
+            @ActualMessage OUTPUT;
 
     EXEC tSQLt.AssertEqualsString @ExpectedMessage, @ActualMessage, @Message;
+END;
+GO
+
+CREATE PROC tSQLt_testutil.AssertFailMessageLike
+    @Command NVARCHAR(MAX),
+    @ExpectedMessage NVARCHAR(MAX),
+    @Message0 VARCHAR(MAX) = NULL,
+    @Message1 VARCHAR(MAX) = NULL,
+    @Message2 VARCHAR(MAX) = NULL,
+    @Message3 VARCHAR(MAX) = NULL,
+    @Message4 VARCHAR(MAX) = NULL
+AS
+BEGIN
+    DECLARE @Message VARCHAR(MAX);
+    SELECT  @Message = 
+        COALESCE(@Message0, '')
+      + COALESCE(@Message1, '')
+      + COALESCE(@Message2, '')
+      + COALESCE(@Message3, '')
+      + COALESCE(@Message4, '');
+
+    DECLARE @ActualMessage NVARCHAR(MAX);
+
+    EXEC tSQLt_testutil.CaptureFailMessage 
+            @Command ,
+            @ActualMessage OUTPUT;
+
+    EXEC tSQLt.AssertLike @ExpectedMessage, @ActualMessage, @Message;
 END;
 GO
 
