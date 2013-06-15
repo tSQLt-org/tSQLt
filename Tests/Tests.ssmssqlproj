@@ -25,6 +25,12 @@
           <AssociatedConnUserName />
           <FullPath>ApplyConstraintTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="AssertEqualsStringTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AssertEqualsStringTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="AssertEqualsTableTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -166,20 +172,7 @@
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
-      <Items>
-        <FileNode Name="BuildOrder.2008.txt">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>BuildOrder.2008.txt</FullPath>
-        </FileNode>
-        <FileNode Name="BuildOrder.txt">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>BuildOrder.txt</FullPath>
-        </FileNode>
-      </Items>
+      <Items />
     </LogicalFolder>
   </Items>
 </SqlWorkbenchSqlProject>

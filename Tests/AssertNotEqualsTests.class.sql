@@ -15,13 +15,6 @@ BEGIN
 END;
 GO
 
-CREATE PROC AssertNotEqualsTests.[test AssertNotEquals should give meaningfull fail message]
-AS
-BEGIN
-    EXEC tSQLt_testutil.AssertFailMessageLike 'EXEC tSQLt.AssertNotEquals 13, 13;', '%Expected actual value to not equal <13>.%';
-END;
-GO
-
 CREATE PROC AssertNotEqualsTests.[test AssertNotEquals should not call fail with expected null and nonnull actual]
 AS
 BEGIN
@@ -57,7 +50,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC AssertNotEqualsTests.[test AssertNotEquals passes with various datatypes of different values]
+CREATE PROC AssertNotEqualsTests.[test AssertNotEquals passes with various values of different datatypes]
 AS
 BEGIN
     EXEC tSQLt.AssertNotEquals 12345.6789, 4321.1234;
@@ -91,4 +84,38 @@ BEGIN
 END;
 GO
 
+CREATE PROC AssertNotEqualsTests.[test AssertNotEquals should give meaningfull failmessage]
+AS
+BEGIN
+  EXEC tSQLt.RemoveObject 'tSQLt.Private_SqlVariantFormatter';
+  EXEC('CREATE FUNCTION tSQLt.Private_SqlVariantFormatter(@Value SQL_VARIANT)RETURNS'+
+       ' NVARCHAR(MAX) AS BEGIN DECLARE @msg NVARCHAR(MAX);SET @msg ='+
+       '''{SVF was called with <''+CAST(@Value AS NVARCHAR(MAX))+''>}'';RETURN @msg; END;');
+
+  EXEC tSQLt_testutil.AssertFailMessageLike 'EXEC tSQLt.AssertNotEquals 13, 13;', 
+       'Expected actual value to not equal <{SVF was called with <13>}>.';
+    
+END;
+GO
+
+CREATE PROC AssertNotEqualsTests.[test AssertNotEquals with VARCHAR(MAX) throws error]
+AS
+BEGIN
+    DECLARE @Msg NVARCHAR(MAX); SET @Msg = 'no error';
+
+    BEGIN TRY
+        DECLARE @V1 VARCHAR(MAX); SET @V1 = REPLICATE(CAST('TestString' AS VARCHAR(MAX)),1000);
+        EXEC tSQLt.AssertNotEquals @V1, @V1;
+    END TRY
+    BEGIN CATCH
+        SET @Msg = ERROR_MESSAGE();
+    END CATCH
+    
+    IF @Msg NOT LIKE '%Operand type clash%'
+    BEGIN
+        EXEC tSQLt.Fail 'Expected operand type clash error when AssertEquals used with VARCHAR(MAX), instead was: ', @Msg;
+    END
+    
+END;
+GO
 
