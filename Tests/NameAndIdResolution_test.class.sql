@@ -224,8 +224,8 @@ AS
 BEGIN
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = SCHEMA_ID('tSQLt_test');
-	SELECT @actual = tSQLt.Private_GetSchemaId('tSQLt_test');
+	SELECT @expected = SCHEMA_ID('NameAndIdResolutionTests');
+	SELECT @actual = tSQLt.Private_GetSchemaId('NameAndIdResolutionTests');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -236,8 +236,8 @@ AS
 BEGIN
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = SCHEMA_ID('tSQLt_test');
-	SELECT @actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
+	SELECT @expected = SCHEMA_ID('NameAndIdResolutionTests');
+	SELECT @actual = tSQLt.Private_GetSchemaId('[NameAndIdResolutionTests]');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -246,12 +246,12 @@ GO
 CREATE PROC NameAndIdResolutionTests.[test tSQLt.Private_GetSchemaId returns id of schema with brackets in name if bracketed and unbracketed schema exists]
 AS
 BEGIN
-	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+	EXEC ('CREATE SCHEMA [[NameAndIdResolutionTests]]];');
 
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
-	SELECT @actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[NameAndIdResolutionTests]');
+	SELECT @actual = tSQLt.Private_GetSchemaId('[NameAndIdResolutionTests]');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -260,12 +260,12 @@ GO
 CREATE PROC NameAndIdResolutionTests.[test tSQLt.Private_GetSchemaId returns id of schema without brackets in name if bracketed and unbracketed schema exists]
 AS
 BEGIN
-	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
+	EXEC ('CREATE SCHEMA [[NameAndIdResolutionTests]]];');
 
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.Private_GetSchemaId('tSQLt_test');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='NameAndIdResolutionTests');
+	SELECT @actual = tSQLt.Private_GetSchemaId('NameAndIdResolutionTests');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -276,8 +276,8 @@ AS
 BEGIN
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='NameAndIdResolutionTests');
+	SELECT @actual = tSQLt.Private_GetSchemaId('[NameAndIdResolutionTests]');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -288,8 +288,8 @@ AS
 BEGIN
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.Private_GetSchemaId('"tSQLt_test"');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='NameAndIdResolutionTests');
+	SELECT @actual = tSQLt.Private_GetSchemaId('"NameAndIdResolutionTests"');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -298,13 +298,13 @@ GO
 CREATE PROC NameAndIdResolutionTests.[test tSQLt.Private_GetSchemaId returns id of double quoted schema when similar schema names exist]
 AS
 BEGIN
-	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
-	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
+	EXEC ('CREATE SCHEMA [[NameAndIdResolutionTests]]];');
+	EXEC ('CREATE SCHEMA ["NameAndIdResolutionTests"];');
 
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='"tSQLt_test"');
-	SELECT @actual = tSQLt.Private_GetSchemaId('"tSQLt_test"');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='"NameAndIdResolutionTests"');
+	SELECT @actual = tSQLt.Private_GetSchemaId('"NameAndIdResolutionTests"');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -313,13 +313,13 @@ GO
 CREATE PROC NameAndIdResolutionTests.[test tSQLt.Private_GetSchemaId returns id of bracket quoted schema when similar schema names exist]
 AS
 BEGIN
-	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
-	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
+	EXEC ('CREATE SCHEMA [[NameAndIdResolutionTests]]];');
+	EXEC ('CREATE SCHEMA ["NameAndIdResolutionTests"];');
 
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[tSQLt_test]');
-	SELECT @actual = tSQLt.Private_GetSchemaId('[tSQLt_test]');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='[NameAndIdResolutionTests]');
+	SELECT @actual = tSQLt.Private_GetSchemaId('[NameAndIdResolutionTests]');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -328,13 +328,13 @@ GO
 CREATE PROC NameAndIdResolutionTests.[test tSQLt.Private_GetSchemaId returns id of unquoted schema when similar schema names exist]
 AS
 BEGIN
-	EXEC ('CREATE SCHEMA [[tSQLt_test]]];');
-	EXEC ('CREATE SCHEMA ["tSQLt_test"];');
+	EXEC ('CREATE SCHEMA [[NameAndIdResolutionTests]]];');
+	EXEC ('CREATE SCHEMA ["NameAndIdResolutionTests"];');
 
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test');
-	SELECT @actual = tSQLt.Private_GetSchemaId('tSQLt_test');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='NameAndIdResolutionTests');
+	SELECT @actual = tSQLt.Private_GetSchemaId('NameAndIdResolutionTests');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;
@@ -343,11 +343,11 @@ GO
 CREATE PROC NameAndIdResolutionTests.[test tSQLt.Private_GetSchemaId of schema name with spaces returns not null if not quoted]
 AS
 BEGIN
-	EXEC ('CREATE SCHEMA [tSQLt_test my.schema];');
+	EXEC ('CREATE SCHEMA [NameAndIdResolutionTests my.schema];');
 	DECLARE @actual INT;
 	DECLARE @expected INT;
-	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='tSQLt_test my.schema');
-	SELECT @actual = tSQLt.Private_GetSchemaId('tSQLt_test my.schema');
+	SELECT @expected = (SELECT schema_id FROM sys.schemas WHERE name='NameAndIdResolutionTests my.schema');
+	SELECT @actual = tSQLt.Private_GetSchemaId('NameAndIdResolutionTests my.schema');
 
 	EXEC tSQLt.AssertEquals @expected, @actual;
 END;

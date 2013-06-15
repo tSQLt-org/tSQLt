@@ -13,8 +13,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-DECLARE @Msg VARCHAR(MAX);SELECT @Msg = 'Compiled at '+CONVERT(VARCHAR,GETDATE(),121)+' on '+@@SERVERNAME+ ' in '+DB_NAME();RAISERROR(@Msg,0,1);
-GO
 EXEC tSQLt.NewTestClass 'tSQLt_test_ResultSetFilter_2008';
 GO
 

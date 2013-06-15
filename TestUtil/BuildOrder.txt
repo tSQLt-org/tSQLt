@@ -1,0 +1,4 @@
+tSQLt_testutil.class.sql
+../Build/test/CreateTestUtilAssembly.sql
+tSQLtTestUtilCLR_CreateItems.sql
+tSQLt_testutil_test.class.sql

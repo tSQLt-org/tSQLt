@@ -25,12 +25,6 @@
           <AssociatedConnUserName />
           <FullPath>ApplyConstraintTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="AssertEqualsTableTests.2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>AssertEqualsTableTests.2008.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="AssertEqualsTableTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -109,12 +103,6 @@
           <AssociatedConnUserName />
           <FullPath>Private_GetFullTypeNameTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_GetFullTypeNameTests_2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Private_GetFullTypeNameTests_2008.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="Private_SqlVariantFormatterTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -139,23 +127,11 @@
           <AssociatedConnUserName />
           <FullPath>StubRecordTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLtTestUtilCLR_CreateItems.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>tSQLtTestUtilCLR_CreateItems.sql</FullPath>
-        </FileNode>
         <FileNode Name="tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt_test_ResultSetFilter_2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>tSQLt_test_ResultSetFilter_2008.class.sql</FullPath>
         </FileNode>
         <FileNode Name="SpyProcedureTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
@@ -175,35 +151,17 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_ResultSetFilter.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt_test_TableToText.2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>tSQLt_test_TableToText.2008.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="tSQLt_test_TableToText.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_TableToText.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt_testutil.class.sql">
+        <FileNode Name="tSQLtclr_test.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>tSQLt_testutil.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt_testutil_test.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>tSQLt_testutil_test.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLtclr_test.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>tSQLtclr_test.sql</FullPath>
+          <FullPath>tSQLtclr_test.class.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

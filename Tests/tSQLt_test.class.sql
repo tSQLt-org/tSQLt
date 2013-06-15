@@ -18,13 +18,6 @@ GO
 EXEC tSQLt.NewTestClass 'tSQLt_test';
 GO
 
-CREATE PROC [tSQLt_test].[SetUp]
-AS
-BEGIN
-    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
-END;
-GO
-
 CREATE PROC tSQLt_test.test_TestCasesAreWrappedInTransactions
 AS
 BEGIN

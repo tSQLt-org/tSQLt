@@ -6,7 +6,7 @@
  <target name="refresh2008" depends="build.and.extract.package, install.2008"/>
 
  <target name="build.and.extract.package" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, clr.testutil.compile, package.extract"/>
- <target name="install" depends="db.install.schema, db.install.tests"/>
+ <target name="install" depends="db.install.schema, db.install.testutil, db.install.tests"/>
  <target name="install.2008" depends="install, db.install.2008.tests"/>
  <target name="execute.tests" depends="db.tests.run, db.tests.output, db.tests.check.results, execute.example.tests"/>
 
@@ -99,14 +99,21 @@
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
-   <arg value="../Tests/BuildOrder.txt"/>
+   <arg value="../TestUtil/BuildOrder.txt"/>
+   <arg value="test/TestUtil.sql"/>
+  </exec>
+
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests/*.class.sql"/>
    <arg value="test/AllTests.sql"/>
   </exec>
 
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
-   <arg value="../Tests/BuildOrder.2008.txt"/>
+   <arg value="../Tests.2008/*.class.sql"/>
    <arg value="test/AllTests.2008.sql"/>
   </exec>
 
@@ -133,11 +140,18 @@
 		</exec>
 	</target>
 
-	<target name="db.install.tests">
-		<exec executable="cmd" failonerror="true">
-			<arg value="/c"/>
-			<arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/AllTests.sql&quot; -V11"/>
-		</exec>
+ <target name="db.install.testutil">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/TestUtil.sql&quot; -V11"/>
+  </exec>
+ </target>
+
+ <target name="db.install.tests">
+  <exec executable="cmd" failonerror="true">
+   <arg value="/c"/>
+   <arg value="sqlcmd -S ${db.server} -d ${db.name} -E -I -i &quot;test/AllTests.sql&quot; -V11"/>
+  </exec>
  </target>
 
  <target name="db.install.2008.tests">
