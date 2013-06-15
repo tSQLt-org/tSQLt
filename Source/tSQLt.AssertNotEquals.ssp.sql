@@ -12,7 +12,7 @@ BEGIN
   BEGIN
     DECLARE @msg NVARCHAR(MAX);
     SET @msg = 'Expected actual value to not ' + 
-               COALESCE('equal <' + CAST(@Expected AS NVARCHAR(MAX))+'>', 'be NULL') + 
+               COALESCE('equal <' + tSQLt.Private_SqlVariantFormatter(@Expected)+'>', 'be NULL') + 
                '.';
     EXEC tSQLt.Fail @msg, @Message;
   END;
