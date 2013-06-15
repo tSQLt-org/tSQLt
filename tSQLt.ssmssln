@@ -10,6 +10,10 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Experiments", "Experiments\
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Examples", "Examples\Examples.ssmssqlproj", "{71BFF91C-687A-4684-A608-59873DE08BD5}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.2008", "Tests.2008\Tests.2008.ssmssqlproj", "{B3837996-C4D9-4CA5-88D8-3F5679DC6D06}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TestUtil", "TestUtil\TestUtil.ssmssqlproj", "{DD29DD42-530A-43CB-9190-BC4A54C204B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -21,6 +25,8 @@ Global
 		{923E6ED4-A955-4DCF-AB73-ABB17CB23C44}.Default|Default.ActiveCfg = Default
 		{71BFF91C-687A-4684-A608-59873DE08BD5}.Default|Default.ActiveCfg = Default
 		{00000000-0000-0000-0000-000000000000}.Default|Default.ActiveCfg = Default
+		{B3837996-C4D9-4CA5-88D8-3F5679DC6D06}.Default|Default.ActiveCfg = Default
+		{DD29DD42-530A-43CB-9190-BC4A54C204B4}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

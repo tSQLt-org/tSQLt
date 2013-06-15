@@ -80,7 +80,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.Run executes all tests in test class when called with class name]
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Run executes all tests in test class when called with class name]
 AS
 BEGIN
     EXEC('EXEC tSQLt.DropClass innertest;');
@@ -107,7 +107,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.Run executes single test when called with test case name]
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Run executes single test when called with test case name]
 AS
 BEGIN
     EXEC('EXEC tSQLt.DropClass innertest;');
@@ -133,7 +133,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.Run re-executes single test when called without parameter]
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Run re-executes single test when called without parameter]
 AS
 BEGIN
     EXEC('EXEC tSQLt.DropClass innertest;');
@@ -164,7 +164,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.Run re-executes testClass when called without parameter]
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Run re-executes testClass when called without parameter]
 AS
 BEGIN
     EXEC('EXEC tSQLt.DropClass innertest;');
@@ -196,7 +196,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test that tSQLt.Run deletes all entries from tSQLt.Run_LastExecution with same SPID]
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Run deletes all entries from tSQLt.Run_LastExecution with same SPID]
 AS
 BEGIN
     EXEC tSQLt.FakeTable 'tSQLt', 'Run_LastExecution';
@@ -230,7 +230,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.test_RunTestClass_handles_test_names_with_spaces
+CREATE PROC Run_Methods_Tests.test_RunTestClass_handles_test_names_with_spaces
 AS
 BEGIN
     DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
@@ -251,7 +251,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test tSQLt.Run executes a test class even if there is a dbo owned object of the same name]
+CREATE PROC Run_Methods_Tests.[test tSQLt.Run executes a test class even if there is a dbo owned object of the same name]
 AS
 BEGIN
   -- Assemble
@@ -280,7 +280,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Run calls Private_Run with configured Test Result Formatter]
+CREATE PROCEDURE Run_Methods_Tests.[test Run calls Private_Run with configured Test Result Formatter]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
@@ -300,7 +300,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_Run calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
+CREATE PROCEDURE Run_Methods_Tests.[test Private_Run calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
@@ -318,22 +318,22 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_OutputTestResults uses the TestResultFormatter parameter]
+CREATE PROCEDURE Run_Methods_Tests.[test Private_OutputTestResults uses the TestResultFormatter parameter]
 AS
 BEGIN
-  EXEC('CREATE PROC tSQLt_test.TemporaryTestResultFormatter AS RAISERROR(''GotHere'',16,10);');
+  EXEC('CREATE PROC Run_Methods_Tests.TemporaryTestResultFormatter AS RAISERROR(''GotHere'',16,10);');
   
   BEGIN TRY
-    EXEC tSQLt.Private_OutputTestResults 'tSQLt_test.TemporaryTestResultFormatter';
+    EXEC tSQLt.Private_OutputTestResults 'Run_Methods_Tests.TemporaryTestResultFormatter';
   END TRY
   BEGIN CATCH
     IF(ERROR_MESSAGE() LIKE '%GotHere%') RETURN 0;
   END CATCH
-  EXEC tSQLt.Fail 'tSQLt_test.TemporaryTestResultFormatter did not get called correctly';
+  EXEC tSQLt.Fail 'Run_Methods_Tests.TemporaryTestResultFormatter did not get called correctly';
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunAll calls Private_RunAll with configured Test Result Formatter]
+CREATE PROCEDURE Run_Methods_Tests.[test RunAll calls Private_RunAll with configured Test Result Formatter]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_RunAll';
@@ -353,7 +353,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_RunAll calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
+CREATE PROCEDURE Run_Methods_Tests.[test Private_RunAll calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
@@ -372,7 +372,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunWithXmlResults calls Private_Run with XmlTestResultFormatter]
+CREATE PROCEDURE Run_Methods_Tests.[test RunWithXmlResults calls Private_Run with XmlTestResultFormatter]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
@@ -390,7 +390,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunWithXmlResults passes NULL as TestName if called without parmameters]
+CREATE PROCEDURE Run_Methods_Tests.[test RunWithXmlResults passes NULL as TestName if called without parmameters]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
@@ -408,7 +408,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test NullTestResultFormatter prints no results from the tests]
+CREATE PROCEDURE Run_Methods_Tests.[test NullTestResultFormatter prints no results from the tests]
 AS
 BEGIN
   EXEC tSQLt.FakeTable 'tSQLt.TestResult';
@@ -431,7 +431,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test procedure can be injected to display test results]
+CREATE PROC Run_Methods_Tests.[test procedure can be injected to display test results]
 AS
 BEGIN
     EXEC ('CREATE SCHEMA MyFormatterSchema;');
@@ -451,9 +451,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter creates <testsuites/> when no test cases in test suite]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates <testsuites/> when no test cases in test suite]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
     DELETE FROM tSQLt.TestResult;
 
@@ -470,9 +472,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with test element when there is a passing test]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with test element when there is a passing test]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     DECLARE @Actual NVARCHAR(MAX);
     DECLARE @XML XML;
 
@@ -489,9 +493,11 @@ BEGIN
 END;
 GO   
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter handles even this:   ,/?'';:[o]]}\|{)(*&^%$#@""]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter handles even this:   ,/?'';:[o]]}\|{)(*&^%$#@""]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     DECLARE @Actual NVARCHAR(MAX);
     DECLARE @XML XML;
 
@@ -508,9 +514,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with test element and failure element when there is a failing test]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with test element and failure element when there is a failing test]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     DECLARE @Actual NVARCHAR(MAX);
     DECLARE @XML XML;
 
@@ -527,9 +535,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with multiple test elements some with failures]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     DECLARE @XML XML;
 
     DELETE FROM tSQLt.TestResult;
@@ -559,9 +569,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter creates testsuite with multiple test elements some with failures or errors]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with multiple test elements some with failures or errors]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     DECLARE @XML XML;
 
     DELETE FROM tSQLt.TestResult;
@@ -594,9 +606,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter sets correct counts in testsuite attributes]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter sets correct counts in testsuite attributes]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     DECLARE @XML XML;
 
     DELETE FROM tSQLt.TestResult;
@@ -636,9 +650,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test.[test XmlResultFormatter arranges multiple test cases into testsuites]
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter arranges multiple test cases into testsuites]
 AS
 BEGIN
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
     DECLARE @XML XML;
 
     DELETE FROM tSQLt.TestResult;
@@ -670,7 +686,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunWithNullResults calls Private_Run with NullTestResultFormatter]
+CREATE PROCEDURE Run_Methods_Tests.[test RunWithNullResults calls Private_Run with NullTestResultFormatter]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
@@ -688,7 +704,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test RunWithNullResults passes NULL as TestName if called without parmameters]
+CREATE PROCEDURE Run_Methods_Tests.[test RunWithNullResults passes NULL as TestName if called without parmameters]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';

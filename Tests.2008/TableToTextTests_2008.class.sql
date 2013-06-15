@@ -13,9 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+EXEC tSQLt.NewTestClass 'TableToTextTests_2008';
 GO
-
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIMEOFFSET column #table]
+CREATE PROC TableToTextTests_2008.[test TableToText works for one DATETIMEOFFSET column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -32,7 +32,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIME2 column #table]
+CREATE PROC TableToTextTests_2008.[test TableToText works for one DATETIME2 column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -49,7 +49,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one TIME column #table]
+CREATE PROC TableToTextTests_2008.[test TableToText works for one TIME column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -66,7 +66,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATE column #table]
+CREATE PROC TableToTextTests_2008.[test TableToText works for one DATE column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(

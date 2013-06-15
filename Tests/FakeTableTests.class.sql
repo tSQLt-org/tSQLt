@@ -760,7 +760,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns quoted schema when schema and table provided]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns quoted schema when schema and table provided]
 AS
 BEGIN
   DECLARE @CleanSchemaName NVARCHAR(MAX);
@@ -775,7 +775,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility can handle quoted names]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility can handle quoted names]
 AS
 BEGIN
   DECLARE @CleanSchemaName NVARCHAR(MAX);
@@ -795,7 +795,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns quoted table when schema and table provided]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns quoted table when schema and table provided]
 AS
 BEGIN
   DECLARE @CleanTableName NVARCHAR(MAX);
@@ -810,7 +810,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULL schema name when table does not exist]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULL schema name when table does not exist]
 AS
 BEGIN
   DECLARE @CleanSchemaName NVARCHAR(MAX);
@@ -824,7 +824,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULL table name when table does not exist]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULL table name when table does not exist]
 AS
 BEGIN
   DECLARE @CleanTableName NVARCHAR(MAX);
@@ -838,7 +838,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULLs when table name has special char]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility returns NULLs when table name has special char]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA MySchema');
@@ -856,7 +856,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility accepts full name as 1st parm if 2nd parm is null]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility accepts full name as 1st parm if 2nd parm is null]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA MySchema');
@@ -874,7 +874,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test Private_ResolveFakeTableNamesForBackwardCompatibility accepts parms in wrong order]
+CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility accepts parms in wrong order]
 AS
 BEGIN
   EXEC ('CREATE SCHEMA MySchema');
