@@ -1,3 +1,21 @@
+IF OBJECT_ID('tSQLt.Private_GetSetupProcedureName') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetSetupProcedureName;
+IF OBJECT_ID('tSQLt.Private_CleanTestResult') IS NOT NULL DROP PROCEDURE tSQLt.Private_CleanTestResult;
+IF OBJECT_ID('tSQLt.Private_RunTest') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTest;
+IF OBJECT_ID('tSQLt.Private_RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTestClass;
+IF OBJECT_ID('tSQLt.Private_Run') IS NOT NULL DROP PROCEDURE tSQLt.Private_Run;
+IF OBJECT_ID('tSQLt.Private_RunAll') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunAll;
+IF OBJECT_ID('tSQLt.RunAll') IS NOT NULL DROP PROCEDURE tSQLt.RunAll;
+IF OBJECT_ID('tSQLt.RunTest') IS NOT NULL DROP PROCEDURE tSQLt.RunTest;
+IF OBJECT_ID('tSQLt.Run') IS NOT NULL DROP PROCEDURE tSQLt.Run;
+IF OBJECT_ID('tSQLt.RunWithXmlResults') IS NOT NULL DROP PROCEDURE tSQLt.RunWithXmlResults;
+IF OBJECT_ID('tSQLt.RunWithNullResults') IS NOT NULL DROP PROCEDURE tSQLt.RunWithNullResults;
+IF OBJECT_ID('tSQLt.DefaultResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.DefaultResultFormatter;
+IF OBJECT_ID('tSQLt.XmlResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.XmlResultFormatter;
+IF OBJECT_ID('tSQLt.NullTestResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.NullTestResultFormatter;
+IF OBJECT_ID('tSQLt.RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.RunTestClass;
+GO
+---Build+
+
 CREATE PROCEDURE tSQLt.Private_GetSetupProcedureName
   @TestClassId INT = NULL,
   @SetupProcName NVARCHAR(MAX) OUTPUT
@@ -33,6 +51,7 @@ BEGIN
     DECLARE @PreExecTrancount INT;
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
+    CREATE TABLE #ExpectException(ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT);
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -50,6 +69,7 @@ BEGIN
         OPTION(MAXDOP 1);
     SELECT @TestResultId = SCOPE_IDENTITY();
 
+
     BEGIN TRAN;
     SAVE TRAN @TranName;
 
@@ -60,6 +80,10 @@ BEGIN
     BEGIN TRY
         IF (@SetUp IS NOT NULL) EXEC @SetUp;
         EXEC (@Cmd);
+        IF(EXISTS(SELECT 1 FROM #ExpectException))
+        BEGIN
+          EXEC tSQLt.Fail 'Expected an error to be raised.';
+        END
     END TRY
     BEGIN CATCH
         IF ERROR_MESSAGE() LIKE '%tSQLt.Failure%'
@@ -69,8 +93,49 @@ BEGIN
         END
         ELSE
         BEGIN
+          IF(EXISTS(SELECT 1 FROM #ExpectException))
+          BEGIN
+            DECLARE @ExpectedMessage NVARCHAR(MAX);
+            DECLARE @ExpectedSeverity INT;
+            DECLARE @ExpectedState INT;
+            SELECT @ExpectedMessage = ExpectedMessage, 
+                   @ExpectedSeverity = ExpectedSeverity,
+                   @ExpectedState = ExpectedState 
+              FROM #ExpectException;
+            SET @Result = 'Success';
+            DECLARE @TmpMsg NVARCHAR(MAX);
+            SET @TmpMsg = 'Exception did not match expectation!';
+            IF(ERROR_MESSAGE() NOT LIKE @ExpectedMessage)
+            BEGIN
+              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                         'Expected Message: <'+@ExpectedMessage+'>'+CHAR(13)+CHAR(10)+
+                         'Actual Message  : <'+ERROR_MESSAGE()+'>';
+              SET @Result = 'Failure';
+            END
+            IF(ERROR_SEVERITY() <> @ExpectedSeverity)
+            BEGIN
+              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                         'Expected Severity: '+CAST(@ExpectedSeverity AS NVARCHAR(MAX))+CHAR(13)+CHAR(10)+
+                         'Actual Severity  : '+CAST(ERROR_SEVERITY() AS NVARCHAR(MAX));
+              SET @Result = 'Failure';
+            END
+            IF(ERROR_STATE() <> @ExpectedState)
+            BEGIN
+              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                         'Expected State: '+CAST(@ExpectedState AS NVARCHAR(MAX))+CHAR(13)+CHAR(10)+
+                         'Actual State  : '+CAST(ERROR_STATE() AS NVARCHAR(MAX));
+              SET @Result = 'Failure';
+            END
+            IF(@Result = 'Failure')
+            BEGIN
+              SET @Msg = @TmpMsg;
+            END
+          END
+          ELSE
+          BEGIN
             SELECT @Msg = COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
             SET @Result = 'Error';
+          END  
         END;
     END CATCH
 
@@ -388,4 +453,4 @@ BEGIN
     EXEC tSQLt.Run @TestClassName;
 END
 GO    
-
+--Build-

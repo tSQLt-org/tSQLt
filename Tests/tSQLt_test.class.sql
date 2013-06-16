@@ -1870,11 +1870,20 @@ GO
 CREATE PROCEDURE tSQLt_test.[test Uninstall removes schema tSQLt]
 AS
 BEGIN
+  DECLARE @id INT;
+  BEGIN TRAN;
+  DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
+  SAVE TRAN @TranName;
+
   EXEC tSQLt.Uninstall;
+  SET @id = SCHEMA_ID('tSQLt');
+
+  ROLLBACK TRAN @TranName;
+  COMMIT TRAN;
   
-  IF SCHEMA_ID('tSQLt') IS NOT NULL
+  IF @id IS NOT NULL
   BEGIN
-    RAISERROR ('tSQLt schema not removed', 16, 10);
+    EXEC tSQLt.Fail 'tSQLt schema not removed';
   END;
 END;
 GO
@@ -1882,11 +1891,20 @@ GO
 CREATE PROCEDURE tSQLt_test.[test Uninstall removes data type tSQLt.Private]
 AS
 BEGIN
+  DECLARE @id INT;
+  BEGIN TRAN;
+  DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
+  SAVE TRAN @TranName;
+
   EXEC tSQLt.Uninstall;
+  SET @id = TYPE_ID('tSQLt.Private');
+
+  ROLLBACK TRAN @TranName;
+  COMMIT TRAN;
   
-  IF TYPE_ID('tSQLt.Private') IS NOT NULL
+  IF @id IS NOT NULL
   BEGIN
-    RAISERROR ('tSQLt.Private data type not removed', 16, 10);
+    EXEC tSQLt.Fail 'tSQLt.Private data type not removed';
   END;
 END;
 GO
@@ -1894,11 +1912,21 @@ GO
 CREATE PROCEDURE tSQLt_test.[test Uninstall removes the tSQLt Assembly]
 AS
 BEGIN
+  DECLARE @id INT;
+  BEGIN TRAN;
+  DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
+  SAVE TRAN @TranName;
+
   EXEC tSQLt.Uninstall;
   
-  IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
+  SET @id = (SELECT assembly_id FROM sys.assemblies WHERE name = 'tSQLtCLR');
+
+  ROLLBACK TRAN @TranName;
+  COMMIT TRAN;
+  
+  IF @id IS NOT NULL
   BEGIN
-    RAISERROR ('tSQLtCLR assembly not removed', 16, 10);
+    EXEC tSQLt.Fail 'tSQLtCLR assembly not removed';
   END;
 END;
 GO
