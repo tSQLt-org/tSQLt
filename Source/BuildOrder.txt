@@ -18,6 +18,7 @@ tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.RemoveObject.ssp.sql
 Run_Methods.sql
+tSQLt.ExpectException.ssp.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_GetForeignKeyDefinition.sfn.sql
 ApplyConstraint_Methods.sql
