@@ -112,7 +112,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException ''Correct%'';RAISERROR(''Correct Message'',16,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException ''Correct [Msg]'';RAISERROR(''Correct [Msg]'',16,10);');
 
     EXEC ExpectExceptionTests.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
@@ -216,5 +216,34 @@ BEGIN
                            'Actual State  : 6';
 
     EXEC ExpectExceptionTests.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE ExpectExceptionTests.[test output includes every incorrect part including the MessagePattern]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @MessagePattern=''Cor[rt]ect'',@Severity=11,@State=9;RAISERROR(''Wrong'',12,6);');
+
+    DECLARE @ExpectedMessage NVARCHAR(MAX);
+    SET @ExpectedMessage = 'Exception did not match expectation!'+CHAR(13)+CHAR(10)+
+                           'Expected Message to be like <Cor[[]rt]ect>'+CHAR(13)+CHAR(10)+
+                           'Actual Message            : <Wrong>'+CHAR(13)+CHAR(10)+
+                           'Expected Severity: 11'+CHAR(13)+CHAR(10)+
+                           'Actual Severity  : 12'+CHAR(13)+CHAR(10)+
+                           'Expected State: 9'+CHAR(13)+CHAR(10)+
+                           'Actual State  : 6';
+
+    EXEC ExpectExceptionTests.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE ExpectExceptionTests.[test expecting MessagePattern handles wildcards]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @MessagePattern = ''Cor[rt]ect%'';RAISERROR(''Correct [Msg]'',16,10);');
+
+    EXEC ExpectExceptionTests.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
 GO

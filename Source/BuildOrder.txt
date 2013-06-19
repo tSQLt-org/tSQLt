@@ -42,3 +42,4 @@ tSQLt.StubRecord.ssp.sql
 tSQLt.AssertLike.ssp.sql
 tSQLt.AssertNotEquals.ssp.sql
 tSQLt.Private_SqlVariantFormatter.sfn.sql
+tSQLt.AssertEmptyTable.ssp.sql
