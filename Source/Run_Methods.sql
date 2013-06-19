@@ -51,7 +51,7 @@ BEGIN
     DECLARE @PreExecTrancount INT;
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
-    CREATE TABLE #ExpectException(ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT);
+    CREATE TABLE #ExpectException(ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX));
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -96,20 +96,29 @@ BEGIN
           IF(EXISTS(SELECT 1 FROM #ExpectException))
           BEGIN
             DECLARE @ExpectedMessage NVARCHAR(MAX);
+            DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
             DECLARE @ExpectedSeverity INT;
             DECLARE @ExpectedState INT;
             SELECT @ExpectedMessage = ExpectedMessage, 
                    @ExpectedSeverity = ExpectedSeverity,
-                   @ExpectedState = ExpectedState 
+                   @ExpectedState = ExpectedState,
+                   @ExpectedMessagePattern = ExpectedMessagePattern 
               FROM #ExpectException;
             SET @Result = 'Success';
             DECLARE @TmpMsg NVARCHAR(MAX);
             SET @TmpMsg = 'Exception did not match expectation!';
-            IF(ERROR_MESSAGE() NOT LIKE @ExpectedMessage)
+            IF(ERROR_MESSAGE() <> @ExpectedMessage)
             BEGIN
               SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
                          'Expected Message: <'+@ExpectedMessage+'>'+CHAR(13)+CHAR(10)+
                          'Actual Message  : <'+ERROR_MESSAGE()+'>';
+              SET @Result = 'Failure';
+            END
+            IF(ERROR_MESSAGE() NOT LIKE @ExpectedMessagePattern)
+            BEGIN
+              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                         'Expected Message to be like <'+@ExpectedMessagePattern+'>'+CHAR(13)+CHAR(10)+
+                         'Actual Message            : <'+ERROR_MESSAGE()+'>';
               SET @Result = 'Failure';
             END
             IF(ERROR_SEVERITY() <> @ExpectedSeverity)
