@@ -92,7 +92,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException ''Correct Message'';RAISERROR(''Wrong Message'',16,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessage = ''Correct Message'';RAISERROR(''Wrong Message'',16,10);');
 
     EXEC ExpectExceptionTests.AssertTestFails 'MyTestClass.TestExpectingException';
 END;
@@ -102,7 +102,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException ''Correct Message'';RAISERROR(''Correct Message'',16,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessage = ''Correct Message'';RAISERROR(''Correct Message'',16,10);');
 
     EXEC ExpectExceptionTests.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
@@ -112,7 +112,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException ''Correct [Msg]'';RAISERROR(''Correct [Msg]'',16,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessage = ''Correct [Msg]'';RAISERROR(''Correct [Msg]'',16,10);');
 
     EXEC ExpectExceptionTests.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
@@ -122,7 +122,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException ''Correct Message'';RAISERROR(''Wrong Message'',16,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessage = ''Correct Message'';RAISERROR(''Wrong Message'',16,10);');
 
     DECLARE @ExpectedMessage NVARCHAR(MAX);
     SET @ExpectedMessage = '%Expected Message: <Correct Message>'+CHAR(13)+CHAR(10)+
@@ -136,7 +136,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @Severity = 13;RAISERROR(''Message'',15,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedSeverity = 13;RAISERROR(''Message'',15,10);');
 
     EXEC ExpectExceptionTests.AssertTestFails 'MyTestClass.TestExpectingException';
 END;
@@ -146,7 +146,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @Severity = 13;RAISERROR(''Message'',13,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedSeverity = 13;RAISERROR(''Message'',13,10);');
 
     EXEC ExpectExceptionTests.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
@@ -156,7 +156,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @State = 7;RAISERROR(''Message'',15,6);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedState = 7;RAISERROR(''Message'',15,6);');
 
     EXEC ExpectExceptionTests.AssertTestFails 'MyTestClass.TestExpectingException';
 END;
@@ -166,7 +166,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @State = 7;RAISERROR(''Message'',15,7);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedState = 7;RAISERROR(''Message'',15,7);');
 
     EXEC ExpectExceptionTests.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
@@ -176,7 +176,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @Severity=13;RAISERROR('''',14,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedSeverity=13;RAISERROR('''',14,10);');
 
     DECLARE @ExpectedMessage NVARCHAR(MAX);
     SET @ExpectedMessage = '%Expected Severity: 13'+CHAR(13)+CHAR(10)+
@@ -190,7 +190,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @State=13;RAISERROR('''',14,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedState=13;RAISERROR('''',14,10);');
 
     DECLARE @ExpectedMessage NVARCHAR(MAX);
     SET @ExpectedMessage = '%Expected State: 13'+CHAR(13)+CHAR(10)+
@@ -204,7 +204,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @Message=''Correct'',@Severity=11,@State=9;RAISERROR(''Wrong'',12,6);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessage=''Correct'',@ExpectedSeverity=11,@ExpectedState=9;RAISERROR(''Wrong'',12,6);');
 
     DECLARE @ExpectedMessage NVARCHAR(MAX);
     SET @ExpectedMessage = 'Exception did not match expectation!'+CHAR(13)+CHAR(10)+
@@ -223,7 +223,7 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @MessagePattern=''Cor[rt]ect'',@Severity=11,@State=9;RAISERROR(''Wrong'',12,6);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessagePattern=''Cor[rt]ect'',@ExpectedSeverity=11,@ExpectedState=9;RAISERROR(''Wrong'',12,6);');
 
     DECLARE @ExpectedMessage NVARCHAR(MAX);
     SET @ExpectedMessage = 'Exception did not match expectation!'+CHAR(13)+CHAR(10)+
@@ -242,8 +242,35 @@ AS
 BEGIN
 
     EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @MessagePattern = ''Cor[rt]ect%'';RAISERROR(''Correct [Msg]'',16,10);');
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessagePattern = ''Cor[rt]ect%'';RAISERROR(''Correct [Msg]'',16,10);');
 
     EXEC ExpectExceptionTests.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
 GO
+CREATE PROCEDURE ExpectExceptionTests.[test output includes additional message]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessage=''Correct'', @Message=''Additional Fail Message.'';RAISERROR(''Wrong'',12,6);');
+
+    DECLARE @ExpectedMessage NVARCHAR(MAX);
+    SET @ExpectedMessage = 'Additional Fail Message. Exception did not match expectation!'+CHAR(13)+CHAR(10)+
+                           'Expected Message: <Correct>'+CHAR(13)+CHAR(10)+
+                           'Actual Message  : <Wrong>';
+
+    EXEC ExpectExceptionTests.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE ExpectExceptionTests.[test output includes additional message if no other expectations]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @Message=''Additional Fail Message.'';');
+
+    DECLARE @ExpectedMessage NVARCHAR(MAX);
+    SET @ExpectedMessage = 'Additional Fail Message. Expected an error to be raised.';
+
+    EXEC ExpectExceptionTests.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
+END;
