@@ -2,14 +2,15 @@ IF OBJECT_ID('tSQLt.ExpectException') IS NOT NULL DROP PROCEDURE tSQLt.ExpectExc
 GO
 ---Build+
 CREATE PROCEDURE tSQLt.ExpectException
+@ExpectedMessage NVARCHAR(MAX) = NULL,
+@ExpectedSeverity INT = NULL,
+@ExpectedState INT = NULL,
 @Message NVARCHAR(MAX) = NULL,
-@Severity INT = NULL,
-@State INT = NULL,
-@MessagePattern NVARCHAR(MAX) = NULL
+@ExpectedMessagePattern NVARCHAR(MAX) = NULL
 AS
 BEGIN
- INSERT INTO #ExpectException(ExpectedMessage, ExpectedSeverity, ExpectedState, ExpectedMessagePattern)
- VALUES(@Message, @Severity, @State, @MessagePattern);
+ INSERT INTO #ExpectException(ExpectedMessage, ExpectedSeverity, ExpectedState, ExpectedMessagePattern, FailMessage)
+ VALUES(@ExpectedMessage, @ExpectedSeverity, @ExpectedState, @ExpectedMessagePattern, @Message);
 END;
 ---Build-
 GO

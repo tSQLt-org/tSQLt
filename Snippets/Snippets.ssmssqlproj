@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+<SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Snippets">
+  <Items>
+    <LogicalFolder Name="Connections" Type="2" Sorted="true">
+      <Items />
+    </LogicalFolder>
+    <LogicalFolder Name="Queries" Type="0" Sorted="true">
+      <Items>
+        <FileNode Name="snippets.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>snippets.sql</FullPath>
+        </FileNode>
+      </Items>
+    </LogicalFolder>
+    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
+      <Items>
+        <FileNode Name="ida.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>ida.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="idf.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>idf.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="idl.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>idl.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="idp.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>idp.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="ids.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>ids.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="idt.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>idt.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="idtr.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>idtr.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="idu.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>idu.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="idv.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>idv.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tab.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tab.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tac.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tac.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tal.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tal.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tca.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tca.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tce.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tce.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tco.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tco.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tct.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tct.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="te.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>te.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tes.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tes.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tet.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tet.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tf.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tf.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tft.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tft.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tie.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tie.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tmt.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tmt.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tnc.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tnc.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tne.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tne.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tnt.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tnt.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="toe.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>toe.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tpc.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tpc.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="trf.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>trf.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tro.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tro.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tso.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tso.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="tsp.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tsp.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="txe.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>txe.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="txp.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>txp.sqlpromptsnippet</FullPath>
+        </FileNode>
+      </Items>
+    </LogicalFolder>
+  </Items>
+</SqlWorkbenchSqlProject>

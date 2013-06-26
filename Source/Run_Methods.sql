@@ -51,7 +51,7 @@ BEGIN
     DECLARE @PreExecTrancount INT;
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
-    CREATE TABLE #ExpectException(ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX));
+    CREATE TABLE #ExpectException(ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), FailMessage NVARCHAR(MAX));
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -77,12 +77,14 @@ BEGIN
     
     TRUNCATE TABLE tSQLt.TestMessage;
 
+    DECLARE @TmpMsg NVARCHAR(MAX);
     BEGIN TRY
         IF (@SetUp IS NOT NULL) EXEC @SetUp;
         EXEC (@Cmd);
         IF(EXISTS(SELECT 1 FROM #ExpectException))
         BEGIN
-          EXEC tSQLt.Fail 'Expected an error to be raised.';
+          SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
+          EXEC tSQLt.Fail @TmpMsg;
         END
     END TRY
     BEGIN CATCH
@@ -99,14 +101,15 @@ BEGIN
             DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
             DECLARE @ExpectedSeverity INT;
             DECLARE @ExpectedState INT;
+            DECLARE @FailMessage NVARCHAR(MAX);
             SELECT @ExpectedMessage = ExpectedMessage, 
                    @ExpectedSeverity = ExpectedSeverity,
                    @ExpectedState = ExpectedState,
-                   @ExpectedMessagePattern = ExpectedMessagePattern 
+                   @ExpectedMessagePattern = ExpectedMessagePattern,
+                   @FailMessage = FailMessage
               FROM #ExpectException;
             SET @Result = 'Success';
-            DECLARE @TmpMsg NVARCHAR(MAX);
-            SET @TmpMsg = 'Exception did not match expectation!';
+            SET @TmpMsg = COALESCE(@FailMessage+' ','')+'Exception did not match expectation!';
             IF(ERROR_MESSAGE() <> @ExpectedMessage)
             BEGIN
               SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+

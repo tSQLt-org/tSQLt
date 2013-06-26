@@ -15,7 +15,7 @@ BEGIN
   
   --Assert
   --  Compare the expected and actual values, or call tSQLt.Fail in an IF statement.  
-  --  Available Asserts: tSQLt.AssertEquals, tSQLt.AssertEqualsString, tSQLt.AssertEqualsTable
+  --  Example Asserts: tSQLt.AssertEquals, tSQLt.AssertEqualsString, tSQLt.AssertEqualsTable
   --  For a complete list, see: http://tsqlt.org/user-guide/assertions/
   EXEC tSQLt.Fail 'TODO:Implement this test.'
   
