@@ -7,6 +7,20 @@ http://tsqlt.org/category/release-notes/
 Release: VLATEST-BUILD-NUMBER
 
 BUG FIXES:
+1. tSQLt.Fail now works when transaction is in an uncommittable state.
+NEW FEATURES:
+1. tSQLt.AssertNotEquals
+2. tSQLt.AssertEmptyTable
+3. tSQLt.ExpectException
+OTHER:
+1. We have now a set of snippets for Red Gate SQL Prompt to support test development
+   Instructions of how to get them are available on our downloads page: http://tSQLt.org/downloads
+
+---------------------------
+
+Release: V1.0.4822.19862
+
+BUG FIXES:
 1. Corrected defect in AssertEqualsTable where the custom error message was not being displayed.
 NEW FEATURES:
 1. Added tSQLt.RemoveObject procedure.
