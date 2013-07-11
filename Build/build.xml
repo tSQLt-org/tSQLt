@@ -5,7 +5,7 @@
  <target name="refresh"     depends="build.and.extract.package, install"/>
  <target name="refresh2008" depends="build.and.extract.package, install.2008"/>
 
- <target name="build.and.extract.package" depends="init, clr.compile, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, clr.testutil.compile, package.extract"/>
+ <target name="build.and.extract.package" depends="init, clr.compile, package.SQLPromptSnippets.copy, package.files.copy, package.construct.tsqlt, set.build.version, package.example, package.create, clr.testutil.compile, package.extract"/>
  <target name="install" depends="db.install.schema, db.install.testutil, db.install.tests"/>
  <target name="install.2008" depends="install, db.install.2008.tests"/>
  <target name="execute.tests" depends="db.tests.run, db.tests.output, db.tests.check.results, execute.example.tests"/>
@@ -13,8 +13,9 @@
  <target name="init">
 		<delete dir="output"/>
 		<delete dir="test"/>
-		<mkdir dir="output"/>
-		<mkdir dir="test"/>
+  <mkdir dir="output"/>
+  <mkdir dir="output/SQLPromptSnippets"/>
+  <mkdir dir="test"/>
 		<mkdir dir="test/results"/>
  </target>
 
@@ -41,10 +42,19 @@
   <echo message="CLR Version is: ${clr.version}"/>
 	</target>
 
-	<target name="package.files.copy">
+ <target name="package.files.copy">
   <copy file="../Source/SetClrEnabled.sql" todir="output"/>
   <copy file="ReleaseNotes.txt" todir="output"/>
   <copy file="License.txt" todir="output"/>
+ </target>
+
+ <target name="package.SQLPromptSnippets.copy">
+  <copy todir="output/SQLPromptSnippets">
+   <fileset dir="../Snippets">
+    <filename name="**/*.sqlpromptsnippet" />
+   </fileset>
+   <fileset file="../Snippets/ReadMe.txt" />
+  </copy>
  </target>
 
  <target name="package.construct.tsqlt">
@@ -76,16 +86,28 @@
  </target>
 
  <target name="package.create">
-		<zip destfile="output/tSQLt.zip">
+  <zip destfile="output/tSQLtSnippets(SQLPrompt).zip">
+   <fileset dir="output/SQLPromptSnippets"/>
+  </zip>
+  <zip destfile="output/tSQLt.zip">
    <fileset file="output/ReleaseNotes.txt"/>
    <fileset file="output/License.txt"/>
    <fileset file="output/tSQLt.class.sql"/>
-			<fileset file="output/SetClrEnabled.sql"/>
+   <fileset file="output/SetClrEnabled.sql"/>
    <fileset file="output/Example.sql"/>
   </zip>
-		<delete>
-			<fileset dir="output" excludes="*.zip"/>
-		</delete>
+  <copy file="output/ReleaseNotes.txt" tofile="output/ReadMe.txt"/>
+  <delete dir="output/SQLPromptSnippets"/>
+  <delete>
+   <fileset dir="output">
+    <not>
+     <filename name="*.zip" />
+    </not>
+    <not>
+     <filename name="ReadMe.txt" />
+    </not>
+   </fileset>
+  </delete>
 	</target>
 
 	<target name="package.extract">
