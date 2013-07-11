@@ -10,7 +10,8 @@ tSQLt is coauthored by:
 - Dennis Lloyd Jr. ( @dennislloydjr | http://curiouslycorrect.com/ )
 - Sebastian Meine ( @sqlity | http://sqlity.net )
 
-You can download tSQLt at http://tSQLt.org 
+You can download tSQLt at http://tSQLt.org/downloads
+A more complete set of SQL Prompt snippets is available there too.
 
 tSQLt provides an array of procedures that help you to write robust test cases
 by isolating dependencies (e.g. tSQLt.FakeTable or tSQLt.SpyProcedure) and 
@@ -28,7 +29,7 @@ To check the version of tSQLt that is currently installed execute this query:
 SELECT * FROM tSQLt.Info();
 The Version and the ClrVersion should always match.
 
-For an easier way to manage and execute your tests check out Reg-Gate SQL Test.
+For an easier way to manage and execute your tests check out Red Gate SQL Test.
 
 Below is a test case template that also explains the three parts that every 
 test should contain.

@@ -16,6 +16,12 @@
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
       <Items>
+        <FileNode Name="ReadMe.txt">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>ReadMe.txt</FullPath>
+        </FileNode>
         <FileNode Name="ida.sqlpromptsnippet">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
