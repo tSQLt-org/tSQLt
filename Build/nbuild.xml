@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<project name="Hello World" default="build" basedir=".">
+ <description>Build tSQLt Artifacts</description>
+ <target name="clean" description="remove all generated files">
+  <delete file="HelloWorld.exe" failonerror="true" />
+ </target>
+</project>
