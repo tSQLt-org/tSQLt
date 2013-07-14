@@ -124,12 +124,12 @@
   <delete file="output/ReadMe.txt" />
   <delete file="output/Version.txt" />
   <zip zipfile="output/tSQLt.zip">
-   <fileset>
-    <include name="temp/ReleaseNotes.txt"/>
-    <include name="temp/License.txt"/>
-    <include name="temp/tSQLt.class.sql"/>
-    <include name="temp/SetClrEnabled.sql"/>
-    <include name="temp/Example.sql"/>
+   <fileset basedir="temp">
+    <include name="ReleaseNotes.txt"/>
+    <include name="License.txt"/>
+    <include name="tSQLt.class.sql"/>
+    <include name="SetClrEnabled.sql"/>
+    <include name="Example.sql"/>
    </fileset> 
   </zip>
   <copy file="temp/Version.txt" tofile="output/Version.txt"/>
@@ -190,8 +190,15 @@
  <target name="package.test.create.artifacts">
   <delete file="output/tSQLt.tests.zip" />
   <zip zipfile="output/tSQLt.tests.zip">
-   <fileset>
-    <include name="temp/*.sql"/>
+   <fileset basedir="temp">
+    <include name="TestUtil.sql"/>
+    <include name="AllTests.sql"/>
+    <include name="AllTests.2008.sql"/>
+    <include name="BootStrapTest.sql"/>
+    <include name="ExecuteAsSa.sql"/>
+    <include name="CreateBuildDb.sql"/>
+    <include name="GetTestResults.sql"/>
+    <include name="TestThatExamplesAreDeployed.sql"/>
    </fileset>
   </zip>
  </target>
