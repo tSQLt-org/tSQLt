@@ -16,6 +16,14 @@ BEGIN
 END;
 GO
 
+CREATE PROC [AssertLikeTests].[test AssertLike fails when single character expectedPattern does not match single character actual value]
+AS
+BEGIN
+    DECLARE @Command NVARCHAR(MAX); SET @Command = 'EXEC tSQLt.AssertLike ''a'', ''z'';';
+    EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertLike did not call Fail';
+END;
+GO
+
 CREATE PROC [AssertLikeTests].[test AssertLike succeeds when expectedPattern value IS NULL and actual value IS NULL]
 AS
 BEGIN
