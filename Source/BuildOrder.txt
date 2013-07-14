@@ -9,7 +9,7 @@ tSQLt.Fail.ssp.sql
 tSQLt.class.sql
 tSQLt.CaptureOutputLog.tbl.sql
 tSQLt.LogCapturedOutput.ssp.sql
-../Build/output/CreateAssembly.sql
+../Build/temp/CreateAssembly.sql
 tSQLtCLR_CreateProcs.sql
 tSQLt.TableToText.ssp.sql
 tSQLt.Private_RenamedObjectLog.tbl.sql
