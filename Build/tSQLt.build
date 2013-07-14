@@ -1,11 +1,16 @@
 <?xml version="1.0"?>
-<project name="tSQLt" default="package.create.SQLPromptSnippets" basedir=".">
+<project name="tSQLt" default="all" basedir=".">
  <description>Build tSQLt</description>
  <target name="clean" description="remove all generated files">
   <echo message="${msbuild.path}" />
   <echo message="${db.server}" />
   <echo message="${db.name}" />
  </target>
+
+ <target
+   name="all"
+   depends="package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests"
+   />
 
  <target
    name="package.create.tSQLt"
@@ -19,7 +24,7 @@
 
  <target
    name="package.create.SQLPromptSnippets"
-   depends="init.SQLPromptSnippets, package.SQLPromptSnippets.copy, package.SQLPromptSnippets.create.artifacts"
+   depends="init, init.SQLPromptSnippets, package.SQLPromptSnippets.copy, package.SQLPromptSnippets.create.artifacts"
    />
 
  <target name="init" description="prepare output directory">
@@ -42,14 +47,14 @@
    <arg value="${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   </exec>
 
-  <exec program="cmd" workingdir="." failonerror="true" output="temp/version.txt">
+  <exec program="cmd" workingdir="." failonerror="true" output="temp/Version.txt">
    <arg value="/c"/>
    <arg value="cscript //nologo VersionInfo.vbs ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll"/>
   </exec>
 
   <loadfile
     failonerror="true"
-    file="temp/version.txt"
+    file="temp/Version.txt"
     property="clr.version" 
    />
   <property name="clr.version" value="${string::trim(clr.version)}" />
@@ -117,6 +122,7 @@
  <target name="package.create.artifacts">
   <delete file="output/tSQLt.zip" />
   <delete file="output/ReadMe.txt" />
+  <delete file="output/Version.txt" />
   <zip zipfile="output/tSQLt.zip">
    <fileset>
     <include name="temp/ReleaseNotes.txt"/>
@@ -126,6 +132,7 @@
     <include name="temp/Example.sql"/>
    </fileset> 
   </zip>
+  <copy file="temp/Version.txt" tofile="output/Version.txt"/>
   <copy file="temp/ReleaseNotes.txt" tofile="output/ReadMe.txt"/>
  </target>
 
