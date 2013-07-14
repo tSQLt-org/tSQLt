@@ -13,6 +13,8 @@
  <target name="init">
 		<delete dir="output"/>
 		<delete dir="test"/>
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
   <mkdir dir="output"/>
   <mkdir dir="output/SQLPromptSnippets"/>
   <mkdir dir="test"/>
@@ -58,7 +60,7 @@
  </target>
 
  <target name="package.construct.tsqlt">
-  <exec executable="cmd" failonerror="true" output="output/CreateAssembly.sql">
+  <exec executable="cmd" failonerror="true" output="temp/CreateAssembly.sql">
    <arg value="/c"/>
    <arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll EXTERNAL_ACCESS"/>
   </exec>
@@ -113,7 +115,7 @@
 	<target name="package.extract">
 		<unzip src="output/tSQLt.zip" dest="test"/>
 
-  <exec executable="cmd" failonerror="true" output="test/CreateTestUtilAssembly.sql">
+  <exec executable="cmd" failonerror="true" output="temp/CreateTestUtilAssembly.sql">
    <arg value="/c"/>
    <arg value="CreateAssemblyGenerator.exe tSQLtTestUtilCLR dbo ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll EXTERNAL_ACCESS"/>
   </exec>
@@ -139,8 +141,13 @@
    <arg value="test/AllTests.2008.sql"/>
   </exec>
 
+
+  <concat destfile="test/CreateBuildDb.sql" append="no" fixlastline="yes" eol="crlf">
+   <filelist dir="." files="ExecuteAsSa.sql"/>
+   <filelist dir="." files="CreateBuildDb.sql"/>
+  </concat>
+
   <copy file="../Tests/BootStrapTest.sql" todir="test"/>
-  <copy file="CreateBuildDb.sql" todir="test"/>
 		<copy file="GetTestResults.sql" todir="test"/>		
 	</target>
 
@@ -212,7 +219,7 @@
 
  <target name="create.example.database">
   <concat destfile="test/ExampleToRun.sql" append="yes" fixlastline="yes" eol="crlf">
-   <filelist dir="../Examples" files="ExecuteAsSa.sql"/>
+   <filelist dir="." files="ExecuteAsSa.sql"/>
    <filelist dir="test" files="Example.sql"/>
   </concat>
 

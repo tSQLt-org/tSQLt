@@ -1,0 +1,8 @@
+ant, nant
+exec@executable, exec@program
+exec@dir, exec@basedir, !interpreted differently
+exec@outputproperty, exec@resultproperty
+
+
+zip@destfile, zip@zipfile
+fileset@file, fileset/include@name

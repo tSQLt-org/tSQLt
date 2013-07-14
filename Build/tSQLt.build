@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+<project name="tSQLt" default="package.create.SQLPromptSnippets" basedir=".">
+ <description>Build tSQLt</description>
+ <target name="clean" description="remove all generated files">
+  <echo message="${msbuild.path}" />
+  <echo message="${db.server}" />
+  <echo message="${db.name}" />
+ </target>
+
+ <target
+   name="package.create.tSQLt"
+   depends="init, init.tSQLt, clr.compile, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
+   />
+
+ <target
+  name="package.create.tSQLt.tests"
+  depends="init, init.tSQLt.tests, clr.testutil.compile, package.test.files, package.test.create.artifacts"
+   />
+
+ <target
+   name="package.create.SQLPromptSnippets"
+   depends="init.SQLPromptSnippets, package.SQLPromptSnippets.copy, package.SQLPromptSnippets.create.artifacts"
+   />
+
+ <target name="init" description="prepare output directory">
+  <mkdir dir="output" unless="${directory::exists('output')}"/>
+ </target>
+
+ <!--=======================================================================-->
+ <!--========                 Build tSQLt.zip                      =========-->
+ <!--=======================================================================-->
+
+ <target name="init.tSQLt" description="prepare directories for tSQLt build">
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
+ </target>
+
+ <target name="clr.compile">
+  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+  <exec program="cmd" workingdir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true" output="temp/version.txt">
+   <arg value="/c"/>
+   <arg value="cscript //nologo VersionInfo.vbs ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll"/>
+  </exec>
+
+  <loadfile
+    failonerror="true"
+    file="temp/version.txt"
+    property="clr.version" 
+   />
+  <property name="clr.version" value="${string::trim(clr.version)}" />
+  
+  <echo message="CLR Version is: [V${clr.version}]"/>
+  
+ </target>
+
+ <target name="package.copy.files">
+  <copy file="../Source/SetClrEnabled.sql" todir="temp"/>
+  <copy file="ReleaseNotes.txt" todir="temp"/>
+  <copy file="License.txt" todir="temp"/>
+ </target>
+
+ <target name="package.construct.tsqlt">
+  <echo message="Generating CREATE ASSEMBLY statement."/>
+  <exec program="cmd" workingdir="." failonerror="true" output="temp/CreateAssembly.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll EXTERNAL_ACCESS"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Source/BuildOrder.txt"/>
+   <arg value="temp/tSQLt.class.sql"/>
+  </exec>
+ </target>
+
+ <target name="replace.in.file">
+  <echo message="File: ${replace.file}" />
+  <echo message="Token: ${replace.token}" />
+  <echo message="Value: ${replace.value}" />
+  <move file="${replace.file}" tofile="${replace.file}.replacement.temp">
+   <filterchain>
+    <replacestring from="${replace.token}" to="${replace.value}" />
+    <tabstospaces tablength="1"/>
+   </filterchain>
+  </move>
+  <move file="${replace.file}.replacement.temp" tofile="${replace.file}" />
+ </target>
+ 
+ <target name="package.set.build.version">
+  <property name="replace.file" value="temp/ReleaseNotes.txt" />
+  <property name="replace.token" value="LATEST-BUILD-NUMBER" />
+  <property name="replace.value" value="${clr.version}" />
+  <call target="replace.in.file" />
+
+  <property name="replace.file" value="temp/tSQLt.class.sql" />
+  <property name="replace.token" value="$LATEST-BUILD-NUMBER$" />
+  <property name="replace.value" value="${clr.version}" />
+  <call target="replace.in.file" />
+
+ </target>
+
+ <target name="package.create.example">
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Examples/BuildOrder.txt"/>
+   <arg value="temp/Example.sql"/>
+  </exec>
+ </target>
+
+ <target name="package.create.artifacts">
+  <delete file="output/tSQLt.zip" />
+  <delete file="output/ReadMe.txt" />
+  <zip zipfile="output/tSQLt.zip">
+   <fileset>
+    <include name="temp/ReleaseNotes.txt"/>
+    <include name="temp/License.txt"/>
+    <include name="temp/tSQLt.class.sql"/>
+    <include name="temp/SetClrEnabled.sql"/>
+    <include name="temp/Example.sql"/>
+   </fileset> 
+  </zip>
+  <copy file="temp/ReleaseNotes.txt" tofile="output/ReadMe.txt"/>
+ </target>
+
+ <!--=======================================================================-->
+ <!--========                 Build tSQLt Tests                    =========-->
+ <!--=======================================================================-->
+
+ <target name="init.tSQLt.tests" description="prepare directories for tSQLt build">
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
+ </target>
+
+ <target name="clr.testutil.compile">
+  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+  <exec program="cmd" workingdir="../tSQLtCLR/tSQLtTestUtilCLR/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="${msbuild.path}msbuild.exe tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+  </exec>
+ </target>
+
+ <target name="package.test.files">
+  <exec program="cmd" workingdir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe tSQLtTestUtilCLR dbo ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll EXTERNAL_ACCESS"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../TestUtil/BuildOrder.txt"/>
+   <arg value="temp/TestUtil.sql"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests/*.class.sql"/>
+   <arg value="temp/AllTests.sql"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.2008/*.class.sql"/>
+   <arg value="temp/AllTests.2008.sql"/>
+  </exec>
+
+  <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
+  <copy file="ExecuteAsSa.sql" todir="temp"/>
+  <copy file="CreateBuildDb.sql" todir="temp"/>
+  <copy file="GetTestResults.sql" todir="temp"/>
+  <copy file="../Examples/TestThatExamplesAreDeployed.sql" todir="temp"/>
+ </target>
+
+ <target name="package.test.create.artifacts">
+  <delete file="output/tSQLt.tests.zip" />
+  <zip zipfile="output/tSQLt.tests.zip">
+   <fileset>
+    <include name="temp/*.sql"/>
+   </fileset>
+  </zip>
+ </target>
+
+ <!--=======================================================================-->
+ <!--========                 Build SQLPromptSnippets              =========-->
+ <!--=======================================================================-->
+
+ <target name="init.SQLPromptSnippets" description="prepare directories for SQLPromptSnippets build">
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
+ </target>
+
+ <target name="package.SQLPromptSnippets.copy">
+  <copy todir="temp">
+   <fileset basedir="../Snippets">
+    <include name="*.sqlpromptsnippet" />
+    <include name="ReadMe.txt" />
+   </fileset>
+  </copy>
+ </target>
+
+ <target name="package.SQLPromptSnippets.create.artifacts">
+  <delete file="output/tSQLtSnippets(SQLPrompt).zip" />
+  <zip zipfile="output/tSQLtSnippets(SQLPrompt).zip">
+   <fileset basedir="temp">
+    <include name="*.*"/>
+   </fileset>
+  </zip>
+ </target>
+</project>
