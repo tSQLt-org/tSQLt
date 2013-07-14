@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<project name="tSQLt" default="all" basedir=".">
+
+ <target name="all">
+  <loadfile file="lib/Verstion.text" property="clr.version" />
+  <echo message="${clr.version}" />
+ </target>
+</project>
