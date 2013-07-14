@@ -2,7 +2,7 @@
 <project name="tSQLt" default="all" basedir=".">
 
  <target name="all">
-  <loadfile file="lib/Verstion.txt" property="clr.version" />
+  <loadfile file="lib/Version.txt" property="clr.version" />
   <echo message="${clr.version}" />
  </target>
 </project>
