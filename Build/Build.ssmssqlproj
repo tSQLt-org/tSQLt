@@ -25,6 +25,12 @@
           <AssociatedConnUserName />
           <FullPath>CreateBuildDb.sql</FullPath>
         </FileNode>
+        <FileNode Name="ExecuteAsSa.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>ExecuteAsSa.sql</FullPath>
+        </FileNode>
         <FileNode Name="GetTestResults.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -106,6 +112,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.build</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.validatebuild">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.validatebuild</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
