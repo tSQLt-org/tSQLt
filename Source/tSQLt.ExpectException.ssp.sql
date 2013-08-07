@@ -9,8 +9,13 @@ CREATE PROCEDURE tSQLt.ExpectException
 @ExpectedMessagePattern NVARCHAR(MAX) = NULL
 AS
 BEGIN
- INSERT INTO #ExpectException(ExpectedMessage, ExpectedSeverity, ExpectedState, ExpectedMessagePattern, FailMessage)
- VALUES(@ExpectedMessage, @ExpectedSeverity, @ExpectedState, @ExpectedMessagePattern, @Message);
+ IF(EXISTS(SELECT 1 FROM #ExpectException))
+ BEGIN
+   RAISERROR('Each test can only contain one call to tSQLt.ExpectException or tSQLt.ExpectNoException.',16,10);
+ END;
+ 
+ INSERT INTO #ExpectException(ExpectException, ExpectedMessage, ExpectedSeverity, ExpectedState, ExpectedMessagePattern, FailMessage)
+ VALUES(1, @ExpectedMessage, @ExpectedSeverity, @ExpectedState, @ExpectedMessagePattern, @Message);
 END;
 ---Build-
 GO

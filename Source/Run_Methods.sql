@@ -51,7 +51,7 @@ BEGIN
     DECLARE @PreExecTrancount INT;
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
-    CREATE TABLE #ExpectException(ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), FailMessage NVARCHAR(MAX));
+    CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), FailMessage NVARCHAR(MAX));
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -81,7 +81,7 @@ BEGIN
     BEGIN TRY
         IF (@SetUp IS NOT NULL) EXEC @SetUp;
         EXEC (@Cmd);
-        IF(EXISTS(SELECT 1 FROM #ExpectException))
+        IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
         BEGIN
           SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
           EXEC tSQLt.Fail @TmpMsg;
@@ -95,58 +95,79 @@ BEGIN
         END
         ELSE
         BEGIN
+          DECLARE @ErrorInfo NVARCHAR(MAX);
+          SELECT @ErrorInfo = 
+            COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + 
+            '[' +COALESCE(LTRIM(STR(ERROR_SEVERITY())), '<ERROR_SEVERITY() is NULL>') + ','+COALESCE(LTRIM(STR(ERROR_STATE())), '<ERROR_STATE() is NULL>') + ']' +
+            '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
+
           IF(EXISTS(SELECT 1 FROM #ExpectException))
           BEGIN
+            DECLARE @ExpectException INT;
             DECLARE @ExpectedMessage NVARCHAR(MAX);
             DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
             DECLARE @ExpectedSeverity INT;
             DECLARE @ExpectedState INT;
             DECLARE @FailMessage NVARCHAR(MAX);
-            SELECT @ExpectedMessage = ExpectedMessage, 
+            SELECT @ExpectException = ExpectException,
+                   @ExpectedMessage = ExpectedMessage, 
                    @ExpectedSeverity = ExpectedSeverity,
                    @ExpectedState = ExpectedState,
                    @ExpectedMessagePattern = ExpectedMessagePattern,
                    @FailMessage = FailMessage
               FROM #ExpectException;
-            SET @Result = 'Success';
-            SET @TmpMsg = COALESCE(@FailMessage+' ','')+'Exception did not match expectation!';
-            IF(ERROR_MESSAGE() <> @ExpectedMessage)
+
+            IF(@ExpectException = 1)
             BEGIN
-              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
-                         'Expected Message: <'+@ExpectedMessage+'>'+CHAR(13)+CHAR(10)+
-                         'Actual Message  : <'+ERROR_MESSAGE()+'>';
-              SET @Result = 'Failure';
-            END
-            IF(ERROR_MESSAGE() NOT LIKE @ExpectedMessagePattern)
+              SET @Result = 'Success';
+              SET @TmpMsg = COALESCE(@FailMessage+' ','')+'Exception did not match expectation!';
+              IF(ERROR_MESSAGE() <> @ExpectedMessage)
+              BEGIN
+                SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                           'Expected Message: <'+@ExpectedMessage+'>'+CHAR(13)+CHAR(10)+
+                           'Actual Message  : <'+ERROR_MESSAGE()+'>';
+                SET @Result = 'Failure';
+              END
+              IF(ERROR_MESSAGE() NOT LIKE @ExpectedMessagePattern)
+              BEGIN
+                SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                           'Expected Message to be like <'+@ExpectedMessagePattern+'>'+CHAR(13)+CHAR(10)+
+                           'Actual Message            : <'+ERROR_MESSAGE()+'>';
+                SET @Result = 'Failure';
+              END
+              IF(ERROR_SEVERITY() <> @ExpectedSeverity)
+              BEGIN
+                SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                           'Expected Severity: '+CAST(@ExpectedSeverity AS NVARCHAR(MAX))+CHAR(13)+CHAR(10)+
+                           'Actual Severity  : '+CAST(ERROR_SEVERITY() AS NVARCHAR(MAX));
+                SET @Result = 'Failure';
+              END
+              IF(ERROR_STATE() <> @ExpectedState)
+              BEGIN
+                SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                           'Expected State: '+CAST(@ExpectedState AS NVARCHAR(MAX))+CHAR(13)+CHAR(10)+
+                           'Actual State  : '+CAST(ERROR_STATE() AS NVARCHAR(MAX));
+                SET @Result = 'Failure';
+              END
+              IF(@Result = 'Failure')
+              BEGIN
+                SET @Msg = @TmpMsg;
+              END
+            END 
+            ELSE
             BEGIN
-              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
-                         'Expected Message to be like <'+@ExpectedMessagePattern+'>'+CHAR(13)+CHAR(10)+
-                         'Actual Message            : <'+ERROR_MESSAGE()+'>';
-              SET @Result = 'Failure';
-            END
-            IF(ERROR_SEVERITY() <> @ExpectedSeverity)
-            BEGIN
-              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
-                         'Expected Severity: '+CAST(@ExpectedSeverity AS NVARCHAR(MAX))+CHAR(13)+CHAR(10)+
-                         'Actual Severity  : '+CAST(ERROR_SEVERITY() AS NVARCHAR(MAX));
-              SET @Result = 'Failure';
-            END
-            IF(ERROR_STATE() <> @ExpectedState)
-            BEGIN
-              SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
-                         'Expected State: '+CAST(@ExpectedState AS NVARCHAR(MAX))+CHAR(13)+CHAR(10)+
-                         'Actual State  : '+CAST(ERROR_STATE() AS NVARCHAR(MAX));
-              SET @Result = 'Failure';
-            END
-            IF(@Result = 'Failure')
-            BEGIN
-              SET @Msg = @TmpMsg;
+                SET @Result = 'Failure';
+                SET @Msg = 
+                  COALESCE(@FailMessage+' ','')+
+                  'Expected no error to be raised. Instead this error was encountered:'+
+                  CHAR(13)+CHAR(10)+
+                  @ErrorInfo;
             END
           END
           ELSE
           BEGIN
-            SELECT @Msg = COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
             SET @Result = 'Error';
+            SET @Msg = @ErrorInfo;
           END  
         END;
     END CATCH

@@ -85,6 +85,12 @@
           <AssociatedConnUserName />
           <FullPath>ExpectExceptionTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="ExpectNoExceptionTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>ExpectNoExceptionTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="FailTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>

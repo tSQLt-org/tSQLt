@@ -107,7 +107,7 @@ BEGIN
                       FROM tSQLt.TestResult
                      WHERE TestCase = 'testUncommitable'
                        AND Result = 'Error'
-                       AND Msg LIKE '%There is already an object named ''t1'' in the database.{testUncommitable,1}%'
+                       AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{testUncommitable,1}%'
                        AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
                    )
       BEGIN
@@ -120,7 +120,7 @@ BEGIN
       DELETE FROM tSQLt.TestResult
              WHERE TestCase = 'testUncommitable'
                AND Result = 'Error'
-               AND Msg LIKE '%There is already an object named ''t1'' in the database.{testUncommitable,1}%'
+               AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{testUncommitable,1}%'
                AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
       BEGIN TRAN
       SAVE TRAN @TranName
