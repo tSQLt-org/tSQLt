@@ -73,7 +73,7 @@ BEGIN
     SELECT Class, TestCase, Msg 
       INTO actual
       FROM tSQLt.TestResult;
-    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere{Test Case A,1}' Msg
+    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{Test Case A,1}' Msg
       INTO expected;
     
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';

@@ -175,7 +175,66 @@ BEGIN
   DEALLOCATE tests;
 END;
 GO
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 
+CREATE PROCEDURE tSQLt_testutil.CaptureTestResult
+  @TestName NVARCHAR(MAX),
+  @Result NVARCHAR(MAX) OUTPUT,   
+  @Msg NVARCHAR(MAX) OUTPUT    
+AS
+BEGIN
+  DECLARE @Cmd NVARCHAR(MAX);    
+  SELECT @Cmd = 'EXEC tSQLt.Private_RunTest '+
+                QUOTENAME(
+                   QUOTENAME(OBJECT_SCHEMA_NAME(OBJECT_ID(@TestName)))+'.'+
+                   QUOTENAME(OBJECT_NAME(OBJECT_ID(@TestName))),'''')+';';
+  BEGIN TRAN;
+  DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
+  SAVE TRAN @TranName;
+    TRUNCATE TABLE tSQLt.TestResult;
+    EXEC tSQLt.SuppressOutput @Cmd
+    SELECT @Result = Result, @Msg = Msg FROM tSQLt.TestResult;
+  ROLLBACK TRAN @TranName;
+  COMMIT TRAN;
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.AssertTestFails
+  @TestName NVARCHAR(MAX),
+  @ExpectedMessage NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    DECLARE @Result NVARCHAR(MAX);
+    DECLARE @Msg NVARCHAR(MAX);
+    
+    EXEC tSQLt_testutil.CaptureTestResult @TestName, @Result OUTPUT, @Msg OUTPUT;
+    
+    IF(@Result <> 'Failure')
+    BEGIN
+      EXEC tSQLt.Fail 'Expected test to fail. Instead it resulted in ',@Result,'. The Message is: "',@Msg,'"';
+    END
+    
+    IF(@ExpectedMessage IS NOT NULL)
+    BEGIN
+      EXEC tSQLt.AssertLike @ExpectedMessage,@Msg,'Incorrect Fail message used:';
+    END
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.AssertTestSucceeds
+  @TestName NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @Result NVARCHAR(MAX);
+    DECLARE @Msg NVARCHAR(MAX);
+    
+    EXEC tSQLt_testutil.CaptureTestResult @TestName, @Result OUTPUT, @Msg OUTPUT;
+    
+    IF(@Result <> 'Success')
+    BEGIN
+      EXEC tSQLt.Fail 'Expected test to succeed. Instead it resulted in ',@Result,'. The Message is: "',@Msg,'"';
+    END
+END;
+GO
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
