@@ -120,5 +120,3 @@ BEGIN
   
 END;
 GO
-IF(@@TRANCOUNT>0)ROLLBACK;
---SELECT * FROM sys.triggers
