@@ -16,7 +16,7 @@ BEGIN
   DECLARE @FullTriggerName NVARCHAR(MAX);
   DECLARE @TriggerObjectId INT;
   SELECT @FullTriggerName = QUOTENAME(SCHEMA_NAME(schema_id))+'.'+QUOTENAME(name), @TriggerObjectId = object_id
-  FROM sys.objects WHERE @TriggerName IN (name,QUOTENAME(name)) AND parent_object_id = @OrgTableObjectId;
+  FROM sys.objects WHERE PARSENAME(@TriggerName,1) = name AND parent_object_id = @OrgTableObjectId;
   
   DECLARE @TriggerCode NVARCHAR(MAX);
   SELECT @TriggerCode = m.definition

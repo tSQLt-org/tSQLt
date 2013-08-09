@@ -6,6 +6,16 @@ http://tsqlt.org/category/release-notes/
 
 Release: VLATEST-BUILD-NUMBER
 
+NEW FEATURES:
+1. tSQLt.ApplyTrigger
+2. tSQLt.ExpectNoException
+OTHER:
+1. The output of a test that errors out now contains the severity and state of that error.
+
+---------------------------
+
+Release: V1.0.4941.23369
+
 BUG FIXES:
 1. tSQLt.Fail now works when transaction is in an uncommittable state.
 NEW FEATURES:
