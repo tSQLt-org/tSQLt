@@ -94,6 +94,12 @@
           <AssociatedConnUserName />
           <FullPath>tal.sqlpromptsnippet</FullPath>
         </FileNode>
+        <FileNode Name="tat.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tat.sqlpromptsnippet</FullPath>
+        </FileNode>
         <FileNode Name="tca.sqlpromptsnippet">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -219,6 +225,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>txe.sqlpromptsnippet</FullPath>
+        </FileNode>
+        <FileNode Name="txn.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>txn.sqlpromptsnippet</FullPath>
         </FileNode>
         <FileNode Name="txp.sqlpromptsnippet">
           <AssociatedConnectionMoniker />
