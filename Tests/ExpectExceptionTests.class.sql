@@ -74,7 +74,7 @@ BEGIN
 
 END;
 GO
-CREATE PROCEDURE ExpectExceptionTests.[test expecting message fails when unexpected severity is used]
+CREATE PROCEDURE ExpectExceptionTests.[test expecting severity fails when unexpected severity is used]
 AS
 BEGIN
 
@@ -84,7 +84,7 @@ BEGIN
     EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException';
 END;
 GO
-CREATE PROCEDURE ExpectExceptionTests.[test expecting message succeeds when expected severity is used]
+CREATE PROCEDURE ExpectExceptionTests.[test expecting severity succeeds when expected severity is used]
 AS
 BEGIN
 
@@ -94,7 +94,7 @@ BEGIN
     EXEC tSQLt_testutil.AssertTestSucceeds 'MyTestClass.TestExpectingException';
 END;
 GO
-CREATE PROCEDURE ExpectExceptionTests.[test expecting message fails when unexpected state is used]
+CREATE PROCEDURE ExpectExceptionTests.[test expecting state fails when unexpected state is used]
 AS
 BEGIN
 
@@ -104,7 +104,7 @@ BEGIN
     EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException';
 END;
 GO
-CREATE PROCEDURE ExpectExceptionTests.[test expecting message passes when expected state is used]
+CREATE PROCEDURE ExpectExceptionTests.[test expecting state passes when expected state is used]
 AS
 BEGIN
 
@@ -138,44 +138,6 @@ BEGIN
     DECLARE @ExpectedMessage NVARCHAR(MAX);
     SET @ExpectedMessage = '%Expected State: 13'+CHAR(13)+CHAR(10)+
                            'Actual State  : 10';
-
-    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
-END;
-GO
-CREATE PROCEDURE ExpectExceptionTests.[test output includes every incorrect part]
-AS
-BEGIN
-
-    EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessage=''Correct'',@ExpectedSeverity=11,@ExpectedState=9;RAISERROR(''Wrong'',12,6);');
-
-    DECLARE @ExpectedMessage NVARCHAR(MAX);
-    SET @ExpectedMessage = 'Exception did not match expectation!'+CHAR(13)+CHAR(10)+
-                           'Expected Message: <Correct>'+CHAR(13)+CHAR(10)+
-                           'Actual Message  : <Wrong>'+CHAR(13)+CHAR(10)+
-                           'Expected Severity: 11'+CHAR(13)+CHAR(10)+
-                           'Actual Severity  : 12'+CHAR(13)+CHAR(10)+
-                           'Expected State: 9'+CHAR(13)+CHAR(10)+
-                           'Actual State  : 6';
-
-    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
-END;
-GO
-CREATE PROCEDURE ExpectExceptionTests.[test output includes every incorrect part including the MessagePattern]
-AS
-BEGIN
-
-    EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedMessagePattern=''Cor[rt]ect'',@ExpectedSeverity=11,@ExpectedState=9;RAISERROR(''Wrong'',12,6);');
-
-    DECLARE @ExpectedMessage NVARCHAR(MAX);
-    SET @ExpectedMessage = 'Exception did not match expectation!'+CHAR(13)+CHAR(10)+
-                           'Expected Message to be like <Cor[[]rt]ect>'+CHAR(13)+CHAR(10)+
-                           'Actual Message            : <Wrong>'+CHAR(13)+CHAR(10)+
-                           'Expected Severity: 11'+CHAR(13)+CHAR(10)+
-                           'Actual Severity  : 12'+CHAR(13)+CHAR(10)+
-                           'Expected State: 9'+CHAR(13)+CHAR(10)+
-                           'Actual State  : 6';
 
     EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
 END;
@@ -226,3 +188,80 @@ BEGIN
   EXEC tSQLt.Fail 'This line in the test should not have been reached!';
 END;
 GO
+CREATE PROCEDURE ExpectExceptionTests.[test expecting error number fails when unexpected error number is used]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedErrorNumber = 50001;RAISERROR(''Message'',16,10);');
+
+    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException';
+END;
+GO
+CREATE PROCEDURE ExpectExceptionTests.[test expecting error number passes when expected error number is used]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedErrorNumber = 50000;RAISERROR(''Message'',16,10);');
+
+    EXEC tSQLt_testutil.AssertTestSucceeds 'MyTestClass.TestExpectingException';
+END;
+GO
+CREATE PROCEDURE ExpectExceptionTests.[test raising wrong error number produces meaningful output]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedErrorNumber = 50001;RAISERROR(''Message'',16,10);');
+
+    DECLARE @ExpectedMessage NVARCHAR(MAX);
+    SET @ExpectedMessage = '%Expected Error Number: 50001'+CHAR(13)+CHAR(10)+
+                           'Actual Error Number  : 50000';
+
+    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE ExpectExceptionTests.[test output includes every incorrect part]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedErrorNumber = 50001,@ExpectedMessage=''Correct'',@ExpectedSeverity=11,@ExpectedState=9;RAISERROR(''Wrong'',12,6);');
+
+    DECLARE @ExpectedMessage NVARCHAR(MAX);
+    SET @ExpectedMessage = 'Exception did not match expectation!'+CHAR(13)+CHAR(10)+
+                           'Expected Message: <Correct>'+CHAR(13)+CHAR(10)+
+                           'Actual Message  : <Wrong>'+CHAR(13)+CHAR(10)+
+                           'Expected Error Number: 50001'+CHAR(13)+CHAR(10)+
+                           'Actual Error Number  : 50000'+CHAR(13)+CHAR(10)+
+                           'Expected Severity: 11'+CHAR(13)+CHAR(10)+
+                           'Actual Severity  : 12'+CHAR(13)+CHAR(10)+
+                           'Expected State: 9'+CHAR(13)+CHAR(10)+
+                           'Actual State  : 6';
+
+    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE ExpectExceptionTests.[test output includes every incorrect part including the MessagePattern]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS EXEC tSQLt.ExpectException @ExpectedErrorNumber = 50001,@ExpectedMessagePattern=''Cor[rt]ect'',@ExpectedSeverity=11,@ExpectedState=9;RAISERROR(''Wrong'',12,6);');
+
+    DECLARE @ExpectedMessage NVARCHAR(MAX);
+    SET @ExpectedMessage = 'Exception did not match expectation!'+CHAR(13)+CHAR(10)+
+                           'Expected Message to be like <Cor[[]rt]ect>'+CHAR(13)+CHAR(10)+
+                           'Actual Message            : <Wrong>'+CHAR(13)+CHAR(10)+
+                           'Expected Error Number: 50001'+CHAR(13)+CHAR(10)+
+                           'Actual Error Number  : 50000'+CHAR(13)+CHAR(10)+
+                           'Expected Severity: 11'+CHAR(13)+CHAR(10)+
+                           'Actual Severity  : 12'+CHAR(13)+CHAR(10)+
+                           'Expected State: 9'+CHAR(13)+CHAR(10)+
+                           'Actual State  : 6';
+
+    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException',@ExpectedMessage;
+END;
+GO
+

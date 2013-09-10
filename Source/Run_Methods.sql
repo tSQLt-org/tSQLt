@@ -51,7 +51,7 @@ BEGIN
     DECLARE @PreExecTrancount INT;
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
-    CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), FailMessage NVARCHAR(MAX));
+    CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -108,12 +108,14 @@ BEGIN
             DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
             DECLARE @ExpectedSeverity INT;
             DECLARE @ExpectedState INT;
+            DECLARE @ExpectedErrorNumber INT;
             DECLARE @FailMessage NVARCHAR(MAX);
             SELECT @ExpectException = ExpectException,
                    @ExpectedMessage = ExpectedMessage, 
                    @ExpectedSeverity = ExpectedSeverity,
                    @ExpectedState = ExpectedState,
                    @ExpectedMessagePattern = ExpectedMessagePattern,
+                   @ExpectedErrorNumber = ExpectedErrorNumber,
                    @FailMessage = FailMessage
               FROM #ExpectException;
 
@@ -133,6 +135,13 @@ BEGIN
                 SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
                            'Expected Message to be like <'+@ExpectedMessagePattern+'>'+CHAR(13)+CHAR(10)+
                            'Actual Message            : <'+ERROR_MESSAGE()+'>';
+                SET @Result = 'Failure';
+              END
+              IF(ERROR_NUMBER() <> @ExpectedErrorNumber)
+              BEGIN
+                SET @TmpMsg = @TmpMsg +CHAR(13)+CHAR(10)+
+                           'Expected Error Number: '+CAST(@ExpectedErrorNumber AS NVARCHAR(MAX))+CHAR(13)+CHAR(10)+
+                           'Actual Error Number  : '+CAST(ERROR_NUMBER() AS NVARCHAR(MAX));
                 SET @Result = 'Failure';
               END
               IF(ERROR_SEVERITY() <> @ExpectedSeverity)
