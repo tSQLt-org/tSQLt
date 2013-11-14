@@ -45,3 +45,4 @@ tSQLt.AssertNotEquals.ssp.sql
 tSQLt.Private_SqlVariantFormatter.sfn.sql
 tSQLt.AssertEmptyTable.ssp.sql
 tSQLt.ApplyTrigger.ssp.sql
+tSQLt.FakeFunction.ssp.sql
