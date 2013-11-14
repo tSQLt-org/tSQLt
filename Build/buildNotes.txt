@@ -1,5 +1,5 @@
 Setting up tSQLt build notes:
-1. You must run MSBuild from the command line once before running the build. The reason is that the first time it prompts for the signing password. The signing password is: P@$$30rd
+1. You must run MSBuild from the command line once before running the build. The reason is that the first time it prompts for the signing password. 
 
 This gets somehow stored internally in Windows, and will not need to be re-entered again.
 
@@ -36,3 +36,8 @@ The parameters are:
 			<merge dir="c:/projects/${project.name}/build/test/results"/>
 		</log>
 	</project>
+	
+	
+	
+	
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo
