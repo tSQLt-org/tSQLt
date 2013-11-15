@@ -181,7 +181,7 @@
   </exec>
 
   <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
-  <copy file="ExecuteAsSa.sql" todir="temp"/>
+  <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
   <copy file="CreateBuildDb.sql" todir="temp"/>
   <copy file="GetTestResults.sql" todir="temp"/>
   <copy file="../Examples/TestThatExamplesAreDeployed.sql" todir="temp"/>
@@ -195,7 +195,7 @@
     <include name="AllTests.sql"/>
     <include name="AllTests.2008.sql"/>
     <include name="BootStrapTest.sql"/>
-    <include name="ExecuteAsSa.sql"/>
+    <include name="ExecuteAs(tSQLt.Build).sql"/>
     <include name="CreateBuildDb.sql"/>
     <include name="GetTestResults.sql"/>
     <include name="TestThatExamplesAreDeployed.sql"/>
