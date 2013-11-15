@@ -49,6 +49,8 @@
 
   <delete file="temp/temp_deploy.sql" />
   <property name="append.target" value="temp/temp_deploy.sql" />
+  <property name="append.source" value="temp/ExecuteAs(tSQLt.Build).sql" />
+  <call target="append.file" />
   <property name="append.source" value="temp/TestUtil.sql" />
   <call target="append.file" />
   <property name="append.source" value="temp/AllTests.sql" />
