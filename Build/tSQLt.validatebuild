@@ -64,7 +64,7 @@
  <target name="create.Example.scripts" description="generate database creation scripts">
   <delete file="temp/temp_create_example.sql" />
   <property name="append.target" value="temp/temp_create_example.sql" />
-  <property name="append.source" value="temp/ExecuteAsSa.sql" />
+  <property name="append.source" value="temp/ExecuteAs(tSQLt.Build).sql" />
   <call target="append.file" />
   <property name="append.source" value="temp/Example.sql" />
   <call target="append.file" />
