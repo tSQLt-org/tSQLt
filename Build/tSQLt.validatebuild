@@ -42,7 +42,7 @@
  <target name="create.tSQLt.scripts" description="generate database creation scripts">
   <delete file="temp/temp_create_db.sql" />
   <property name="append.target" value="temp/temp_create_db.sql" />
-  <property name="append.source" value="temp/ExecuteAsSa.sql" />
+  <property name="append.source" value="temp/ExecuteAs(tSQLt.Build).sql" />
   <call target="append.file" />
   <property name="append.source" value="temp/CreateBuildDb.sql" />
   <call target="append.file" />
