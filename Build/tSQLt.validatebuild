@@ -83,7 +83,7 @@
   <echo message="${execute.sql.filename}" />
   <exec program="cmd" failonerror="true">
    <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${execute.sql.database} -E -I -i &quot;${execute.sql.filename}&quot; -v DbName=${db.name} -V11"/>
+   <arg value="sqlcmd -S ${db.server} -E -I -i &quot;${execute.sql.filename}&quot; -v DbName=${db.name} -V11"/>
    <arg value=" -o &quot;${execute.sql.outputfile}&quot;" if="${execute.sql.outputfile!=''}" />
   </exec>
   <property name="execute.sql.outputfile" value="" />
@@ -93,7 +93,7 @@
   <echo message="${execute.sql.statement}" />
   <exec program="cmd" failonerror="true">
    <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -d ${execute.sql.database} -E -I -Q &quot;${execute.sql.statement}&quot; -v DbName=${db.name} -V11"/>
+   <arg value="sqlcmd -S ${db.server} -E -I -Q &quot;${execute.sql.statement}&quot; -v DbName=${db.name} -V11"/>
   </exec>
  </target>
 
