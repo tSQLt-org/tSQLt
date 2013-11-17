@@ -184,6 +184,7 @@
   <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
   <copy file="CreateBuildDb.sql" todir="temp"/>
   <copy file="GetTestResults.sql" todir="temp"/>
+  <copy file="GetFailedTestCount.sql" todir="temp"/>
   <copy file="../Examples/TestThatExamplesAreDeployed.sql" todir="temp"/>
  </target>
 
@@ -198,6 +199,7 @@
     <include name="ExecuteAs(tSQLt.Build).sql"/>
     <include name="CreateBuildDb.sql"/>
     <include name="GetTestResults.sql"/>
+    <include name="GetFailedTestCount.sql"/>
     <include name="TestThatExamplesAreDeployed.sql"/>
    </fileset>
   </zip>

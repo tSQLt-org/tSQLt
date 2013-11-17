@@ -19,6 +19,12 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="Create(tSQLtKey).sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Create(tSQLtKey).sql</FullPath>
+        </FileNode>
         <FileNode Name="CreateBuildDb.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
@@ -37,11 +43,29 @@
           <AssociatedConnUserName />
           <FullPath>ExecuteAs(tSQLt.Build).sql</FullPath>
         </FileNode>
+        <FileNode Name="GetFailedTestCount.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>GetFailedTestCount.sql</FullPath>
+        </FileNode>
         <FileNode Name="GetTestResults.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>GetTestResults.sql</FullPath>
+        </FileNode>
+        <FileNode Name="CreateLogin(tSQLt.Build).sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>CreateLogin(tSQLt.Build).sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLtKey.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLtKey.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
@@ -82,6 +106,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ReleaseNotes.txt</FullPath>
+        </FileNode>
+        <FileNode Name="Setup.bat">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Setup.bat</FullPath>
         </FileNode>
         <FileNode Name="VersionInfo.vbs">
           <AssociatedConnectionMoniker />
