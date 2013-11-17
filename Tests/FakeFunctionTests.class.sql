@@ -69,8 +69,8 @@ BEGIN
   INTO #Expected
   FROM #Actual;
   
-  INSERT INTO #Expected
-  VALUES(1,108,13,25,7),(2,167,19,0,0);
+  INSERT INTO #Expected VALUES(1,108,13,25,7);
+  INSERT INTO #Expected VALUES(2,167,19,0,0);
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -196,8 +196,8 @@ BEGIN
   INTO #Expected
   FROM #Actual;
   
-  INSERT INTO #Expected
-  VALUES(1,'ABC'),(2,'DEF');
+  INSERT INTO #Expected VALUES(1,'ABC');
+  INSERT INTO #Expected VALUES(2,'DEF');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
