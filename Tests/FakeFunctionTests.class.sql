@@ -206,7 +206,7 @@ CREATE PROCEDURE FakeFunctionTests.[test can fake MSTVF with MSTVF]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT,val NVARCHAR(MAX)) BEGIN RETURN; END;');
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT, val NVARCHAR(MAX)) BEGIN INSERT INTO @r VALUES(1,@p1),(2,@p2); RETURN; END;');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT, val NVARCHAR(MAX)) BEGIN INSERT INTO @r VALUES(1,@p1);INSERT INTO @r VALUES(2,@p2); RETURN; END;');
 
   EXEC FakeFunctionTests.[Assert TVF can be faked] @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFakeFunction';
   END;
@@ -215,7 +215,7 @@ CREATE PROCEDURE FakeFunctionTests.[test can fake MSTVF WITH ITVF]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT,val NVARCHAR(MAX)) BEGIN RETURN; END;');
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT * FROM(VALUES(1,@p1),(2,@p2))r(id,val);');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT 1 id,@p1 val UNION ALL SELECT 2,@p2;');
   
   EXEC FakeFunctionTests.[Assert TVF can be faked] @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFakeFunction';
 END;
@@ -231,8 +231,8 @@ GO
 CREATE PROCEDURE FakeFunctionTests.[test can fake ITVF with MSTVF]
 AS
 BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT * FROM(VALUES(1,@p1))r(id,val) WHERE 1=0;');
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT, val NVARCHAR(MAX)) BEGIN INSERT INTO @r VALUES(1,@p1),(2,@p2); RETURN; END;');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN  SELECT 1 id,@p1 val WHERE 1=0;');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT, val NVARCHAR(MAX)) BEGIN INSERT INTO @r VALUES(1,@p1);INSERT INTO @r VALUES(2,@p2); RETURN; END;');
 
   EXEC FakeFunctionTests.[Assert TVF can be faked] @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFakeFunction';
   END;
@@ -240,8 +240,8 @@ GO
 CREATE PROCEDURE FakeFunctionTests.[test can fake ITVF WITH ITVF]
 AS
 BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT * FROM(VALUES(1,@p1))r(id,val) WHERE 1=0;');
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT * FROM(VALUES(1,@p1),(2,@p2))r(id,val);');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN  SELECT 1 id,@p1 val WHERE 1=0;');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT 1 id,@p1 val UNION ALL SELECT 2,@p2;');
   
   EXEC FakeFunctionTests.[Assert TVF can be faked] @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFakeFunction';
 END;
@@ -249,7 +249,7 @@ GO
 CREATE PROCEDURE FakeFunctionTests.[test can fake ITVF WITH CLR TVF]
 AS
 BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT * FROM(VALUES(1,@p1))r(id,val) WHERE 1=0;');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN  SELECT 1 id,@p1 val WHERE 1=0;');
   
   EXEC FakeFunctionTests.[Assert TVF can be faked] @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'tSQLt_testutil.AClrTvf';
 END;
@@ -257,7 +257,7 @@ GO
 CREATE PROCEDURE FakeFunctionTests.[test can fake CLR TVF with MSTVF]
 AS
 BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT, val NVARCHAR(MAX)) BEGIN INSERT INTO @r VALUES(1,@p1),(2,@p2); RETURN; END;');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS @r TABLE(id INT, val NVARCHAR(MAX)) BEGIN INSERT INTO @r VALUES(1,@p1);INSERT INTO @r VALUES(2,@p2); RETURN; END;');
 
   EXEC FakeFunctionTests.[Assert TVF can be faked] @FunctionName = 'tSQLt_testutil.AnEmptyClrTvf', @FakeFunctionName = 'FakeFunctionTests.AFakeFunction';
   END;
@@ -265,7 +265,7 @@ GO
 CREATE PROCEDURE FakeFunctionTests.[test can fake CLR TVF WITH ITVF]
 AS
 BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT * FROM(VALUES(1,@p1),(2,@p2))r(id,val);');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@p1 NVARCHAR(MAX),@p2 NVARCHAR(MAX)) RETURNS TABLE AS RETURN  SELECT 1 id,@p1 val UNION ALL SELECT 2,@p2;');
   
   EXEC FakeFunctionTests.[Assert TVF can be faked] @FunctionName = 'tSQLt_testutil.AnEmptyClrTvf', @FakeFunctionName = 'FakeFunctionTests.AFakeFunction';
 END;
