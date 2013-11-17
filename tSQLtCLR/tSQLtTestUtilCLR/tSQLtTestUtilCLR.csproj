@@ -39,6 +39,12 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>SigningKey.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -50,6 +56,9 @@
     <Compile Include="DataTypeNoEqual.cs" />
     <Compile Include="DataTypeWithEqual.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SigningKey.pfx" />
   </ItemGroup>
   <!-- Was : <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" /> - - Why did we need to change this? -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
