@@ -3,6 +3,18 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="Dev_2005:MacWin7A\meinse00">
+          <Created>2013-11-16T21:20:49.2384747-05:00</Created>
+          <Type>SQL</Type>
+          <Server>Dev_2005</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>master</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="Dev_R2:MacWin7A\meinse00">
           <Created>2011-11-01T16:19:13.5156266-04:00</Created>
           <Type>SQL</Type>
@@ -60,6 +72,12 @@
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>CreateLogin(tSQLt.Build).sql</FullPath>
+        </FileNode>
+        <FileNode Name="GrantBuildPermissions.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>GrantBuildPermissions.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtKey.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
