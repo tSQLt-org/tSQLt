@@ -3,25 +3,13 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_2005:MacWin7A\meinse00">
-          <Created>2013-11-16T21:20:49.2384747-05:00</Created>
-          <Type>SQL</Type>
-          <Server>Dev_2005</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB>master</InitialDB>
-          <LoginTimeout>15</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="Dev_R2:MacWin7A\meinse00">
-          <Created>2011-11-01T16:19:13.5156266-04:00</Created>
+        <ConnectionNode Name="Dev_R2:sqlity.net">
+          <Created>2013-11-16T22:09:01.1930185-05:00</Created>
           <Type>SQL</Type>
           <Server>Dev_R2</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB>tSQLt_dev</InitialDB>
+          <UserName>sqlity.net</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
@@ -32,56 +20,62 @@
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="Create(tSQLtKey).sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Create(tSQLtKey).sql</FullPath>
         </FileNode>
         <FileNode Name="CreateBuildDb.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>CreateBuildDb.sql</FullPath>
         </FileNode>
-        <FileNode Name="ExecuteAsSa.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+        <FileNode Name="EnableCLR.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
+          <FullPath>EnableCLR.sql</FullPath>
+        </FileNode>
+        <FileNode Name="ExecuteAsSa.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ExecuteAsSa.sql</FullPath>
         </FileNode>
         <FileNode Name="ExecuteAs(tSQLt.Build).sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ExecuteAs(tSQLt.Build).sql</FullPath>
         </FileNode>
         <FileNode Name="GetFailedTestCount.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>GetFailedTestCount.sql</FullPath>
         </FileNode>
         <FileNode Name="GetTestResults.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>GetTestResults.sql</FullPath>
         </FileNode>
         <FileNode Name="CreateLogin(tSQLt.Build).sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>CreateLogin(tSQLt.Build).sql</FullPath>
         </FileNode>
         <FileNode Name="GrantBuildPermissions.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>GrantBuildPermissions.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtKey.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLtKey.sql</FullPath>
         </FileNode>

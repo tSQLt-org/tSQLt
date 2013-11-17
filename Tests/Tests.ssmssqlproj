@@ -3,13 +3,13 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_R2:MacWin7A\meinse00">
-          <Created>2011-11-01T16:16:28.6301397-04:00</Created>
+        <ConnectionNode Name="Dev_R2:sqlity.net">
+          <Created>2013-11-16T22:09:44.4178141-05:00</Created>
           <Type>SQL</Type>
           <Server>Dev_R2</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB>tSQLt_dev</InitialDB>
+          <UserName>sqlity.net</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB>tempdb</InitialDB>
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
@@ -20,182 +20,182 @@
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="ApplyConstraintTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ApplyConstraintTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="ApplyTriggerTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ApplyTriggerTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AssertEmptyTableTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AssertEmptyTableTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AssertEqualsStringTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
-          <AssociatedConnUserName />
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
           <FullPath>AssertEqualsStringTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AssertEqualsTableTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AssertEqualsTableTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AssertEqualsTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AssertEqualsTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AssertLikeTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AssertLikeTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AssertNotEqualsTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AssertNotEqualsTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="BootStrapTest.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>BootStrapTest.sql</FullPath>
         </FileNode>
         <FileNode Name="DropClassTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>DropClassTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="ExpectExceptionTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ExpectExceptionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="ExpectNoExceptionTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ExpectNoExceptionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="FailTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>FailTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="FakeFunctionTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>FakeFunctionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="FakeTableTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>FakeTableTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="NameAndIdResolution_test.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>NameAndIdResolution_test.class.sql</FullPath>
         </FileNode>
         <FileNode Name="NewTestClassTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>NewTestClassTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_NullCellTableTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_NullCellTableTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_RenameObjectToUniqueNameTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_RenameObjectToUniqueNameTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_GetFullTypeNameTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_GetFullTypeNameTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_SqlVariantFormatterTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_SqlVariantFormatterTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="RemoveObjectTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>RemoveObjectTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Run_Methods_Tests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Run_Methods_Tests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="StubRecordTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>StubRecordTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql</FullPath>
         </FileNode>
         <FileNode Name="SpyProcedureTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>SpyProcedureTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt_test.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_ResultSetFilter.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_ResultSetFilter.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_TableToText.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt_test_TableToText.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtclr_test.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLtclr_test.class.sql</FullPath>
         </FileNode>
