@@ -9,7 +9,7 @@
           <Server>Dev_R2</Server>
           <UserName>sqlity.net</UserName>
           <Authentication>SQL</Authentication>
-          <InitialDB>tempdb</InitialDB>
+          <InitialDB>tSQLt_Dev</InitialDB>
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
