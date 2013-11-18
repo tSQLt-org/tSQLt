@@ -156,7 +156,7 @@
  <target name="package.test.files">
   <exec program="cmd" workingdir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe tSQLtTestUtilCLR dbo ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll EXTERNAL_ACCESS"/>
+   <arg value="CreateAssemblyGenerator.exe tSQLtTestUtilCLR dbo ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll SAFE"/>
   </exec>
 
   <exec program="cmd" workingdir="." failonerror="true">

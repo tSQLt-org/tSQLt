@@ -9,7 +9,7 @@
           <Server>Dev_R2</Server>
           <UserName>sqlity.net</UserName>
           <Authentication>SQL</Authentication>
-          <InitialDB>tempdb</InitialDB>
+          <InitialDB>tSQLt_Dev</InitialDB>
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
@@ -98,9 +98,9 @@
           <FullPath>tSQLt.Fail.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.FakeFunction.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
           <FullPath>tSQLt.FakeFunction.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Info.sfn.sql">
@@ -132,6 +132,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CompareTablesFailIfUnequalRowsExists.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_CreateFakeFunction.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
+          <FullPath>tSQLt.Private_CreateFakeFunction.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CreateProcedureSpy.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -218,9 +224,9 @@
           <FullPath>SetClrEnabled.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.FakeTable.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
           <FullPath>tSQLt.FakeTable.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetIdentityDefinition.sfn.sql">
@@ -265,6 +271,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ValidateFakeTableParameters.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
+          <FullPath>tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -278,9 +290,9 @@
           <FullPath>tSQLt.RemoveObject.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.SpyProcedure.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
           <FullPath>tSQLt.SpyProcedure.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.StubRecord.ssp.sql">
