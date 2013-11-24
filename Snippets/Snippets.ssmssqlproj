@@ -148,6 +148,12 @@
           <AssociatedConnUserName />
           <FullPath>tf.sqlpromptsnippet</FullPath>
         </FileNode>
+        <FileNode Name="tff.sqlpromptsnippet">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tff.sqlpromptsnippet</FullPath>
+        </FileNode>
         <FileNode Name="tft.sqlpromptsnippet">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
