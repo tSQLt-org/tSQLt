@@ -2,8 +2,8 @@ IF OBJECT_ID('tSQLt.RenameClass') IS NOT NULL DROP PROCEDURE tSQLt.RenameClass;
 GO
 ---Build+
 CREATE PROCEDURE tSQLt.RenameClass
-   @SchemaName SYSNAME,
-   @NewSchemaName SYSNAME
+   @SchemaName NVARCHAR(MAX),
+   @NewSchemaName NVARCHAR(MAX)
 AS
 BEGIN
   DECLARE @MigrateObjectsCommand NVARCHAR(MAX);
