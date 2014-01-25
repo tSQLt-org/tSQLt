@@ -48,3 +48,4 @@ tSQLt.ApplyTrigger.ssp.sql
 tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction.ssp.sql
 tSQLt.Private_CreateFakeFunction.ssp.sql
 tSQLt.FakeFunction.ssp.sql
+tSQLt.RenameClass.ssp.sql
