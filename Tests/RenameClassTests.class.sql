@@ -27,7 +27,7 @@ CREATE PROCEDURE RenameClassTests.[test renamed class with table contains table]
 AS
 BEGIN
   DECLARE @TableObjectId INT,
-          @NewSchemaName SYSNAME;
+          @NewSchemaName NVARCHAR(MAX);
 
   EXEC tSQLt.NewTestClass 'RenameClassTests_Class';
 
@@ -80,7 +80,7 @@ CREATE PROCEDURE RenameClassTests.[test renaming a class with strange object nam
 AS
 BEGIN
   DECLARE @TableObjectId INT,
-          @NewSchemaName SYSNAME;
+          @NewSchemaName NVARCHAR(MAX);
 
   EXEC tSQLt.NewTestClass 'RenameClassTests Class';
 
@@ -102,7 +102,7 @@ CREATE PROCEDURE RenameClassTests.[test renaming a class with schema names pre-q
 AS
 BEGIN
   DECLARE @TableObjectId INT,
-          @NewSchemaName SYSNAME;
+          @NewSchemaName NVARCHAR(MAX);
 
   EXEC tSQLt.NewTestClass 'RenameClassTests Class';
 
@@ -158,7 +158,7 @@ GO
 CREATE PROCEDURE RenameClassTests.[test transfers XML schema collection]
 AS
 BEGIN
-  DECLARE @XmlCollectionSchemaName SYSNAME;
+  DECLARE @XmlCollectionSchemaName NVARCHAR(MAX);
 
   EXEC tSQLt.NewTestClass 'RenameClassTests_Class';
 
@@ -178,7 +178,7 @@ GO
 CREATE PROCEDURE RenameClassTests.[test transfers type]
 AS
 BEGIN
-  DECLARE @TypeSchemaName SYSNAME;
+  DECLARE @TypeSchemaName NVARCHAR(MAX);
 
   EXEC tSQLt.NewTestClass 'RenameClassTests_Class';
 
