@@ -7,6 +7,14 @@ http://tsqlt.org/category/release-notes/
 Release: VLATEST-BUILD-NUMBER
 
 NEW FEATURES:
+1. added tSQLt.RenameClass
+
+
+---------------------------
+
+Release: V1.0.5071.16906
+
+NEW FEATURES:
 1. added tSQLt.FakeFunction
 2. added @ExpectedErrorNumber parameter to tSQLt.ExpectException
 
