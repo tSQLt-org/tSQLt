@@ -79,6 +79,18 @@
           <AssociatedConnUserName />
           <FullPath>AssertNotEqualsTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="AssertObjectDoesNotExistTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AssertObjectDoesNotExistTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="AssertObjectExistsTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AssertObjectExistsTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="BootStrapTest.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -157,11 +169,11 @@
           <AssociatedConnUserName />
           <FullPath>Private_SqlVariantFormatterTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="RemoveObjectIfExistsTests.sql">
+        <FileNode Name="RemoveObjectIfExistsTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>RemoveObjectIfExistsTests.sql</FullPath>
+          <FullPath>RemoveObjectIfExistsTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="RemoveObjectTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
@@ -200,8 +212,8 @@
           <FullPath>SpyProcedureTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test.class.sql</FullPath>
         </FileNode>
