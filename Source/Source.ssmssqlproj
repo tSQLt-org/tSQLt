@@ -79,6 +79,18 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.AssertNotEquals.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.AssertObjectDoesNotExist.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.AssertObjectDoesNotExist.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.AssertObjectExists.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.AssertObjectExists.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.CaptureOutputLog.tbl.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -338,8 +350,8 @@
           <FullPath>tSQLt._Header.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.class.sql</FullPath>
         </FileNode>
