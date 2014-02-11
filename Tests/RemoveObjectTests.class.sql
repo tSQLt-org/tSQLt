@@ -80,3 +80,19 @@ BEGIN
    EXEC tSQLt.AssertLike '%RemoveObjectTests.aNonExistentTestObject does not exist!%',@ErrorMessage;  
 END;
 GO
+
+CREATE PROCEDURE RemoveObjectTests.[test RemoveObject returns silently if object doesn't exists and @IfExists = 1']
+AS
+BEGIN
+   EXEC tSQLt.ExpectNoException;
+   
+   EXEC tSQLt.RemoveObject @ObjectName = 'RemoveObjectTests.aNonExistentTestObject', @IfExists = 1;
+   
+   IF(OBJECT_ID('RemoveObjectTests.aNonExistentTestObject') IS NOT NULL)
+   BEGIN
+     EXEC tSQLt.Fail 'RemoveObjectTests.aNonExistentTestObject appeared out of thin air!';
+   END;
+END;
+GO
+
+   

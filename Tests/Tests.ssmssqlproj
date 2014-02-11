@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="DEV_R2:troilo\dennis">
+        <ConnectionNode Name="DEV_R2:MacWin7A\meinse00">
           <Created>2014-01-24T17:24:54.2584233-05:00</Created>
           <Type>SQL</Type>
           <Server>DEV_R2</Server>
@@ -157,9 +157,15 @@
           <AssociatedConnUserName />
           <FullPath>Private_SqlVariantFormatterTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="RemoveObjectIfExistsTests.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>RemoveObjectIfExistsTests.sql</FullPath>
+        </FileNode>
         <FileNode Name="RemoveObjectTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>RemoveObjectTests.class.sql</FullPath>
         </FileNode>

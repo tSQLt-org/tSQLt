@@ -17,6 +17,7 @@ tSQLt.Private_MarkObjectBeforeRename.ssp.sql
 tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.RemoveObject.ssp.sql
+tSQLt.RemoveObjectIfExists.ssp.sql
 Run_Methods.sql
 tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql
