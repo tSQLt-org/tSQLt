@@ -137,6 +137,12 @@
           <AssociatedConnUserName />
           <FullPath>Setup.bat</FullPath>
         </FileNode>
+        <FileNode Name="SourceForgePrivateKey.ppk">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>SourceForgePrivateKey.ppk</FullPath>
+        </FileNode>
         <FileNode Name="VersionInfo.vbs">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

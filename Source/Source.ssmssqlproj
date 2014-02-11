@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="DEV_R2:troilo\dennis">
+        <ConnectionNode Name="DEV_R2:MacWin7A\meinse00">
           <Created>2014-01-24T17:45:28.2490035-05:00</Created>
           <Type>SQL</Type>
           <Server>DEV_R2</Server>
@@ -296,10 +296,16 @@
           <FullPath>tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.RemoveObject.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.RemoveObject.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.RemoveObjectIfExists.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DEV_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.RemoveObjectIfExists.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.RenameClass.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DEV_R2:True</AssociatedConnectionMoniker>
