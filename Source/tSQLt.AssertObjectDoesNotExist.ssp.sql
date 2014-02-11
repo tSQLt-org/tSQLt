@@ -3,7 +3,7 @@ GO
 ---Build+
 CREATE PROCEDURE tSQLt.AssertObjectDoesNotExist
     @ObjectName NVARCHAR(MAX),
-    @Message NVARCHAR(MAX) = NULL
+    @Message NVARCHAR(MAX) = ''
 AS
 BEGIN
      DECLARE @Msg NVARCHAR(MAX);
