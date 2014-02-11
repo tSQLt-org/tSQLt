@@ -46,7 +46,7 @@ BEGIN
     
     DECLARE @Command NVARCHAR(MAX);
     SET @Command = 'EXEC tSQLt.AssertObjectDoesNotExist ''#aTempObject''';
-    EXEC tSQLt_testutil.AssertFailMessageLike @Command = @Command, @ExpectedMessage = '''#aTempObject'' does exist!'
+    EXEC tSQLt_testutil.AssertFailMessageEquals @Command = @Command, @ExpectedMessage = '''#aTempObject'' does exist!'
 END;
 GO
 CREATE PROCEDURE AssertObjectDoesNotExistTests.[test allows for additional @Message]

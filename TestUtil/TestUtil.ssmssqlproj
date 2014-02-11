@@ -26,9 +26,9 @@
           <FullPath>tSQLtTestUtilCLR_CreateItems.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_testutil.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:False:sqlity.net</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName>sqlity.net</AssociatedConnUserName>
           <FullPath>tSQLt_testutil.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_testutil_test.class.sql">
