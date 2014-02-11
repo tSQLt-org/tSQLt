@@ -45,6 +45,7 @@ tSQLt.AssertLike.ssp.sql
 tSQLt.AssertNotEquals.ssp.sql
 tSQLt.Private_SqlVariantFormatter.sfn.sql
 tSQLt.AssertEmptyTable.ssp.sql
+tSQLt.AssertObjectExists.ssp.sql
 tSQLt.ApplyTrigger.ssp.sql
 tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction.ssp.sql
 tSQLt.Private_CreateFakeFunction.ssp.sql
