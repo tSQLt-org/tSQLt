@@ -48,9 +48,8 @@
   <property name="append.target" value="temp/temp_executeas.sql" />
   <property name="append.source" value="temp/ExecuteAs(tSQLt.Build).sql" />
   <call target="append.file" />
-  <echo message="${environment::newline()}${environment::newline()}GO${environment::newline()}" file="${append.target}" append="true" />
-  <echo message="USE [$(DbName)];${environment::newline()}GO${environment::newline()}" file="${append.target}" append="true" />
-  <echo message="$(ExecuteStatement)${environment::newline()}GO${environment::newline()}${environment::newline()}" file="${append.target}" append="true" />
+  <property name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+  <call target="append.file" />
 
   <delete file="temp/temp_deploy.sql" />
   <property name="append.target" value="temp/temp_deploy.sql" />
@@ -83,7 +82,7 @@
  <target name="execute.sql.satement_or_file">
   <exec program="cmd" failonerror="true">
    <arg value="/c"/>
-   <arg value="sqlcmd -S ${db.server} -E -I -i &quot;temp/temp_executeas.sql&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11"/>
+   <arg value="sqlcmd -S ${db.server} -E -I -d ${execute.sql.database} -i &quot;temp/temp_executeas.sql&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11"/>
    <arg value=" -o &quot;${execute.sql.outputfile}&quot;" if="${execute.sql.outputfile!=''}" />
   </exec>
   <property name="execute.sql.outputfile" value="" />

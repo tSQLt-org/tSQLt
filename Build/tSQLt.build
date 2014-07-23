@@ -182,6 +182,7 @@
 
   <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
+  <copy file="ChangeDbAndExecuteStatement(tSQLt.Build).sql" todir="temp"/>
   <copy file="CreateBuildDb.sql" todir="temp"/>
   <copy file="GetTestResults.sql" todir="temp"/>
   <copy file="GetFailedTestCount.sql" todir="temp"/>
@@ -197,6 +198,7 @@
     <include name="AllTests.2008.sql"/>
     <include name="BootStrapTest.sql"/>
     <include name="ExecuteAs(tSQLt.Build).sql"/>
+    <include name="ChangeDbAndExecuteStatement(tSQLt.Build).sql"/>
     <include name="CreateBuildDb.sql"/>
     <include name="GetTestResults.sql"/>
     <include name="GetFailedTestCount.sql"/>

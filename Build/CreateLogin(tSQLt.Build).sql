@@ -3,5 +3,5 @@ CREATE LOGIN [tSQLt.Build] WITH PASSWORD = 0x010095EBA5D9A28749DF6ABFD4F5AAFBCE8
 GO
 EXEC sys.sp_addsrvrolemember @loginame = N'tSQLt.Build', @rolename = N'dbcreator'
 GO
-GRANT EXTERNAL ACCESS ASSEMBLY TO [tSQLt.Build];
+EXEC master.sys.sp_executesql N'GRANT EXTERNAL ACCESS ASSEMBLY TO [tSQLt.Build];';
 GO
