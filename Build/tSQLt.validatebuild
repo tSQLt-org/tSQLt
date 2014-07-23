@@ -83,7 +83,7 @@
   <exec program="cmd" failonerror="true">
    <arg value="/c"/>
    <arg value="sqlcmd -S ${db.server} -E -I -i &quot;temp/temp_executeas.sql&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11"/>
-   <arg value=" -o &quot;${execute.sql.outputfile}&quot;" if="${execute.sql.outputfile!=''}" />
+   <arg value=" > &quot;${execute.sql.outputfile}&quot;" if="${execute.sql.outputfile!=''}" />
   </exec>
   <property name="execute.sql.outputfile" value="" />
  </target>

@@ -4,7 +4,7 @@ GO
 GO
 USE [$(DbName)];
 GO
-:OUT stdout
+:OUT STDOUT
 GO
 $(ExecuteStatement)
 GO
