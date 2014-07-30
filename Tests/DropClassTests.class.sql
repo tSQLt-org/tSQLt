@@ -23,4 +23,40 @@ BEGIN
     END
 END;
 GO
+CREATE PROC DropClassTests.[test removes UDDTs]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE TYPE MyTestClass.UDT FROM INT;');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test removes UDDTs after tables]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE TYPE MyTestClass.UDT FROM INT;');
+    EXEC('CREATE TABLE MyTestClass.tbl(i MyTestClass.UDT);');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+
 

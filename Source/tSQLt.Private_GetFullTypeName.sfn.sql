@@ -6,23 +6,23 @@ RETURNS TABLE
 AS
 RETURN SELECT SchemaName + '.' + Name + Suffix + Collation AS TypeName, SchemaName, Name, Suffix
 FROM(
-  SELECT QUOTENAME(SCHEMA_NAME(schema_id)) SchemaName, QUOTENAME(name) Name,
-              CASE WHEN max_length = -1
+  SELECT QUOTENAME(SCHEMA_NAME(T.schema_id)) SchemaName, QUOTENAME(T.name) Name,
+              CASE WHEN T.max_length = -1
                     THEN ''
                    WHEN @Length = -1
                     THEN '(MAX)'
-                   WHEN name LIKE 'n%char'
+                   WHEN T.name LIKE 'n%char'
                     THEN '(' + CAST(@Length / 2 AS NVARCHAR) + ')'
-                   WHEN name LIKE '%char' OR name LIKE '%binary'
+                   WHEN T.name LIKE '%char' OR T.name LIKE '%binary'
                     THEN '(' + CAST(@Length AS NVARCHAR) + ')'
-                   WHEN name IN ('decimal', 'numeric')
+                   WHEN T.name IN ('decimal', 'numeric')
                     THEN '(' + CAST(@Precision AS NVARCHAR) + ',' + CAST(@Scale AS NVARCHAR) + ')'
                    ELSE ''
                END Suffix,
-              CASE WHEN @CollationName IS NULL THEN ''
+              CASE WHEN @CollationName IS NULL OR T.is_user_defined = 1 THEN ''
                    ELSE ' COLLATE ' + @CollationName
                END Collation
-          FROM sys.types WHERE user_type_id = @TypeId
+          FROM sys.types AS T WHERE T.user_type_id = @TypeId
           )X;
 ---Build-
 GO

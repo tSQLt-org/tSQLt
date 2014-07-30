@@ -235,6 +235,27 @@ BEGIN
     END
 END;
 GO
+CREATE PROCEDURE tSQLt_testutil.AssertTestErrors
+  @TestName NVARCHAR(MAX),
+  @ExpectedMessage NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    DECLARE @Result NVARCHAR(MAX);
+    DECLARE @Msg NVARCHAR(MAX);
+    
+    EXEC tSQLt_testutil.CaptureTestResult @TestName, @Result OUTPUT, @Msg OUTPUT;
+    
+    IF(@Result <> 'Error')
+    BEGIN
+      EXEC tSQLt.Fail 'Expected test to error. Instead it resulted in ',@Result,'. The Message is: "',@Msg,'"';
+    END
+    
+    IF(@ExpectedMessage IS NOT NULL)
+    BEGIN
+      EXEC tSQLt.AssertLike @ExpectedMessage,@Msg,'Incorrect Error Message:';
+    END
+END;
+GO
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

@@ -98,20 +98,20 @@
           <FullPath>BootStrapTest.sql</FullPath>
         </FileNode>
         <FileNode Name="DropClassTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>DropClassTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="ExpectExceptionTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>ExpectExceptionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="ExpectNoExceptionTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>ExpectNoExceptionTests.class.sql</FullPath>
         </FileNode>
@@ -128,8 +128,8 @@
           <FullPath>FakeFunctionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="FakeTableTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>FakeTableTests.class.sql</FullPath>
         </FileNode>
