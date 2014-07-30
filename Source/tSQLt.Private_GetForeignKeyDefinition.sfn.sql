@@ -3,6 +3,7 @@ IF OBJECT_ID('tSQLt.Private_GetForeignKeyRefColumns') IS NOT NULL DROP FUNCTION 
 IF OBJECT_ID('tSQLt.Private_GetForeignKeyParColumns') IS NOT NULL DROP FUNCTION tSQLt.Private_GetForeignKeyParColumns;
 GO
 ---Build+
+GO
 CREATE FUNCTION tSQLt.Private_GetForeignKeyParColumns(
     @ConstraintObjectId INT
 )
@@ -67,4 +68,5 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
                 WHERE k.parent_object_id = OBJECT_ID(@SchemaName + '.' + @ParentTableName)
                   AND k.object_id = OBJECT_ID(@SchemaName + '.' + @ForeignKeyName)
                )x;
+GO
 ---Build-

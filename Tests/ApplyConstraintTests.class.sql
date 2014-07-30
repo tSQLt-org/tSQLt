@@ -365,7 +365,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC ApplyConstraintTests.[test ApplyConstraint does not create additional unique index on unfaked table]
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint of a foreign key does not create additional unique index on unfaked table]
 AS
 BEGIN
     DECLARE @ActualDefinition VARCHAR(MAX);
@@ -445,3 +445,235 @@ BEGIN
     END;
 END;
 GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint copies a unique constraint to a fake table]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (constCol CHAR(3) CONSTRAINT testConstraint UNIQUE);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    SELECT @ActualDefinition = ''
+      FROM sys.key_constraints AS KC
+     WHERE KC.parent_object_id = OBJECT_ID('schemaA.tableA') AND name = 'testConstraint';
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        EXEC tSQLt.Fail 'Constraint, "testConstraint", was not copied to schemaA.tableA';
+    END;
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint applies unique constraint to correct column]
+AS
+BEGIN
+    DECLARE @ActualColumns NVARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (Col1 INT, Col2 INT CONSTRAINT testConstraint UNIQUE, Col3 INT);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    EXEC tSQLt.ExpectNoException;
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(1,1,1);
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(1,2,2);
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(3,3,2);
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%testConstraint%';
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(4,3,4);
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint for a unique constrain can be called with quoted names]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA [sche maA]');
+    CREATE TABLE [sche maA].[tab leA] ([id col] INT CONSTRAINT[test constraint] UNIQUE);
+
+    EXEC tSQLt.FakeTable '[sche maA].[tab leA]';
+
+    EXEC tSQLt.ApplyConstraint '[sche maA].[tab leA]', '[test constraint]';
+
+    IF NOT EXISTS(
+                   SELECT 1 FROM sys.key_constraints AS KC 
+                    WHERE name = 'test constraint' 
+                      AND parent_object_id = OBJECT_ID('[sche maA].[tab leA]')
+                 )
+    BEGIN
+        EXEC tSQLt.Fail 'Constraint [test constraint] was not copied to [tab leA]';
+    END;
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint applies multi-column unique constraint]
+AS
+BEGIN
+    DECLARE @ActualColumns NVARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (Col1 INT, Col2 INT, CONSTRAINT testConstraint UNIQUE(Col1, Col2));
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    EXEC tSQLt.ExpectNoException;
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(1,1);
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(1,2);
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(2,1);
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%testConstraint%';
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(1,1);
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint copies a primary key constraint to a fake table]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (constCol CHAR(3) CONSTRAINT testConstraint PRIMARY KEY);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    SELECT KC.name,OBJECT_NAME(KC.parent_object_id) AS parent_name,KC.type_desc
+      INTO #Actual
+      FROM sys.key_constraints AS KC
+     WHERE KC.schema_id = SCHEMA_ID('schemaA')
+       AND KC.name = 'testConstraint';
+
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected
+    VALUES('testConstraint','tableA','PRIMARY_KEY_CONSTRAINT');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint applies primary key constraint to correct column]
+AS
+BEGIN
+    DECLARE @ActualColumns NVARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (Col1 INT, Col2 INT CONSTRAINT testConstraint PRIMARY KEY, Col3 INT);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    EXEC tSQLt.ExpectNoException;
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(1,1,1);
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(1,2,2);
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(3,3,2);
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%testConstraint%';
+    INSERT INTO schemaA.tableA(Col1, Col2, Col3)VALUES(4,3,4);
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint for a primary key can be called with quoted names]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC ('CREATE SCHEMA [sche maA]');
+    CREATE TABLE [sche maA].[tab leA] ([id col] INT CONSTRAINT[test constraint] PRIMARY KEY);
+
+    EXEC tSQLt.FakeTable '[sche maA].[tab leA]';
+
+    EXEC tSQLt.ApplyConstraint '[sche maA].[tab leA]', '[test constraint]';
+
+    SELECT KC.name,OBJECT_NAME(KC.parent_object_id) AS parent_name,KC.type_desc
+      INTO #Actual
+      FROM sys.key_constraints AS KC
+     WHERE KC.schema_id = SCHEMA_ID('sche maA')
+       AND KC.name = 'test constraint';
+
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected
+    VALUES('test constraint','tab leA','PRIMARY_KEY_CONSTRAINT');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint applies multi-column primary key]
+AS
+BEGIN
+    DECLARE @ActualColumns NVARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (Col1 INT, Col2 INT, CONSTRAINT testConstraint PRIMARY KEY(Col1, Col2));
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    EXEC tSQLt.ExpectNoException;
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(1,1);
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(1,2);
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(2,1);
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%testConstraint%';
+    INSERT INTO schemaA.tableA(Col1, Col2)VALUES(1,1);
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint copies a primary key and multiple unique constraints]
+AS
+BEGIN
+    DECLARE @ActualDefinition VARCHAR(MAX);
+
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA 
+    (col1 INT NOT NULL,
+     col2 INT NULL,
+     col3 INT NOT NULL,
+     CONSTRAINT testConstraint1 PRIMARY KEY(col3,col1),
+     CONSTRAINT testConstraint2 UNIQUE(col3,col2),
+     CONSTRAINT testConstraint3 UNIQUE(col1,col2)
+    );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint1';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint2';
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint3';
+
+    SELECT KC.name,OBJECT_NAME(KC.parent_object_id) AS parent_name,KC.type_desc
+      INTO #Actual
+      FROM sys.key_constraints AS KC
+     WHERE KC.schema_id = SCHEMA_ID('schemaA')
+       AND KC.name LIKE 'testConstraint_';
+
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected VALUES('testConstraint1','tableA','PRIMARY_KEY_CONSTRAINT');
+    INSERT INTO #Expected VALUES('testConstraint2','tableA','UNIQUE_CONSTRAINT');
+    INSERT INTO #Expected VALUES('testConstraint3','tableA','UNIQUE_CONSTRAINT');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
+

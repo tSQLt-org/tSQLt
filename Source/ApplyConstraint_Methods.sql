@@ -1,3 +1,14 @@
+IF OBJECT_ID('tSQLt.Private_GetQuotedTableNameForConstraint') IS NOT NULL DROP FUNCTION tSQLt.Private_GetQuotedTableNameForConstraint;
+IF OBJECT_ID('tSQLt.Private_FindConstraint') IS NOT NULL DROP FUNCTION tSQLt.Private_FindConstraint;
+IF OBJECT_ID('tSQLt.Private_ResolveApplyConstraintParameters') IS NOT NULL DROP FUNCTION tSQLt.Private_ResolveApplyConstraintParameters;
+IF OBJECT_ID('tSQLt.Private_ApplyCheckConstraint') IS NOT NULL DROP PROCEDURE tSQLt.Private_ApplyCheckConstraint;
+IF OBJECT_ID('tSQLt.Private_ApplyForeignKeyConstraint') IS NOT NULL DROP PROCEDURE tSQLt.Private_ApplyForeignKeyConstraint;
+IF OBJECT_ID('tSQLt.Private_ApplyUniqueConstraint') IS NOT NULL DROP PROCEDURE tSQLt.Private_ApplyUniqueConstraint;
+IF OBJECT_ID('tSQLt.Private_GetConstraintType') IS NOT NULL DROP FUNCTION tSQLt.Private_GetConstraintType;
+IF OBJECT_ID('tSQLt.ApplyConstraint') IS NOT NULL DROP PROCEDURE tSQLt.ApplyConstraint;
+GO
+---Build+
+GO
 CREATE FUNCTION tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId INT)
 RETURNS TABLE
 AS
@@ -107,6 +118,33 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.Private_ApplyUniqueConstraint 
+  @ConstraintObjectId INT
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX);
+  DECLARE @OrgTableName NVARCHAR(MAX);
+  DECLARE @TableName NVARCHAR(MAX);
+  DECLARE @ConstraintName NVARCHAR(MAX);
+  DECLARE @CreateConstraintCmd NVARCHAR(MAX);
+  DECLARE @AlterColumnsCmd NVARCHAR(MAX);
+  
+  SELECT @SchemaName = SchemaName,
+         @OrgTableName = OrgTableName,
+         @TableName = TableName,
+         @ConstraintName = OBJECT_NAME(@ConstraintObjectId)
+    FROM tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId);
+      
+  SELECT @AlterColumnsCmd = NotNullColumnCmd,
+         @CreateConstraintCmd = CreateConstraintCmd
+    FROM tSQLt.Private_GetUniqueConstraintDefinition(@ConstraintObjectId, QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName));
+
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName;
+  EXEC (@AlterColumnsCmd);
+  EXEC (@CreateConstraintCmd);
+END;
+GO
+
 CREATE FUNCTION tSQLt.Private_GetConstraintType(@TableObjectId INT, @ConstraintName NVARCHAR(MAX))
 RETURNS TABLE
 AS
@@ -141,8 +179,15 @@ BEGIN
     RETURN 0;
   END;  
    
+  IF @ConstraintType IN('UNIQUE_CONSTRAINT', 'PRIMARY_KEY_CONSTRAINT')
+  BEGIN
+    EXEC tSQLt.Private_ApplyUniqueConstraint @ConstraintObjectId;
+    RETURN 0;
+  END;  
+   
   RAISERROR ('ApplyConstraint could not resolve the object names, ''%s'', ''%s''. Be sure to call ApplyConstraint and pass in two parameters, such as: EXEC tSQLt.ApplyConstraint ''MySchema.MyTable'', ''MyConstraint''', 
              16, 10, @TableName, @ConstraintName);
   RETURN 0;
 END;
 GO
+---Build-

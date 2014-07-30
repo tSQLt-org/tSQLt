@@ -892,5 +892,51 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test FakeTable preserves UDTd]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA MyTestClass;');
+  EXEC('CREATE TYPE MyTestClass.UDT FROM INT;');
+  EXEC('CREATE TABLE MyTestClass.tbl(i MyTestClass.UDT);');
+
+  SELECT C.name,C.user_type_id,C.system_type_id 
+    INTO #Expected
+    FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('MyTestClass.tbl');
+
+  EXEC tSQLt.FakeTable @TableName = 'MyTestClass.tbl';
+
+  SELECT C.name,C.user_type_id,C.system_type_id 
+    INTO #Actual
+    FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('MyTestClass.tbl');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable preserves UDTd based on char type]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA MyTestClass;');
+  EXEC('CREATE TYPE MyTestClass.UDT FROM NVARCHAR(20);');
+  EXEC('CREATE TABLE MyTestClass.tbl(i MyTestClass.UDT);');
+
+  SELECT C.name,C.user_type_id,C.system_type_id,C.collation_name 
+    INTO #Expected
+    FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('MyTestClass.tbl');
+
+  EXEC tSQLt.FakeTable @TableName = 'MyTestClass.tbl';
+
+  SELECT C.name,C.user_type_id,C.system_type_id,C.collation_name 
+    INTO #Actual
+    FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('MyTestClass.tbl');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+
+
 --ROLLBACK
 

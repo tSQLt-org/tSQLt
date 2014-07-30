@@ -3,6 +3,18 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="Dev_R2:MacWin7A\meinse00">
+          <Created>2014-07-30T13:44:05.3611369-04:00</Created>
+          <Type>SQL</Type>
+          <Server>Dev_R2</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>tSQLt_dev</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="Dev_R2:sqlity.net">
           <Created>2014-02-11T14:13:32.7105112-05:00</Created>
           <Type>SQL</Type>
@@ -20,8 +32,8 @@
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="ApplyConstraint_Methods.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>ApplyConstraint_Methods.sql</FullPath>
         </FileNode>
@@ -32,8 +44,8 @@
           <FullPath>InWork.sql</FullPath>
         </FileNode>
         <FileNode Name="Run_Methods.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Run_Methods.sql</FullPath>
         </FileNode>
@@ -86,20 +98,20 @@
           <FullPath>tSQLt.CaptureOutputLog.tbl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.DropClass.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.DropClass.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.ExpectException.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.ExpectException.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.ExpectNoException.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.ExpectNoException.ssp.sql</FullPath>
         </FileNode>
@@ -182,16 +194,22 @@
           <FullPath>tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetForeignKeyDefinition.sfn.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetForeignKeyDefinition.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_MarkSchemaAsTestClass.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -236,8 +254,8 @@
           <FullPath>SetClrEnabled.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.FakeTable.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.FakeTable.ssp.sql</FullPath>
         </FileNode>
@@ -248,14 +266,14 @@
           <FullPath>tSQLt.Private_GetIdentityDefinition.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CreateFakeOfTable.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CreateFakeOfTable.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetFullTypeName.sfn.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_R2:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_R2</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetFullTypeName.sfn.sql</FullPath>
         </FileNode>

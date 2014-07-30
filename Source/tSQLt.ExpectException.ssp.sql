@@ -10,9 +10,10 @@ CREATE PROCEDURE tSQLt.ExpectException
 @ExpectedErrorNumber INT = NULL
 AS
 BEGIN
- IF(EXISTS(SELECT 1 FROM #ExpectException))
+ IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
  BEGIN
-   RAISERROR('Each test can only contain one call to tSQLt.ExpectException or tSQLt.ExpectNoException.',16,10);
+   DELETE #ExpectException;
+   RAISERROR('Each test can only contain one call to tSQLt.ExpectException.',16,10);
  END;
  
  INSERT INTO #ExpectException(ExpectException, ExpectedMessage, ExpectedSeverity, ExpectedState, ExpectedMessagePattern, ExpectedErrorNumber, FailMessage)

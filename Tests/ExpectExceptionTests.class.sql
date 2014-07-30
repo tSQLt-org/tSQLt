@@ -183,9 +183,10 @@ GO
 CREATE PROCEDURE ExpectExceptionTests.[test fails if called more then once]
 AS
 BEGIN
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Each test can only contain one call to tSQLt.ExpectException or tSQLt.ExpectNoException.', @ExpectedSeverity = 16, @ExpectedState = 10;
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'This call of tSQLt.ExpectException should have failed...';
-  EXEC tSQLt.Fail 'This line in the test should not have been reached!';
+  EXEC tSQLt.NewTestClass 'MyTestClass';
+  EXEC('CREATE PROC MyTestClass.TestExpectingNoException AS  EXEC tSQLt.ExpectException;EXEC tSQLt.ExpectException;');
+
+  EXEC tSQLt_testutil.AssertTestErrors 'MyTestClass.TestExpectingNoException','Each test can only contain one call to tSQLt.ExpectException.%';
 END;
 GO
 CREATE PROCEDURE ExpectExceptionTests.[test expecting error number fails when unexpected error number is used]
@@ -265,3 +266,24 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE ExpectExceptionTests.[test a single ExpectNoException can be followed by a single ExpectException]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS  EXEC tSQLt.ExpectNoException;EXEC tSQLt.ExpectException;RAISERROR(''X'',16,10);');
+
+    EXEC tSQLt_testutil.AssertTestSucceeds 'MyTestClass.TestExpectingException';
+END;
+GO
+
+CREATE PROCEDURE ExpectExceptionTests.[test an error after ExpectNoException but before ExpectException fails the test]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'MyTestClass';
+    EXEC('CREATE PROC MyTestClass.TestExpectingException AS  EXEC tSQLt.ExpectNoException;RAISERROR(''X'',16,10);EXEC tSQLt.ExpectException;');
+
+    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException';
+END;
+GO
