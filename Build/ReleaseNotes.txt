@@ -6,6 +6,21 @@ http://tsqlt.org/category/release-notes/
 
 Release: VLATEST-BUILD-NUMBER
 
+BUG FIXES:
+1. FakeTable now handles CHAR UDTs
+
+NEW FEATURES:
+1. SQL 2014 now officially supported
+2. tSQLt.ApplyConstraint now handles UNIQUE and PRIMARY KEY constraints
+3. tSQLt.DropClass now handles UDTs
+4. tSQLt.ExpectNoException can be followed by tSQLt.ExpectException
+5. Added @IfExists parameter to tSQLt.RemoveObject
+6. Added tSQLt.RemoveObjectIfExists
+7. Added tSQLt.AssertObjectDoesNotExist
+
+---------------------------
+Release: V1.0.5137.39257
+
 NEW FEATURES:
 1. added tSQLt.RenameClass
 
