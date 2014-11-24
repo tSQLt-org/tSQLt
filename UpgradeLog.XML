@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="tSQLt">
+</Property><Property Name="Solution File" Value="C:\Data\svn\tSQLt\tSQLt.ssmssln">
+</Property><Property Name="Date" Value="Monday, November 24, 2014">
+</Property><Property Name="Time" Value="17:46">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="tSQLt.ssmssln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="tSQLt.ssmssln" Description="Converted">
+</Event></UpgradeLog>
