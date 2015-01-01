@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_tSQLt:Windows\Authentication">
+        <ConnectionNode Name="Dev_tSQLt:MacWin7A\meinse00">
           <Created>2014-07-30T13:44:05.3611369-04:00</Created>
           <Type>SQL</Type>
           <Server>Dev_tSQLt</Server>
@@ -216,6 +216,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_RemoveSchemaBinding.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_RemoveSchemaBinding.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_RenamedObjectLog.tbl.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

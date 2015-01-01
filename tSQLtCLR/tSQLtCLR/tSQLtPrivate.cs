@@ -94,6 +94,13 @@ namespace tSQLtCLR
             return new SqlChars(output.ToString());
         }
 
+        [SqlMethod(DataAccess = DataAccessKind.Read)]
+        public static SqlChars GetAlterStatementWithoutSchemaBinding(SqlString createStatement)
+        {
+            var output = new Regex(@"CREATE VIEW(.*?)WITH SCHEMABINDING(\W)").Replace(createStatement.ToString(), @"ALTER VIEW$1$2");
+            return new SqlChars(output);
+        }
+
         private static String PadColumn(String input, int length) {
             return input + (new StringBuilder().Insert(0, " ", length - input.Length).ToString());
         }

@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
- <target name="all" depends="hello, init, create.tSQLt.scripts, create.Example.scripts, validate.tSQLt, validate.Example" />
+ <target name="all" depends="deploy.all, validate.tSQLt, validate.Example" />
+ 
+ <target name="deploy.all" depends="hello, init, create.tSQLt.scripts, create.Example.scripts, deploy.tSQLt" />
 
  <target name="hello" description="announcement">
   <loadfile
@@ -135,7 +137,7 @@
  </target>
 
 
- <target name="validate.tSQLt" description="execute create scripts and run the tests">
+ <target name="deploy.tSQLt" description="execute create scripts">
   <property name="execute.sql.outputfile" value="" />
   <property name="execute.sql.database" value="tempdb" />
   <property name="execute.sql.filename" value="temp/temp_create_db.sql" />
@@ -149,19 +151,23 @@
   <call target="execute.sql.file" />
   <property name="execute.sql.filename" value="temp/temp_deploy.sql" />
   <call target="execute.sql.file" />
+ </target>
 
+
+ <target name="validate.tSQLt" description="run the tests">
   <property name="execute.sql.outputfile" value="output/TestResults.xml" />
   <property name="execute.sql.statement" value="EXEC tSQLt.RunAll;" />
   <call target="execute.sql.tests" />
-
  </target>
 
- <target name="validate.Example" description="execute create scripts and run the tests">
+ <target name="deploy.Example" description="execute create scripts">
   <property name="execute.sql.outputfile" value="" />
   <property name="execute.sql.database" value="tempdb" />
   <property name="execute.sql.filename" value="temp/temp_create_example.sql" />
   <call target="execute.sql.file" />
+ </target>
 
+ <target name="validate.Example" description="run the tests">
   <property name="execute.sql.database" value="tSQLt_Example" />
   <property name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
   <property name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
