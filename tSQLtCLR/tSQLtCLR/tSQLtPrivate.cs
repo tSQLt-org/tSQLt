@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Data.SqlTypes;
@@ -97,8 +98,110 @@ namespace tSQLtCLR
         [SqlMethod(DataAccess = DataAccessKind.Read)]
         public static SqlChars GetAlterStatementWithoutSchemaBinding(SqlString createStatement)
         {
-            var output = new Regex(@"CREATE VIEW(.*?)WITH SCHEMABINDING(\W)").Replace(createStatement.ToString(), @"ALTER VIEW$1$2");
+            var startPosition = GetStartPosition(createStatement);
+            var regex = new Regex(@"CREATE\s+VIEW(\s*.*?\s*)WITH\s+SCHEMABINDING\s+AS");
+            var output = regex.Replace(createStatement.ToString(), @"ALTER VIEW$1AS", 1, startPosition);
             return new SqlChars(output);
+        }
+
+        private enum GetStartPositionStates
+        {
+            Default,
+            AfterFirstDash,
+            AfterSecondDash,
+            AfterSlash,
+            AfterSlashStar,
+            AfterStar
+        }
+
+        private static readonly Dictionary<char, bool> Whitespace = new Dictionary<char, bool>() { { ' ', true }, { '\n', true }, { '\r', true }, { '\t', true }, { '\f', true }, { '\v', true } };
+        private static bool IsWhitespaceChar(char c)
+        {
+            return Whitespace.ContainsKey(c);
+        }
+
+        private static int GetStartPosition(SqlString createStatement)
+        {
+            var statementCharacters = createStatement.ToString().ToCharArray();
+            var startPosition = -1;
+            var state = GetStartPositionStates.Default;
+            var multiLineCommentNestLevel = 0;
+            for (var position = 0; position < statementCharacters.Length && startPosition < 0 ; position++)
+            {
+                switch (state)
+                {
+                    case GetStartPositionStates.Default:
+                        if (IsWhitespaceChar(statementCharacters[position]))
+                        {
+                            break;
+                        }
+                        if (statementCharacters[position] == '-')
+                        {
+                            state = GetStartPositionStates.AfterFirstDash;
+                            break;
+                        }
+                        if (statementCharacters[position] == '/')
+                        {
+                            state = GetStartPositionStates.AfterSlash;
+                            break;
+                        }
+
+                        startPosition = position;
+                        break;
+                    case GetStartPositionStates.AfterFirstDash:
+                        if (statementCharacters[position] == '-')
+                        {
+                            state = GetStartPositionStates.AfterSecondDash;
+                        }
+                        break;
+                  case GetStartPositionStates.AfterSecondDash:
+                        if (statementCharacters[position] == '\r' || statementCharacters[position] == '\n')
+                        {
+                            state = GetStartPositionStates.Default;
+                        }
+                        break;
+                  case GetStartPositionStates.AfterSlash:
+                        if (statementCharacters[position] == '*')
+                        {
+                            state = GetStartPositionStates.AfterSlashStar;
+                            multiLineCommentNestLevel++;
+                            break;
+                        }
+                        if (multiLineCommentNestLevel > 0)
+                        {
+                            state = GetStartPositionStates.AfterSlashStar;
+                            break;
+                        }
+                        throw new Exception("unexpected /");
+                  case GetStartPositionStates.AfterSlashStar:
+                        if (statementCharacters[position] == '*')
+                        {
+                            state = GetStartPositionStates.AfterStar;
+                        }
+                        if (statementCharacters[position] == '/')
+                        {
+                            state = GetStartPositionStates.AfterSlash;
+                        }
+                        break;
+                  case GetStartPositionStates.AfterStar:
+                        if (statementCharacters[position] == '/')
+                        {
+                            multiLineCommentNestLevel--;
+                            if (0 == multiLineCommentNestLevel)
+                            {
+                                state = GetStartPositionStates.Default;
+                            }
+                            else
+                            {
+                                state = GetStartPositionStates.AfterSlashStar;
+                            }
+                            break;
+                        }
+                        state = GetStartPositionStates.AfterSlashStar;
+                        break;
+                }
+            }
+            return startPosition;
         }
 
         private static String PadColumn(String input, int length) {
