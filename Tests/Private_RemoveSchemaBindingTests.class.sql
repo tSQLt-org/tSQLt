@@ -1,0 +1,99 @@
+EXEC tSQLt.NewTestClass 'Private_RemoveSchemaBindingTests';
+GO
+CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test SB view is removed]
+AS
+BEGIN
+  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
+  EXEC('CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
+ 
+  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
+  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
+
+  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(SED.referencing_id))+'.'+QUOTENAME(OBJECT_NAME(SED.referencing_id)) AS schema_bound_object_name,SED.referencing_id,SED.referencing_class_desc
+    INTO #Actual
+    FROM sys.sql_expression_dependencies AS SED 
+   WHERE SED.is_schema_bound_reference = 1
+     AND SED.referenced_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
+
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+END;
+GO
+CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test SB view not dropped]
+AS
+BEGIN
+  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
+  EXEC('CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
+  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
+  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
+ 
+  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
+  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
+
+  SELECT * 
+    INTO Private_RemoveSchemaBindingTests.Actual
+    FROM Private_RemoveSchemaBindingTests.V1;
+
+  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
+  
+END;
+GO
+CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test does not remove second W/SB statement]
+AS
+BEGIN
+  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
+  EXEC('CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1,''WITH SCHEMABINDING'' AS C2 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
+  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
+  VALUES(42);
+ 
+  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
+  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
+
+  SELECT C1,C2
+    INTO #Actual
+    FROM Private_RemoveSchemaBindingTests.V1;
+
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+
+  INSERT INTO #Expected
+  VALUES(42,'WITH SCHEMABINDING');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+
+/*
+-- Comments before create view including 
+-- superflous whitespace (CREATE VIEW as well as WITH SCHEMABINDING)
+-- indexed views
+-- computed columns
+-- indexed computed columns
+-- other object types: (see remarks) http://msdn.microsoft.com/en-us/library/bb677315.aspx 
+
+
+  SELECT * FROM sys.sql_expression_dependencies AS SED 
+  JOIN sys.sql_modules AS SM
+  ON SED.referencing_id = SM.object_id
+  WHERE SED.referenced_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
+
+
+-- /*
+-- PRINT 1;
+-- --/*
+-- PRINT 1;
+-- /*
+-- PRINT 1;
+-- --*/
+-- PRINT 1;
+-- --*/
+-- PRINT 1;
+-- --*/
+-- PRINT 1;
+
+
+
+
+
+--*/

@@ -64,7 +64,7 @@ namespace tSQLtCLR
         public SqlDataReader executeCommand(SqlString Command)
         {
             infoMessage = SqlString.Null;
-            connection.InfoMessage += new SqlInfoMessageEventHandler(OnInfoMessage);
+            connection.InfoMessage += OnInfoMessage;
             SqlCommand cmd = new SqlCommand();
             
             cmd.Connection = connection;
