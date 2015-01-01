@@ -1,40 +1,42 @@
 EXEC tSQLt.NewTestClass 'Private_RemoveSchemaBindingTests';
 GO
-CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test SB view is removed]
+CREATE PROCEDURE Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+  @CreateViewStatement NVARCHAR(MAX)
 AS
 BEGIN
   CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
+  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
+  VALUES(CHECKSUM(NEWID()));
+  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
+  VALUES(CHECKSUM(NEWID()));
+  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
+  VALUES(CHECKSUM(NEWID()));
+
+  EXEC(@CreateViewStatement);
  
   DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
   EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
 
   SELECT QUOTENAME(OBJECT_SCHEMA_NAME(SED.referencing_id))+'.'+QUOTENAME(OBJECT_NAME(SED.referencing_id)) AS schema_bound_object_name,SED.referencing_id,SED.referencing_class_desc
-    INTO #Actual
+    INTO #SchemaBoundObjects
     FROM sys.sql_expression_dependencies AS SED 
    WHERE SED.is_schema_bound_reference = 1
      AND SED.referenced_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
 
-  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
-END;
-GO
-CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test SB view not dropped]
-AS
-BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#SchemaBoundObjects';
 
   SELECT * 
     INTO Private_RemoveSchemaBindingTests.Actual
     FROM Private_RemoveSchemaBindingTests.V1;
 
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';  
+END;
+GO
+CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test SB property on view is removed and view is still working]
+AS
+BEGIN
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    'CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test does not remove second W/SB statement]
@@ -65,156 +67,72 @@ GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test handles leading spaces]
 AS
 BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('   CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
-
-  SELECT * 
-    INTO Private_RemoveSchemaBindingTests.Actual
-    FROM Private_RemoveSchemaBindingTests.V1;
-
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    '   CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test handles newlines]
 AS
 BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    '
   CREATE 
   VIEW 
   Private_RemoveSchemaBindingTests.V1 
   WITH 
   SCHEMABINDING 
-  AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
-
-  SELECT * 
-    INTO Private_RemoveSchemaBindingTests.Actual
-    FROM Private_RemoveSchemaBindingTests.V1;
-
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+  AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test handles leading one line comments]
 AS
 BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('-- test 
-        CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
-
-  SELECT * 
-    INTO Private_RemoveSchemaBindingTests.Actual
-    FROM Private_RemoveSchemaBindingTests.V1;
-
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    '-- test 
+        CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test handles leading one line comments with CREATE VIEW statement]
 AS
 BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('-- test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    '-- test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         -- test2: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         --
-        CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
-
-  SELECT * 
-    INTO Private_RemoveSchemaBindingTests.Actual
-    FROM Private_RemoveSchemaBindingTests.V1;
-
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+        CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test handles leading multi-line comments with CREATE VIEW statement]
 AS
 BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('/* test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    '/* test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         -- test2: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
-        */CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
-
-  SELECT * 
-    INTO Private_RemoveSchemaBindingTests.Actual
-    FROM Private_RemoveSchemaBindingTests.V1;
-
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+        */CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test handles leading double nested multi-line comments]
 AS
 BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('/* test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    '/* test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         /* test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         */ test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
-        */CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
-
-  SELECT * 
-    INTO Private_RemoveSchemaBindingTests.Actual
-    FROM Private_RemoveSchemaBindingTests.V1;
-
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+        */CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 CREATE PROCEDURE Private_RemoveSchemaBindingTests.[test handles leading nested multi-line comments and other niceties with CREATE VIEW statement]
 AS
 BEGIN
-  CREATE TABLE Private_RemoveSchemaBindingTests.T1(C1 INT);
-  EXEC('/* /test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
+  EXEC Private_RemoveSchemaBindingTests.[Assert SB property on view is removed and view is still working]
+    '/* /test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         /* /test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         /* /test: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         -- *test2: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         */-- *test2: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         */-- *test2: CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS 
         */--/*
-        CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;');
-  INSERT INTO Private_RemoveSchemaBindingTests.T1(C1)
-  VALUES(CHECKSUM(NEWID())),(CHECKSUM(NEWID())),(CHECKSUM(NEWID()));
- 
-  DECLARE @object_id INT;SET @object_id = OBJECT_ID('Private_RemoveSchemaBindingTests.T1');
-  EXEC tSQLt.Private_RemoveSchemaBinding @object_id = @object_id;
-
-  SELECT * 
-    INTO Private_RemoveSchemaBindingTests.Actual
-    FROM Private_RemoveSchemaBindingTests.V1;
-
-  EXEC tSQLt.AssertEqualsTable 'Private_RemoveSchemaBindingTests.T1','Private_RemoveSchemaBindingTests.Actual';
-  
+        CREATE VIEW Private_RemoveSchemaBindingTests.V1 WITH SCHEMABINDING AS SELECT T.C1 FROM Private_RemoveSchemaBindingTests.T1 AS T;';
 END;
 GO
 
