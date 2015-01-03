@@ -18,9 +18,13 @@ tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.RemoveObject.ssp.sql
 tSQLt.RemoveObjectIfExists.ssp.sql
+tSQLt.Private_ScriptIndex.sfn.sql
+tSQLt.Private_RemoveSchemaBinding.ssp.sql
+tSQLt.Private_RemoveSchemaBoundReferences.ssp.sql
 Run_Methods.sql
 tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql
+tSQLt.private_SqlVersion.sfn.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_GetForeignKeyDefinition.sfn.sql
 ApplyConstraint_Methods.sql
@@ -31,7 +35,6 @@ tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql
 tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
 tSQLt.Private_MarkFakeTable.ssp.sql
-tSQLt.Private_RemoveSchemaBinding.ssp.sql
 tSQLt.FakeTable.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql
 tSQLt.SpyProcedure.ssp.sql
@@ -43,6 +46,7 @@ tSQLt.Private_CompareTables.ssp.sql
 tSQLt.Private_NullCellTable.tbl.sql
 tSQLt.AssertObjectExists.ssp.sql
 tSQLt.AssertObjectDoesNotExist.ssp.sql
+tSQLt.AssertEqualsString.ssp.sql
 tSQLt.AssertEqualsTable.ssp.sql
 tSQLt.StubRecord.ssp.sql
 tSQLt.AssertLike.ssp.sql

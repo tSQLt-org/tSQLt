@@ -55,3 +55,44 @@ BEGIN
 END;
 GO
 
+CREATE PROC AsertEqualsStringTests.[test AssertEqualsString should produce formatted fail message]
+AS
+BEGIN
+  DECLARE @ExpectedMessage NVARCHAR(MAX);
+  SET @ExpectedMessage = CHAR(13)+CHAR(10)+
+                         'Expected: <Hello>'+CHAR(13)+CHAR(10)+
+                         'but was : <World!>'
+
+  EXEC tSQLt_testutil.AssertFailMessageEquals 
+       'EXEC tSQLt.AssertEqualsString N''Hello'', N''World!'';',
+       @ExpectedMessage;
+END;
+GO
+
+CREATE PROC AsertEqualsStringTests.[test fail message shows NULL for expected value]
+AS
+BEGIN
+  DECLARE @ExpectedMessage NVARCHAR(MAX);
+  SET @ExpectedMessage = CHAR(13)+CHAR(10)+
+                         'Expected: NULL'+CHAR(13)+CHAR(10)+
+                         'but was : <>';
+
+  EXEC tSQLt_testutil.AssertFailMessageEquals 
+       'EXEC tSQLt.AssertEqualsString NULL,'''';',
+       @ExpectedMessage;
+END;
+GO
+
+CREATE PROC AsertEqualsStringTests.[test fail message shows NULL for actual value]
+AS
+BEGIN
+  DECLARE @ExpectedMessage NVARCHAR(MAX);
+  SET @ExpectedMessage = CHAR(13)+CHAR(10)+
+                         'Expected: <>'+CHAR(13)+CHAR(10)+
+                         'but was : NULL';
+
+  EXEC tSQLt_testutil.AssertFailMessageEquals 
+       'EXEC tSQLt.AssertEqualsString '''',NULL;',
+       @ExpectedMessage;
+END;
+GO

@@ -9,14 +9,7 @@ BEGIN
   DECLARE @cmd NVARCHAR(MAX);
   SELECT @cmd = tSQLt.[Private]::GetAlterStatementWithoutSchemaBinding(SM.definition)
     FROM sys.sql_modules AS SM
-    JOIN 
-    (
-      SELECT DISTINCT SEDI.referencing_id,SEDI.referenced_id 
-        FROM sys.sql_expression_dependencies AS SEDI
-       WHERE SEDI.is_schema_bound_reference = 1
-    ) AS SED 
-      ON SED.referencing_id = SM.object_id
-   WHERE SED.referenced_id = @object_id;
+   WHERE SM.object_id = @object_id;
    EXEC(@cmd);
 END;
 GO

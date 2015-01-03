@@ -121,6 +121,12 @@
           <AssociatedConnUserName />
           <FullPath>FakeTableTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="InfoTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>InfoTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="NameAndIdResolution_test.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -139,12 +145,6 @@
           <AssociatedConnUserName />
           <FullPath>Private_NullCellTableTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_RemoveSchemaBindingTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Private_RemoveSchemaBindingTests.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="Private_RenameObjectToUniqueNameTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -156,6 +156,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Private_GetFullTypeNameTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_ScriptIndexTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Private_ScriptIndexTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_SqlVariantFormatterTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

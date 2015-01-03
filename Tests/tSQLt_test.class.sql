@@ -1868,22 +1868,5 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt_test.[test tSQLt.Info() returns a row with a Version column containing latest build number]
-AS
-BEGIN
-  DECLARE @Version NVARCHAR(MAX);
-  DECLARE @ClrInfo NVARCHAR(MAX);
-  
-  SELECT @Version = Version
-    FROM tSQLt.Info();
-  
-  SELECT @ClrInfo=clr_name FROM sys.assemblies WHERE name='tSQLtCLR'  
-  
-  IF(@ClrInfo NOT LIKE '%version='+@Version+'%')
-  BEGIN
-    EXEC tSQLt.Fail 'Expected ''version=',@Version,''' to be part of ''',@ClrInfo,'''.'
-  END
-END;
-GO
 --ROLLBACK
 --tSQLt_test

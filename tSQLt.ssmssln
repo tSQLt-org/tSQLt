@@ -17,6 +17,10 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TestUtil", "TestUtil\TestUt
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Snippets", "Snippets\Snippets.ssmssqlproj", "{DEF31969-367F-4D43-BAF7-4B05758ED516}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.2012", "Tests.2012\Tests.2012.ssmssqlproj", "{2262182E-53C4-4C18-A0F2-493B36AB5C3C}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.2014", "Tests.2014\Tests.2014.ssmssqlproj", "{9CD9A36A-BA81-4D3F-B1E4-29E2BD6E8714}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -30,6 +34,9 @@ Global
 		{B3837996-C4D9-4CA5-88D8-3F5679DC6D06}.Default|Default.ActiveCfg = Default
 		{DD29DD42-530A-43CB-9190-BC4A54C204B4}.Default|Default.ActiveCfg = Default
 		{DEF31969-367F-4D43-BAF7-4B05758ED516}.Default|Default.ActiveCfg = Default
+		{236ADC31-400D-416C-BD84-4DA6F4E573AE}.Default|Default.ActiveCfg = Default
+		{2262182E-53C4-4C18-A0F2-493B36AB5C3C}.Default|Default.ActiveCfg = Default
+		{9CD9A36A-BA81-4D3F-B1E4-29E2BD6E8714}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
