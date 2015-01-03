@@ -65,6 +65,16 @@
    <call target="append.file" />
   </if>
 
+  <if test="${db.version=='2012' or db.version=='2014'}">
+   <property name="append.source" value="temp/AllTests.2012.sql" />
+   <call target="append.file" />
+  </if>
+
+  <if test="${db.version=='2014'}">
+   <property name="append.source" value="temp/AllTests.2014.sql" />
+   <call target="append.file" />
+  </if>
+
  </target>
  
  <target name="create.Example.scripts" description="generate database creation scripts">

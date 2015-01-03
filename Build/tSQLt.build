@@ -180,6 +180,20 @@
    <arg value="temp/AllTests.2008.sql"/>
   </exec>
 
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.2012/*.class.sql"/>
+   <arg value="temp/AllTests.2012.sql"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.2014/*.class.sql"/>
+   <arg value="temp/AllTests.2014.sql"/>
+  </exec>
+
   <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
   <copy file="ChangeDbAndExecuteStatement(tSQLt.Build).sql" todir="temp"/>
@@ -196,6 +210,8 @@
     <include name="TestUtil.sql"/>
     <include name="AllTests.sql"/>
     <include name="AllTests.2008.sql"/>
+    <include name="AllTests.2012.sql"/>
+    <include name="AllTests.2014.sql"/>
     <include name="BootStrapTest.sql"/>
     <include name="ExecuteAs(tSQLt.Build).sql"/>
     <include name="ChangeDbAndExecuteStatement(tSQLt.Build).sql"/>
