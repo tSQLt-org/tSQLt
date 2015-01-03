@@ -43,7 +43,7 @@ RETURN
            ELSE ''
          END +
          ';' AS create_cmd
-    FROM sys.indexes AS I
+    FROM tSQLt.Private_SysIndexes AS I
    CROSS APPLY
    (
      SELECT
