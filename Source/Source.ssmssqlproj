@@ -37,6 +37,12 @@
           <AssociatedConnUserName />
           <FullPath>Run_Methods.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt._Footer.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt._Footer.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.ApplyTrigger.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
