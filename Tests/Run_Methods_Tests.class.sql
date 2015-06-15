@@ -1138,7 +1138,7 @@ BEGIN
       FROM tSQLt.CaptureOutputLog AS COL;
      
     
-    DECLARE @Expected NVARCHAR(MAX) =  
+    DECLARE @Expected NVARCHAR(MAX);SET @Expected =  
 'tSQLt.Run ''[innertest].[testMe]''; --Starting
 Hello
 tSQLt.Run ''[innertest].[testMe]''; --Finished
@@ -1162,7 +1162,7 @@ BEGIN
       FROM tSQLt.CaptureOutputLog AS COL;
      
     
-    DECLARE @Expected NVARCHAR(MAX) =  
+    DECLARE @Expected NVARCHAR(MAX);SET @Expected =  
 'Hello
 ';
       
