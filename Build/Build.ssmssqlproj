@@ -161,6 +161,12 @@
           <AssociatedConnUserName />
           <FullPath>SourceForgePrivateKey.ppk</FullPath>
         </FileNode>
+        <FileNode Name="SqlLoginNbuild.bat">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>SqlLoginNbuild.bat</FullPath>
+        </FileNode>
         <FileNode Name="VersionInfo.vbs">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

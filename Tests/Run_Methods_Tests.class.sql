@@ -1123,3 +1123,109 @@ BEGIN
     EXEC tSQLt.AssertEquals 1, @NumberOfTestResults;
 END;
 GO
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run prints start and stop info when tSQLt.SetVerbose was called]
+AS
+BEGIN
+    EXEC('EXEC tSQLt.DropClass innertest;');
+    EXEC('CREATE SCHEMA innertest;');
+    EXEC('CREATE PROC innertest.testMe as RAISERROR(''Hello'',0,1)WITH NOWAIT;');
+
+    EXEC tSQLt.SetVerbose;
+    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
+
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = COL.OutputText
+      FROM tSQLt.CaptureOutputLog AS COL;
+     
+    
+    DECLARE @Expected NVARCHAR(MAX) =  
+'tSQLt.Run ''[innertest].[testMe]''; --Starting
+Hello
+tSQLt.Run ''[innertest].[testMe]''; --Finished
+';
+      
+    EXEC tSQLt.AssertEqualsString @Expected = @Expected, @Actual = @Actual;
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run doesn't print start and stop info when tSQLt.SetVerbose 0 was called]
+AS
+BEGIN
+    EXEC('EXEC tSQLt.DropClass innertest;');
+    EXEC('CREATE SCHEMA innertest;');
+    EXEC('CREATE PROC innertest.testMe as RAISERROR(''Hello'',0,1)WITH NOWAIT;');
+
+    EXEC tSQLt.SetVerbose 0;
+    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
+
+    DECLARE @Actual NVARCHAR(MAX);
+    SELECT @Actual = COL.OutputText
+      FROM tSQLt.CaptureOutputLog AS COL;
+     
+    
+    DECLARE @Expected NVARCHAR(MAX) =  
+'Hello
+';
+      
+    EXEC tSQLt.AssertEqualsString @Expected = @Expected, @Actual = @Actual;
+END;
+GO
+CREATE TABLE Run_Methods_Tests.[table 4 tSQLt.Private_InputBuffer tests](
+  InputBuffer NVARCHAR(MAX)
+);
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Private_InputBuffer returns actual INPUTBUFFER]
+AS
+BEGIN
+  EXEC tSQLt.NewConnection @command = 'TRUNCATE TABLE Run_Methods_Tests.[table 4 tSQLt.Private_InputBuffer tests]';
+  DECLARE @ExecutedCmd NVARCHAR(MAX);
+  SET @ExecutedCmd = 'DECLARE @r NVARCHAR(MAX);EXEC tSQLt.Private_InputBuffer @r OUT;INSERT INTO Run_Methods_Tests.[table 4 tSQLt.Private_InputBuffer tests] SELECT @r;'
+  EXEC tSQLt.NewConnection @command = @ExecutedCmd;
+  DECLARE @Actual NVARCHAR(MAX);
+  SELECT @Actual = InputBuffer FROM Run_Methods_Tests.[table 4 tSQLt.Private_InputBuffer tests];
+  EXEC tSQLt.AssertEqualsString @Expected = @ExecutedCmd, @Actual = @Actual;
+END
+GO
+CREATE PROC Run_Methods_Tests.[test tSQLt.RunC calls tSQLt.Run with everything after ;-- as @TestName]
+AS
+BEGIN
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Run';
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_InputBuffer', @CommandToExecute = 'SET @InputBuffer = ''EXEC tSQLt.RunC;--All this gets send to tSQLt.Run as parameter, even chars like '''',-- and []'';';
+
+    EXEC tSQLt.RunC;
+
+    SELECT TestName
+    INTO #Actual
+    FROM tSQLt.Run_SpyProcedureLog;
+    
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected
+    VALUES('All this gets send to tSQLt.Run as parameter, even chars like '',-- and []');    
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test tSQLt.RunC removes leading and trailing spaces from testname]
+AS
+BEGIN
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Run';
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_InputBuffer', @CommandToExecute = 'SET @InputBuffer = ''EXEC tSQLt.RunC;--  XX  '';';
+
+    EXEC tSQLt.RunC;
+
+    SELECT TestName
+    INTO #Actual
+    FROM tSQLt.Run_SpyProcedureLog;
+    
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected
+    VALUES('XX');    
+      
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
+END;
+GO
