@@ -7,14 +7,17 @@ CREATE PROCEDURE tSQLt.Private_SetConfiguration
   @Value SQL_VARIANT
 AS
 BEGIN
-  MERGE tSQLt.Private_Configurations WITH(ROWLOCK,UPDLOCK) AS T
-  USING (VALUES(@Name,@Value))AS V(Name,Value)
-     ON T.Name = V.Name
-   WHEN MATCHED THEN UPDATE SET
-     Value = V.Value
-   WHEN NOT MATCHED BY TARGET THEN 
-     INSERT(Name,Value)
-     VALUES(V.Name,V.Value);
+  IF(EXISTS(SELECT 1 FROM tSQLt.Private_Configurations WITH(ROWLOCK,UPDLOCK) WHERE Name = @Name))
+  BEGIN
+    UPDATE tSQLt.Private_Configurations SET
+           Value = @Value
+     WHERE Name = @Name;
+  END;
+  ELSE
+  BEGIN
+     INSERT tSQLt.Private_Configurations(Name,Value)
+     VALUES(@Name,@Value);
+  END;
 END;
 GO
 ---Build-
