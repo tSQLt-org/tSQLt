@@ -4,8 +4,10 @@ IF OBJECT_ID('tSQLt.Private_RunTest') IS NOT NULL DROP PROCEDURE tSQLt.Private_R
 IF OBJECT_ID('tSQLt.Private_RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTestClass;
 IF OBJECT_ID('tSQLt.Private_Run') IS NOT NULL DROP PROCEDURE tSQLt.Private_Run;
 IF OBJECT_ID('tSQLt.Private_RunAll') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunAll;
+IF OBJECT_ID('tSQLt.Private_InputBuffer') IS NOT NULL DROP PROCEDURE tSQLt.Private_InputBuffer;
 IF OBJECT_ID('tSQLt.RunAll') IS NOT NULL DROP PROCEDURE tSQLt.RunAll;
 IF OBJECT_ID('tSQLt.RunTest') IS NOT NULL DROP PROCEDURE tSQLt.RunTest;
+IF OBJECT_ID('tSQLt.RunC') IS NOT NULL DROP PROCEDURE tSQLt.RunC;
 IF OBJECT_ID('tSQLt.Run') IS NOT NULL DROP PROCEDURE tSQLt.Run;
 IF OBJECT_ID('tSQLt.RunWithXmlResults') IS NOT NULL DROP PROCEDURE tSQLt.RunWithXmlResults;
 IF OBJECT_ID('tSQLt.RunWithNullResults') IS NOT NULL DROP PROCEDURE tSQLt.RunWithNullResults;
@@ -49,6 +51,10 @@ BEGIN
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     DECLARE @TestResultId INT;
     DECLARE @PreExecTrancount INT;
+
+    DECLARE @VerboseMsg NVARCHAR(MAX);
+    DECLARE @Verbose BIT;
+    SET @Verbose = ISNULL((SELECT CAST(Value AS BIT) FROM tSQLt.Private_GetConfiguration('Verbose')),0);
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
@@ -69,6 +75,11 @@ BEGIN
         OPTION(MAXDOP 1);
     SELECT @TestResultId = SCOPE_IDENTITY();
 
+    IF(@Verbose = 1)
+    BEGIN
+      SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Starting';
+      EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
+    END;
 
     BEGIN TRAN;
     SAVE TRAN @TranName;
@@ -223,6 +234,13 @@ BEGIN
       
 
     COMMIT;
+
+    IF(@Verbose = 1)
+    BEGIN
+    SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Finished';
+      EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
+    END;
+
 END;
 GO
 
@@ -359,6 +377,29 @@ BEGIN
   SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
   
   EXEC tSQLt.Private_Run @TestName, @TestResultFormatter;
+END;
+GO
+CREATE PROCEDURE tSQLt.Private_InputBuffer
+  @InputBuffer NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+  CREATE TABLE #inputbuffer(EventType SYSNAME, Parameters SMALLINT, EventInfo NVARCHAR(MAX));
+  INSERT INTO #inputbuffer
+  EXEC('DBCC INPUTBUFFER(@@SPID);');
+  SELECT @InputBuffer = I.EventInfo FROM #inputbuffer AS I;
+END;
+GO
+CREATE PROCEDURE tSQLt.RunC
+AS
+BEGIN
+  DECLARE @TestName NVARCHAR(MAX);SET @TestName = NULL;
+  DECLARE @InputBuffer NVARCHAR(MAX);
+  EXEC tSQLt.Private_InputBuffer @InputBuffer = @InputBuffer OUT;
+  IF(@InputBuffer LIKE 'EXEC tSQLt.RunC;--%')
+  BEGIN
+    SET @TestName = LTRIM(RTRIM(STUFF(@InputBuffer,1,18,'')));
+  END;
+  EXEC tSQLt.Run @TestName = @TestName;
 END;
 GO
 

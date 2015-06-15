@@ -94,15 +94,17 @@
  <target name="execute.sql.satement_or_file">
   <choose>
    <when test="${property::exists('db.user')}">
-    <property name="execute.sql.sqlconnect" value="-S ${db.server} -U ${db.user} -P ${db.password}" />
+    <property name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -U&quot;${db.user}&quot; -P&quot;${db.password}&quot;" />
    </when>
    <otherwise>
-    <property name="execute.sql.sqlconnect" value="-S ${db.server} -E" />
+    <property name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -E" />
    </otherwise>
-  </choose> 
+  </choose>
+  <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;temp/temp_executeas.sql&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
+  <echo message="${execute.sql.sqlcmd}" />
   <exec program="cmd" failonerror="true">
    <arg value="/c"/>
-   <arg value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;temp/temp_executeas.sql&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11"/>
+   <arg value="${execute.sql.sqlcmd}"/>
    <arg value=" > &quot;${execute.sql.outputfile}&quot;" if="${execute.sql.outputfile!=''}" />
   </exec>
   <property name="execute.sql.outputfile" value="" />
