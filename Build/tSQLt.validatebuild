@@ -176,7 +176,7 @@
 
  <target name="validate.tSQLt" description="run the tests">
   <property name="execute.sql.outputfile" value="output/TestResults.xml" />
-  <property name="execute.sql.statement" value="EXEC tSQLt.RunAll;" />
+  <property name="execute.sql.statement" value="EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunAll;" />
   <call target="execute.sql.tests" />
  </target>
 
