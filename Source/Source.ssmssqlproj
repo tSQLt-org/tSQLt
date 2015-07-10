@@ -67,6 +67,18 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.AssertEqualsTable.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.AssertEqualsTableSchema.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.AssertEqualsTableSchema.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.AssertEqualsTableSchema.tables.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.AssertEqualsTableSchema.tables.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.AssertLike.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
