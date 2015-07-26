@@ -6,7 +6,9 @@ CREATE TABLE tSQLt.TestResult(
     Name AS (QUOTENAME(Class) + '.' + QUOTENAME(TestCase)),
     TranName NVARCHAR(MAX) NOT NULL,
     Result NVARCHAR(MAX) NULL,
-    Msg NVARCHAR(MAX) NULL
+    Msg NVARCHAR(MAX) NULL,
+    TestStartTime DATETIME NOT NULL CONSTRAINT [DF:TestResult(TestStartTime)] DEFAULT GETDATE(),
+    TestEndTime DATETIME NULL
 );
 GO
 CREATE TABLE tSQLt.TestMessage(

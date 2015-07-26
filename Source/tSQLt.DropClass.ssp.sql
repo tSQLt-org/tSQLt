@@ -19,6 +19,12 @@ BEGIN
              FROM sys.types AS T
             WHERE T.schema_id = SCHEMA_ID(@ClassName)
          ),
+         XMLSchemaInfo(name) AS
+         (
+           SELECT QUOTENAME(SCHEMA_NAME(XSC.schema_id))+'.'+QUOTENAME(XSC.name)
+             FROM sys.xml_schema_collections AS XSC
+            WHERE XSC.schema_id = SCHEMA_ID(@ClassName)
+         ),
          DropStatements(no,cmd) AS
          (
            SELECT 10,
@@ -41,6 +47,12 @@ BEGIN
                    name + 
                    ';'
               FROM TypeInfo
+             UNION ALL
+           SELECT 30,
+                  'DROP XML SCHEMA COLLECTION ' +
+                   name + 
+                   ';'
+              FROM XMLSchemaInfo
              UNION ALL
             SELECT 10000,'DROP SCHEMA ' + QUOTENAME(name) +';'
               FROM sys.schemas

@@ -89,9 +89,11 @@ BEGIN
     TRUNCATE TABLE tSQLt.TestMessage;
 
     DECLARE @TmpMsg NVARCHAR(MAX);
+    DECLARE @TestEndTime DATETIME; SET @TestEndTime = NULL;
     BEGIN TRY
         IF (@SetUp IS NOT NULL) EXEC @SetUp;
         EXEC (@Cmd);
+        SET @TestEndTime = GETDATE();
         IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
         BEGIN
           SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
@@ -99,6 +101,7 @@ BEGIN
         END
     END TRY
     BEGIN CATCH
+        SET @TestEndTime = ISNULL(@TestEndTime,GETDATE());
         IF ERROR_MESSAGE() LIKE '%tSQLt.Failure%'
         BEGIN
             SELECT @Msg = Msg FROM tSQLt.TestMessage;
@@ -219,7 +222,8 @@ BEGIN
     BEGIN
         UPDATE tSQLt.TestResult SET
             Result = @Result,
-            Msg = @Msg
+            Msg = @Msg,
+            TestEndTime = @TestEndTime
          WHERE Id = @TestResultId;
     END
     ELSE
@@ -430,11 +434,12 @@ BEGIN
     DECLARE @SuccessCnt INT;
     DECLARE @Severity INT;
     
-    SELECT ROW_NUMBER() OVER(ORDER BY Result DESC, Name ASC) No,Name [Test Case Name], Result
-      INTO #Tmp
+    SELECT ROW_NUMBER() OVER(ORDER BY Result DESC, Name ASC) No,Name [Test Case Name],
+           RIGHT(SPACE(7)+CAST(DATEDIFF(MILLISECOND,TestStartTime,TestEndTime) AS VARCHAR(7)),7) AS [Dur(ms)], Result
+      INTO #TestResultOutput
       FROM tSQLt.TestResult;
     
-    EXEC tSQLt.TableToText @Msg1 OUTPUT, '#Tmp', 'No';
+    EXEC tSQLt.TableToText @Msg1 OUTPUT, '#TestResultOutput', 'No';
 
     SELECT @Msg3 = Msg, 
            @IsSuccess = 1 - SIGN(FailCnt + ErrorCnt),
@@ -465,56 +470,206 @@ BEGIN
     DECLARE @XmlOutput XML;
 
     SELECT @XmlOutput = (
-      SELECT Tag, Parent, [testsuites!1!hide!hide], [testsuite!2!name], [testsuite!2!tests], [testsuite!2!errors], [testsuite!2!failures], [testcase!3!classname], [testcase!3!name], [failure!4!message]  FROM (
-        SELECT 1 AS Tag,
-               NULL AS Parent,
-               'root' AS [testsuites!1!hide!hide],
-               NULL AS [testsuite!2!name],
-               NULL AS [testsuite!2!tests],
-               NULL AS [testsuite!2!errors],
-               NULL AS [testsuite!2!failures],
-               NULL AS [testcase!3!classname],
-               NULL AS [testcase!3!name],
-               NULL AS [failure!4!message]
-        UNION ALL
-        SELECT 2 AS Tag, 
-               1 AS Parent,
-               'root',
-               Class AS [testsuite!2!name],
-               COUNT(1) AS [testsuite!2!tests],
-               SUM(CASE Result WHEN 'Error' THEN 1 ELSE 0 END) AS [testsuite!2!errors],
-               SUM(CASE Result WHEN 'Failure' THEN 1 ELSE 0 END) AS [testsuite!2!failures],
-               NULL AS [testcase!3!classname],
-               NULL AS [testcase!3!name],
-               NULL AS [failure!4!message]
-          FROM tSQLt.TestResult
-        GROUP BY Class
-        UNION ALL
-        SELECT 3 AS Tag,
-               2 AS Parent,
-               'root',
-               Class,
-               NULL,
-               NULL,
-               NULL,
-               Class,
-               TestCase,
-               NULL
-          FROM tSQLt.TestResult
-        UNION ALL
-        SELECT 4 AS Tag,
-               3 AS Parent,
-               'root',
-               Class,
-               NULL,
-               NULL,
-               NULL,
-               Class,
-               TestCase,
-               Msg
-          FROM tSQLt.TestResult
-         WHERE Result IN ('Failure', 'Error')) AS X
-       ORDER BY [testsuite!2!name], [testcase!3!name], Tag
+      SELECT *--Tag, Parent, [testsuites!1!hide!hide], [testsuite!2!name], [testsuite!2!tests], [testsuite!2!errors], [testsuite!2!failures], [testsuite!2!timestamp], [testsuite!2!time], [testcase!3!classname], [testcase!3!name], [testcase!3!time], [failure!4!message]  
+        FROM (
+          SELECT 1 AS Tag,
+                 NULL AS Parent,
+                 'root' AS [testsuites!1!hide!hide],
+                 NULL AS [testsuite!2!id],
+                 NULL AS [testsuite!2!name],
+                 NULL AS [testsuite!2!tests],
+                 NULL AS [testsuite!2!errors],
+                 NULL AS [testsuite!2!failures],
+                 NULL AS [testsuite!2!timestamp],
+                 NULL AS [testsuite!2!time],
+                 NULL AS [testsuite!2!hostname],
+                 NULL AS [testsuite!2!package],
+                 NULL AS [properties!3!hide!hide],
+                 NULL AS [testcase!4!classname],
+                 NULL AS [testcase!4!name],
+                 NULL AS [testcase!4!time],
+                 NULL AS [failure!5!message],
+                 NULL AS [failure!5!type],
+                 NULL AS [error!6!message],
+                 NULL AS [error!6!type],
+                 NULL AS [system-out!7!hide],
+                 NULL AS [system-err!8!hide]
+          UNION ALL
+          SELECT 2 AS Tag, 
+                 1 AS Parent,
+                 'root',
+                 ROW_NUMBER()OVER(ORDER BY MIN(Id)),
+                 Class,
+                 COUNT(1),
+                 SUM(CASE Result WHEN 'Error' THEN 1 ELSE 0 END),
+                 SUM(CASE Result WHEN 'Failure' THEN 1 ELSE 0 END),
+                 CONVERT(VARCHAR(19),MIN(TestResult.TestStartTime),126),
+                 CAST(CAST(DATEDIFF(MILLISECOND,MIN(TestResult.TestStartTime),MAX(TestResult.TestEndTime))/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
+                 CAST(SERVERPROPERTY('ServerName') AS NVARCHAR(MAX)),
+                 'tSQLt',
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+          GROUP BY Class
+          UNION ALL
+          SELECT 3 AS Tag,
+                 2 AS Parent,
+                 'root',
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+           GROUP BY Class
+          UNION ALL
+          SELECT 4 AS Tag,
+                 2 AS Parent,
+                 'root',
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 Class,
+                 TestCase,
+                 CAST(CAST(DATEDIFF(MILLISECOND,TestResult.TestStartTime,TestResult.TestEndTime)/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+          UNION ALL
+          SELECT 5 AS Tag,
+                 4 AS Parent,
+                 'root',
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 Class,
+                 TestCase,
+                 CAST(CAST(DATEDIFF(MILLISECOND,TestResult.TestStartTime,TestResult.TestEndTime)/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
+                 Msg,
+                 'tSQLt.Fail',
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+           WHERE Result IN ('Failure')
+          UNION ALL
+          SELECT 6 AS Tag,
+                 4 AS Parent,
+                 'root',
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 Class,
+                 TestCase,
+                 CAST(CAST(DATEDIFF(MILLISECOND,TestResult.TestStartTime,TestResult.TestEndTime)/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
+                 NULL,
+                 NULL,
+                 Msg,
+                 'SQL Error',
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+           WHERE Result IN ( 'Error')
+          UNION ALL
+          SELECT 7 AS Tag,
+                 2 AS Parent,
+                 'root',
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+           GROUP BY Class
+          UNION ALL
+          SELECT 8 AS Tag,
+                 2 AS Parent,
+                 'root',
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+           GROUP BY Class
+        ) AS X
+       ORDER BY [testsuite!2!name],CASE WHEN Tag IN (7,8) THEN 1 ELSE 0 END, [testcase!4!name], Tag
        FOR XML EXPLICIT
        );
 

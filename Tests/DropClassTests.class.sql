@@ -58,5 +58,23 @@ BEGIN
     END
 END;
 GO
+CREATE PROC DropClassTests.[test removes XML Schemata]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE XML SCHEMA COLLECTION MyTestClass.TestXMLSchema
+    AS''<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"><xsd:element name="testelement" /></xsd:schema>'';');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
 
 
