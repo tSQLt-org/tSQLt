@@ -3,6 +3,18 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="Dev_2005:MacWin7A\meinse00">
+          <Created>2015-07-26T23:07:57.2567069-04:00</Created>
+          <Type>SQL</Type>
+          <Server>Dev_2005</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>tempdb</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="Dev_tSQLt:MacWin7A\meinse00">
           <Created>2014-07-30T13:44:05.3611369-04:00</Created>
           <Type>SQL</Type>
@@ -354,6 +366,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_SysIndexes.svw.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_SysTypes.svw.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_SysTypes.svw.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_ValidateFakeTableParameters.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

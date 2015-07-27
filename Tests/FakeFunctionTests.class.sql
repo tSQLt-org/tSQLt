@@ -22,7 +22,7 @@ BEGIN
   
   EXEC tSQLt.RemoveObject @ObjectName = 'tSQLt.Private_GetFullTypeName';
   EXEC('CREATE FUNCTION tSQLt.Private_GetFullTypeName(@TypeId INT, @Length INT, @Precision INT, @Scale INT, @CollationName NVARCHAR(MAX))'+
-       ' RETURNS TABLE AS RETURN SELECT ''NUMERIC(25,7)'' AS TypeName WHERE @TypeId = 108 AND @Length = 17 AND @Precision = 30 AND @Scale = 2;');
+       ' RETURNS TABLE AS RETURN SELECT ''NUMERIC(25,7)'' AS TypeName, 0 AS IsTableType WHERE @TypeId = 108 AND @Length = 17 AND @Precision = 30 AND @Scale = 2;');
   
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.Fake';
 
@@ -52,9 +52,9 @@ BEGIN
   EXEC tSQLt.RemoveObject @ObjectName = 'tSQLt.Private_GetFullTypeName';
   EXEC('CREATE FUNCTION tSQLt.Private_GetFullTypeName(@TypeId INT, @Length INT, @Precision INT, @Scale INT, @CollationName NVARCHAR(MAX))'+
        ' RETURNS TABLE AS RETURN '+
-       'SELECT ''NUMERIC(25,7)'' AS TypeName WHERE @TypeId = 108 AND @Precision = 10 AND @Scale = 1'+
+       'SELECT ''NUMERIC(25,7)'' AS TypeName, 0 AS IsTableType WHERE @TypeId = 108 AND @Precision = 10 AND @Scale = 1'+
        ' UNION ALL '+
-       'SELECT ''VARCHAR(19)'' AS TypeName WHERE @TypeId = 231 AND @Length = -1 ;'
+       'SELECT ''VARCHAR(19)'' AS TypeName, 0 AS IsTableType WHERE @TypeId = 231 AND @Length = -1 ;'
        );
   
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.Fake';
@@ -421,4 +421,5 @@ BEGIN
 
   EXEC FakeFunctionTests.[assert parameter missmatch causes error];
 END;
+GO
 
