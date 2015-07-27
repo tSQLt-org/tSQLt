@@ -58,7 +58,7 @@ BEGIN
    SELECT '<',1;
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -80,7 +80,7 @@ BEGIN
    SELECT '>',1;
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -107,7 +107,7 @@ BEGIN
    SELECT '>',42;
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -166,7 +166,7 @@ BEGIN
    
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -236,7 +236,7 @@ BEGIN
    
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -261,7 +261,7 @@ BEGIN
    
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -286,7 +286,7 @@ BEGIN
    
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -345,7 +345,7 @@ BEGIN
    
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -389,7 +389,7 @@ BEGIN
    
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -452,7 +452,7 @@ BEGIN
    
    DECLARE @ExpectedMessage NVARCHAR(MAX);
    EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Unexpected/missing resultset rows!'+CHAR(13)+CHAR(10)+@ExpectedMessage;
 
    EXEC tSQLt_testutil.AssertFailMessageEquals 
      'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'';',
@@ -624,11 +624,10 @@ BEGIN
    INSERT INTO AssertEqualsTableTests.ResultTable ([_m_],i)
    SELECT '<',1;
    DECLARE @ExpectedMessage NVARCHAR(MAX);
-   EXEC tSQLt.TableToText @TableName = 'AssertEqualsTableTests.ResultTable', @OrderBy = '_m_',@txt = @ExpectedMessage OUTPUT;
-   SET @ExpectedMessage = 'Custom failure message'+CHAR(13)+CHAR(10)+@ExpectedMessage;
+   SET @ExpectedMessage = 'Custom failure message'+CHAR(13)+CHAR(10)+'Unexpected%';
 
-   EXEC tSQLt_testutil.AssertFailMessageEquals 
-     'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'', ''Custom failure message'';',
+   EXEC tSQLt_testutil.AssertFailMessageLike 
+     'EXEC tSQLt.AssertEqualsTable ''AssertEqualsTableTests.LeftTable'', ''AssertEqualsTableTests.RightTable'', @Message = ''Custom failure message'';',
      @ExpectedMessage,
      'Fail was not called with expected message:';
    

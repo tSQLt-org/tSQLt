@@ -226,6 +226,38 @@ BEGIN
   EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertEqualsTableSchema did not call Fail';
 END;
 GO
+CREATE PROCEDURE AssertEqualsTableSchemaTests.[test fail message starts with "Unexpected/missing columns\n"]
+AS
+BEGIN
+  CREATE TABLE AssertEqualsTableSchemaTests.Tbl1(
+    Id INT PRIMARY KEY,
+    NoKey INT NULL
+  );
+  CREATE TABLE AssertEqualsTableSchemaTests.Tbl2(
+    Id INT PRIMARY KEY,
+    NoKey BIGINT NULL
+  );
+  DECLARE @Command VARCHAR(MAX); SET @Command = 'EXEC tSQLt.AssertEqualsTableSchema @Expected = ''AssertEqualsTableSchemaTests.Tbl1'', @Actual = ''AssertEqualsTableSchemaTests.Tbl2'';';
+  DECLARE @Expected NVARCHAR(MAX); SET @Expected = 'Unexpected/missing column(s)'+CHAR(13)+CHAR(10)+'%';
+  EXEC tSQLt_testutil.AssertFailMessageLike @Command, @Expected;
+END;
+GO
+CREATE PROCEDURE AssertEqualsTableSchemaTests.[test fail message is prefixed with supplied message]
+AS
+BEGIN
+  CREATE TABLE AssertEqualsTableSchemaTests.Tbl1(
+    Id INT PRIMARY KEY,
+    NoKey INT NULL
+  );
+  CREATE TABLE AssertEqualsTableSchemaTests.Tbl2(
+    Id INT PRIMARY KEY,
+    NoKey BIGINT NULL
+  );
+  DECLARE @Command VARCHAR(MAX); SET @Command = 'EXEC tSQLt.AssertEqualsTableSchema @Expected = ''AssertEqualsTableSchemaTests.Tbl1'', @Actual = ''AssertEqualsTableSchemaTests.Tbl2'', @Message=''{supplied message}'';';
+  DECLARE @Expected NVARCHAR(MAX); SET @Expected = '{supplied message}%Unexpected%';
+  EXEC tSQLt_testutil.AssertFailMessageLike @Command, @Expected;
+END;
+GO
 
 /*
 SELECT 

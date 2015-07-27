@@ -4,7 +4,8 @@ GO
 CREATE PROCEDURE tSQLt.AssertEqualsTable
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),
-    @FailMsg NVARCHAR(MAX) = 'unexpected/missing resultset rows!'
+    @Message NVARCHAR(MAX) = NULL,
+    @FailMsg NVARCHAR(MAX) = 'Unexpected/missing resultset rows!'
 AS
 BEGIN
 
@@ -15,6 +16,7 @@ BEGIN
     DECLARE @ResultColumn NVARCHAR(MAX);    
     DECLARE @ColumnList NVARCHAR(MAX);    
     DECLARE @UnequalRowsExist INT;
+    DECLARE @CombinedMessage NVARCHAR(MAX);
 
     SELECT @ResultTable = tSQLt.Private::CreateUniqueObjectName();
     SELECT @ResultColumn = 'RC_' + @ResultTable;
@@ -35,12 +37,13 @@ BEGIN
       @ColumnList = @ColumnList,
       @MatchIndicatorColumnName = @ResultColumn;
         
+    SET @CombinedMessage = ISNULL(@Message + CHAR(13) + CHAR(10),'') + @FailMsg;
     EXEC tSQLt.Private_CompareTablesFailIfUnequalRowsExists 
       @UnequalRowsExist = @UnequalRowsExist,
       @ResultTable = @ResultTable,
       @ResultColumn = @ResultColumn,
       @ColumnList = @ColumnList,
-      @FailMsg = @FailMsg;   
+      @FailMsg = @CombinedMessage;   
 END;
 ---Build-
 GO
