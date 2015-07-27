@@ -17,7 +17,7 @@ BEGIN
      
   DECLARE @ParameterList NVARCHAR(MAX);
   SELECT @ParameterList = COALESCE(
-     STUFF((SELECT ','+P.name+' '+TypeName
+     STUFF((SELECT ','+P.name+' '+T.TypeName+CASE WHEN T.IsTableType = 1 THEN ' READONLY' ELSE '' END
               FROM sys.parameters AS P
              CROSS APPLY tSQLt.Private_GetFullTypeName(P.user_type_id,P.max_length,P.precision,P.scale,NULL) AS T
              WHERE P.object_id = @FunctionObjectId

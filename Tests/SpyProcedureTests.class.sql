@@ -8,7 +8,8 @@ BEGIN
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
-    EXEC dbo.InnerProcedure;
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure;
 
 END;
 GO
@@ -21,7 +22,8 @@ BEGIN
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
-    EXEC dbo.InnerProcedure 'with a parameter';
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure 'with a parameter';
 
 END;
 GO
@@ -35,7 +37,8 @@ BEGIN
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
-    EXEC dbo.InnerProcedure 'with', 'multiple', 'parameters';
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure 'with', 'multiple', 'parameters';
 
 END;
 GO
@@ -49,7 +52,8 @@ BEGIN
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
-    EXEC dbo.InnerProcedure 'with', 'multiple', 'parameters';
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure 'with', 'multiple', 'parameters';
 
     IF NOT EXISTS(SELECT 1 FROM dbo.InnerProcedure_SpyProcedureLog)
     BEGIN
@@ -68,7 +72,8 @@ BEGIN
 
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
-    EXEC dbo.InnerProcedure 'with', 'multiple', 'parameters';
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure 'with', 'multiple', 'parameters';
 
 
     IF NOT EXISTS(SELECT 1
@@ -91,7 +96,8 @@ BEGIN
 
   EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
-  EXEC dbo.InnerProcedure NULL;
+  DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure NULL;
 
   SELECT P1
     INTO #Actual
@@ -117,7 +123,8 @@ BEGIN
 
   EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
 
-  EXEC dbo.InnerProcedure NULL;
+  DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+  EXEC @InnerProcedure NULL;
 
   SELECT P1
     INTO #Actual
@@ -142,7 +149,8 @@ BEGIN
     
     DECLARE @ActualOutputValue VARCHAR(100);
     
-    EXEC dbo.InnerProcedure @P1 = @ActualOutputValue OUT;
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure @P1 = @ActualOutputValue OUT;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
@@ -163,7 +171,8 @@ BEGIN
     DECLARE @ActualOutputValue VARCHAR(100);
     SET @ActualOutputValue = 'HELLO';
     
-    EXEC dbo.InnerProcedure @P1 = @ActualOutputValue OUT;
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure @P1 = @ActualOutputValue OUT;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
@@ -181,7 +190,8 @@ BEGIN
     
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
-    EXEC dbo.InnerProcedure @P1 = 'PARAM1', @P2 = 2, @P3 = 0;
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure @P1 = 'PARAM1', @P2 = 2, @P3 = 0;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
@@ -201,7 +211,8 @@ BEGIN
     
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
-    EXEC dbo.InnerProcedure;
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure;
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog
@@ -220,7 +231,8 @@ BEGIN
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure', 'RETURN 1';
     
     DECLARE @ReturnVal INT;
-    EXEC @ReturnVal = dbo.InnerProcedure;
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @ReturnVal = @InnerProcedure;
     
     IF NOT EXISTS(SELECT 1 FROM dbo.InnerProcedure_SpyProcedureLog)
     BEGIN
@@ -240,7 +252,8 @@ BEGIN
     
     DECLARE @ActualOutputValue VARCHAR(100);
     
-    EXEC dbo.InnerProcedure @P1 = @ActualOutputValue OUT;
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure @P1 = @ActualOutputValue OUT;
     
     EXEC tSQLt.AssertEqualsString 'HELLO', @ActualOutputValue;
     
@@ -261,7 +274,8 @@ BEGIN
     EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure';
     
     DECLARE @OutputCursor CURSOR;
-    EXEC dbo.InnerProcedure @P1 = @OutputCursor OUTPUT; 
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'dbo.InnerProcedure'
+    EXEC @InnerProcedure @P1 = @OutputCursor OUTPUT; 
     
     IF NOT EXISTS(SELECT 1
                     FROM dbo.InnerProcedure_SpyProcedureLog)
@@ -319,7 +333,8 @@ BEGIN
 
     EXEC tSQLt.SpyProcedure 'SpyProcedureTests.[Spyee Proc]';
     
-    EXEC SpyProcedureTests.[Spyee Proc];
+    DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'SpyProcedureTests.[Spyee Proc]'
+    EXEC @InnerProcedure;
     
     SELECT *
       INTO #Actual
@@ -355,3 +370,4 @@ BEGIN
     EXEC tSQLt.AssertEqualsString 'Intentional Error', @ErrorRaised;
 END;
 GO
+

@@ -25,6 +25,12 @@
           <AssociatedConnUserName />
           <FullPath>AssertEqualsTableTests_2008.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="FakeFunctionTests_2008.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>FakeFunctionTests_2008.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_GetFullTypeNameTests_2008.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -60,6 +66,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Run_Methods_Tests_2008.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SpyProcedureTests_2008.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SpyProcedureTests_2008.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_ResultSetFilter_2008.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

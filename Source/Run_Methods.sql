@@ -498,7 +498,7 @@ BEGIN
           SELECT 2 AS Tag, 
                  1 AS Parent,
                  'root',
-                 ROW_NUMBER()OVER(ORDER BY MIN(Id)),
+                 ROW_NUMBER()OVER(ORDER BY Class),
                  Class,
                  COUNT(1),
                  SUM(CASE Result WHEN 'Error' THEN 1 ELSE 0 END),
