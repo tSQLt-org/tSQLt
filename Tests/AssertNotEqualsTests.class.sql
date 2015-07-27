@@ -49,6 +49,12 @@ BEGIN
     EXEC tSQLt_testutil.AssertFailMessageLike 'EXEC tSQLt.AssertNotEquals 1, 1,''{MyMessage}'';', '%{MyMessage}%';
 END;
 GO
+CREATE PROC AssertNotEqualsTests.[test AssertNotEquals should pass supplied message before original failure message when calling fail]
+AS
+BEGIN
+    EXEC tSQLt_testutil.AssertFailMessageLike 'EXEC tSQLt.AssertNotEquals 123654, 123654,''{MyMessage}'';', '%{MyMessage}%123654%';
+END;
+GO
 
 CREATE PROC AssertNotEqualsTests.[test AssertNotEquals passes with various values of different datatypes]
 AS

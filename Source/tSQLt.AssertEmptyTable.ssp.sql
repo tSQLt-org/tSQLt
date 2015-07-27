@@ -2,7 +2,8 @@ IF OBJECT_ID('tSQLt.AssertEmptyTable') IS NOT NULL DROP PROCEDURE tSQLt.AssertEm
 GO
 ---Build+
 CREATE PROCEDURE tSQLt.AssertEmptyTable
-  @TableName NVARCHAR(MAX)
+  @TableName NVARCHAR(MAX),
+  @Message NVARCHAR(MAX) = NULL
 AS
 BEGIN
   EXEC tSQLt.AssertObjectExists @TableName;
@@ -26,8 +27,8 @@ BEGIN
   BEGIN
     DECLARE @TableToText NVARCHAR(MAX);
     EXEC tSQLt.TableToText @TableName = @FullName,@txt = @TableToText OUTPUT;
-    DECLARE @Message NVARCHAR(MAX);
-    SET @Message = @FullName + ' was not empty:' + CHAR(13) + CHAR(10)+ @TableToText;
-    EXEC tSQLt.Fail @Message;
+    DECLARE @Msg NVARCHAR(MAX);
+    SET @Msg = @FullName + ' was not empty:' + CHAR(13) + CHAR(10)+ @TableToText;
+    EXEC tSQLt.Fail @Message,@Msg;
   END
 END

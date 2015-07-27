@@ -3,7 +3,7 @@ GO
 CREATE PROCEDURE tSQLt.AssertEqualsTableSchema
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),
-    @FailMsg NVARCHAR(MAX) = 'unexpected/missing resultset rows!'
+    @Message NVARCHAR(MAX) = NULL
 AS
 BEGIN
   INSERT INTO tSQLt.Private_AssertEqualsTableSchema_Expected(column_id,name,system_type_id,user_type_id,max_length,precision,scale,collation_name,is_nullable)
@@ -40,6 +40,7 @@ BEGIN
     JOIN sys.types AS TU
       ON C.user_type_id = TU.user_type_id
    WHERE C.object_id = OBJECT_ID(@Actual);
-  EXEC tSQLt.AssertEqualsTable 'tSQLt.Private_AssertEqualsTableSchema_Expected','tSQLt.Private_AssertEqualsTableSchema_Actual';  
+  
+  EXEC tSQLt.AssertEqualsTable 'tSQLt.Private_AssertEqualsTableSchema_Expected','tSQLt.Private_AssertEqualsTableSchema_Actual',@Message=@Message,@FailMsg='Unexpected/missing column(s)';  
 END;
 GO
