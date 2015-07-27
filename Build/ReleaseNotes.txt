@@ -4,7 +4,76 @@ An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
 
+---------------------------
 Release: VLATEST-BUILD-NUMBER
+
+BUG FIXES:
+1. The XML output now validates against the JUnit test result XML schema at 
+   https://raw.githubusercontent.com/windyroad/JUnit-Schema/master/JUnit.xsd
+   While there is no "official" JUnit schema, the above is the one that is
+   referenced most often online.
+
+2. tSQLt.DropClass now handles XML schemata correctly.
+
+3. All tSQLt assertions can now be called with a @Message parameter. In case of a
+   failure, the value of that parameter will be output before the default failure
+   message. 
+   For backward compatibility, tSQLt.AssertEqualsTable still has a @FailMsg 
+   parameter. Its use is now deprecated.
+
+NEW FEATURES:
+1. tSQLt.Info() now returns the version and build of the SQL Server Instance it is installed on:
+
+   SELECT * FROM tSQLt.Info() AS I;
+
+   Version        ClrVersion     SqlVersion SqlBuild
+   -------------- -------------- ---------- --------
+   1.0.5479.30419 1.0.5479.30419      12.00  4213.00
+
+2. Verbose execution mode
+   Executing EXEC tSQLt.SetVerbose @Verbose = 1; before running the tests will cause
+   tSQLt to output the test name at the beginning and the end of each test's execution.
+   That makes it easier in large test suites to find the output of a particular test.
+
+3. tSQLt.RunC
+   The new procedure tSQLt.RunC behaves identical to tSQLt.Run. However, instead of
+   expecting the test (class) name in a parameter, it parses the INPUTBUFFER and
+   extracts the name from a specially formed comment:
+   
+   EXEC tSQLt.RunC;--Run_Methods_Tests.[test tSQLt.RunC calls tSQLt.Run with everything after ;-- as @TestName]
+   
+   This makes for a more powerful SQL Query shortcut in SSMS as test names now do not have to be quoted anymore.
+   
+4. tSQLt.AssertEqualsTableSchema
+   tSQLt.AssertEqualsTableSchema is called like tSQLt.AssertEqualsTable. Instead of 
+   the table contents, it compares the columns including name, datatype, collation, 
+   NULL-ability and identity property.
+
+5. The test runner now captures start and end time for each test. This information
+   is included in the XML output. The default output contains the execution duration
+   for each test.
+
+6. Both tSQLt.SpyProcedure and tSQLt.FakeFunction now handle table type parameters.
+   The content of a table type parameter in a spied procedure is converted into
+   XML and included in the _SpyProcedureLog table.
+
+OTHER:
+
+1. Farewell Sourceforge
+   Because of several issues over the last months and because of even more complaints
+   about Sourceforge's business practices by tSQLt users, we decided to find a more appropriate space.
+   The official downloads are now available directly on tSQLt.org. The source code 
+   repository will find its new home either on github or bitbucket over the next few days.
+
+2. The fail message of tSQLt.AssertEqualsString is now broken into two lines
+   with aligned string values for easier comparison.
+
+3. The installation script now prints a welcome message.
+
+
+
+---------------------------
+Release: V1.0.5325.27056
 
 BUG FIXES:
 1. FakeTable now handles CHAR UDTs
