@@ -1,0 +1,2 @@
+Starting August 2015, all tSQLt downloads will be available directly at tSQLt.org
+Please go there for the latest version.
