@@ -9,7 +9,7 @@
 
  <target
    name="all"
-   depends="package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests"
+   depends="package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests, teamcity"
    />
 
  <target
@@ -27,13 +27,13 @@
    depends="init, init.SQLPromptSnippets, package.SQLPromptSnippets.copy, package.SQLPromptSnippets.create.artifacts"
    />
 
- <target name="init" description="prepare output directory">
-  <mkdir dir="output" unless="${directory::exists('output')}"/>
- </target>
-
  <!--=======================================================================-->
  <!--========                 Misc                                 =========-->
  <!--=======================================================================-->
+
+ <target name="init" description="prepare output directory">
+  <mkdir dir="output" unless="${directory::exists('output')}"/>
+ </target>
 
  <target name="teamcity" description="misc teamcity tasks">
   <echo message="##teamcity[buildNumber 'V${clr.version}']" />
