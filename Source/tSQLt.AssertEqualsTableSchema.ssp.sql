@@ -6,9 +6,9 @@ CREATE PROCEDURE tSQLt.AssertEqualsTableSchema
     @Message NVARCHAR(MAX) = NULL
 AS
 BEGIN
-  INSERT INTO tSQLt.Private_AssertEqualsTableSchema_Expected(column_id,name,system_type_id,user_type_id,max_length,precision,scale,collation_name,is_nullable)
+  INSERT INTO tSQLt.Private_AssertEqualsTableSchema_Expected([RANK(column_id)],name,system_type_id,user_type_id,max_length,precision,scale,collation_name,is_nullable)
   SELECT 
-      C.column_id,
+      RANK()OVER(ORDER BY C.column_id),
       C.name,
       CAST(C.system_type_id AS NVARCHAR(MAX))+QUOTENAME(TS.name) system_type_id,
       CAST(C.user_type_id AS NVARCHAR(MAX))+CASE WHEN TU.system_type_id<> TU.user_type_id THEN QUOTENAME(SCHEMA_NAME(TU.schema_id))+'.' ELSE '' END + QUOTENAME(TU.name) user_type_id,
@@ -23,9 +23,9 @@ BEGIN
     JOIN sys.types AS TU
       ON C.user_type_id = TU.user_type_id
    WHERE C.object_id = OBJECT_ID(@Expected);
-  INSERT INTO tSQLt.Private_AssertEqualsTableSchema_Actual(column_id,name,system_type_id,user_type_id,max_length,precision,scale,collation_name,is_nullable)
+  INSERT INTO tSQLt.Private_AssertEqualsTableSchema_Actual([RANK(column_id)],name,system_type_id,user_type_id,max_length,precision,scale,collation_name,is_nullable)
   SELECT 
-      C.column_id,
+      RANK()OVER(ORDER BY C.column_id),
       C.name,
       CAST(C.system_type_id AS NVARCHAR(MAX))+QUOTENAME(TS.name) system_type_id,
       CAST(C.user_type_id AS NVARCHAR(MAX))+CASE WHEN TU.system_type_id<> TU.user_type_id THEN QUOTENAME(SCHEMA_NAME(TU.schema_id))+'.' ELSE '' END + QUOTENAME(TU.name) user_type_id,

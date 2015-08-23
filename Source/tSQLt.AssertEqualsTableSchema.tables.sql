@@ -6,7 +6,7 @@ GO
 CREATE TABLE [tSQLt].[Private_AssertEqualsTableSchema_Actual]
 (
   name NVARCHAR(256) NULL,
-  column_id INT NULL,
+  [RANK(column_id)] INT NULL,
   system_type_id NVARCHAR(MAX) NULL,
   user_type_id NVARCHAR(MAX) NULL,
   max_length SMALLINT NULL,

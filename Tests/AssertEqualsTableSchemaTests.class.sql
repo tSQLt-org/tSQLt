@@ -258,6 +258,36 @@ BEGIN
   EXEC tSQLt_testutil.AssertFailMessageLike @Command, @Expected;
 END;
 GO
+CREATE PROCEDURE AssertEqualsTableSchemaTests.[test handles non-sequential column_id values]
+AS
+BEGIN
+  CREATE TABLE AssertEqualsTableSchemaTests.Tbl1(
+    Id INT PRIMARY KEY,
+    Col1 INT NULL, --2
+    Gap1 INT NULL,
+    Col2 INT NULL, --4
+    Col3 INT NULL, --5
+    Gap2 INT NULL,
+    Gap3 INT NULL,
+    Col4 INT NULL, --8
+  );
+  CREATE TABLE AssertEqualsTableSchemaTests.Tbl2(
+    Id INT PRIMARY KEY,
+    Col1 INT NULL, --2
+    Col2 INT NULL, --3
+    Gap1 INT NULL,
+    Gap2 INT NULL,
+    Col3 INT NULL, --6
+    Col4 INT NULL, --7
+  );
+  ALTER TABLE AssertEqualsTableSchemaTests.Tbl1 DROP COLUMN Gap1;
+  ALTER TABLE AssertEqualsTableSchemaTests.Tbl1 DROP COLUMN Gap2;
+  ALTER TABLE AssertEqualsTableSchemaTests.Tbl1 DROP COLUMN Gap3;
+  ALTER TABLE AssertEqualsTableSchemaTests.Tbl2 DROP COLUMN Gap1;
+  ALTER TABLE AssertEqualsTableSchemaTests.Tbl2 DROP COLUMN Gap2;
+  EXEC tSQLt.AssertEqualsTableSchema @Expected = 'AssertEqualsTableSchemaTests.Tbl1', @Actual = 'AssertEqualsTableSchemaTests.Tbl2';
+END;
+GO
 
 /*
 SELECT 
