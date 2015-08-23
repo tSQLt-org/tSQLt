@@ -158,6 +158,7 @@
 
 
  <target name="deploy.tSQLt" description="execute create scripts">
+  <echo message="##teamcity[progressMessage 'Deploying tSQLt']" />
   <property name="execute.sql.outputfile" value="" />
   <property name="execute.sql.database" value="tempdb" />
   <property name="execute.sql.filename" value="temp/temp_create_db.sql" />
@@ -175,12 +176,14 @@
 
 
  <target name="validate.tSQLt" description="run the tests">
+  <echo message="##teamcity[progressMessage 'Validating tSQLt']" />
   <property name="execute.sql.outputfile" value="output/TestResults.xml" />
   <property name="execute.sql.statement" value="EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunAll;" />
   <call target="execute.sql.tests" />
  </target>
 
  <target name="deploy.Example" description="execute create scripts">
+  <echo message="##teamcity[progressMessage 'Deploying Example']" />
   <property name="execute.sql.outputfile" value="" />
   <property name="execute.sql.database" value="tempdb" />
   <property name="execute.sql.filename" value="temp/temp_create_example.sql" />
@@ -188,6 +191,7 @@
  </target>
 
  <target name="validate.Example" description="run the tests">
+  <echo message="##teamcity[progressMessage 'Validating Example']" />
   <property name="execute.sql.database" value="tSQLt_Example" />
   <property name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
   <property name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
