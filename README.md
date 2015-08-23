@@ -1,6 +1,6 @@
 # tSQLt
 
-Download the latest version at [tSQLt.org](http://tsqlt.org/downloads/)
+Download the latest version at [tSQLt.org](http://tsqlt.org/downloads/).
 
 tSQLt is a unit testing framework for Microsoft SQL Server. 
 It is compatible with SQL Server 2005 (service pack 2 required) and above on all editions.
