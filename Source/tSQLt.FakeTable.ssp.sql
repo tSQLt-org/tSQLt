@@ -12,7 +12,7 @@ BEGIN
    DECLARE @OrigSchemaName NVARCHAR(MAX);
    DECLARE @OrigTableName NVARCHAR(MAX);
    DECLARE @NewNameOfOriginalTable NVARCHAR(4000);
-   DECLARE @OrigTableFullName NVARCHAR(MAX) = NULL;
+   DECLARE @OrigTableFullName NVARCHAR(MAX); SET @OrigTableFullName = NULL;
    
    SELECT @OrigSchemaName = @SchemaName,
           @OrigTableName = @TableName
