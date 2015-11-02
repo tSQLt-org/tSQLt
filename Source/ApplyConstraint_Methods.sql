@@ -89,7 +89,8 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.Private_ApplyForeignKeyConstraint 
-  @ConstraintObjectId INT
+  @ConstraintObjectId INT,
+  @NoCascade BIT
 AS
 BEGIN
   DECLARE @SchemaName NVARCHAR(MAX);
@@ -108,7 +109,7 @@ BEGIN
     FROM tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId);
       
   SELECT @CreateFkCmd = cmd, @CreateIndexCmd = CreIdxCmd
-    FROM tSQLt.Private_GetForeignKeyDefinition(@SchemaName, @OrgTableName, @ConstraintName);
+    FROM tSQLt.Private_GetForeignKeyDefinition(@SchemaName, @OrgTableName, @ConstraintName, @NoCascade);
   SELECT @AlterTableCmd = 'ALTER TABLE ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName) + 
                           ' ADD ' + @CreateFkCmd;
   SELECT @FinalCmd = @CreateIndexCmd + @AlterTableCmd;
@@ -158,7 +159,8 @@ GO
 CREATE PROCEDURE tSQLt.ApplyConstraint
        @TableName NVARCHAR(MAX),
        @ConstraintName NVARCHAR(MAX),
-       @SchemaName NVARCHAR(MAX) = NULL --parameter preserved for backward compatibility. Do not use. Will be removed soon.
+       @SchemaName NVARCHAR(MAX) = NULL, --parameter preserved for backward compatibility. Do not use. Will be removed soon.
+       @NoCascade BIT = 0
 AS
 BEGIN
   DECLARE @ConstraintType NVARCHAR(MAX);
@@ -175,7 +177,7 @@ BEGIN
 
   IF @ConstraintType = 'FOREIGN_KEY_CONSTRAINT'
   BEGIN
-    EXEC tSQLt.Private_ApplyForeignKeyConstraint @ConstraintObjectId;
+    EXEC tSQLt.Private_ApplyForeignKeyConstraint @ConstraintObjectId, @NoCascade;
     RETURN 0;
   END;  
    

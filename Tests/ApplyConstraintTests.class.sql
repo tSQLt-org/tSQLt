@@ -427,6 +427,336 @@ BEGIN
 END;
 GO
 
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint Applies existing ON UPDATE CASCADE]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid) ON UPDATE CASCADE);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint1';
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    UPDATE schemaA.tableA SET aid = 142 WHERE aid = 42;
+
+    SELECT B.bid,B.aid
+    INTO #Actual
+    FROM schemaA.tableB AS B;
+    
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected VALUES(1,142);
+    INSERT INTO #Expected VALUES(2,142);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint Applies existing ON UPDATE SET NULL]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid) ON UPDATE SET NULL);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint1';
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    UPDATE schemaA.tableA SET aid = 142 WHERE aid = 42;
+
+    SELECT B.bid,B.aid
+    INTO #Actual
+    FROM schemaA.tableB AS B;
+    
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected VALUES(1,NULL);
+    INSERT INTO #Expected VALUES(2,NULL);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint Applies existing ON UPDATE SET DEFAULT]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int NOT NULL
+             CONSTRAINT testConstraintDC DEFAULT 7 
+             CONSTRAINT testConstraintFC REFERENCES schemaA.tableA(aid) ON UPDATE SET DEFAULT
+           );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB',@Defaults = 1;
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraintFC';
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableA(aid)VALUES(7);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    UPDATE schemaA.tableA SET aid = 13 WHERE aid = 42;
+
+    SELECT B.bid,B.aid
+    INTO #Actual
+    FROM schemaA.tableB AS B;
+    
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected VALUES(1,7);
+    INSERT INTO #Expected VALUES(2,7);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint Applies existing ON DELETE CASCADE]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid) ON DELETE CASCADE);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint1';
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    DELETE FROM schemaA.tableA;
+    EXEC tSQLt.AssertEmptyTable @TableName = 'schemaA.tableB';
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint Applies existing ON DELETE SET NULL]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid) ON DELETE SET NULL);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraint1';
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    DELETE FROM schemaA.tableA;
+
+    SELECT B.bid,B.aid
+    INTO #Actual
+    FROM schemaA.tableB AS B;
+    
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected VALUES(1,NULL);
+    INSERT INTO #Expected VALUES(2,NULL);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint Applies existing ON DELETE SET DEFAULT]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int NOT NULL
+             CONSTRAINT testConstraintDC DEFAULT 7 
+             CONSTRAINT testConstraintFC REFERENCES schemaA.tableA(aid) ON DELETE SET DEFAULT
+           );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB',@Defaults = 1;
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraintFC';
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableA(aid)VALUES(7);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    DELETE FROM schemaA.tableA WHERE aid = 42;
+
+    SELECT B.bid,B.aid
+    INTO #Actual
+    FROM schemaA.tableB AS B;
+    
+    SELECT TOP(0) *
+    INTO #Expected
+    FROM #Actual;
+    
+    INSERT INTO #Expected VALUES(1,7);
+    INSERT INTO #Expected VALUES(2,7);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint Applies existing ON UPDATE and ON DELETE together]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int NOT NULL
+             CONSTRAINT testConstraintDC DEFAULT 7 
+             CONSTRAINT testConstraintFC REFERENCES schemaA.tableA(aid) ON UPDATE SET DEFAULT ON DELETE CASCADE
+           );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB',@Defaults = 1;
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableB', 'testConstraintFC';
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableA(aid)VALUES(7);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    UPDATE schemaA.tableA SET aid = 13 WHERE aid = 42;
+    DELETE FROM schemaA.tableA WHERE aid = 7;
+
+    EXEC tSQLt.AssertEmptyTable @TableName = 'schemaA.tableB';
+
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint doesn't apply existing ON DELETE CASCADE if @NoCascade = 1]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid) ON DELETE CASCADE);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
+
+    EXEC tSQLt.ApplyConstraint @TableName = 'schemaA.tableB', @ConstraintName = 'testConstraint1', @NoCascade = 1;
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%DELETE%testConstraint1%';
+    DELETE FROM schemaA.tableA;
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint doesn't apply existing ON UPDATE CASCADE if @NoCascade = 1]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int CONSTRAINT testConstraint1 REFERENCES schemaA.tableA(aid) ON UPDATE CASCADE);
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB';
+
+    EXEC tSQLt.ApplyConstraint @TableName = 'schemaA.tableB', @ConstraintName = 'testConstraint1', @NoCascade = 1;
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%UPDATE%testConstraint1%';
+    UPDATE schemaA.tableA SET aid = 13 WHERE aid = 42;
+END;
+GO
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint does apply existing ON UPDATE/DELETE CASCADE if @NoCascade = 0]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int NOT NULL
+             CONSTRAINT testConstraintDC DEFAULT 7 
+             CONSTRAINT testConstraintFC REFERENCES schemaA.tableA(aid) ON UPDATE SET DEFAULT ON DELETE CASCADE
+           );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB',@Defaults = 1;
+
+    EXEC tSQLt.ApplyConstraint @TableName = 'schemaA.tableB', @ConstraintName = 'testConstraintFC', @NoCascade = 0;
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableA(aid)VALUES(7);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    UPDATE schemaA.tableA SET aid = 13 WHERE aid = 42;
+    DELETE FROM schemaA.tableA WHERE aid = 7;
+
+    EXEC tSQLt.AssertEmptyTable @TableName = 'schemaA.tableB';
+END;
+GO
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint does apply existing ON UPDATE/DELETE CASCADE if @NoCascade = NULL]
+AS
+BEGIN
+    EXEC ('CREATE SCHEMA schemaA');
+    CREATE TABLE schemaA.tableA (aid int PRIMARY KEY);
+    CREATE TABLE schemaA.tableB (bid INT PRIMARY KEY, 
+           aid int NOT NULL
+             CONSTRAINT testConstraintDC DEFAULT 7 
+             CONSTRAINT testConstraintFC REFERENCES schemaA.tableA(aid) ON UPDATE SET DEFAULT ON DELETE CASCADE
+           );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+    EXEC tSQLt.FakeTable 'schemaA.tableB',@Defaults = 1;
+
+    EXEC tSQLt.ApplyConstraint @TableName = 'schemaA.tableB', @ConstraintName = 'testConstraintFC', @NoCascade = NULL;
+
+    INSERT INTO schemaA.tableA(aid)VALUES(42);
+    INSERT INTO schemaA.tableA(aid)VALUES(7);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(1,42);
+    INSERT INTO schemaA.tableB(bid,aid)VALUES(2,42);
+
+    UPDATE schemaA.tableA SET aid = 13 WHERE aid = 42;
+    DELETE FROM schemaA.tableA WHERE aid = 7;
+
+    EXEC tSQLt.AssertEmptyTable @TableName = 'schemaA.tableB';
+END;
+GO
+
 CREATE PROC ApplyConstraintTests.[test ApplyConstraint for a check constraint can be called with quoted names]
 AS
 BEGIN

@@ -122,3 +122,13 @@ BEGIN
   EXEC tSQLt_testutil.AssertFailMessageLike 'EXEC tSQLt.AssertEmptyTable ''#actual'',@Message = ''{MyMessage}'';', '%{MyMessage}%data1%testdata%';
 END;
 GO
+CREATE PROC AssertEmptyTableTests.[test supplied message defaults to '']
+AS
+BEGIN
+  CREATE TABLE #actual(id INT IDENTITY(1,1),data1 NVARCHAR(MAX));
+  INSERT #actual(data1)
+  VALUES('testdata');
+
+  EXEC tSQLt_testutil.AssertFailMessageLike 'EXEC tSQLt.AssertEmptyTable ''#actual'';', '[[]#actual]%';
+END;
+GO

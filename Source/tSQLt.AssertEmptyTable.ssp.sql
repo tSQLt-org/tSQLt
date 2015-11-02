@@ -3,7 +3,7 @@ GO
 ---Build+
 CREATE PROCEDURE tSQLt.AssertEmptyTable
   @TableName NVARCHAR(MAX),
-  @Message NVARCHAR(MAX) = NULL
+  @Message NVARCHAR(MAX) = ''
 AS
 BEGIN
   EXEC tSQLt.AssertObjectExists @TableName;

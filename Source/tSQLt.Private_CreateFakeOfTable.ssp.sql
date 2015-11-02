@@ -4,7 +4,7 @@ GO
 CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
   @SchemaName NVARCHAR(MAX),
   @TableName NVARCHAR(MAX),
-  @NewNameOfOriginalTable NVARCHAR(MAX),
+  @OrigTableFullName NVARCHAR(MAX),
   @Identity BIT,
   @ComputedColumns BIT,
   @Defaults BIT
@@ -29,7 +29,7 @@ BEGIN
      CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(c.user_type_id, c.max_length, c.precision, c.scale, c.collation_name, c.object_id, c.column_id, @ComputedColumns) cc
      CROSS APPLY tSQLt.Private_GetDefaultConstraintDefinition(c.object_id, c.column_id, @Defaults) AS dc
      CROSS APPLY tSQLt.Private_GetIdentityDefinition(c.object_id, c.column_id, @Identity) AS id
-     WHERE object_id = OBJECT_ID(@SchemaName + '.' + @NewNameOfOriginalTable)
+     WHERE object_id = OBJECT_ID(@OrigTableFullName)
      ORDER BY column_id
      FOR XML PATH(''), TYPE
     ).value('.', 'NVARCHAR(MAX)');

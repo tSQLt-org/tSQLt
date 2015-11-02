@@ -37,12 +37,16 @@ GO
 CREATE FUNCTION tSQLt.Private_GetForeignKeyDefinition(
     @SchemaName NVARCHAR(MAX),
     @ParentTableName NVARCHAR(MAX),
-    @ForeignKeyName NVARCHAR(MAX)
+    @ForeignKeyName NVARCHAR(MAX),
+    @NoCascade BIT
 )
 RETURNS TABLE
 AS
 RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
-              parCols + ') REFERENCES ' + refName + '(' + refCols + ')' cmd,
+              parCols + ') REFERENCES ' + refName + '(' + refCols + ')'+
+              CASE WHEN @NoCascade = 1 THEN ''
+                ELSE delete_referential_action_cmd + ' ' + update_referential_action_cmd 
+              END AS cmd,
               CASE 
                 WHEN RefTableIsFakedInd = 1
                   THEN 'CREATE UNIQUE INDEX ' + tSQLt.Private::CreateUniqueObjectName() + ' ON ' + refName + '(' + refCols + ');' 
@@ -54,6 +58,20 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
                       QUOTENAME(SCHEMA_NAME(refTab.schema_id)) + '.' + QUOTENAME(refTab.name) AS refName,
                       parCol.ColNames AS parCols,
                       refCol.ColNames AS refCols,
+                      'ON UPDATE '+
+                      CASE k.update_referential_action
+                        WHEN 0 THEN 'NO ACTION'
+                        WHEN 1 THEN 'CASCADE'
+                        WHEN 2 THEN 'SET NULL'
+                        WHEN 3 THEN 'SET DEFAULT'
+                      END AS update_referential_action_cmd,
+                      'ON DELETE '+
+                      CASE k.delete_referential_action
+                        WHEN 0 THEN 'NO ACTION'
+                        WHEN 1 THEN 'CASCADE'
+                        WHEN 2 THEN 'SET NULL'
+                        WHEN 3 THEN 'SET DEFAULT'
+                      END AS delete_referential_action_cmd,
                       CASE WHEN e.name IS NULL THEN 0
                            ELSE 1 
                        END AS RefTableIsFakedInd

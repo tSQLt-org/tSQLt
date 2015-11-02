@@ -936,6 +936,56 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test can fake local synonym of table]
+AS
+BEGIN
+  CREATE TABLE FakeTableTests.TempTable1(c1 INT NULL, c2 BIGINT NULL, c3 VARCHAR(MAX) NULL);
+  CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.TempTable1;
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests','TempSynonym1';
+
+  EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempSynonym1';  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test raises appropriate error if synonym is not of a table]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE FakeTableTests.NotATable AS RETURN;');
+  CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.NotATable;
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot fake synonym [FakeTableTests].[TempSynonym1] as it is pointing to [FakeTableTests].[NotATable], which is not a table or view!';
+  EXEC tSQLt.FakeTable 'FakeTableTests','TempSynonym1';
+
+END;
+GO
+
+CREATE PROC FakeTableTests.[test can fake view]
+AS
+BEGIN
+  CREATE TABLE FakeTableTests.TempTable1(c1 INT NULL, c2 BIGINT NULL, c3 VARCHAR(MAX) NULL);
+  EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT * FROM FakeTableTests.TempTable1;');
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests','TempView1';
+
+  EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempView1';  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test can fake local synonym of view]
+AS
+BEGIN
+  CREATE TABLE FakeTableTests.TempTable1(c1 INT NULL, c2 BIGINT NULL, c3 VARCHAR(MAX) NULL);
+  EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT * FROM FakeTableTests.TempTable1;');
+  CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.TempView1;
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests','TempSynonym1';
+
+  EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempSynonym1';  
+END;
+GO
+
+
 
 
 --ROLLBACK
