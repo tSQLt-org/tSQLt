@@ -34,6 +34,7 @@ BEGIN
       SET @Message = 'Fail not called when executing <' + @Command + '>';
     END
     DECLARE @CallCount INT;
+    DECLARE @Error NVARCHAR(MAX);SET @Error = '';
     BEGIN TRAN;
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     SAVE TRAN @TranName;
@@ -42,6 +43,13 @@ BEGIN
         EXEC (@Command);
       END TRY
       BEGIN CATCH
+--        SET @Error = CHAR(13)+CHAR(10)+'There was an error: [Msg '+LTRIM(STR(ERROR_NUMBER()))+', Level '+LTRIM(STR(ERROR_SEVERITY()))+', State '+LTRIM(STR(ERROR_STATE()))+ISNULL(', Procedure '+ERROR_PROCEDURE(),'')+', Line '+LTRIM(STR(ERROR_LINE()))+']'+ERROR_MESSAGE();
+        IF(ISNULL(ERROR_PROCEDURE(),'')<>'Fail')
+        BEGIN
+          ROLLBACK TRAN @TranName;
+          COMMIT;
+          EXEC tSQLt_testutil.ReThrow;
+        END
       END CATCH;
       SELECT @CallCount = COUNT(1) FROM tSQLt.Fail_SpyProcedureLog;
     ROLLBACK TRAN @TranName;
@@ -49,7 +57,7 @@ BEGIN
 
     IF (@CallCount = 0)
     BEGIN
-      EXEC tSQLt.Fail @Message;
+      EXEC tSQLt.Fail @Message,@Error;
     END;
 END;
 GO

@@ -115,6 +115,18 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.AssertObjectExists.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.AssertStringIn.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.AssertStringIn.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.AssertStringTable.udt.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.AssertStringTable.udt.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.CaptureOutputLog.tbl.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -368,8 +380,8 @@
           <FullPath>tSQLt.Private_SysIndexes.svw.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_SysTypes.svw.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_2005:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_2005</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_SysTypes.svw.sql</FullPath>
         </FileNode>
