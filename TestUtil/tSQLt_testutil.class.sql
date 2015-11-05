@@ -43,8 +43,7 @@ BEGIN
         EXEC (@Command);
       END TRY
       BEGIN CATCH
---        SET @Error = CHAR(13)+CHAR(10)+'There was an error: [Msg '+LTRIM(STR(ERROR_NUMBER()))+', Level '+LTRIM(STR(ERROR_SEVERITY()))+', State '+LTRIM(STR(ERROR_STATE()))+ISNULL(', Procedure '+ERROR_PROCEDURE(),'')+', Line '+LTRIM(STR(ERROR_LINE()))+']'+ERROR_MESSAGE();
-        IF(ISNULL(ERROR_PROCEDURE(),'')<>'Fail')
+        IF(ERROR_MESSAGE() NOT LIKE '%tSQLt_testutil.assertFailCalled.INTERNAL%')
         BEGIN
           ROLLBACK TRAN @TranName;
           COMMIT;
@@ -75,7 +74,7 @@ BEGIN
       EXEC (@Command);
     END TRY
     BEGIN CATCH
-      IF(ISNULL(ERROR_PROCEDURE(),'')<>'Fail')
+        IF(ERROR_MESSAGE() NOT LIKE '%tSQLt_testutil.assertFailCalled.INTERNAL%')
       BEGIN
         ROLLBACK TRAN @TranName;
         COMMIT;

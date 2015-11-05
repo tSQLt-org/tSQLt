@@ -66,4 +66,6 @@ tSQLt.FakeFunction.ssp.sql
 tSQLt.RenameClass.ssp.sql
 tSQLt.AssertEqualsTableSchema.tables.sql
 tSQLt.AssertEqualsTableSchema.ssp.sql
+tSQLt.AssertStringTable.udt.sql
+tSQLt.AssertStringIn.ssp.sql
 tSQLt._Footer.sql
