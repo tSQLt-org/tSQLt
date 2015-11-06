@@ -8,6 +8,20 @@ http://tsqlt.org/category/release-notes/
 Release: VLATEST-BUILD-NUMBER
 
 BUG FIXES:
+1. AssertEqualsTableSchema now handles gaps in column_id values correctly (thanks Greg L.)
+2. Fixed handling of empty messages in AssertEmptyTable
+
+NEW FEATURES:
+1. AssertStringIn asserts that a string value is element of a set of string values
+2. ApplyConstraint can now apply cascading actions on foreign keys
+3. FakeTable can now fake synonyms of tables and view (in the same database only, for now) 
+
+OTHER:
+
+---------------------------
+Release: V1.0.5686.18945
+
+BUG FIXES:
 1. The XML output now validates against the JUnit test result XML schema at 
    https://raw.githubusercontent.com/windyroad/JUnit-Schema/master/JUnit.xsd
    While there is no "official" JUnit schema, the above is the one that is
