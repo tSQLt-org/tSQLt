@@ -1,6 +1,6 @@
-EXEC tSQLt.NewTestClass 'AssertStringInTests';
+EXEC tSQLt.NewTestClass 'AssertStringInTests_2008';
 GO
-CREATE PROCEDURE AssertStringInTests.[test fails if set is empty]
+CREATE PROCEDURE AssertStringInTests_2008.[test fails if set is empty]
 AS
 BEGIN
   
@@ -11,7 +11,7 @@ BEGIN
              @Actual = ''Some String'';';
 END;
 GO
-CREATE PROCEDURE AssertStringInTests.[test succeeds if value is the only element]
+CREATE PROCEDURE AssertStringInTests_2008.[test succeeds if value is the only element]
 AS
 BEGIN
   
@@ -24,7 +24,7 @@ BEGIN
 
 END;
 GO
-CREATE PROCEDURE AssertStringInTests.[test succeeds if value is one of many elements]
+CREATE PROCEDURE AssertStringInTests_2008.[test succeeds if value is one of many elements]
 AS
 BEGIN
   
@@ -37,7 +37,7 @@ BEGIN
 
 END;
 GO
-CREATE PROCEDURE AssertStringInTests.[test includes string and ordered table in fail message]
+CREATE PROCEDURE AssertStringInTests_2008.[test includes string and ordered table in fail message]
 AS
 BEGIN
   CREATE TABLE #ExpectedSet (value NVARCHAR(MAX));
@@ -65,7 +65,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = @ExpectedMessage, @Actual = @FailMessage;
 END;
 GO
-CREATE PROCEDURE AssertStringInTests.[test produces adequate failure message if @Actual = 'NULL']
+CREATE PROCEDURE AssertStringInTests_2008.[test produces adequate failure message if @Actual = 'NULL']
 AS
 BEGIN
   CREATE TABLE #ExpectedSet (value NVARCHAR(MAX));
@@ -93,7 +93,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = @ExpectedMessage, @Actual = @FailMessage;
 END;
 GO
-CREATE PROCEDURE AssertStringInTests.[test produces adequate failure message if @Expected is empty]
+CREATE PROCEDURE AssertStringInTests_2008.[test produces adequate failure message if @Expected is empty]
 AS
 BEGIN
   DECLARE @FailMessage NVARCHAR(MAX);
@@ -118,7 +118,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = @ExpectedMessage, @Actual = @FailMessage;
 END;
 GO
-CREATE PROCEDURE AssertStringInTests.[test produces adequate failure message if @Expected is empty and @Actual is NULL]
+CREATE PROCEDURE AssertStringInTests_2008.[test produces adequate failure message if @Expected is empty and @Actual is NULL]
 AS
 BEGIN
   DECLARE @FailMessage NVARCHAR(MAX);
@@ -143,7 +143,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = @ExpectedMessage, @Actual = @FailMessage;
 END;
 GO
-CREATE PROC AssertStringInTests.[test AssertStringIn passes supplied message before original failure message when calling fail]
+CREATE PROC AssertStringInTests_2008.[test AssertStringIn passes supplied message before original failure message when calling fail]
 AS
 BEGIN
   EXEC tSQLt_testutil.AssertFailMessageLike 

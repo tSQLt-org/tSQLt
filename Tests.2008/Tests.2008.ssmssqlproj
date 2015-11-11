@@ -25,6 +25,12 @@
           <AssociatedConnUserName />
           <FullPath>AssertEqualsTableTests_2008.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="AssertStringInTests_2008.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AssertStringInTests_2008.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="FakeFunctionTests_2008.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
