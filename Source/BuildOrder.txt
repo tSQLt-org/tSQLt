@@ -8,6 +8,8 @@ tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
 tSQLt.NewTestClass.ssp.sql
 tSQLt.Fail.ssp.sql
 tSQLt.class.sql
+tSQLt.InstallExternalAccessKey.ssp.sql
+tSQLt.EnableExternalAccess.ssp.sql
 tSQLt.Private_Configurations.tbl.sql
 tSQLt.Private_SetConfiguration.ssp.sql
 tSQLt.Private_GetConfiguration.sfn.sql

@@ -139,6 +139,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.DropClass.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.EnableExternalAccess.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.EnableExternalAccess.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.ExpectException.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -168,6 +174,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Info.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.InstallCertificate.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.InstallCertificate.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.LogCapturedOutput.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

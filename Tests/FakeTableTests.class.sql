@@ -94,12 +94,12 @@ BEGIN
     CREATE TABLE schemaA.tableA (constCol CHAR(3) );
 
     BEGIN TRY
-      EXEC tSQLt.FakeTable 'schemaA', 'tableXYZ';
+      EXEC tSQLt.FakeTable 'schemaA.tableXYZ';
     END TRY
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaA.tableXYZ''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaA.tableXYZ''. (When calling tSQLt.FakeTable, avoid the use of the @SchemaName parameter, as it is deprecated.)%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
       END
@@ -116,12 +116,12 @@ BEGIN
     DECLARE @ErrorThrown BIT; SET @ErrorThrown = 0;
 
     BEGIN TRY
-      EXEC tSQLt.FakeTable 'schemaB', 'tableXYZ';
+      EXEC tSQLt.FakeTable 'schemaB.tableXYZ';
     END TRY
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaB.tableXYZ''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaB.tableXYZ''.%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
       END
@@ -143,7 +143,7 @@ BEGIN
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''(null)''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''(null)''.%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
       END
@@ -165,7 +165,7 @@ BEGIN
     BEGIN CATCH
       DECLARE @ErrorMessage NVARCHAR(MAX);
       SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
-      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaB.tableXYZ''. Be sure to call FakeTable and pass in a single parameter, such as: EXEC tSQLt.FakeTable ''MySchema.MyTable''%'
+      IF @ErrorMessage NOT LIKE '%FakeTable could not resolve the object name, ''schemaB.tableXYZ''.%'
       BEGIN
           EXEC tSQLt.Fail 'tSQLt.FakeTable threw unexpected exception: ',@ErrorMessage;     
       END
@@ -181,7 +181,7 @@ AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT PRIMARY KEY);
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   
@@ -195,7 +195,7 @@ AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT CHECK(i > 5));
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (5);
@@ -208,7 +208,7 @@ BEGIN
   CREATE TABLE FakeTableTests.TempTable0(i INT PRIMARY KEY);
   CREATE TABLE FakeTableTests.TempTable1(i INT REFERENCES FakeTableTests.TempTable0(i));
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (5);
@@ -220,7 +220,7 @@ AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT DEFAULT(77));
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) DEFAULT VALUES;
@@ -238,7 +238,7 @@ AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT UNIQUE);
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
@@ -252,7 +252,7 @@ BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT);
   CREATE UNIQUE INDEX UQ_tSQLt_test_TempTable1_i ON FakeTableTests.TempTable1(i);
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
@@ -265,7 +265,7 @@ AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (NULL);
@@ -282,7 +282,7 @@ BEGIN
   CREATE TABLE FakeTableTests.tst2(i INT PRIMARY KEY, tst1i INT REFERENCES FakeTableTests.tst1(i));
   
   BEGIN TRY
-    EXEC tSQLt.FakeTable 'FakeTableTests', 'tst1';
+    EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
   END TRY
   BEGIN CATCH
     DECLARE @ErrorMessage NVARCHAR(MAX);
@@ -298,7 +298,7 @@ AS
 BEGIN
   CREATE TABLE FakeTableTests.tst(i INT);
   
-  EXEC tSQLt.CaptureOutput 'EXEC tSQLt.FakeTable ''FakeTableTests'', ''tst''';
+  EXEC tSQLt.CaptureOutput 'EXEC tSQLt.FakeTable ''FakeTableTests.tst''';
 
   SELECT OutputText
   INTO #actual
@@ -317,13 +317,13 @@ GO
 CREATE PROC FakeTableTests.[test FakeTable doesn't preserve identity if @Identity parameter is not specified]
 AS
 BEGIN
-  IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
+  IF OBJECT_ID('FakeTableTests.tst1') IS NOT NULL DROP TABLE FakeTableTests.tst1;
 
-  CREATE TABLE tst1(i INT IDENTITY(1,1));
+  CREATE TABLE FakeTableTests.tst1(i INT IDENTITY(1,1));
   
-  EXEC tSQLt.FakeTable 'tst1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
   
-  IF EXISTS(SELECT 1 FROM sys.columns WHERE OBJECT_ID = OBJECT_ID('tst1') AND is_identity = 1)
+  IF EXISTS(SELECT 1 FROM sys.columns WHERE OBJECT_ID = OBJECT_ID('FakeTableTests.tst1') AND is_identity = 1)
   BEGIN
     EXEC tSQLt.Fail 'Fake table has identity column!';
   END
@@ -333,13 +333,13 @@ GO
 CREATE PROC FakeTableTests.[test FakeTable doesn't preserve identity if @identity parameter is 0]
 AS
 BEGIN
-  IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
+  IF OBJECT_ID('FakeTableTests.tst1') IS NOT NULL DROP TABLE FakeTableTests.tst1;
 
-  CREATE TABLE tst1(i INT IDENTITY(1,1));
+  CREATE TABLE FakeTableTests.tst1(i INT IDENTITY(1,1));
   
-  EXEC tSQLt.FakeTable 'tst1',@Identity=0;
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1',@Identity=0;
   
-  IF EXISTS(SELECT 1 FROM sys.columns WHERE OBJECT_ID = OBJECT_ID('tst1') AND is_identity = 1)
+  IF EXISTS(SELECT 1 FROM sys.columns WHERE OBJECT_ID = OBJECT_ID('FakeTableTests.tst1') AND is_identity = 1)
   BEGIN
     EXEC tSQLt.Fail 'Fake table has identity column!';
   END
@@ -349,13 +349,13 @@ GO
 CREATE PROC FakeTableTests.[test FakeTable preserves identity if @identity parameter is 1]
 AS
 BEGIN
-  IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
+  IF OBJECT_ID('FakeTableTests.tst1') IS NOT NULL DROP TABLE FakeTableTests.tst1;
 
-  CREATE TABLE tst1(i INT IDENTITY(1,1));
+  CREATE TABLE FakeTableTests.tst1(i INT IDENTITY(1,1));
   
-  EXEC tSQLt.FakeTable 'tst1',@Identity=1;
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1',@Identity=1;
   
-  IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE OBJECT_ID = OBJECT_ID('tst1') AND is_identity = 1)
+  IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE OBJECT_ID = OBJECT_ID('FakeTableTests.tst1') AND is_identity = 1)
   BEGIN
     EXEC tSQLt.Fail 'Fake table has no identity column!';
   END
@@ -366,7 +366,7 @@ GO
 CREATE PROC FakeTableTests.[test FakeTable works with more than one column]
 AS
 BEGIN
-  IF OBJECT_ID('tst1') IS NOT NULL DROP TABLE tst1;
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
 
   CREATE TABLE dbo.tst1(i1 INT,i2 INT,i3 INT,i4 INT,i5 INT,i6 INT,i7 INT,i8 INT);
 
@@ -375,7 +375,7 @@ BEGIN
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1')
   
-  EXEC tSQLt.FakeTable 'tst1';
+  EXEC tSQLt.FakeTable 'dbo.tst1';
 
   SELECT column_id,name
     INTO #Actual
@@ -444,7 +444,7 @@ BEGIN
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1',@Identity = 0;
+  EXEC tSQLt.FakeTable 'dbo.tst1',@Identity = 0;
 
   SELECT TYPE_NAME(user_type_id) type_name
     INTO #Actual
@@ -468,7 +468,7 @@ BEGIN
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+  EXEC tSQLt.FakeTable 'dbo.tst1',@Identity = 1;
 
   SELECT TYPE_NAME(user_type_id) type_name,max_length,precision,scale
     INTO #Actual
@@ -492,7 +492,7 @@ BEGIN
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+  EXEC tSQLt.FakeTable 'dbo.tst1',@Identity = 1;
 
   SELECT name, is_identity
     INTO #Actual
@@ -516,7 +516,7 @@ BEGIN
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+  EXEC tSQLt.FakeTable 'dbo.tst1',@Identity = 1;
 
   SELECT name, is_identity
     INTO #Actual
@@ -680,7 +680,7 @@ BEGIN
 
   CREATE TABLE dbo.tst1(x INT DEFAULT(5));
   
-  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''tst1''';
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1''';
 END;
 GO
 
@@ -691,7 +691,7 @@ BEGIN
 
   CREATE TABLE dbo.tst1(x INT DEFAULT(5));
 
-  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''tst1'', @Defaults = 0;';
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 0;';
 END;
 GO
 
@@ -748,7 +748,7 @@ BEGIN
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
   
-  EXEC tSQLt.FakeTable 'tst1',@Identity = 1;
+  EXEC tSQLt.FakeTable 'dbo.tst1';
 
   SELECT name, collation_name
     INTO #Actual
@@ -942,7 +942,7 @@ BEGIN
   CREATE TABLE FakeTableTests.TempTable1(c1 INT NULL, c2 BIGINT NULL, c3 VARCHAR(MAX) NULL);
   CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.TempTable1;
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempSynonym1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
 
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempSynonym1';  
 END;
@@ -955,7 +955,7 @@ BEGIN
   CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.NotATable;
   
   EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot fake synonym [FakeTableTests].[TempSynonym1] as it is pointing to [FakeTableTests].[NotATable], which is not a table or view!';
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempSynonym1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
 
 END;
 GO
@@ -966,7 +966,7 @@ BEGIN
   CREATE TABLE FakeTableTests.TempTable1(c1 INT NULL, c2 BIGINT NULL, c3 VARCHAR(MAX) NULL);
   EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT * FROM FakeTableTests.TempTable1;');
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempView1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempView1';
 
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempView1';  
 END;
@@ -979,11 +979,56 @@ BEGIN
   EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT * FROM FakeTableTests.TempTable1;');
   CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.TempView1;
   
-  EXEC tSQLt.FakeTable 'FakeTableTests','TempSynonym1';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
 
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempSynonym1';  
 END;
 GO
+
+CREATE PROC FakeTableTests.[test raises error if @TableName is multi-part and @SchemaName is not NULL]
+AS
+BEGIN
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'When @TableName is a multi-part identifier, @SchemaName must be NULL!';
+  EXEC tSQLt.FakeTable @TableName = 'aschema.anobject', @SchemaName = 'aschema';
+
+END;
+GO
+
+CREATE PROC FakeTableTests.[test raises error if @TableName is quoted multi-part and @SchemaName is not NULL]
+AS
+BEGIN
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'When @TableName is a multi-part identifier, @SchemaName must be NULL!';
+  EXEC tSQLt.FakeTable @TableName = '[aschema].[anobject]', @SchemaName = 'aschema';
+
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable works with two parameters, if they are quoted]
+AS
+BEGIN
+  CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
+  
+  EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+
+END;
+GO
+
+--CREATE PROC FakeTableTests.[test FakeTable works with cross database synonym]
+--AS
+--BEGIN
+--  CREATE TABLE tempdb.dbo.TempTable1(i INT NOT NULL);
+--  CREATE SYNONYM FakeTableTests.TempTable1 FOR tempdb.dbo.TempTable1
+  
+--  EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
+  
+--  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+
+--END;
+--GO
 
 
 

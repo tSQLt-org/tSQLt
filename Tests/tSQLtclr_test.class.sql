@@ -16,30 +16,6 @@
 EXEC tSQLt.NewTestClass 'tSQLtclr_test';
 GO
 
-
-
-CREATE PROC tSQLtclr_test.[test NewConnection executes a command in a new process]
-AS
-BEGIN
-    EXEC tSQLt.NewConnection 'IF OBJECT_ID(''tSQLtclr_test.[SpidTable for test NewConnection executes a command in a new process]'') IS NOT NULL DROP TABLE tSQLtclr_test.[SpidTable for test NewConnection executes a command in a new process];';
-
-    EXEC tSQLt.NewConnection 'SELECT @@SPID spid INTO tSQLtclr_test.[SpidTable for test NewConnection executes a command in a new process];';
-    
-    EXEC tSQLt.AssertObjectExists 'tSQLtclr_test.[SpidTable for test NewConnection executes a command in a new process]';
-    
-    DECLARE @otherSpid INT;
-    SELECT @otherSpid = spid
-      FROM tSQLtclr_test.[SpidTable for test NewConnection executes a command in a new process];
-
-    IF ISNULL(@otherSpid, -1) = @@SPID
-    BEGIN
-        EXEC tSQLt.Fail 'Expected otherSpid to be different than @@SPID.';
-    END;
-    
-    EXEC tSQLt.NewConnection 'IF OBJECT_ID(''tSQLtclr_test.[SpidTable for test NewConnection executes a command in a new process]'') IS NOT NULL DROP TABLE tSQLtclr_test.[SpidTable for test NewConnection executes a command in a new process];';
-END;
-GO
-
 CREATE PROC tSQLtclr_test.[test CaptureOutput places the console output of a command into the CaptureOutputLog]
 AS
 BEGIN

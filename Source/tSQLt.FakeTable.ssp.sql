@@ -17,6 +17,12 @@ BEGIN
    SELECT @OrigSchemaName = @SchemaName,
           @OrigTableName = @TableName
    
+   IF(@OrigTableName NOT IN (PARSENAME(@OrigTableName,1),QUOTENAME(PARSENAME(@OrigTableName,1)))
+      AND @OrigSchemaName IS NOT NULL)
+   BEGIN
+     RAISERROR('When @TableName is a multi-part identifier, @SchemaName must be NULL!',16,10);
+   END
+
    SELECT @SchemaName = CleanSchemaName,
           @TableName = CleanTableName
      FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility(@TableName, @SchemaName);
