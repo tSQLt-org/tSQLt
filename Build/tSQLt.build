@@ -81,7 +81,7 @@
   <echo message="Generating CREATE ASSEMBLY statement."/>
   <exec program="cmd" workingdir="." failonerror="true" output="temp/CreateAssembly.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe tSQLtCLR dbo ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll SAFE"/>
+   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000"/>
   </exec>
 
   <exec program="cmd" workingdir="." failonerror="true">
@@ -164,7 +164,7 @@
  <target name="package.test.files">
   <exec program="cmd" workingdir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe tSQLtTestUtilCLR dbo ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll SAFE"/>
+   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll ../TestUtil/tSQLtTestUtilCLR.mdl.sql 0x000000"/>
   </exec>
 
   <exec program="cmd" workingdir="." failonerror="true">

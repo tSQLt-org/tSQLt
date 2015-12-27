@@ -5,3 +5,4 @@
 /tSQLtCLR/tSQLtTestUtilCLR/bin
 /tSQLtCLR/tSQLtTestUtilCLR/obj
 *.ssms_suo
+/tSQLtCLR/tSQLtCLR.suo
