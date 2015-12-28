@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Data.Sql;
 using System;
 
+
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
@@ -12,7 +13,6 @@ using System;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("sqlity.net")]
 [assembly: AssemblyProduct("tSQLt")]
-[assembly: AssemblyCopyright("Copyright © sqlity.net 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

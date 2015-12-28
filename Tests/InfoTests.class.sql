@@ -17,6 +17,20 @@ BEGIN
   END
 END;
 GO
+CREATE PROCEDURE InfoTests.[test tSQLt.Info() returns a row with a ClrSigningKey column containing the binary thumbprint of the signing key]
+AS
+BEGIN
+  DECLARE @SigningKey NVARCHAR(MAX);
+  DECLARE @ClrInfo NVARCHAR(MAX);
+  
+  SELECT @SigningKey = '%publickeytoken='+LOWER(CONVERT(VARCHAR(20),ClrSigningKey,2))+',%'
+    FROM tSQLt.Info();
+  
+  SELECT @ClrInfo=clr_name FROM sys.assemblies WHERE name='tSQLtCLR'  
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = @SigningKey, @Actual = @ClrInfo;  
+END;
+GO
 CREATE FUNCTION InfoTests.[42.17.1986.57]()
 RETURNS TABLE
 AS

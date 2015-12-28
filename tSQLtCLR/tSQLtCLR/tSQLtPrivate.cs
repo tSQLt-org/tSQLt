@@ -21,6 +21,10 @@ namespace tSQLtCLR
         {
             return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
+        public static SqlBinary SigningKey()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly().GetName().GetPublicKeyToken();
+        }
 
         [SqlMethod(DataAccess = DataAccessKind.Read)]
         public static SqlString CreateUniqueObjectName()

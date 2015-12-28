@@ -1,4 +1,5 @@
 tSQLt_testutil.class.sql
 ../Build/temp/CreateTestUtilAssembly.sql
+../Build/temp/GetUnsignedEmptyBytes.sql
 tSQLtTestUtilCLR_CreateItems.sql
 tSQLt_testutil_test.class.sql

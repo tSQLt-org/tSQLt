@@ -8,8 +8,8 @@
     <ProjectGuid>{09611E35-7E79-4DD3-8BCD-83F27535FB5D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>tSQLtKey</RootNamespace>
-    <AssemblyName>tSQLtKey</AssemblyName>
+    <RootNamespace>tSQLtExternalAccessKey</RootNamespace>
+    <AssemblyName>tSQLtExternalAccessKey</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -58,8 +58,22 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CruiseControl|x86'">
+    <OutputPath>bin\CruiseControl\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CruiseControl|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>bin\CruiseControl\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
-    <None Include="PostBuild.bat" />
     <None Include="SigningKey.pfx" />
   </ItemGroup>
   <ItemGroup>
@@ -87,12 +101,10 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="tSQLtKey.sql" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>IF ($(ConfigurationName))==(Release) "$(SolutionDir)tSQLtKey\PostBuild.bat" "$(ProjectDir)" "$(TargetPath)"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

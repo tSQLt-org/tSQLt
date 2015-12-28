@@ -14,12 +14,12 @@
 
  <target
    name="package.create.tSQLt"
-   depends="init, init.tSQLt, clr.compile, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
+   depends="init, init.tSQLt, clr.compile, tSQLtExternalAccessKey.compile, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
    />
 
  <target
   name="package.create.tSQLt.tests"
-  depends="init, init.tSQLt.tests, clr.testutil.compile, package.test.files, package.test.create.artifacts"
+  depends="init, init.tSQLt.tests, clr.testutil.compile, clr.UnsignedEmpty.compile, package.test.files, package.test.create.artifacts"
    />
 
  <target
@@ -63,12 +63,20 @@
   <loadfile
     failonerror="true"
     file="temp/Version.txt"
-    property="clr.version" 
+    property="clr.version"
    />
   <property name="clr.version" value="${string::trim(clr.version)}" />
-  
+
   <echo message="CLR Version is: [V${clr.version}]"/>
-  
+
+ </target>
+
+ <target name="tSQLtExternalAccessKey.compile">
+  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
+  <exec program="cmd" workingdir="../tSQLtCLR/tSQLtExternalAccessKey/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="${msbuild.path}msbuild.exe tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
+  </exec>
  </target>
 
  <target name="package.copy.files">
@@ -82,6 +90,12 @@
   <exec program="cmd" workingdir="." failonerror="true" output="temp/CreateAssembly.sql">
    <arg value="/c"/>
    <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000"/>
+  </exec>
+
+  <echo message="Generating GettSQLtExternalAccessKeyBytes function."/>
+  <exec program="cmd" workingdir="." failonerror="true" output="temp/tSQLt.Private_GetExternalAccessKeyBytes.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtExternalAccessKey/bin/CruiseControl/tSQLtExternalAccessKey.dll ../Source/tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql 0x000000 0x000001"/>
   </exec>
 
   <exec program="cmd" workingdir="." failonerror="true">
@@ -161,10 +175,23 @@
   </exec>
  </target>
 
+ <target name="clr.UnsignedEmpty.compile">
+  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
+  <exec program="cmd" workingdir="../tSQLtCLR/UnsignedEmpty/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="${msbuild.path}msbuild.exe UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
+  </exec>
+ </target>
+
  <target name="package.test.files">
   <exec program="cmd" workingdir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql">
    <arg value="/c"/>
    <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll ../TestUtil/tSQLtTestUtilCLR.mdl.sql 0x000000"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true" output="temp/GetUnsignedEmptyBytes.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/UnsignedEmpty/bin/CruiseControl/UnsignedEmpty.dll ../TestUtil/GetUnsignedEmptyBytes.mdl.sql 0x000000"/>
   </exec>
 
   <exec program="cmd" workingdir="." failonerror="true">

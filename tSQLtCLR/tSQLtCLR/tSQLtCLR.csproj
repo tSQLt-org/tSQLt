@@ -71,6 +71,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyCopyright.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AssemblyCopyright.tt</DependentUpon>
+    </Compile>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="CommandExecutor.cs" />
     <Compile Include="CommandExecutorException.cs" />
@@ -83,9 +88,12 @@
     <Compile Include="TestDatabaseFacade.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="AssemblyCopyright.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AssemblyCopyright.cs</LastGenOutput>
+    </None>
     <None Include="PostBuild.bat" />
     <None Include="SigningKey.pfx" />
-    <None Include="SigningKeyNoPassword.snk" />
     <None Include="sql.proj">
       <InProject>false</InProject>
     </None>
@@ -114,6 +122,9 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

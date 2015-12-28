@@ -6,3 +6,8 @@
 /tSQLtCLR/tSQLtTestUtilCLR/obj
 *.ssms_suo
 /tSQLtCLR/tSQLtCLR.suo
+/tSQLtCLR/UnsignedEmpty/obj
+/tSQLtCLR/UnsignedEmpty/bin
+/tSQLtCLR/tSQLtExternalAccessKey/bin
+/tSQLtCLR/tSQLtExternalAccessKey/obj
+/tSQLtCLR/tSQLtCLR.v12.suo

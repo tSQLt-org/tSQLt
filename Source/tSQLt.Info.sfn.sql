@@ -7,6 +7,7 @@ AS
 RETURN
 SELECT Version = '$LATEST-BUILD-NUMBER$',
        ClrVersion = (SELECT tSQLt.Private::Info()),
+       ClrSigningKey = (SELECT tSQLt.Private::SigningKey()),
        V.SqlVersion,
        V.SqlBuild
   FROM
