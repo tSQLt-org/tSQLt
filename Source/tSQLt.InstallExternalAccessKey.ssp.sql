@@ -5,6 +5,13 @@ GO
 CREATE PROCEDURE tSQLt.InstallExternalAccessKey
 AS
 BEGIN
+
+  IF(NOT EXISTS(SELECT 1 FROM sys.login_token AS LT WHERE name = 'sysadmin'))
+  BEGIN
+    RAISERROR('Only members of sysadmin can execute this procedure.',16,10);
+    RETURN -1;
+  END;
+
   DECLARE @cmd NVARCHAR(MAX);
 
   SET @cmd = 'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtExternalAccessKey'') DROP ASSEMBLY tSQLtExternalAccessKey;';
@@ -42,6 +49,9 @@ BEGIN
   EXEC master.sys.sp_executesql @cmd;
 
   SET @cmd = 'DROP ASSEMBLY tSQLtExternalAccessKey;';
+  EXEC master.sys.sp_executesql @cmd;
+
+  SET @cmd = 'GRANT EXTERNAL ACCESS ASSEMBLY TO tSQLtExternalAccessKey;';
   EXEC master.sys.sp_executesql @cmd;
 
 END;

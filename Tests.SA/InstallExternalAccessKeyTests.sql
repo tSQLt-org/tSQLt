@@ -219,15 +219,89 @@ BEGIN
   SELECT TOP(0) *
   INTO #Expected
   FROM #Actual;
+
   INSERT INTO #Expected
   VALUES('SERVER','EXTERNAL ACCESS ASSEMBLY','GRANT');
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
 
---authorization dbo on certificate and login
+CREATE PROCEDURE InstallExternalAccessKeyTests.[test non-sysadmin cannot execute procedure]
+AS
+BEGIN
+  EXEC InstallExternalAccessKeyTests.DropExistingItems;
 
-  --test InstallExternalAccessKey
+  DECLARE @cmd NVARCHAR(MAX);
+    
+  SET @cmd = 'CREATE LOGIN InstallExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
+  EXEC master.sys.sp_executesql @cmd;
+
+  SET @cmd = 'CREATE USER InstallExternalAccessKeyTestsUser1;ALTER ROLE db_owner ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+  EXEC master.sys.sp_executesql @cmd;
+  EXEC sys.sp_executesql @cmd;
+
+  SET @cmd = 'GRANT ALTER ANY LOGIN TO InstallExternalAccessKeyTestsUser1;';
+  SET @cmd = 'GRANT EXTERNAL ACCESS ASSEMBLY TO InstallExternalAccessKeyTestsUser1 WITH GRANT OPTION;'+@cmd;
+  EXEC master.sys.sp_executesql @cmd;
+
+--  SET @cmd = 'ALTER SERVER ROLE securityadmin ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+--  EXEC master.sys.sp_executesql @cmd;
+
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Only members of sysadmin can execute this procedure.';
+  
+  EXECUTE AS LOGIN = 'InstallExternalAccessKeyTestsUser1';
+  EXEC tSQLt.InstallExternalAccessKey;
+  REVERT;
+
+END;
+GO
+
+CREATE PROCEDURE InstallExternalAccessKeyTests.[test sysadmin can execute procedure]
+AS
+BEGIN
+  EXEC InstallExternalAccessKeyTests.DropExistingItems;
+
+  DECLARE @cmd NVARCHAR(MAX);
+    
+  SET @cmd = 'CREATE LOGIN InstallExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
+  EXEC master.sys.sp_executesql @cmd;
+
+  SET @cmd = 'ALTER SERVER ROLE sysadmin ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+  EXEC master.sys.sp_executesql @cmd;
+
+  EXEC tSQLt.ExpectNoException;
+  
+  EXECUTE AS LOGIN = 'InstallExternalAccessKeyTestsUser1';
+  EXEC tSQLt.InstallExternalAccessKey;
+  REVERT;
+
+END;
+GO
+
+CREATE PROCEDURE InstallExternalAccessKeyTests.[test tSQLt can be set to EXTERNAL ACCESS after InstallExternalAccessKey executed]
+AS
+BEGIN
+  EXEC InstallExternalAccessKeyTests.DropExistingItems;
+
+  EXEC tSQLt.InstallExternalAccessKey;
+
+  EXEC tSQLt.ExpectNoException;
+
+  ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = EXTERNAL_ACCESS;  
+
+END;
+GO
+
+CREATE PROCEDURE InstallExternalAccessKeyTests.[test include these tests in build]
+AS
+BEGIN
+
+  EXEC tSQLt.Fail 'include these tests in build';
+END;
+GO
+
+
   --include 2 EA test cases in build
 
