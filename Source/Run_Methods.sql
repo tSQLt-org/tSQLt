@@ -1,3 +1,4 @@
+IF OBJECT_ID('tSQLt.Private_Init') IS NOT NULL DROP PROCEDURE tSQLt.Private_Init;
 IF OBJECT_ID('tSQLt.Private_GetSetupProcedureName') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetSetupProcedureName;
 IF OBJECT_ID('tSQLt.Private_CleanTestResult') IS NOT NULL DROP PROCEDURE tSQLt.Private_CleanTestResult;
 IF OBJECT_ID('tSQLt.Private_RunTest') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTest;
@@ -8,7 +9,7 @@ IF OBJECT_ID('tSQLt.Private_RunAll') IS NOT NULL DROP PROCEDURE tSQLt.Private_Ru
 IF OBJECT_ID('tSQLt.Private_RunNew') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunNew;
 IF OBJECT_ID('tSQLt.Private_GetCursorForRunAll') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetCursorForRunAll;
 IF OBJECT_ID('tSQLt.Private_GetCursorForRunNew') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetCursorForRunNew;
-IF OBJECT_ID('tSQLt.Private_CallRunWithConfiguredFormatter') IS NOT NULL DROP PROCEDURE tSQLt.Private_CallRunWithConfiguredFormatter;
+IF OBJECT_ID('tSQLt.Private_RunMethodHandler') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunMethodHandler;
 IF OBJECT_ID('tSQLt.Private_InputBuffer') IS NOT NULL DROP PROCEDURE tSQLt.Private_InputBuffer;
 IF OBJECT_ID('tSQLt.RunAll') IS NOT NULL DROP PROCEDURE tSQLt.RunAll;
 IF OBJECT_ID('tSQLt.RunNew') IS NOT NULL DROP PROCEDURE tSQLt.RunNew;
@@ -308,8 +309,6 @@ SET NOCOUNT ON;
            @IsSchema = isSchema,
            @IsTestCase = isTestCase
       FROM tSQLt.Private_ResolveName(@TestName);
-     
-    EXEC tSQLt.Private_CleanTestResult;
 
     IF @IsSchema = 1
     BEGIN
@@ -337,8 +336,6 @@ BEGIN
   SET NOCOUNT ON;
   DECLARE @TestClassName NVARCHAR(MAX);
   DECLARE @TestProcName NVARCHAR(MAX);
-
-  EXEC tSQLt.Private_CleanTestResult;
 
   DECLARE @TestClassCursor CURSOR;
   EXEC @GetCursorCallback @TestClassCursor = @TestClassCursor OUT;
@@ -401,30 +398,48 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt.Private_CallRunWithConfiguredFormatter
-  @RunMethod NVARCHAR(MAX)
+CREATE PROCEDURE tSQLt.Private_Init
 AS
 BEGIN
-  DECLARE @TestResultFormatter NVARCHAR(MAX);
-  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
+  EXEC tSQLt.Private_CleanTestResult;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_RunMethodHandler
+  @RunMethod NVARCHAR(MAX),
+  @TestResultFormatter NVARCHAR(MAX) = NULL,
+  @TestName NVARCHAR(MAX) = NULL
+AS
+BEGIN
+  SELECT @TestResultFormatter = ISNULL(@TestResultFormatter,tSQLt.GetTestResultFormatter());
+
+  EXEC tSQLt.Private_Init;
   
-  EXEC @RunMethod @TestResultFormatter;
+  IF(EXISTS(SELECT * FROM sys.parameters AS P WHERE P.object_id = OBJECT_ID(@RunMethod) AND name = '@TestName'))
+  BEGIN
+    EXEC @RunMethod @TestName = @TestName, @TestResultFormatter = @TestResultFormatter;
+  END
+  ELSE
+  BEGIN  
+    EXEC @RunMethod @TestResultFormatter = @TestResultFormatter;
+  END
 END;
 GO
 
 --------------------------------------------------------------------------------
 
+GO
 CREATE PROCEDURE tSQLt.RunAll
 AS
 BEGIN
-  EXEC tSQLt.Private_CallRunWithConfiguredFormatter @RunMethod = 'tSQLt.Private_RunAll';
+  EXEC tSQLt.Private_RunMethodHandler @RunMethod = 'tSQLt.Private_RunAll';
 END;
 GO
 
 CREATE PROCEDURE tSQLt.RunNew
 AS
 BEGIN
-  EXEC tSQLt.Private_CallRunWithConfiguredFormatter @RunMethod = 'tSQLt.Private_RunNew';
+  EXEC tSQLt.Private_RunMethodHandler @RunMethod = 'tSQLt.Private_RunNew';
 END;
 GO
 
@@ -437,13 +452,11 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.Run
-   @TestName NVARCHAR(MAX) = NULL
+   @TestName NVARCHAR(MAX) = NULL,
+   @TestResultFormatter NVARCHAR(MAX) = NULL
 AS
 BEGIN
-  DECLARE @TestResultFormatter NVARCHAR(MAX);
-  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
-  
-  EXEC tSQLt.Private_Run @TestName, @TestResultFormatter;
+  EXEC tSQLt.Private_RunMethodHandler @RunMethod = 'tSQLt.Private_Run', @TestResultFormatter = @TestResultFormatter, @TestName = @TestName; 
 END;
 GO
 CREATE PROCEDURE tSQLt.Private_InputBuffer
@@ -474,7 +487,7 @@ CREATE PROCEDURE tSQLt.RunWithXmlResults
    @TestName NVARCHAR(MAX) = NULL
 AS
 BEGIN
-  EXEC tSQLt.Private_Run @TestName, 'tSQLt.XmlResultFormatter';
+  EXEC tSQLt.Run @TestName = @TestName, @TestResultFormatter = 'tSQLt.XmlResultFormatter';
 END;
 GO
 
@@ -482,7 +495,7 @@ CREATE PROCEDURE tSQLt.RunWithNullResults
     @TestName NVARCHAR(MAX) = NULL
 AS
 BEGIN
-  EXEC tSQLt.Private_Run @TestName, 'tSQLt.NullTestResultFormatter';
+  EXEC tSQLt.Run @TestName = @TestName, @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 END;
 GO
 

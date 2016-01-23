@@ -439,6 +439,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.RemoveExternalAccessKey.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.RemoveExternalAccessKey.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.RemoveObject.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>

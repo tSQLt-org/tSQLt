@@ -281,26 +281,6 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Run_Methods_Tests.[test Run calls Private_Run with configured Test Result Formatter]
-AS
-BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
-  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt', @ObjectName='GetTestResultFormatter';
-  EXEC('CREATE FUNCTION tSQLt.GetTestResultFormatter() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''CorrectResultFormatter''; END;');
- 
-  EXEC tSQLt.Run 'SomeTest';
-  
-  SELECT TestName, TestResultFormatter
-    INTO #Actual
-    FROM tSQLt.Private_Run_SpyProcedureLog;
-    
-  SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #Expected (TestName, TestResultFormatter)VALUES('SomeTest', 'CorrectResultFormatter');
-  
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-
 CREATE PROCEDURE Run_Methods_Tests.[test Private_Run calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
 AS
 BEGIN
@@ -353,16 +333,16 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Run_Methods_Tests.[test RunWithXmlResults calls Private_Run with XmlResultFormatter]
+CREATE PROCEDURE Run_Methods_Tests.[test RunWithXmlResults calls Run with XmlResultFormatter]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+  EXEC tSQLt.SpyProcedure 'tSQLt.Run';
  
-  EXEC tSQLt.RunWithXmlResults 'SomeTest';
+  EXEC tSQLt.RunWithXmlResults @TestName = 'SomeTest';
   
   SELECT TestName,TestResultFormatter
     INTO #Actual
-    FROM tSQLt.Private_Run_SpyProcedureLog;
+    FROM tSQLt.Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
   INSERT INTO #Expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.XmlResultFormatter');
@@ -374,13 +354,13 @@ GO
 CREATE PROCEDURE Run_Methods_Tests.[test RunWithXmlResults passes NULL as TestName if called without parmameters]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+  EXEC tSQLt.SpyProcedure 'tSQLt.Run';
  
   EXEC tSQLt.RunWithXmlResults;
   
   SELECT TestName
     INTO #Actual
-    FROM tSQLt.Private_Run_SpyProcedureLog;
+    FROM tSQLt.Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
   INSERT INTO #Expected(TestName)VALUES(NULL);
@@ -821,16 +801,16 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
-CREATE PROCEDURE Run_Methods_Tests.[test RunWithNullResults calls Private_Run with NullTestResultFormatter]
+CREATE PROCEDURE Run_Methods_Tests.[test RunWithNullResults calls Run with NullTestResultFormatter]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+  EXEC tSQLt.SpyProcedure 'tSQLt.Run';
  
   EXEC tSQLt.RunWithNullResults 'SomeTest';
   
   SELECT TestName,TestResultFormatter
     INTO #Actual
-    FROM tSQLt.Private_Run_SpyProcedureLog;
+    FROM tSQLt.Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
   INSERT INTO #Expected(TestName,TestResultFormatter)VALUES('SomeTest','tSQLt.NullTestResultFormatter');
@@ -842,13 +822,13 @@ GO
 CREATE PROCEDURE Run_Methods_Tests.[test RunWithNullResults passes NULL as TestName if called without parmameters]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.Private_Run';
+  EXEC tSQLt.SpyProcedure 'tSQLt.Run';
  
   EXEC tSQLt.RunWithNullResults;
   
   SELECT TestName
     INTO #Actual
-    FROM tSQLt.Private_Run_SpyProcedureLog;
+    FROM tSQLt.Run_SpyProcedureLog;
     
   SELECT TOP(0) * INTO #Expected FROM #Actual;
   INSERT INTO #Expected(TestName)VALUES(NULL);
@@ -1580,7 +1560,27 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Private_CallRunWithConfiguredFormatter calls ssp with configured Test Result Formatter]
+CREATE PROCEDURE Run_Methods_Tests.[test Private_RunMethodHandler passes @TestResultFormatter to ssp]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE Run_Methods_Tests.[spy run method] @TestResultFormatter NVARCHAR(MAX) AS INSERT #Actual VALUES(@TestResultFormatter);');
+  
+  CREATE TABLE #Actual
+  (
+     TestResultFormatter NVARCHAR(MAX)
+  );
+
+  EXEC tSQLt.Private_RunMethodHandler @RunMethod = 'Run_Methods_Tests.[spy run method]', @TestResultFormatter = 'a special formatter';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected(TestResultFormatter) VALUES ('a special formatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE Run_Methods_Tests.[test Private_RunMethodHandler defaults @TestResultFormatter to configured Test Result Formatter]
 AS
 BEGIN
   EXEC('CREATE PROCEDURE Run_Methods_Tests.[spy run method] @TestResultFormatter NVARCHAR(MAX) AS INSERT #Actual VALUES(@TestResultFormatter);');
@@ -1592,7 +1592,7 @@ BEGIN
      TestResultFormatter NVARCHAR(MAX)
   );
 
-  EXEC tSQLt.Private_CallRunWithConfiguredFormatter @RunMethod = 'Run_Methods_Tests.[spy run method]';
+  EXEC tSQLt.Private_RunMethodHandler @RunMethod = 'Run_Methods_Tests.[spy run method]';
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
     
@@ -1602,16 +1602,62 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunAll calls Private_CallRunWithConfiguredFormatter with tSQLt.Private_RunAll]
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Private_RunMethodHandler passes @TestName if ssp has that parameter]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CallRunWithConfiguredFormatter';
+  CREATE TABLE #Actual
+  (
+     TestName NVARCHAR(MAX),
+     TestResultFormatter NVARCHAR(MAX)
+  );
+
+  EXEC('CREATE PROCEDURE Run_Methods_Tests.[spy run method] @TestName NVARCHAR(MAX), @TestResultFormatter NVARCHAR(MAX) AS INSERT #Actual VALUES(@TestName,@TestResultFormatter);');
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt',@ObjectName='GetTestResultFormatter';
+  EXEC('CREATE FUNCTION tSQLt.GetTestResultFormatter() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''CorrectResultFormatter''; END;');
+  
+  EXEC tSQLt.Private_RunMethodHandler @RunMethod = 'Run_Methods_Tests.[spy run method]', @TestName = 'some test';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected(TestName, TestResultFormatter) VALUES ('some test','CorrectResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE Run_Methods_Tests.[test Private_RunMethodHandler calls Private_Init before calling ssp]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE Run_Methods_Tests.[spy run method] @TestResultFormatter NVARCHAR(MAX) AS INSERT #Actual VALUES(''run method'');');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Init', @CommandToExecute = 'INSERT #Actual VALUES(''Private_Init'');';
+  
+  CREATE TABLE #Actual
+  (
+     Id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+     Method NVARCHAR(MAX)
+  );
+
+  EXEC tSQLt.Private_RunMethodHandler @RunMethod = 'Run_Methods_Tests.[spy run method]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1,'Private_Init');
+  INSERT INTO #Expected VALUES (2,'run method');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunAll calls Private_RunMethodHandler with tSQLt.Private_RunAll]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunMethodHandler';
 
   EXEC tSQLt.RunAll;
 
   SELECT RunMethod
   INTO #Actual
-  FROM tSQLt.Private_CallRunWithConfiguredFormatter_SpyProcedureLog;
+  FROM tSQLt.Private_RunMethodHandler_SpyProcedureLog;
   
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
     
@@ -1621,16 +1667,16 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunNew calls Private_CallRunWithConfiguredFormatter with tSQLt.Private_RunNew]
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunNew calls Private_RunMethodHandler with tSQLt.Private_RunNew]
 AS
 BEGIN
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CallRunWithConfiguredFormatter';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunMethodHandler';
 
   EXEC tSQLt.RunNew;
 
   SELECT RunMethod
   INTO #Actual
-  FROM tSQLt.Private_CallRunWithConfiguredFormatter_SpyProcedureLog;
+  FROM tSQLt.Private_RunMethodHandler_SpyProcedureLog;
   
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
     
@@ -1640,3 +1686,20 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE Run_Methods_Tests.[test Run calls Private_RunMethodHandler correctly]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.Private_RunMethodHandler';
+ 
+  EXEC tSQLt.Run @TestName = 'some test', @TestResultFormatter = 'some special formatter';
+  
+  SELECT RunMethod, TestResultFormatter, TestName
+    INTO #Actual
+    FROM tSQLt.Private_RunMethodHandler_SpyProcedureLog;
+    
+  SELECT TOP(0) * INTO #Expected FROM #Actual;
+  INSERT INTO #Expected (RunMethod, TestResultFormatter, TestName)VALUES('tSQLt.Private_Run', 'some special formatter', 'some test');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO

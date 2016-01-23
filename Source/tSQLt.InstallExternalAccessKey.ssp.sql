@@ -5,10 +5,9 @@ GO
 CREATE PROCEDURE tSQLt.InstallExternalAccessKey
 AS
 BEGIN
-
-  IF(NOT EXISTS(SELECT 1 FROM sys.login_token AS LT WHERE name = 'sysadmin'))
+  IF(NOT EXISTS(SELECT * FROM sys.fn_my_permissions(NULL,'server') AS FMP WHERE FMP.permission_name = 'CONTROL SERVER'))
   BEGIN
-    RAISERROR('Only members of sysadmin can execute this procedure.',16,10);
+    RAISERROR('Only principals with CONTROL SERVER permission can execute this procedure.',16,10);
     RETURN -1;
   END;
 

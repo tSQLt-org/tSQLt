@@ -1,5 +1,15 @@
 EXEC tSQLt.NewTestClass 'InstallExternalAccessKeyTests';
 GO
+DECLARE @cmd NVARCHAR(MAX);
+SET @cmd = 'IF(SUSER_ID(''InstallExternalAccessKeyTestsUser1'')) IS NOT NULL DROP LOGIN InstallExternalAccessKeyTestsUser1;';
+EXEC master.sys.sp_executesql @cmd;
+SET @cmd = 'IF(SCHEMA_ID(''InstallExternalAccessKeyTestsUser1'')) IS NOT NULL DROP SCHEMA InstallExternalAccessKeyTestsUser1;';
+EXEC master.sys.sp_executesql @cmd;
+EXEC sys.sp_executesql @cmd;
+SET @cmd = 'IF(USER_ID(''InstallExternalAccessKeyTestsUser1'')) IS NOT NULL DROP USER InstallExternalAccessKeyTestsUser1;';
+EXEC master.sys.sp_executesql @cmd;
+EXEC sys.sp_executesql @cmd;
+GO
 CREATE PROCEDURE InstallExternalAccessKeyTests.DropExistingItems
 AS
 BEGIN
@@ -8,7 +18,7 @@ BEGIN
   EXEC master.sys.sp_executesql N'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtExternalAccessKey'') DROP ASSEMBLY tSQLtExternalAccessKey;';
 END;
 GO
-CREATE PROCEDURE InstallExternalAccessKeyTests.[test InstallExternalAccessKey is signed with same key as tSQLt.clr]
+CREATE PROCEDURE InstallExternalAccessKeyTests.[test tSQLtExternalAccessKey install data is signed with same key as tSQLt.clr]
 AS
 BEGIN
   DECLARE @EAKey VARBINARY(100);
@@ -245,26 +255,15 @@ BEGIN
   SET @cmd = 'CREATE LOGIN InstallExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
   EXEC master.sys.sp_executesql @cmd;
 
-  IF(CAST(PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(128)),4) AS INT) < 11)
+  SET @cmd = 'CREATE USER InstallExternalAccessKeyTestsUser1;ALTER ROLE db_owner ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+  IF((SELECT I.SqlVersion FROM tSQLt.Info() AS I) < 11)
   BEGIN
     SET @cmd = 'CREATE USER InstallExternalAccessKeyTestsUser1;EXEC sys.sp_addrolemember @rolename = ''db_owner'', @membername = ''InstallExternalAccessKeyTestsUser1'';';
-  END
-  ELSE
-  BEGIN
-    SET @cmd = 'CREATE USER InstallExternalAccessKeyTestsUser1;ALTER ROLE db_owner ADD MEMBER InstallExternalAccessKeyTestsUser1;';
   END
   EXEC master.sys.sp_executesql @cmd;
   EXEC sys.sp_executesql @cmd;
   
-  SET @cmd = 'GRANT ALTER ANY LOGIN TO InstallExternalAccessKeyTestsUser1;';
-  SET @cmd = 'GRANT EXTERNAL ACCESS ASSEMBLY TO InstallExternalAccessKeyTestsUser1 WITH GRANT OPTION;'+@cmd;
-  EXEC master.sys.sp_executesql @cmd;
-
---  SET @cmd = 'ALTER SERVER ROLE securityadmin ADD MEMBER InstallExternalAccessKeyTestsUser1;';
---  EXEC master.sys.sp_executesql @cmd;
-
-
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Only members of sysadmin can execute this procedure.';
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Only principals with CONTROL SERVER permission can execute this procedure.';
   
   EXECUTE AS LOGIN = 'InstallExternalAccessKeyTestsUser1';
   EXEC tSQLt.InstallExternalAccessKey;
@@ -276,9 +275,6 @@ GO
 CREATE PROCEDURE InstallExternalAccessKeyTests.[test sysadmin can execute procedure]
 AS
 BEGIN
-  --Only execute on SQL 2012 and later
-  IF(CAST(PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(128)),4) AS INT) > 10)
-  BEGIN
 
     EXEC InstallExternalAccessKeyTests.DropExistingItems;
 
@@ -287,7 +283,7 @@ BEGIN
     SET @cmd = 'CREATE LOGIN InstallExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
     EXEC master.sys.sp_executesql @cmd;
 
-    SET @cmd = 'ALTER SERVER ROLE sysadmin ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+    SET @cmd = 'GRANT CONTROL SERVER TO InstallExternalAccessKeyTestsUser1;';
     EXEC master.sys.sp_executesql @cmd;
   
     EXEC tSQLt.ExpectNoException;
@@ -295,7 +291,6 @@ BEGIN
     EXECUTE AS LOGIN = 'InstallExternalAccessKeyTestsUser1';
     EXEC tSQLt.InstallExternalAccessKey;
     REVERT;
-  END
 
 END;
 GO
@@ -313,4 +308,3 @@ BEGIN
 
 END;
 GO
-
