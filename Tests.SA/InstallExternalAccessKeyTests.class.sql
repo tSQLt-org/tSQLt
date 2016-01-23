@@ -27,14 +27,18 @@ BEGIN
   
   EXEC tSQLt.InstallExternalAccessKey;
 
-  DECLARE @KeyInfo VARCHAR(MAX);
-  SELECT @KeyInfo = '%publickeytoken='+LOWER(CONVERT(VARCHAR(MAX),AK.thumbprint,2)) + ',%' 
-    FROM master.sys.asymmetric_keys AS AK WHERE AK.name = 'tSQLtExternalAccessKey';
+  DECLARE @KeyInfoPattern NVARCHAR(MAX);
+  
+  SELECT @KeyInfoPattern = '%publickeytoken='+BH.bare+',%'
+    FROM master.sys.asymmetric_keys AS AK 
+   CROSS APPLY tSQLt.Private_Bin2Hex(AK.thumbprint) AS BH
+   WHERE AK.name = 'tSQLtExternalAccessKey';
+
 
   DECLARE @tSQLtCLRInfo VARCHAR(MAX);
   SELECT @tSQLtCLRInfo = A.clr_name FROM sys.assemblies AS A WHERE name = 'tSQLtCLR';
 
-  EXEC tSQLt.AssertLike @ExpectedPattern = @KeyInfo, @Actual = @tSQLtCLRInfo;
+  EXEC tSQLt.AssertLike @ExpectedPattern = @KeyInfoPattern, @Actual = @tSQLtCLRInfo;
 END;
 GO
 
@@ -47,9 +51,10 @@ BEGIN
 
   SELECT @cmd = 
          'CREATE ASSEMBLY tSQLtExternalAccessKey AUTHORIZATION dbo FROM ' +
-         CONVERT(VARCHAR(MAX),GUEB.UnsignedEmptyBytes,1) +
+         BH.prefix +
          ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS GUEB;
+    FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS GUEB
+   CROSS APPLY tSQLt.Private_Bin2Hex(GUEB.UnsignedEmptyBytes) AS BH;
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.InstallExternalAccessKey;
@@ -66,9 +71,10 @@ BEGIN
 
   SELECT @cmd = 
          'CREATE ASSEMBLY [tSQLtExternalAccessKey with wrong name!] AUTHORIZATION dbo FROM ' +
-         CONVERT(VARCHAR(MAX),PGEAKB.ExternalAccessKeyBytes,1) +
+         BH.prefix +
          ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB;
+    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB
+   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.ExternalAccessKeyBytes) AS BH;
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.InstallExternalAccessKey;
@@ -142,9 +148,10 @@ BEGIN
 
   SELECT @cmd = 
          'CREATE ASSEMBLY [tSQLtExternalAccessKey with wrong name!] AUTHORIZATION dbo FROM ' +
-         CONVERT(VARCHAR(MAX),PGEAKB.ExternalAccessKeyBytes,1) +
+         BH.prefix +
          ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB;
+    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB
+   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.ExternalAccessKeyBytes) AS BH;
   EXEC master.sys.sp_executesql @cmd;
   
   SET @cmd = 'CREATE ASYMMETRIC KEY [tSQLtExternalAccessKey->asymmetric key with wrong name!] FROM ASSEMBLY [tSQLtExternalAccessKey with wrong name!];';
@@ -167,9 +174,10 @@ BEGIN
 
   SELECT @cmd = 
          'CREATE ASSEMBLY [tSQLtExternalAccessKey with wrong name!] AUTHORIZATION dbo FROM ' +
-         CONVERT(VARCHAR(MAX),PGEAKB.ExternalAccessKeyBytes,1) +
+         BH.prefix +
          ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB;
+    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB
+   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.ExternalAccessKeyBytes) AS BH;
   EXEC master.sys.sp_executesql @cmd;
   
   SET @cmd = 'CREATE ASYMMETRIC KEY [tSQLtExternalAccessKey->asymmetric key with wrong name!] FROM ASSEMBLY [tSQLtExternalAccessKey with wrong name!];';
@@ -237,10 +245,17 @@ BEGIN
   SET @cmd = 'CREATE LOGIN InstallExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
   EXEC master.sys.sp_executesql @cmd;
 
-  SET @cmd = 'CREATE USER InstallExternalAccessKeyTestsUser1;ALTER ROLE db_owner ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+  IF(CAST(PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(128)),4) AS INT) < 11)
+  BEGIN
+    SET @cmd = 'CREATE USER InstallExternalAccessKeyTestsUser1;EXEC sys.sp_addrolemember @rolename = ''db_owner'', @membername = ''InstallExternalAccessKeyTestsUser1'';';
+  END
+  ELSE
+  BEGIN
+    SET @cmd = 'CREATE USER InstallExternalAccessKeyTestsUser1;ALTER ROLE db_owner ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+  END
   EXEC master.sys.sp_executesql @cmd;
   EXEC sys.sp_executesql @cmd;
-
+  
   SET @cmd = 'GRANT ALTER ANY LOGIN TO InstallExternalAccessKeyTestsUser1;';
   SET @cmd = 'GRANT EXTERNAL ACCESS ASSEMBLY TO InstallExternalAccessKeyTestsUser1 WITH GRANT OPTION;'+@cmd;
   EXEC master.sys.sp_executesql @cmd;
@@ -261,21 +276,26 @@ GO
 CREATE PROCEDURE InstallExternalAccessKeyTests.[test sysadmin can execute procedure]
 AS
 BEGIN
-  EXEC InstallExternalAccessKeyTests.DropExistingItems;
+  --Only execute on SQL 2012 and later
+  IF(CAST(PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(128)),4) AS INT) > 10)
+  BEGIN
 
-  DECLARE @cmd NVARCHAR(MAX);
+    EXEC InstallExternalAccessKeyTests.DropExistingItems;
+
+    DECLARE @cmd NVARCHAR(MAX);
     
-  SET @cmd = 'CREATE LOGIN InstallExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
-  EXEC master.sys.sp_executesql @cmd;
+    SET @cmd = 'CREATE LOGIN InstallExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
+    EXEC master.sys.sp_executesql @cmd;
 
-  SET @cmd = 'ALTER SERVER ROLE sysadmin ADD MEMBER InstallExternalAccessKeyTestsUser1;';
-  EXEC master.sys.sp_executesql @cmd;
-
-  EXEC tSQLt.ExpectNoException;
+    SET @cmd = 'ALTER SERVER ROLE sysadmin ADD MEMBER InstallExternalAccessKeyTestsUser1;';
+    EXEC master.sys.sp_executesql @cmd;
   
-  EXECUTE AS LOGIN = 'InstallExternalAccessKeyTestsUser1';
-  EXEC tSQLt.InstallExternalAccessKey;
-  REVERT;
+    EXEC tSQLt.ExpectNoException;
+  
+    EXECUTE AS LOGIN = 'InstallExternalAccessKeyTestsUser1';
+    EXEC tSQLt.InstallExternalAccessKey;
+    REVERT;
+  END
 
 END;
 GO
@@ -293,15 +313,4 @@ BEGIN
 
 END;
 GO
-
-CREATE PROCEDURE InstallExternalAccessKeyTests.[test include these tests in build]
-AS
-BEGIN
-
-  EXEC tSQLt.Fail 'include these tests in build';
-END;
-GO
-
-
-  --include 2 EA test cases in build
 

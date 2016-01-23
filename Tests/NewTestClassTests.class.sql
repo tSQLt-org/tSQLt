@@ -117,3 +117,86 @@ BEGIN
   END;
 END;
 GO
+
+CREATE PROCEDURE NewTestClassTests.[test records a new test class in tSQLt.Private_NewTestClassList]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NewTestClassList';
+  EXEC tSQLt.NewTestClass 'My Test Class';
+
+  SELECT ClassName
+  INTO #Actual
+  FROM tSQLt.Private_NewTestClassList;
+
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  VALUES('My Test Class');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';    
+END;
+GO
+
+CREATE PROCEDURE NewTestClassTests.[test records unquoted name in tSQLt.Private_NewTestClassList]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NewTestClassList';
+  EXEC tSQLt.NewTestClass '[My Test Class]';
+
+  SELECT ClassName
+  INTO #Actual
+  FROM tSQLt.Private_NewTestClassList;
+
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  VALUES('My Test Class');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';    
+END;
+GO
+
+CREATE PROCEDURE NewTestClassTests.[test inserts name only once in tSQLt.Private_NewTestClassList]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NewTestClassList';
+  EXEC tSQLt.NewTestClass 'My Test Class';
+  EXEC tSQLt.NewTestClass '[My Test Class]';
+  EXEC tSQLt.NewTestClass 'My Test Class';
+  EXEC tSQLt.NewTestClass '[My Test Class]';
+
+  SELECT ClassName
+  INTO #Actual
+  FROM tSQLt.Private_NewTestClassList;
+
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  VALUES('My Test Class');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';    
+END;
+GO
+
+CREATE PROCEDURE NewTestClassTests.[test NewTestClass works if called on existing test class]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'My Test Class';
+  EXEC tSQLt.NewTestClass 'My Test Class';
+END;
+GO
+
+CREATE PROCEDURE NewTestClassTests.[test NewTestClass works if called on existing test class quoted]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'My Test Class';
+  EXEC tSQLt.NewTestClass '[My Test Class]';
+END;
+GO
+

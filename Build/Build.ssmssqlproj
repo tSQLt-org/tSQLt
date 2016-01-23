@@ -37,17 +37,41 @@
           <AssociatedConnUserName />
           <FullPath>ChangeDbAndExecuteStatement(tSQLt.Build).sql</FullPath>
         </FileNode>
-        <FileNode Name="Create(tSQLtKey).sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Create(tSQLtKey).sql</FullPath>
-        </FileNode>
         <FileNode Name="CreateBuildDb.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>CreateBuildDb.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Drop(master.tSQLt_testutil).sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Drop(master.tSQLt_testutil).sql</FullPath>
+        </FileNode>
+        <FileNode Name="Drop(tSQLtExternalAccessKey).sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Drop(tSQLtExternalAccessKey).sql</FullPath>
+        </FileNode>
+        <FileNode Name="DROPTHIS--Create(tSQLtKey).sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>DROPTHIS--Create(tSQLtKey).sql</FullPath>
+        </FileNode>
+        <FileNode Name="DROPTHIS--ExecuteAsSa.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>DROPTHIS--ExecuteAsSa.sql</FullPath>
+        </FileNode>
+        <FileNode Name="DROPTHIS--tSQLtKey.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>DROPTHIS--tSQLtKey.sql</FullPath>
         </FileNode>
         <FileNode Name="EnableCLR.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
@@ -55,11 +79,17 @@
           <AssociatedConnUserName />
           <FullPath>EnableCLR.sql</FullPath>
         </FileNode>
-        <FileNode Name="ExecuteAsSa.sql">
+        <FileNode Name="EnableExternalAccess.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>ExecuteAsSa.sql</FullPath>
+          <FullPath>EnableExternalAccess.sql</FullPath>
+        </FileNode>
+        <FileNode Name="ExecuteAs(tSQLt.Build.SA).sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>ExecuteAs(tSQLt.Build.SA).sql</FullPath>
         </FileNode>
         <FileNode Name="ExecuteAs(tSQLt.Build).sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
@@ -91,11 +121,17 @@
           <AssociatedConnUserName />
           <FullPath>GrantBuildPermissions.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLtKey.sql">
+        <FileNode Name="Install(master.tSQLt_testutil).sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>tSQLtKey.sql</FullPath>
+          <FullPath>Install(master.tSQLt_testutil).sql</FullPath>
+        </FileNode>
+        <FileNode Name="Install(tSQLtExternalAccessKey).sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Install(tSQLtExternalAccessKey).sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

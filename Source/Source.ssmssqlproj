@@ -193,6 +193,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.NewTestClass.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_Bin2Hex.sfn.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_Bin2Hex.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_CompareTables.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -283,6 +289,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_MarkSchemaAsTestClass.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_NewTestClassList.tbl.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_NewTestClassList.tbl.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_NullCellTable.tbl.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -367,6 +379,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_ResetNewTestClassList.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_ResetNewTestClassList.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ScriptIndex.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -438,6 +456,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.RenameClass.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Reset.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Reset.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.SetVerbose.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

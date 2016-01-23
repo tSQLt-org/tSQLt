@@ -3,9 +3,15 @@ IF OBJECT_ID('tSQLt.Private_CleanTestResult') IS NOT NULL DROP PROCEDURE tSQLt.P
 IF OBJECT_ID('tSQLt.Private_RunTest') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTest;
 IF OBJECT_ID('tSQLt.Private_RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTestClass;
 IF OBJECT_ID('tSQLt.Private_Run') IS NOT NULL DROP PROCEDURE tSQLt.Private_Run;
+IF OBJECT_ID('tSQLt.Private_RunCursor') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunCursor;
 IF OBJECT_ID('tSQLt.Private_RunAll') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunAll;
+IF OBJECT_ID('tSQLt.Private_RunNew') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunNew;
+IF OBJECT_ID('tSQLt.Private_GetCursorForRunAll') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetCursorForRunAll;
+IF OBJECT_ID('tSQLt.Private_GetCursorForRunNew') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetCursorForRunNew;
+IF OBJECT_ID('tSQLt.Private_CallRunWithConfiguredFormatter') IS NOT NULL DROP PROCEDURE tSQLt.Private_CallRunWithConfiguredFormatter;
 IF OBJECT_ID('tSQLt.Private_InputBuffer') IS NOT NULL DROP PROCEDURE tSQLt.Private_InputBuffer;
 IF OBJECT_ID('tSQLt.RunAll') IS NOT NULL DROP PROCEDURE tSQLt.RunAll;
+IF OBJECT_ID('tSQLt.RunNew') IS NOT NULL DROP PROCEDURE tSQLt.RunNew;
 IF OBJECT_ID('tSQLt.RunTest') IS NOT NULL DROP PROCEDURE tSQLt.RunTest;
 IF OBJECT_ID('tSQLt.RunC') IS NOT NULL DROP PROCEDURE tSQLt.RunC;
 IF OBJECT_ID('tSQLt.Run') IS NOT NULL DROP PROCEDURE tSQLt.Run;
@@ -322,8 +328,10 @@ SET NOCOUNT ON;
 END;
 GO
 
-CREATE PROCEDURE tSQLt.Private_RunAll
-  @TestResultFormatter NVARCHAR(MAX)
+
+CREATE PROCEDURE tSQLt.Private_RunCursor
+  @TestResultFormatter NVARCHAR(MAX),
+  @GetCursorCallback NVARCHAR(MAX)
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -332,24 +340,75 @@ BEGIN
 
   EXEC tSQLt.Private_CleanTestResult;
 
-  DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
+  DECLARE @TestClassCursor CURSOR;
+  EXEC @GetCursorCallback @TestClassCursor = @TestClassCursor OUT;
+----  
+  WHILE(1=1)
+  BEGIN
+    FETCH NEXT FROM @TestClassCursor INTO @TestClassName;
+    IF(@@FETCH_STATUS<>0)BREAK;
+
+    EXEC tSQLt.Private_RunTestClass @TestClassName;
+    
+  END;
+  
+  CLOSE @TestClassCursor;
+  DEALLOCATE @TestClassCursor;
+  
+  EXEC tSQLt.Private_OutputTestResults @TestResultFormatter;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_GetCursorForRunAll
+  @TestClassCursor CURSOR VARYING OUTPUT
+AS
+BEGIN
+  SET @TestClassCursor = CURSOR LOCAL FAST_FORWARD FOR
    SELECT Name
      FROM tSQLt.TestClasses;
 
-  OPEN tests;
+  OPEN @TestClassCursor;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_RunAll
+  @TestResultFormatter NVARCHAR(MAX)
+AS
+BEGIN
+  EXEC tSQLt.Private_RunCursor @TestResultFormatter = @TestResultFormatter, @GetCursorCallback = 'tSQLt.Private_GetCursorForRunAll';
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_GetCursorForRunNew
+  @TestClassCursor CURSOR VARYING OUTPUT
+AS
+BEGIN
+  SET @TestClassCursor = CURSOR LOCAL FAST_FORWARD FOR
+   SELECT TC.Name
+     FROM tSQLt.TestClasses AS TC
+     JOIN tSQLt.Private_NewTestClassList AS PNTCL
+       ON PNTCL.ClassName = TC.Name;
+
+  OPEN @TestClassCursor;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_RunNew
+  @TestResultFormatter NVARCHAR(MAX)
+AS
+BEGIN
+  EXEC tSQLt.Private_RunCursor @TestResultFormatter = @TestResultFormatter, @GetCursorCallback = 'tSQLt.Private_GetCursorForRunNew';
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_CallRunWithConfiguredFormatter
+  @RunMethod NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @TestResultFormatter NVARCHAR(MAX);
+  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
   
-  FETCH NEXT FROM tests INTO @TestClassName;
-  WHILE @@FETCH_STATUS = 0
-  BEGIN
-    EXEC tSQLt.Private_RunTestClass @TestClassName;
-    
-    FETCH NEXT FROM tests INTO @TestClassName;
-  END;
-  
-  CLOSE tests;
-  DEALLOCATE tests;
-  
-  EXEC tSQLt.Private_OutputTestResults @TestResultFormatter;
+  EXEC @RunMethod @TestResultFormatter;
 END;
 GO
 
@@ -358,10 +417,14 @@ GO
 CREATE PROCEDURE tSQLt.RunAll
 AS
 BEGIN
-  DECLARE @TestResultFormatter NVARCHAR(MAX);
-  SELECT @TestResultFormatter = tSQLt.GetTestResultFormatter();
-  
-  EXEC tSQLt.Private_RunAll @TestResultFormatter;
+  EXEC tSQLt.Private_CallRunWithConfiguredFormatter @RunMethod = 'tSQLt.Private_RunAll';
+END;
+GO
+
+CREATE PROCEDURE tSQLt.RunNew
+AS
+BEGIN
+  EXEC tSQLt.Private_CallRunWithConfiguredFormatter @RunMethod = 'tSQLt.Private_RunNew';
 END;
 GO
 

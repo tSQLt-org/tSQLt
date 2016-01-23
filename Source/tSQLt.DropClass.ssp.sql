@@ -56,7 +56,7 @@ BEGIN
              UNION ALL
             SELECT 10000,'DROP SCHEMA ' + QUOTENAME(name) +';'
               FROM sys.schemas
-             WHERE schema_id = SCHEMA_ID(@ClassName)
+             WHERE schema_id = SCHEMA_ID(PARSENAME(@ClassName,1))
          ),
          StatementBlob(xml)AS
          (

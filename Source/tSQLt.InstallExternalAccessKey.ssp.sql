@@ -24,9 +24,10 @@ BEGIN
 
   SELECT @cmd = 
          'CREATE ASSEMBLY tSQLtExternalAccessKey AUTHORIZATION dbo FROM ' +
-         CONVERT(VARCHAR(MAX),PGEAKB.ExternalAccessKeyBytes,1) +
+         BH.prefix +
          ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB;
+    FROM tSQLt.Private_GetExternalAccessKeyBytes() AS PGEAKB
+   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.ExternalAccessKeyBytes) BH;
   EXEC master.sys.sp_executesql @cmd;
 
   IF SUSER_ID('tSQLtExternalAccessKey') IS NOT NULL DROP LOGIN tSQLtExternalAccessKey;

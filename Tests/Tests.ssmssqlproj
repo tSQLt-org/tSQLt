@@ -97,12 +97,6 @@
           <AssociatedConnUserName />
           <FullPath>DropClassTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="EnableExternalAccessTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>EnableExternalAccessTests.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="ExpectExceptionTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -169,6 +163,12 @@
           <AssociatedConnUserName />
           <FullPath>Private_GetFullTypeNameTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_ResetNewTestClassListTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Private_ResetNewTestClassListTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_ScriptIndexTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -198,6 +198,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>RenameClassTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="ResetTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>ResetTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Run_Methods_Tests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

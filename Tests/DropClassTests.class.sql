@@ -77,4 +77,35 @@ BEGIN
 END;
 GO
 
+CREATE PROC DropClassTests.[test removes class with spaces in name]
+AS
+BEGIN
+    EXEC('CREATE SCHEMA [My Test Class];');
+
+    EXEC tSQLt.ExpectNoException;
+        EXEC tSQLt.DropClass 'My Test Class';
+    
+    IF(SCHEMA_ID('My Test Class') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop [My Test Class]';
+    END
+END;
+GO
+
+CREATE PROC DropClassTests.[test removes class if name is passed quoted]
+AS
+BEGIN
+    EXEC('CREATE SCHEMA [My Test Class];');
+
+    EXEC tSQLt.ExpectNoException;
+        EXEC tSQLt.DropClass '[My Test Class]';
+    
+    IF(SCHEMA_ID('My Test Class') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop [My Test Class]';
+    END
+END;
+GO
+
+
 

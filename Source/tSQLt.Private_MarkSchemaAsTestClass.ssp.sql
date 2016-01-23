@@ -5,6 +5,8 @@ CREATE PROCEDURE tSQLt.Private_MarkSchemaAsTestClass
   @QuotedClassName NVARCHAR(MAX)
 AS
 BEGIN
+  SET NOCOUNT ON;
+
   DECLARE @UnquotedClassName NVARCHAR(MAX);
 
   SELECT @UnquotedClassName = name
@@ -15,6 +17,16 @@ BEGIN
                               @value = 1,
                               @level0type = 'SCHEMA',
                               @level0name = @UnquotedClassName;
+
+  INSERT INTO tSQLt.Private_NewTestClassList(ClassName)
+  SELECT @UnquotedClassName
+   WHERE NOT EXISTS
+             (
+               SELECT * 
+                 FROM tSQLt.Private_NewTestClassList AS NTC
+                 WITH(UPDLOCK,ROWLOCK,HOLDLOCK)
+                WHERE NTC.ClassName = @UnquotedClassName
+             );
 END;
 ---Build-
 GO

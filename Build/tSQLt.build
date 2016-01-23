@@ -236,10 +236,30 @@
    <arg value="temp/AllTests.EXTERNAL_ACCESS.sql"/>
   </exec>
 
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.EXTERNAL_ACCESS_KEY_EXISTS/*.class.sql"/>
+   <arg value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql"/>
+  </exec>
+
+  <exec program="cmd" workingdir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.SA/*.class.sql"/>
+   <arg value="temp/AllTests.SA.sql"/>
+  </exec>
+
   <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
+  <copy file="ExecuteAs(tSQLt.Build.SA).sql" todir="temp"/>
+  <copy file="Drop(tSQLtExternalAccessKey).sql" todir="temp"/>
+  <copy file="Install(tSQLtExternalAccessKey).sql" todir="temp"/>
   <copy file="ChangeDbAndExecuteStatement(tSQLt.Build).sql" todir="temp"/>
+  <copy file="EnableExternalAccess.sql" todir="temp"/>
   <copy file="CreateBuildDb.sql" todir="temp"/>
+  <copy file="Drop(master.tSQLt_testutil).sql" todir="temp"/>
+  <copy file="Install(master.tSQLt_testutil).sql" todir="temp"/>
   <copy file="GetTestResults.sql" todir="temp"/>
   <copy file="GetFailedTestCount.sql" todir="temp"/>
   <copy file="../Examples/TestThatExamplesAreDeployed.sql" todir="temp"/>
@@ -247,7 +267,7 @@
 
  <target name="package.test.create.artifacts">
   <delete file="output/tSQLt.tests.zip" />
-  <zip zipfile="output/tSQLt.tests.zip">
+  <zip zipfile="output/tSQLt.tests.zip" verbose="true">
    <fileset basedir="temp">
     <include name="TestUtil.sql"/>
     <include name="AllTests.sql"/>
@@ -255,8 +275,16 @@
     <include name="AllTests.2012.sql"/>
     <include name="AllTests.2014.sql"/>
     <include name="AllTests.EXTERNAL_ACCESS.sql"/>
+    <include name="AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql"/>
+    <include name="AllTests.SA.sql"/>
     <include name="BootStrapTest.sql"/>
     <include name="ExecuteAs(tSQLt.Build).sql"/>
+    <include name="ExecuteAs(tSQLt.Build.SA).sql"/>
+    <include name="Drop(tSQLtExternalAccessKey).sql"/>
+    <include name="Install(tSQLtExternalAccessKey).sql"/>
+    <include name="EnableExternalAccess.sql"/>
+    <include name="Drop(master.tSQLt_testutil).sql"/>
+    <include name="Install(master.tSQLt_testutil).sql"/>
     <include name="ChangeDbAndExecuteStatement(tSQLt.Build).sql"/>
     <include name="CreateBuildDb.sql"/>
     <include name="GetTestResults.sql"/>

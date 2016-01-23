@@ -334,26 +334,6 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Run_Methods_Tests.[test RunAll calls Private_RunAll with configured Test Result Formatter]
-AS
-BEGIN
-  EXEC tSQLt.SpyProcedure 'tSQLt.Private_RunAll';
-  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt',@ObjectName='GetTestResultFormatter';
-  EXEC('CREATE FUNCTION tSQLt.GetTestResultFormatter() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''CorrectResultFormatter''; END;');
- 
-  EXEC tSQLt.RunAll;
-  
-  SELECT TestResultFormatter
-    INTO #Actual
-    FROM tSQLt.Private_RunAll_SpyProcedureLog;
-    
-  SELECT TOP(0) * INTO #Expected FROM #Actual;
-  INSERT INTO #Expected(TestResultFormatter) VALUES ('CorrectResultFormatter');
-  
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-
 CREATE PROCEDURE Run_Methods_Tests.[test Private_RunAll calls tSQLt.Private_OutputTestResults with passed in TestResultFormatter]
 AS
 BEGIN
@@ -1508,3 +1488,155 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.Expected','Run_Methods_Tests.Actual';
 END;
 GO
+CREATE PROC Run_Methods_Tests.[test Privat_GetCursorForRunNew returns all test classes created after(!) tSQLt.Reset was called]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+    EXEC tSQLt.NewTestClass 'Test Class A';
+    EXEC tSQLt.Reset;
+    EXEC tSQLt.NewTestClass 'Test Class B';
+    EXEC tSQLt.NewTestClass 'Test Class C';
+
+    DECLARE @TestClassCursor CURSOR;
+    EXEC tSQLt.Private_GetCursorForRunNew @TestClassCursor = @TestClassCursor OUT;  
+
+    SELECT Class
+    INTO #Actual
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+
+    DECLARE @TestClass NVARCHAR(MAX);
+    WHILE(1=1)
+    BEGIN
+      FETCH NEXT FROM @TestClassCursor INTO @TestClass;
+      IF(@@FETCH_STATUS<>0)BREAK;
+      INSERT INTO #Actual VALUES(@TestClass);
+    END;
+    CLOSE @TestClassCursor;
+    DEALLOCATE @TestClassCursor;
+    
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected VALUES('Test Class B');    
+    INSERT INTO #Expected VALUES('Test Class C');    
+     
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test Privat_GetCursorForRunNew skips dropped classes]
+AS
+BEGIN
+    EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+    EXEC tSQLt.Reset;
+    EXEC tSQLt.NewTestClass 'Test Class B';
+    EXEC tSQLt.NewTestClass 'Test Class C';
+    EXEC tSQLt.DropClass 'Test Class C';
+
+    DECLARE @TestClassCursor CURSOR;
+    EXEC tSQLt.Private_GetCursorForRunNew @TestClassCursor = @TestClassCursor OUT;  
+
+    SELECT Class
+    INTO #Actual
+      FROM tSQLt.TestResult
+     WHERE 1=0;
+
+    DECLARE @TestClass NVARCHAR(MAX);
+    WHILE(1=1)
+    BEGIN
+      FETCH NEXT FROM @TestClassCursor INTO @TestClass;
+      IF(@@FETCH_STATUS<>0)BREAK;
+      INSERT INTO #Actual VALUES(@TestClass);
+    END;
+    CLOSE @TestClassCursor;
+    DEALLOCATE @TestClassCursor;
+    
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected VALUES('Test Class B');    
+     
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test Privat_RunNew calls Private_RunCursor with correct cursor]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunCursor';
+  
+  EXEC tSQLt.Private_RunNew @TestResultFormatter = 'A Test Result Formatter';
+
+  SELECT TestResultFormatter,GetCursorCallback
+  INTO #Actual
+  FROM tSQLt.Private_RunCursor_SpyProcedureLog;
+   
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+  VALUES('A Test Result Formatter','tSQLt.Private_GetCursorForRunNew');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Private_CallRunWithConfiguredFormatter calls ssp with configured Test Result Formatter]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE Run_Methods_Tests.[spy run method] @TestResultFormatter NVARCHAR(MAX) AS INSERT #Actual VALUES(@TestResultFormatter);');
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName='tSQLt',@ObjectName='GetTestResultFormatter';
+  EXEC('CREATE FUNCTION tSQLt.GetTestResultFormatter() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''CorrectResultFormatter''; END;');
+  
+  CREATE TABLE #Actual
+  (
+     TestResultFormatter NVARCHAR(MAX)
+  );
+
+  EXEC tSQLt.Private_CallRunWithConfiguredFormatter @RunMethod = 'Run_Methods_Tests.[spy run method]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected(TestResultFormatter) VALUES ('CorrectResultFormatter');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunAll calls Private_CallRunWithConfiguredFormatter with tSQLt.Private_RunAll]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CallRunWithConfiguredFormatter';
+
+  EXEC tSQLt.RunAll;
+
+  SELECT RunMethod
+  INTO #Actual
+  FROM tSQLt.Private_CallRunWithConfiguredFormatter_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES ('tSQLt.Private_RunAll');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunNew calls Private_CallRunWithConfiguredFormatter with tSQLt.Private_RunNew]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CallRunWithConfiguredFormatter';
+
+  EXEC tSQLt.RunNew;
+
+  SELECT RunMethod
+  INTO #Actual
+  FROM tSQLt.Private_CallRunWithConfiguredFormatter_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES ('tSQLt.Private_RunNew');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+

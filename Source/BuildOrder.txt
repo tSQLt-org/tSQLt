@@ -1,5 +1,8 @@
 tSQLt._Header.sql
 tSQLt.DropClass.ssp.sql
+tSQLt.Private_Bin2Hex.sfn.sql
+tSQLt.Private_NewTestClassList.tbl.sql
+tSQLt.Private_ResetNewTestClassList.ssp.sql
 tSQLt.Private_SysTypes.svw.sql
 tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql
@@ -71,4 +74,5 @@ tSQLt.AssertEqualsTableSchema.tables.sql
 tSQLt.AssertEqualsTableSchema.ssp.sql
 tSQLt.AssertStringTable.udt.sql
 tSQLt.AssertStringIn.ssp.sql
+tSQLt.Reset.ssp.sql
 tSQLt._Footer.sql
