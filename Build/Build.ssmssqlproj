@@ -125,6 +125,12 @@
           <AssociatedConnUserName />
           <FullPath>BuildHelper.exe</FullPath>
         </FileNode>
+        <FileNode Name="ChangeSigningKey_ReadMe.txt">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>ChangeSigningKey_ReadMe.txt</FullPath>
+        </FileNode>
         <FileNode Name="CreateAssemblyGenerator.exe">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
