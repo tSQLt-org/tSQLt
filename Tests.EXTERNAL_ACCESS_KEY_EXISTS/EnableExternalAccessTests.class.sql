@@ -36,7 +36,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = 'SAFE_ACCESS', @Actual = @Actual;
 END;
 GO
-CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess reports meaningful warning only, if @try = 1 and setting fails]
+CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails]
 AS
 BEGIN
   ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
@@ -51,7 +51,7 @@ BEGIN
   INTO #Expected
   FROM #Actual;
   INSERT INTO #Expected
-  VALUES('Warning: The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed.'+CHAR(13)+CHAR(10));
+  VALUES(NULL);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -82,4 +82,30 @@ BEGIN
   EXEC tSQLt.AssertLike @ExpectedPattern = 'The attempt to disable tSQLt features requiring EXTERNAL_ACCESS failed: %tSQLtCLR%', @Actual = @Actual;
 END;
 GO
+
+CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess retunrs -1, if @try = 1 and setting fails]
+AS
+BEGIN
+  ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
+  EXEC master.tSQLt_testutil.tSQLtTestUtil_ExternalAccessRevoke;
+
+  DECLARE @Actual INT;
+  EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;
+  
+  EXEC tSQLt.AssertEquals -1,@Actual;
+END;
+GO
+
+CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess retunrs 0, if @try = 1 and setting is successful]
+AS
+BEGIN
+  ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
+
+  DECLARE @Actual INT;
+  EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;
+  
+  EXEC tSQLt.AssertEquals 0,@Actual;
+END;
+GO
+
 

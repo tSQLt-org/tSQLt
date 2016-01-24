@@ -1,6 +1,4 @@
-IF OBJECT_ID('tSQLt.Private_Init') IS NOT NULL DROP PROCEDURE tSQLt.Private_Init;
 IF OBJECT_ID('tSQLt.Private_GetSetupProcedureName') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetSetupProcedureName;
-IF OBJECT_ID('tSQLt.Private_CleanTestResult') IS NOT NULL DROP PROCEDURE tSQLt.Private_CleanTestResult;
 IF OBJECT_ID('tSQLt.Private_RunTest') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTest;
 IF OBJECT_ID('tSQLt.Private_RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTestClass;
 IF OBJECT_ID('tSQLt.Private_Run') IS NOT NULL DROP PROCEDURE tSQLt.Private_Run;
@@ -34,13 +32,6 @@ BEGIN
       FROM sys.procedures
      WHERE schema_id = @TestClassId
        AND LOWER(name) = 'setup';
-END;
-GO
-
-CREATE PROCEDURE tSQLt.Private_CleanTestResult
-AS
-BEGIN
-   DELETE FROM tSQLt.TestResult;
 END;
 GO
 
@@ -398,13 +389,6 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt.Private_Init
-AS
-BEGIN
-  EXEC tSQLt.Private_CleanTestResult;
-END;
-GO
-
 CREATE PROCEDURE tSQLt.Private_RunMethodHandler
   @RunMethod NVARCHAR(MAX),
   @TestResultFormatter NVARCHAR(MAX) = NULL,
@@ -414,15 +398,17 @@ BEGIN
   SELECT @TestResultFormatter = ISNULL(@TestResultFormatter,tSQLt.GetTestResultFormatter());
 
   EXEC tSQLt.Private_Init;
-  
-  IF(EXISTS(SELECT * FROM sys.parameters AS P WHERE P.object_id = OBJECT_ID(@RunMethod) AND name = '@TestName'))
-  BEGIN
-    EXEC @RunMethod @TestName = @TestName, @TestResultFormatter = @TestResultFormatter;
-  END
-  ELSE
+  IF(@@ERROR = 0)
   BEGIN  
-    EXEC @RunMethod @TestResultFormatter = @TestResultFormatter;
-  END
+    IF(EXISTS(SELECT * FROM sys.parameters AS P WHERE P.object_id = OBJECT_ID(@RunMethod) AND name = '@TestName'))
+    BEGIN
+      EXEC @RunMethod @TestName = @TestName, @TestResultFormatter = @TestResultFormatter;
+    END;
+    ELSE
+    BEGIN  
+      EXEC @RunMethod @TestResultFormatter = @TestResultFormatter;
+    END;
+  END;
 END;
 GO
 
