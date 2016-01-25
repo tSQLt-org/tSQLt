@@ -103,6 +103,7 @@
    <arg value="BuildHelper.exe"/>
    <arg value="../Source/BuildOrder.txt"/>
    <arg value="temp/tSQLt.class.sql"/>
+   <arg value="---Build"/>
   </exec>
  </target>
 

@@ -1,6 +1,7 @@
 IF OBJECT_ID('tSQLt.Private_CompareTablesFailIfUnequalRowsExists') IS NOT NULL DROP PROCEDURE tSQLt.Private_CompareTablesFailIfUnequalRowsExists;
 GO
----BUILD+
+---Build+
+GO
 CREATE PROCEDURE tSQLt.Private_CompareTablesFailIfUnequalRowsExists
  @UnequalRowsExist INT,
  @ResultTable NVARCHAR(MAX),
@@ -22,5 +23,6 @@ BEGIN
     EXEC tSQLt.Fail @Message, @TableToTextResult;
   END;
 END
----BUILD-
+GO
+---Build-
 GO

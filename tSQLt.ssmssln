@@ -27,6 +27,8 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.SA", "Tests.SA\Tests.
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.EXTERNAL_ACCESS_KEY_EXISTS", "Tests.EXTERNAL_ACCESS_KEY_EXISTS\Tests.EXTERNAL_ACCESS_KEY_EXISTS.ssmssqlproj", "{7FC3A926-9834-455A-906E-330FFCF224E3}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Build_Output", "Build_Output\Build_Output.ssmssqlproj", "{92395F13-BF15-4C42-A876-DC851DE88ACA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -44,8 +46,9 @@ Global
 		{9CD9A36A-BA81-4D3F-B1E4-29E2BD6E8714}.Default|Default.ActiveCfg = Default
 		{E2A27030-663A-4CA8-AAEB-DE8E2D2C1602}.Default|Default.ActiveCfg = Default
 		{C3E63571-5B2C-4FF0-9FE4-96BB08BEDC7B}.Default|Default.ActiveCfg = Default
-		{88D82FD8-4295-409E-9780-56F6A1CA5DA2}.Default|Default.ActiveCfg = Default
 		{7FC3A926-9834-455A-906E-330FFCF224E3}.Default|Default.ActiveCfg = Default
+		{A48D69DD-2543-46B6-9C85-4AF95F95C33A}.Default|Default.ActiveCfg = Default
+		{92395F13-BF15-4C42-A876-DC851DE88ACA}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

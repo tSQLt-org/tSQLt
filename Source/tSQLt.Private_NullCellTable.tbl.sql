@@ -1,5 +1,7 @@
 IF OBJECT_ID('tSQLt.Private_NullCellTable') IS NOT NULL DROP TABLE tSQLt.Private_NullCellTable;
 GO
+---Build+
+GO
 CREATE TABLE tSQLt.Private_NullCellTable(
   I INT 
 );

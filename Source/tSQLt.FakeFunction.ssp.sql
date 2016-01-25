@@ -1,5 +1,7 @@
 IF OBJECT_ID('tSQLt.FakeFunction') IS NOT NULL DROP PROCEDURE tSQLt.FakeFunction;
 GO
+---Build+
+GO
 CREATE PROCEDURE tSQLt.FakeFunction
   @FunctionName NVARCHAR(MAX),
   @FakeFunctionName NVARCHAR(MAX)

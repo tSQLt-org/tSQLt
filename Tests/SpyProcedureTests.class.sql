@@ -371,3 +371,203 @@ BEGIN
 END;
 GO
 
+CREATE PROC SpyProcedureTests.[test SpyProcedure works if spyee has 100 parameters with 8000 bytes each]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.InnerProcedure') IS NOT NULL DROP PROCEDURE dbo.InnerProcedure;
+  DECLARE @Cmd VARCHAR(MAX);
+  SELECT @Cmd = 'CREATE PROC dbo.InnerProcedure('+
+                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@P'+CAST(no AS VARCHAR)+' CHAR(8000)' [text()]
+                   FROM tSQLt.F_Num(100)
+                    FOR XML PATH('')
+                )+
+                ') AS BEGIN RETURN 0; END;';
+  EXEC(@Cmd);
+
+  SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+    INTO #ExpectedM
+    FROM sys.parameters
+   WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+  EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+  SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+    INTO #ActualM
+    FROM sys.parameters
+   WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+  SELECT * 
+    INTO #Actual1
+    FROM #ActualM
+   WHERE parameter_id<511;
+  SELECT * 
+    INTO #Expected1
+    FROM #ExpectedM
+   WHERE parameter_id<511;
+   
+  EXEC tSQLt.AssertEqualsTable '#Expected1','#Actual1';
+
+  SELECT * 
+    INTO #Actual2
+    FROM #ActualM
+   WHERE parameter_id>510;
+  SELECT * 
+    INTO #Expected2
+    FROM #ExpectedM
+   WHERE parameter_id>510;
+   
+  EXEC tSQLt.AssertEqualsTable '#Expected2','#Actual2';
+END
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure creates char parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure(
+             @CHAR1 CHAR(1),
+             @CHAR8000 CHAR(8000),
+             @VARCHAR1 VARCHAR(1),
+             @VARCHAR8000 VARCHAR(8000),
+             @VARCHARMAX VARCHAR(MAX)
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure creates binary parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure(
+             @BINARY1 BINARY(1) =NULL,
+             @BINARY4000 BINARY(3000) =NULL,
+             @VARBINARY1 VARBINARY(1) =NULL,
+             @VARBINARY4000 VARBINARY(3000) =NULL,
+             @VARBINARYMAX VARBINARY(MAX) =NULL
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
+CREATE PROC SpyProcedureTests.[test SpyProcedure creates log which handles binary columns]
+AS
+BEGIN
+    DECLARE @proc NVARCHAR(100); SET @proc = 'dbo.InnerProcedure';
+    EXEC('CREATE PROC dbo.InnerProcedure(
+             @VARBINARY8000 VARBINARY(8000) =NULL
+          )
+          AS BEGIN RETURN 0; END');
+
+
+    EXEC tSQLt.SpyProcedure @proc;
+     
+    EXEC @proc @VARBINARY8000=0x111122223333444455556666777788889999;
+
+    DECLARE @Actual VARBINARY(8000);
+    SELECT @Actual = VARBINARY8000 FROM dbo.InnerProcedure_SpyProcedureLog;
+    
+    EXEC tSQLt.AssertEquals 0x111122223333444455556666777788889999, @Actual;
+END;
+GO
+
+
+CREATE PROC SpyProcedureTests.[test SpyProcedure creates nchar parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure(
+             @NCHAR1 NCHAR(1),
+             @NCHAR4000 NCHAR(4000),
+             @NVARCHAR1 NVARCHAR(1),
+             @NVARCHAR4000 NVARCHAR(4000),
+             @NVARCHARMAX NVARCHAR(MAX)
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure creates other parameters correctly]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure(
+             @TINYINT TINYINT,
+             @SMALLINT SMALLINT,
+             @INT INT,
+             @BIGINT BIGINT
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure fails with error if spyee has more than 1020 parameters]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.Spyee') IS NOT NULL DROP PROCEDURE dbo.Spyee;
+  DECLARE @Cmd VARCHAR(MAX);
+  SELECT @Cmd = 'CREATE PROC dbo.Spyee('+
+                (SELECT CASE WHEN no = 1 THEN '' ELSE ',' END +'@P'+CAST(no AS VARCHAR)+' INT' [text()]
+                   FROM tSQLt.F_Num(1021)
+                    FOR XML PATH('')
+                )+
+                ') AS BEGIN RETURN 0; END;';
+  EXEC(@Cmd);
+  DECLARE @Err VARCHAR(MAX);SET @Err = 'NO ERROR';
+  BEGIN TRY
+    EXEC tSQLt.SpyProcedure 'dbo.Spyee';
+  END TRY
+  BEGIN CATCH
+    SET @Err = ERROR_MESSAGE();
+  END CATCH
+  
+  IF @Err NOT LIKE '%dbo.Spyee%' AND @Err NOT LIKE '%1020 parameters%'
+  BEGIN
+      EXEC tSQLt.Fail 'Unexpected error message was: ', @Err;
+  END;
+  
+END

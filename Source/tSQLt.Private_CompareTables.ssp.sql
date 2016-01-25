@@ -1,6 +1,7 @@
 IF OBJECT_ID('tSQLt.Private_CompareTables') IS NOT NULL DROP PROCEDURE tSQLt.Private_CompareTables;
 GO
----BUILD+
+---Build+
+GO
 CREATE PROCEDURE tSQLt.Private_CompareTables
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),

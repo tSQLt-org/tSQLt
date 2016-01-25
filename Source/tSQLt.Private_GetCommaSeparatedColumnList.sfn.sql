@@ -1,6 +1,7 @@
 IF OBJECT_ID('tSQLt.Private_GetCommaSeparatedColumnList') IS NOT NULL DROP FUNCTION tSQLt.Private_GetCommaSeparatedColumnList;
 GO
----BUILD+
+---Build+
+GO
 CREATE FUNCTION tSQLt.Private_GetCommaSeparatedColumnList (@Table NVARCHAR(MAX), @ExcludeColumn NVARCHAR(MAX))
 RETURNS NVARCHAR(MAX)
 AS 
@@ -15,5 +16,4 @@ BEGIN
     ,1, 1, '');
         
 END;
----BUILD-
 GO

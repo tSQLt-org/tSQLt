@@ -1,5 +1,7 @@
 IF OBJECT_ID('[tSQLt].[AssertLike]') IS NOT NULL DROP PROCEDURE [tSQLt].[AssertLike];
 GO
+---Build+
+GO
 CREATE PROCEDURE [tSQLt].[AssertLike] 
   @ExpectedPattern NVARCHAR(MAX),
   @Actual NVARCHAR(MAX),

@@ -1,6 +1,7 @@
 IF OBJECT_ID('tSQLt.Private_CreateResultTableForCompareTables') IS NOT NULL DROP PROCEDURE tSQLt.Private_CreateResultTableForCompareTables;
 GO
----BUILD+
+---Build+
+GO
 CREATE PROCEDURE tSQLt.Private_CreateResultTableForCompareTables
  @ResultTable NVARCHAR(MAX),
  @ResultColumn NVARCHAR(MAX),
@@ -15,5 +16,6 @@ BEGIN
      TRUNCATE TABLE ' + @ResultTable + ';' --Need to insert an actual row to prevent IDENTITY property from transfering (IDENTITY_COL can't be NULLable);
   EXEC(@Cmd);
 END
----BUILD-
+GO
+---Build-
 GO

@@ -49,6 +49,12 @@
           <AssociatedConnUserName />
           <FullPath>Run_Methods.sql</FullPath>
         </FileNode>
+        <FileNode Name="SetClrEnabled.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SetClrEnabled.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt._Footer.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -290,8 +296,8 @@
           <FullPath>tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_Init.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_Init.ssp.sql</FullPath>
         </FileNode>
@@ -348,12 +354,6 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_RenameObjectToUniqueName.ssp.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SetClrEnabled.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SetClrEnabled.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.FakeTable.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

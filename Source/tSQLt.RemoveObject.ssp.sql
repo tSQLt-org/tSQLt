@@ -1,6 +1,7 @@
 IF OBJECT_ID('tSQLt.RemoveObject') IS NOT NULL DROP PROCEDURE tSQLt.RemoveObject;
 GO
----BUILD+
+---Build+
+GO
 CREATE PROCEDURE tSQLt.RemoveObject 
     @ObjectName NVARCHAR(MAX),
     @NewName NVARCHAR(MAX) = NULL OUTPUT,
@@ -18,5 +19,6 @@ BEGIN
 
   EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ObjectId, @NewName = @NewName OUTPUT;
 END;
+GO
 ---Build-
 GO

@@ -5,6 +5,8 @@ GO
 CREATE PROCEDURE tSQLt.Private_Init
 AS
 BEGIN
+  EXEC tSQLt.Private_CleanTestResult;
+
   DECLARE @enable BIT; SET @enable = 1;
   DECLARE @version_match BIT;SET @version_match = 0;
   BEGIN TRY
@@ -20,8 +22,10 @@ BEGIN
     RETURN;
   END;
 
-  EXEC tSQLt.EnableExternalAccess @enable = @enable, @try = 1;
-  EXEC tSQLt.Private_CleanTestResult;
+  IF((SELECT SqlEdition FROM tSQLt.Info()) <> 'SQL Azure')
+  BEGIN
+    EXEC tSQLt.EnableExternalAccess @enable = @enable, @try = 1;
+  END;
 END;
 GO
 ---Build-

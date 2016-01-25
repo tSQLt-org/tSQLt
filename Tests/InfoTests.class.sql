@@ -35,7 +35,7 @@ GO
 CREATE FUNCTION InfoTests.[42.17.1986.57]()
 RETURNS TABLE
 AS
-RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion;
+RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition;
 GO
 CREATE PROCEDURE InfoTests.[test returns SqlVersion and SqlBuild]
 AS
@@ -56,3 +56,24 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+CREATE PROCEDURE InfoTests.[test returns SqlEdition]
+AS
+BEGIN
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'InfoTests.[42.17.1986.57]';
+
+  SELECT I.SqlEdition
+    INTO #Actual
+    FROM tSQLt.Info() AS I;
+  
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  VALUES('My Edition');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+

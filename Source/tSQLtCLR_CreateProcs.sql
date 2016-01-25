@@ -14,6 +14,8 @@
    limitations under the License.
 */
 GO
+---Build+
+GO
 
 CREATE PROCEDURE tSQLt.ResultSetFilter @ResultsetNo INT, @Command NVARCHAR(MAX)
 AS

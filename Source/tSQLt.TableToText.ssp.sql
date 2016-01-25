@@ -1,6 +1,7 @@
 IF OBJECT_ID('tSQLt.TableToText') IS NOT NULL DROP PROCEDURE tSQLt.TableToText;
 GO
 ---Build+
+GO
 CREATE PROCEDURE tSQLt.TableToText
     @txt NVARCHAR(MAX) OUTPUT,
     @TableName NVARCHAR(MAX),
@@ -10,4 +11,5 @@ AS
 BEGIN
     SET @txt = tSQLt.Private::TableToString(@TableName, @OrderBy, @PrintOnlyColumnNameAliasList);
 END;
+GO
 ---Build-

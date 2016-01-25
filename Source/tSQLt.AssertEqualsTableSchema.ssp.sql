@@ -1,5 +1,7 @@
 IF OBJECT_ID('tSQLt.AssertEqualsTableSchema') IS NOT NULL DROP PROCEDURE tSQLt.AssertEqualsTableSchema;
 GO
+---Build+
+GO
 CREATE PROCEDURE tSQLt.AssertEqualsTableSchema
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),

@@ -1,6 +1,6 @@
 IF OBJECT_ID('tSQLt.Private_Bin2Hex') IS NOT NULL DROP FUNCTION tSQLt.Private_Bin2Hex;
 GO
---Build+
+---Build+
 GO
 CREATE FUNCTION tSQLt.Private_Bin2Hex(@vb VARBINARY(MAX))
 RETURNS TABLE

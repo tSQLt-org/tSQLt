@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<project name="tSQLt" default="all" basedir=".">
+
+ <target name="all" depends="hello, copy" />
+ 
+
+ <target name="hello" description="announcement">
+  <loadfile
+    failonerror="true"
+    file="output/Version.txt"
+    property="clr.version"
+   />
+  <property name="clr.version" value="${string::trim(clr.version)}" />
+
+  <echo message="Copying tSQLt build files to local Build_Output. (Version:${clr.version})" />
+ </target>
+
+ <target name="copy" description="prepare directories for tSQLt build">
+
+  <delete>
+   <fileset basedir="../BuildOutput">
+    <include name="*.sql" />
+    <include name="*.txt" />
+    <include name="*.zip" />
+   </fileset>
+  </delete>
+
+  <unzip zipfile="output/tSQLt.zip" todir="../Build_Output" />
+  <unzip zipfile="output/tSQLt.tests.zip" todir="../Build_Output" />
+
+  <copy todir="../Build_Output">
+   <fileset basedir="output">
+    <include name="tSQLt.zip" />
+    <include name="tSQLt.tests.zip" />
+    <include name="tSQLtSnippets(SQLPrompt).zip" />
+    <include name="Version.txt" />
+    <include name="ReadMe.txt" />
+   </fileset>
+  </copy>
+ </target>
+
+
+</project>

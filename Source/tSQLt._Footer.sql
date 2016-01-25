@@ -1,3 +1,4 @@
+---Build+
 GO
 SET NOCOUNT ON;
 DECLARE @ver NVARCHAR(MAX); 

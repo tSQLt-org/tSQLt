@@ -1,6 +1,6 @@
 IF TYPE_ID('tSQLt.AssertStringTable') IS NOT NULL DROP TYPE tSQLt.AssertStringTable;
 GO
----Built+
+---Build+
 GO
 IF NOT(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(MAX)) LIKE '9.%')
 BEGIN

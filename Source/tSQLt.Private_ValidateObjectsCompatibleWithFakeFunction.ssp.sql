@@ -1,5 +1,7 @@
 IF OBJECT_ID('tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction') IS NOT NULL DROP PROCEDURE tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction;
 GO
+---Build+
+GO
 CREATE PROCEDURE tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction
   @FunctionName NVARCHAR(MAX),
   @FakeFunctionName NVARCHAR(MAX),
