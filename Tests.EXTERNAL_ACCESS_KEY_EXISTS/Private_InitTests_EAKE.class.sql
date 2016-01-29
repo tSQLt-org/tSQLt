@@ -39,7 +39,7 @@ GO
 CREATE FUNCTION Private_InitTests_EAKE.[mismatching versions]()
 RETURNS TABLE
 AS
-RETURN SELECT '1234' Version, '4567' ClrVersion;
+RETURN SELECT '1234' Version, '4567' ClrVersion, NULL SqlVersion, NULL SqlBuild, NULL SqlEdition;
 GO
 CREATE PROCEDURE Private_InitTests_EAKE.[test Private_Init fails if versions do not match]
 AS
@@ -55,7 +55,7 @@ GO
 CREATE FUNCTION Private_InitTests_EAKE.[SQL Azure Edition]()
 RETURNS TABLE
 AS
-RETURN SELECT '1' Version, '1' ClrVersion, 'SQL Azure' SqlEdition;
+RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'SQL Azure' SqlEdition;
 GO
 CREATE PROCEDURE Private_InitTests_EAKE.[test does not call EnableExternalAccess if Edition='SQL Azure']
 AS
