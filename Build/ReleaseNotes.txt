@@ -43,14 +43,18 @@ NEW FEATURES:
    This feature establishes backward compatibillity but comes at a performance cost. 
    It might therefore be removed in a future version.
 
-8. tSQLt automatically disables EXTERNAL_ACCESS each time a "run" method is called, if that 
-   should be required to continue test execution. This is necessary, if the requirements 
-   to enable EXTERNAL_ACCESS were once fulfilled but are not any longer.
+8. tSQLt detects at the beginning of each execution, if the requirements to enable 
+   EXTERNAL_ACCESS are not any longer fulfilled. If the assembly is still marked as
+   EXTERNAL_ACCESS, the execution is halted immediately, and an error is reported
+   back to the caller.
    
 9. tSQLt checks at the beginning of each execution, if the installed assembly's version
    matches the version of the T-SQL code. If a mismatch is detected, the execution is 
    immediately halted and an error is reported back to the caller.
 
+A. tSQLt.Run now allows a test result formatter to be passed in in the @TestResultFormatter
+   parameter. If that parameter is omitted or NULL, the default result formatter is used.
+   
 OTHER:
 
 1. Cleaned up several procedures and tests
