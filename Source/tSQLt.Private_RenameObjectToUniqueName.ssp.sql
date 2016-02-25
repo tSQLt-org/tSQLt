@@ -12,7 +12,7 @@ BEGIN
    DECLARE @RenameCmd NVARCHAR(MAX);
    SET @RenameCmd = 'EXEC sp_rename ''' + 
                           @SchemaName + '.' + @ObjectName + ''', ''' + 
-                          @NewName + ''';';
+                          @NewName + ''',''OBJECT'';';
    
    EXEC tSQLt.Private_MarkObjectBeforeRename @SchemaName, @ObjectName;
 

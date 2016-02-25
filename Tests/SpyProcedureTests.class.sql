@@ -570,4 +570,49 @@ BEGIN
       EXEC tSQLt.Fail 'Unexpected error message was: ', @Err;
   END;
   
-END
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works on procedure if type with same name exists]
+AS
+BEGIN
+   CREATE TYPE SpyProcedureTests.ProcedureAndType FROM BIGINT;
+   EXEC('CREATE PROC SpyProcedureTests.ProcedureAndType AS RETURN;');
+
+   EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.ProcedureAndType';
+
+   EXEC ('EXEC SpyProcedureTests.ProcedureAndType');
+
+   SELECT _id_
+     INTO #Actual
+     FROM SpyProcedureTests.ProcedureAndType_SpyProcedureLog;
+
+   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+   
+   INSERT INTO #Expected
+   VALUES(1);
+
+   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works on procedure if table type with same name exists]
+AS
+BEGIN
+   CREATE TYPE SpyProcedureTests.ProcedureAndType AS TABLE(id INT);
+   EXEC('CREATE PROC SpyProcedureTests.ProcedureAndType AS RETURN;');
+SELECT OBJECT_ID('SpyProcedureTests.ProcedureAndType'),TYPE_ID('SpyProcedureTests.ProcedureAndType');
+   EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.ProcedureAndType';
+
+   EXEC ('EXEC SpyProcedureTests.ProcedureAndType');
+
+   SELECT _id_
+     INTO #Actual
+     FROM SpyProcedureTests.ProcedureAndType_SpyProcedureLog;
+
+   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+   
+   INSERT INTO #Expected
+   VALUES(1);
+
+   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
