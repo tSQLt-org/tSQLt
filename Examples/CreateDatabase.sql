@@ -45,7 +45,7 @@ CREATE TABLE Accelerator.Particle(
 );
 GO
 
-IF OBJECT_ID('Accelerator.Color') IS NOT NULL DROP TABLE Practice.Color;
+IF OBJECT_ID('Accelerator.Color') IS NOT NULL DROP TABLE Accelerator.Color;
 GO
 CREATE TABLE Accelerator.Color(
   Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Color_Id PRIMARY KEY,
