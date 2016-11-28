@@ -1,31 +1,52 @@
 EXEC tSQLt.NewTestClass 'DropAllClassesTests';
 GO
-CREATE PROC DropAllClassesTests.[test that all test classes are dropped]
+CREATE PROC DropAllClassesTests.[SetUp]
 AS
 BEGIN
-    EXEC tSQLt.NewTestClass 'MyTestClass1';
-    EXEC tSQLt.NewTestClass 'MyTestClass2';
-
-    EXEC tSQLt.ExpectNoException;
-    
-    EXEC tSQLt.DropAllClasses;
-    
-    IF(SCHEMA_ID('MyTestClass1') IS NOT NULL)
-      EXEC tSQLt.Fail 'DropAllClasses did not drop MyTestClass1';
-    IF(SCHEMA_ID('MyTestClass2') IS NOT NULL)
-      EXEC tSQLt.Fail 'DropAllClasses did not drop MyTestClass2';
+    EXEC tSQLt.FakeTable 'tSQLt.TestClasses';
+    EXEC tSQLt.SpyProcedure 'tSQLt.DropClass';
 END;
 GO
-CREATE PROC DropAllClassesTests.[test that schemas that are not test classes are not dropped]
+CREATE PROC DropAllClassesTests.[test DropClass not called if no test classes exist]
 AS
 BEGIN
-    EXEC('CREATE SCHEMA MyGenericSchema;');
-
-    EXEC tSQLt.ExpectNoException;
-    
     EXEC tSQLt.DropAllClasses;
     
-    IF(SCHEMA_ID('MyGenericSchema') IS NULL)
-      EXEC tSQLt.Fail 'DropAllClasses dropped MyGenericSchema';
+    EXEC tSQLt.AssertEmptyTable 'tSQLt.DropClass_SpyProcedureLog';
+
+END;
+GO
+CREATE PROC DropAllClassesTests.[test that one test class results in one call to DropClass]
+AS
+BEGIN
+    EXEC('INSERT INTO tSQLt.TestClasses (Name)
+          VALUES  (''MyTestClass'');');
+
+    EXEC tSQLt.DropAllClasses;
+
+    SELECT TOP 0 * INTO #expected FROM tSQLt.DropClass_SpyProcedureLog;
+    INSERT INTO #expected (ClassName)
+    VALUES  ('MyTestClass');
+
+    EXEC tSQLt.AssertEqualsTable '#expected', 'tSQLt.DropClass_SpyProcedureLog';
+END;
+GO
+CREATE PROC DropAllClassesTests.[test that multiple test classes are all sent to DropClass]
+AS
+BEGIN
+    EXEC('INSERT INTO tSQLt.TestClasses (Name)
+          VALUES  (''MyTestClass1''),
+                  (''MyTestClass2''),
+                  (''MyTestClass3'');');
+
+    EXEC tSQLt.DropAllClasses;
+
+    SELECT TOP 0 * INTO #expected FROM tSQLt.DropClass_SpyProcedureLog;
+    INSERT INTO #expected (ClassName)
+    VALUES  ('MyTestClass1'),
+            ('MyTestClass2'),
+            ('MyTestClass3');
+
+    EXEC tSQLt.AssertEqualsTable '#expected', 'tSQLt.DropClass_SpyProcedureLog';
 END;
 GO
