@@ -1606,6 +1606,28 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt_test.[test Uninstall removes test classes]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure 'tSQLt.DropAllClasses';
+  DECLARE @call INT;
+  BEGIN TRAN;
+  DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
+  SAVE TRAN @TranName;
+
+  EXEC tSQLt.Uninstall;
+  SET @call = (SELECT 1 FROM tSQLt.DropAllClasses_SpyProcedureLog);
+
+  ROLLBACK TRAN @TranName;
+  COMMIT TRAN;
+  
+  IF @id IS NULL
+  BEGIN
+    EXEC tSQLt.Fail 'DropAllClasses not called';
+  END;
+END;
+GO
+
 CREATE PROCEDURE tSQLt_test.[test Uninstall removes schema tSQLt]
 AS
 BEGIN
