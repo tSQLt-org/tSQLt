@@ -17,6 +17,8 @@ FROM(
                     THEN '(' + CAST(@Length AS NVARCHAR) + ')'
                    WHEN T.name IN ('decimal', 'numeric')
                     THEN '(' + CAST(@Precision AS NVARCHAR) + ',' + CAST(@Scale AS NVARCHAR) + ')'
+                   WHEN T.name IN ('datetime2', 'datetimeoffset', 'time')
+                    THEN '(' + CAST(@Scale AS NVARCHAR) + ')'					
                    ELSE ''
                END Suffix,
               CASE WHEN @CollationName IS NULL OR T.is_user_defined = 1 THEN ''

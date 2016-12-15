@@ -90,6 +90,42 @@ BEGIN
 END
 GO
 
+CREATE PROC Private_GetFullTypeNameTests.[test Private_GetFullTypeName should properly return DATETIME2 parameters]
+AS
+BEGIN
+    DECLARE @Result VARCHAR(MAX);
+
+    SELECT @Result = TypeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('datetime2'), NULL, NULL, 3, NULL);
+
+    EXEC tSQLt.AssertEqualsString '[sys].[datetime2](3)', @Result;
+END
+GO
+
+CREATE PROC Private_GetFullTypeNameTests.[test Private_GetFullTypeName should properly return TIME parameters]
+AS
+BEGIN
+    DECLARE @Result VARCHAR(MAX);
+
+    SELECT @Result = TypeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('time'), NULL, NULL, 4, NULL);
+
+    EXEC tSQLt.AssertEqualsString '[sys].[time](4)', @Result;
+END
+GO
+
+CREATE PROC Private_GetFullTypeNameTests.[test Private_GetFullTypeName should properly return DATETIMEOFFSET parameters]
+AS
+BEGIN
+    DECLARE @Result VARCHAR(MAX);
+
+    SELECT @Result = TypeName
+     FROM tSQLt.Private_GetFullTypeName(TYPE_ID('datetimeoffset'), NULL, NULL, 6, NULL);
+
+    EXEC tSQLt.AssertEqualsString '[sys].[datetimeoffset](6)', @Result;
+END
+GO
+
 CREATE PROC Private_GetFullTypeNameTests.[test Private_GetFullTypeName should properly return typeName when all parameters are valued]
 AS
 BEGIN
