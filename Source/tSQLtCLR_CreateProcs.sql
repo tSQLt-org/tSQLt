@@ -22,6 +22,11 @@ AS
 EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].ResultSetFilter;
 GO
 
+CREATE PROCEDURE tSQLt.ResultSetToTable @targetTable NVARCHAR(MAX), @ResultsetNo INT, @Command NVARCHAR(MAX)
+AS
+EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].ResultSetToTable
+GO
+
 CREATE PROCEDURE tSQLt.AssertResultSetsHaveSameMetaData @expectedCommand NVARCHAR(MAX), @actualCommand NVARCHAR(MAX)
 AS
 EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].AssertResultSetsHaveSameMetaData;
