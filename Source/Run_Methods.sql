@@ -50,6 +50,14 @@ BEGIN
     DECLARE @TestResultId INT;
     DECLARE @PreExecTrancount INT;
 
+	DECLARE @ExpectException INT;
+	DECLARE @ExpectedMessage NVARCHAR(MAX);
+	DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
+	DECLARE @ExpectedSeverity INT;
+	DECLARE @ExpectedState INT;
+	DECLARE @ExpectedErrorNumber INT;
+	DECLARE @FailMessage NVARCHAR(MAX);
+
     DECLARE @VerboseMsg NVARCHAR(MAX);
     DECLARE @Verbose BIT;
     SET @Verbose = ISNULL((SELECT CAST(Value AS BIT) FROM tSQLt.Private_GetConfiguration('Verbose')),0);
@@ -88,8 +96,19 @@ BEGIN
 
     DECLARE @TmpMsg NVARCHAR(MAX);
     DECLARE @TestEndTime DATETIME; SET @TestEndTime = NULL;
+
     BEGIN TRY
         IF (@SetUp IS NOT NULL) EXEC @SetUp;
+
+		SELECT @ExpectException = ExpectException,
+			@ExpectedMessage = ExpectedMessage, 
+			@ExpectedSeverity = ExpectedSeverity,
+			@ExpectedState = ExpectedState,
+			@ExpectedMessagePattern = ExpectedMessagePattern,
+			@ExpectedErrorNumber = ExpectedErrorNumber,
+			@FailMessage = FailMessage
+		FROM #ExpectException;
+
         EXEC (@Cmd);
         SET @TestEndTime = GETDATE();
         IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
@@ -113,24 +132,8 @@ BEGIN
             '[' +COALESCE(LTRIM(STR(ERROR_SEVERITY())), '<ERROR_SEVERITY() is NULL>') + ','+COALESCE(LTRIM(STR(ERROR_STATE())), '<ERROR_STATE() is NULL>') + ']' +
             '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
 
-          IF(EXISTS(SELECT 1 FROM #ExpectException))
+          IF(@ExpectException IS NOT NULL)
           BEGIN
-            DECLARE @ExpectException INT;
-            DECLARE @ExpectedMessage NVARCHAR(MAX);
-            DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
-            DECLARE @ExpectedSeverity INT;
-            DECLARE @ExpectedState INT;
-            DECLARE @ExpectedErrorNumber INT;
-            DECLARE @FailMessage NVARCHAR(MAX);
-            SELECT @ExpectException = ExpectException,
-                   @ExpectedMessage = ExpectedMessage, 
-                   @ExpectedSeverity = ExpectedSeverity,
-                   @ExpectedState = ExpectedState,
-                   @ExpectedMessagePattern = ExpectedMessagePattern,
-                   @ExpectedErrorNumber = ExpectedErrorNumber,
-                   @FailMessage = FailMessage
-              FROM #ExpectException;
-
             IF(@ExpectException = 1)
             BEGIN
               SET @Result = 'Success';
@@ -194,7 +197,7 @@ BEGIN
     END CATCH
 
     BEGIN TRY
-        ROLLBACK TRAN @TranName;
+        IF (@@TRANCOUNT > 0) ROLLBACK TRAN @TranName;
     END TRY
     BEGIN CATCH
         DECLARE @PostExecTrancount INT;
@@ -235,7 +238,7 @@ BEGIN
     END    
       
 
-    COMMIT;
+    IF (@@TRANCOUNT > 0) COMMIT;
 
     IF(@Verbose = 1)
     BEGIN
@@ -255,22 +258,26 @@ BEGIN
     DECLARE @SetupProcName NVARCHAR(MAX);
     EXEC tSQLt.Private_GetSetupProcedureName @TestClassId, @SetupProcName OUTPUT;
     
+    IF (@SetupProcName IS NOT NULL) EXEC @SetupProcName;
+
     DECLARE testCases CURSOR LOCAL FAST_FORWARD 
         FOR
-     SELECT tSQLt.Private_GetQuotedFullName(object_id)
-       FROM sys.procedures
-      WHERE schema_id = @TestClassId
-        AND LOWER(name) LIKE 'test%';
+	 SELECT tSQLt.Private_GetQuotedFullName(tests.object_id),
+			tSQLt.Private_GetQuotedFullName(setups.object_id)
+       FROM		sys.procedures tests
+	  LEFT JOIN sys.procedures setups
+			 ON stuff(tests.name,1,4,'setup') = setups.name
+      WHERE LOWER(tests.name) LIKE 'test%';
 
     OPEN testCases;
     
-    FETCH NEXT FROM testCases INTO @TestCaseName;
+    FETCH NEXT FROM testCases INTO @TestCaseName, @SetupProcName;
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
         EXEC tSQLt.Private_RunTest @TestCaseName, @SetupProcName;
 
-        FETCH NEXT FROM testCases INTO @TestCaseName;
+        FETCH NEXT FROM testCases INTO @TestCaseName, @SetupProcName;
     END;
 
     CLOSE testCases;
