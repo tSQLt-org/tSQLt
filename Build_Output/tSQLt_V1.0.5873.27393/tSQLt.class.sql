@@ -238,18 +238,23 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.NewTestClass
-    @ClassName NVARCHAR(MAX)
+     @ClassName NVARCHAR(MAX)
+	,@IsMSBuild	BIT	= 0
 AS
 BEGIN
   BEGIN TRY
-    EXEC tSQLt.Private_DisallowOverwritingNonTestSchema @ClassName;
-
-    EXEC tSQLt.DropClass @ClassName = @ClassName;
+	IF (@IsMSBuild = 0)
+	BEGIN
+		EXEC tSQLt.Private_DisallowOverwritingNonTestSchema @ClassName;
+		EXEC tSQLt.DropClass @ClassName = @ClassName;
+	END;
 
     DECLARE @QuotedClassName NVARCHAR(MAX);
     SELECT @QuotedClassName = tSQLt.Private_QuoteClassNameForNewTestClass(@ClassName);
 
-    EXEC ('CREATE SCHEMA ' + @QuotedClassName);  
+	IF (NOT EXISTS (SELECT 1 FROM SYS.SCHEMAS WHERE NAME = @ClassName))
+		EXEC ('CREATE SCHEMA ' + @QuotedClassName);  
+
     EXEC tSQLt.Private_MarkSchemaAsTestClass @QuotedClassName;
   END TRY
   BEGIN CATCH
@@ -1301,6 +1306,14 @@ BEGIN
     DECLARE @TestResultId INT;
     DECLARE @PreExecTrancount INT;
 
+	DECLARE @ExpectException INT;
+	DECLARE @ExpectedMessage NVARCHAR(MAX);
+	DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
+	DECLARE @ExpectedSeverity INT;
+	DECLARE @ExpectedState INT;
+	DECLARE @ExpectedErrorNumber INT;
+	DECLARE @FailMessage NVARCHAR(MAX);
+
     DECLARE @VerboseMsg NVARCHAR(MAX);
     DECLARE @Verbose BIT;
     SET @Verbose = ISNULL((SELECT CAST(Value AS BIT) FROM tSQLt.Private_GetConfiguration('Verbose')),0);
@@ -1339,8 +1352,19 @@ BEGIN
 
     DECLARE @TmpMsg NVARCHAR(MAX);
     DECLARE @TestEndTime DATETIME; SET @TestEndTime = NULL;
+
     BEGIN TRY
         IF (@SetUp IS NOT NULL) EXEC @SetUp;
+
+		SELECT @ExpectException = ExpectException,
+			@ExpectedMessage = ExpectedMessage, 
+			@ExpectedSeverity = ExpectedSeverity,
+			@ExpectedState = ExpectedState,
+			@ExpectedMessagePattern = ExpectedMessagePattern,
+			@ExpectedErrorNumber = ExpectedErrorNumber,
+			@FailMessage = FailMessage
+		FROM #ExpectException;
+
         EXEC (@Cmd);
         SET @TestEndTime = GETDATE();
         IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
@@ -1364,24 +1388,8 @@ BEGIN
             '[' +COALESCE(LTRIM(STR(ERROR_SEVERITY())), '<ERROR_SEVERITY() is NULL>') + ','+COALESCE(LTRIM(STR(ERROR_STATE())), '<ERROR_STATE() is NULL>') + ']' +
             '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
 
-          IF(EXISTS(SELECT 1 FROM #ExpectException))
+          IF(@ExpectException IS NOT NULL)
           BEGIN
-            DECLARE @ExpectException INT;
-            DECLARE @ExpectedMessage NVARCHAR(MAX);
-            DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
-            DECLARE @ExpectedSeverity INT;
-            DECLARE @ExpectedState INT;
-            DECLARE @ExpectedErrorNumber INT;
-            DECLARE @FailMessage NVARCHAR(MAX);
-            SELECT @ExpectException = ExpectException,
-                   @ExpectedMessage = ExpectedMessage, 
-                   @ExpectedSeverity = ExpectedSeverity,
-                   @ExpectedState = ExpectedState,
-                   @ExpectedMessagePattern = ExpectedMessagePattern,
-                   @ExpectedErrorNumber = ExpectedErrorNumber,
-                   @FailMessage = FailMessage
-              FROM #ExpectException;
-
             IF(@ExpectException = 1)
             BEGIN
               SET @Result = 'Success';
@@ -1445,7 +1453,7 @@ BEGIN
     END CATCH
 
     BEGIN TRY
-        ROLLBACK TRAN @TranName;
+        IF (@@TRANCOUNT > 0) ROLLBACK TRAN @TranName;
     END TRY
     BEGIN CATCH
         DECLARE @PostExecTrancount INT;
@@ -1486,14 +1494,13 @@ BEGIN
     END    
       
 
-    COMMIT;
+    IF (@@TRANCOUNT > 0) COMMIT;
 
     IF(@Verbose = 1)
     BEGIN
     SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Finished';
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
     END;
-
 END;
 GO
 
@@ -1506,22 +1513,26 @@ BEGIN
     DECLARE @SetupProcName NVARCHAR(MAX);
     EXEC tSQLt.Private_GetSetupProcedureName @TestClassId, @SetupProcName OUTPUT;
     
+    IF (@SetupProcName IS NOT NULL) EXEC @SetupProcName;
+
     DECLARE testCases CURSOR LOCAL FAST_FORWARD 
         FOR
-     SELECT tSQLt.Private_GetQuotedFullName(object_id)
-       FROM sys.procedures
-      WHERE schema_id = @TestClassId
-        AND LOWER(name) LIKE 'test%';
+	 SELECT tSQLt.Private_GetQuotedFullName(tests.object_id),
+			tSQLt.Private_GetQuotedFullName(setups.object_id)
+       FROM		sys.procedures tests
+	  LEFT JOIN sys.procedures setups
+			 ON stuff(tests.name,1,4,'setup') = setups.name
+      WHERE LOWER(tests.name) LIKE 'test%';
 
     OPEN testCases;
     
-    FETCH NEXT FROM testCases INTO @TestCaseName;
+    FETCH NEXT FROM testCases INTO @TestCaseName, @SetupProcName;
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
         EXEC tSQLt.Private_RunTest @TestCaseName, @SetupProcName;
 
-        FETCH NEXT FROM testCases INTO @TestCaseName;
+        FETCH NEXT FROM testCases INTO @TestCaseName, @SetupProcName;
     END;
 
     CLOSE testCases;
@@ -2351,7 +2362,16 @@ RETURN
     CROSS JOIN tSQLt.Private_GetOriginalTableInfo(@TableObjectId) orgTbl
    WHERE @ConstraintName IN (constraints.name, QUOTENAME(constraints.name))
      AND constraints.parent_object_id = orgTbl.OrgTableObjectId
-   ORDER BY LEN(constraints.name) ASC;
+   UNION ALL
+  SELECT TOP(1) indexes.object_id AS ConstraintObjectId, 'UNIQUE_INDEX' AS ConstraintType
+    FROM sys.indexes AS indexes
+    CROSS JOIN tSQLt.Private_GetOriginalTableInfo(@TableObjectId) orgTbl
+   WHERE @ConstraintName IN (indexes.name, QUOTENAME(indexes.name))
+     AND indexes.object_id = orgTbl.OrgTableObjectId
+     AND indexes.is_unique = 1
+     AND indexes.is_unique_constraint = 0
+     AND indexes.is_primary_key = 0
+   ORDER BY ConstraintType ASC;
 GO
 
 CREATE FUNCTION tSQLt.Private_ResolveApplyConstraintParameters
@@ -2372,6 +2392,31 @@ RETURN
    UNION ALL
   SELECT *
     FROM tSQLt.Private_FindConstraint(OBJECT_ID(@C + '.' + @A), @B);
+GO
+
+CREATE PROCEDURE tSQLt.Private_ApplyUniqueIndex
+  @ConstraintObjectId INT
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX);
+  DECLARE @OrgTableName NVARCHAR(MAX);
+  DECLARE @TableName NVARCHAR(MAX);
+  DECLARE @ConstraintName NVARCHAR(MAX);
+  DECLARE @CreateConstraintCmd NVARCHAR(MAX);
+
+  SELECT @SchemaName = OBJECT_SCHEMA_NAME(OBJECT_ID(OriginalName)),
+         @OrgTableName = OBJECT_ID(OriginalName),
+         @TableName = OBJECT_NAME(OBJECT_ID(OriginalName)),
+         @ConstraintName = OBJECT_NAME(@ConstraintObjectId)
+    FROM tSQLt.Private_RenamedObjectLog
+   WHERE ObjectId = @ConstraintObjectId;
+  
+
+  SELECT @CreateConstraintCmd = CreateConstraintCmd
+    FROM tSQLt.Private_GetUniqueIndexDefinition(@ConstraintObjectId, QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName));
+
+  EXEC (@CreateConstraintCmd);
+END;
 GO
 
 CREATE PROCEDURE tSQLt.Private_ApplyCheckConstraint
@@ -2495,6 +2540,13 @@ BEGIN
     EXEC tSQLt.Private_ApplyUniqueConstraint @ConstraintObjectId;
     RETURN 0;
   END;  
+
+  IF @ConstraintType = 'UNIQUE_INDEX'
+  BEGIN
+    EXEC tSQLt.Private_ApplyUniqueIndex @ConstraintObjectId;
+    RETURN 0;
+  END;  
+  
    
   RAISERROR ('ApplyConstraint could not resolve the object names, ''%s'', ''%s''. Be sure to call ApplyConstraint and pass in two parameters, such as: EXEC tSQLt.ApplyConstraint ''MySchema.MyTable'', ''MyConstraint''', 
              16, 10, @TableName, @ConstraintName);
@@ -2585,6 +2637,44 @@ RETURN SELECT
 GO
 
 GO
+CREATE FUNCTION tSQLt.Private_GetUniqueIndexDefinition
+(
+    @ConstraintObjectId INT,
+    @QuotedTableName NVARCHAR(MAX)
+)
+RETURNS TABLE
+AS
+RETURN
+  SELECT 'CREATE UNIQUE ' + 
+		 IX.type_desc +
+		 ' INDEX '+
+         QUOTENAME(tSQLt.Private::CreateUniqueObjectName() + '_' + IX.name) COLLATE SQL_Latin1_General_CP1_CI_AS+
+         ' ON ' +
+         @QuotedTableName +
+         ' ' +
+         '(' +
+         STUFF((
+                 SELECT ','+QUOTENAME(C.name)+CASE IC.is_descending_key WHEN 1 THEN ' DESC' ELSE ' ASC' END
+                   FROM sys.index_columns AS IC
+                   JOIN sys.columns AS C
+                     ON IC.object_id = C.object_id
+                    AND IC.column_id = C.column_id
+                  WHERE IX.index_id = IC.index_id
+                    AND IX.object_id = IC.object_id
+                    FOR XML PATH(''),TYPE
+               ).value('.','NVARCHAR(MAX)'),
+               1,
+               1,
+               ''
+              ) +
+         ')' + ISNULL(' WHERE ' + filter_definition,'') + ';' AS CreateConstraintCmd
+    FROM sys.indexes AS IX
+   WHERE IX.object_id = @ConstraintObjectId
+   AND IX.is_unique = 1
+   AND IX.is_unique_constraint = 0
+   AND IX.is_primary_key = 0;
+GO
+
 CREATE FUNCTION tSQLt.Private_GetUniqueConstraintDefinition
 (
     @ConstraintObjectId INT,
