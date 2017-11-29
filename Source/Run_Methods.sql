@@ -87,6 +87,13 @@ BEGIN
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
     END;
 
+	IF EXISTS	(	SELECT 1
+					  FROM sys.sql_modules sm
+					 WHERE sm.definition like '%/***SNAPSHOT***/%'
+					   AND sm.object_id = OBJECT_ID(@TestName)
+				)
+	  SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
+
     BEGIN TRAN;
     SAVE TRAN @TranName;
 
@@ -245,7 +252,6 @@ BEGIN
     SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Finished';
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
     END;
-
 END;
 GO
 

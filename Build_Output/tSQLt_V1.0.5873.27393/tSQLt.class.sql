@@ -1343,6 +1343,13 @@ BEGIN
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
     END;
 
+	IF EXISTS	(	SELECT 1
+					  FROM sys.sql_modules sm
+					 WHERE sm.definition like '%/***SNAPSHOT***/%'
+					   AND sm.object_id = OBJECT_ID(@TestName)
+				)
+	  SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
+
     BEGIN TRAN;
     SAVE TRAN @TranName;
 
@@ -2395,27 +2402,46 @@ RETURN
 GO
 
 CREATE PROCEDURE tSQLt.Private_ApplyUniqueIndex
-  @ConstraintObjectId INT
+   @ConstraintObjectId INT
+  ,@ConstraintName NVARCHAR(MAX)
 AS
 BEGIN
   DECLARE @SchemaName NVARCHAR(MAX);
   DECLARE @OrgTableName NVARCHAR(MAX);
   DECLARE @TableName NVARCHAR(MAX);
-  DECLARE @ConstraintName NVARCHAR(MAX);
   DECLARE @CreateConstraintCmd NVARCHAR(MAX);
+  DECLARE @IndexId INT;
 
   SELECT @SchemaName = OBJECT_SCHEMA_NAME(OBJECT_ID(OriginalName)),
          @OrgTableName = OBJECT_ID(OriginalName),
-         @TableName = OBJECT_NAME(OBJECT_ID(OriginalName)),
-         @ConstraintName = OBJECT_NAME(@ConstraintObjectId)
+         @TableName = OBJECT_NAME(OBJECT_ID(OriginalName))
     FROM tSQLt.Private_RenamedObjectLog
    WHERE ObjectId = @ConstraintObjectId;
-  
+
+  SELECT @IndexId = IX.index_id
+    FROM sys.indexes AS IX
+   WHERE IX.object_id = @ConstraintObjectId
+   AND IX.name = @ConstraintName
+   AND IX.is_unique = 1
+   AND IX.is_unique_constraint = 0
+   AND IX.is_primary_key = 0;
 
   SELECT @CreateConstraintCmd = CreateConstraintCmd
-    FROM tSQLt.Private_GetUniqueIndexDefinition(@ConstraintObjectId, QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName));
+    FROM tSQLt.Private_GetUniqueIndexDefinition(@ConstraintObjectId, @IndexId, QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName));
 
-  EXEC (@CreateConstraintCmd);
+  IF (	SELECT	CASE transaction_isolation_level 
+				WHEN 0 THEN 'Unspecified' 
+				WHEN 1 THEN 'ReadUncommitted' 
+				WHEN 2 THEN 'ReadCommitted' 
+				WHEN 3 THEN 'Repeatable' 
+				WHEN 4 THEN 'Serializable' 
+				WHEN 5 THEN 'Snapshot' END AS TRANSACTION_ISOLATION_LEVEL 
+		FROM	sys.dm_exec_sessions 
+		WHERE	session_id = @@SPID 
+	  ) = 'Snapshot'
+    PRINT 'Not created due to transaction_isolation_level = Snapshot: ' + @CreateConstraintCmd;
+  ELSE
+    EXEC (@CreateConstraintCmd);
 END;
 GO
 
@@ -2437,7 +2463,19 @@ BEGIN
     FROM sys.objects 
    WHERE object_id = @ConstraintObjectId;
 
-  EXEC (@Cmd);
+  IF (	SELECT	CASE transaction_isolation_level 
+				WHEN 0 THEN 'Unspecified' 
+				WHEN 1 THEN 'ReadUncommitted' 
+				WHEN 2 THEN 'ReadCommitted' 
+				WHEN 3 THEN 'Repeatable' 
+				WHEN 4 THEN 'Serializable' 
+				WHEN 5 THEN 'Snapshot' END AS TRANSACTION_ISOLATION_LEVEL 
+		FROM	sys.dm_exec_sessions 
+		WHERE	session_id = @@SPID 
+	  ) = 'Snapshot'
+    PRINT 'Not created due to transaction_isolation_level = Snapshot: ' + @Cmd;
+  ELSE
+    EXEC (@Cmd);
 
 END; 
 GO
@@ -2469,7 +2507,19 @@ BEGIN
   SELECT @FinalCmd = @CreateIndexCmd + @AlterTableCmd;
 
   EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName;
-  EXEC (@FinalCmd);
+  IF (	SELECT	CASE transaction_isolation_level 
+				WHEN 0 THEN 'Unspecified' 
+				WHEN 1 THEN 'ReadUncommitted' 
+				WHEN 2 THEN 'ReadCommitted' 
+				WHEN 3 THEN 'Repeatable' 
+				WHEN 4 THEN 'Serializable' 
+				WHEN 5 THEN 'Snapshot' END AS TRANSACTION_ISOLATION_LEVEL 
+		FROM	sys.dm_exec_sessions 
+		WHERE	session_id = @@SPID 
+	  ) = 'Snapshot'
+    PRINT 'Not created due to transaction_isolation_level = Snapshot: ' + @FinalCmd;
+  ELSE
+    EXEC (@FinalCmd);
 END;
 GO
 
@@ -2495,8 +2545,33 @@ BEGIN
     FROM tSQLt.Private_GetUniqueConstraintDefinition(@ConstraintObjectId, QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName));
 
   EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName;
-  EXEC (@AlterColumnsCmd);
-  EXEC (@CreateConstraintCmd);
+  IF (	SELECT	CASE transaction_isolation_level 
+				WHEN 0 THEN 'Unspecified' 
+				WHEN 1 THEN 'ReadUncommitted' 
+				WHEN 2 THEN 'ReadCommitted' 
+				WHEN 3 THEN 'Repeatable' 
+				WHEN 4 THEN 'Serializable' 
+				WHEN 5 THEN 'Snapshot' END AS TRANSACTION_ISOLATION_LEVEL 
+		FROM	sys.dm_exec_sessions 
+		WHERE	session_id = @@SPID 
+	  ) = 'Snapshot'
+    PRINT 'Not created due to transaction_isolation_level = Snapshot: ' + @AlterColumnsCmd;
+  ELSE
+    EXEC (@AlterColumnsCmd);
+
+  IF (	SELECT	CASE transaction_isolation_level 
+				WHEN 0 THEN 'Unspecified' 
+				WHEN 1 THEN 'ReadUncommitted' 
+				WHEN 2 THEN 'ReadCommitted' 
+				WHEN 3 THEN 'Repeatable' 
+				WHEN 4 THEN 'Serializable' 
+				WHEN 5 THEN 'Snapshot' END AS TRANSACTION_ISOLATION_LEVEL 
+		FROM	sys.dm_exec_sessions 
+		WHERE	session_id = @@SPID 
+	  ) = 'Snapshot'
+    PRINT 'Not created due to transaction_isolation_level = Snapshot: ' + @CreateConstraintCmd;
+  ELSE
+    EXEC (@CreateConstraintCmd);
 END;
 GO
 
@@ -2543,7 +2618,7 @@ BEGIN
 
   IF @ConstraintType = 'UNIQUE_INDEX'
   BEGIN
-    EXEC tSQLt.Private_ApplyUniqueIndex @ConstraintObjectId;
+    EXEC tSQLt.Private_ApplyUniqueIndex @ConstraintObjectId, @ConstraintName;
     RETURN 0;
   END;  
   
@@ -2640,6 +2715,7 @@ GO
 CREATE FUNCTION tSQLt.Private_GetUniqueIndexDefinition
 (
     @ConstraintObjectId INT,
+	@IndexId INT,
     @QuotedTableName NVARCHAR(MAX)
 )
 RETURNS TABLE
@@ -2661,6 +2737,7 @@ RETURN
                     AND IC.column_id = C.column_id
                   WHERE IX.index_id = IC.index_id
                     AND IX.object_id = IC.object_id
+					AND IX.index_id = @IndexId
                     FOR XML PATH(''),TYPE
                ).value('.','NVARCHAR(MAX)'),
                1,
@@ -2670,6 +2747,7 @@ RETURN
          ')' + ISNULL(' WHERE ' + filter_definition,'') + ';' AS CreateConstraintCmd
     FROM sys.indexes AS IX
    WHERE IX.object_id = @ConstraintObjectId
+   AND IX.index_id = @IndexId
    AND IX.is_unique = 1
    AND IX.is_unique_constraint = 0
    AND IX.is_primary_key = 0;
