@@ -6,7 +6,8 @@ CREATE PROCEDURE tSQLt.FakeTable
     @SchemaName NVARCHAR(MAX) = NULL, --parameter preserved for backward compatibility. Do not use. Will be removed soon.
     @Identity BIT = NULL,
     @ComputedColumns BIT = NULL,
-    @Defaults BIT = NULL
+    @Defaults BIT = NULL,
+    @Clone BIT = 0
 AS
 BEGIN
    DECLARE @OrigSchemaName NVARCHAR(MAX);
@@ -47,7 +48,10 @@ BEGIN
      SET @OrigTableFullName = @SchemaName + '.' + @NewNameOfOriginalTable;
    END;
 
-   EXEC tSQLt.Private_CreateFakeOfTable @SchemaName, @TableName, @OrigTableFullName, @Identity, @ComputedColumns, @Defaults;
+   IF (@Clone = 1)
+     EXEC tSQLt.Private_CreateFakeCloneOfTable @SchemaName, @TableName, @OrigTableFullName;
+   ELSE
+     EXEC tSQLt.Private_CreateFakeOfTable @SchemaName, @TableName, @OrigTableFullName, @Identity, @ComputedColumns, @Defaults;
 
    EXEC tSQLt.Private_MarkFakeTable @SchemaName, @TableName, @NewNameOfOriginalTable;
 END

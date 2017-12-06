@@ -1168,11 +1168,12 @@ CREATE PROCEDURE tSQLt.Private_RenameObjectToUniqueName
 AS
 BEGIN
    SET @NewName=tSQLt.Private::CreateUniqueObjectName();
+   SET @NewName=RIGHT(@NewName + '_' + PARSENAME(@ObjectName,1),255);
 
    DECLARE @RenameCmd NVARCHAR(MAX);
    SET @RenameCmd = 'EXEC sp_rename ''' + 
                           @SchemaName + '.' + @ObjectName + ''', ''' + 
-                          @NewName + ''';';
+                          @NewName + ''',''OBJECT'';';
    
    EXEC tSQLt.Private_MarkObjectBeforeRename @SchemaName, @ObjectName;
 
@@ -1180,8 +1181,6 @@ BEGIN
    EXEC tSQLt.SuppressOutput @RenameCmd;
 
 END;
-
-
 GO
 
 CREATE PROCEDURE tSQLt.Private_RenameObjectToUniqueNameUsingObjectId
@@ -2356,6 +2355,39 @@ RETURN
        AND constraints.object_id = @ConstraintObjectId;
 GO
 
+CREATE FUNCTION tSQLt.Private_FindAllConstraints
+(
+  @TableObjectId INT
+)
+RETURNS TABLE
+AS
+RETURN
+  SELECT TOP 100 PERCENT
+         ConstraintObjectId, ConstraintType, name, index_id
+    FROM (
+          SELECT constraints.object_id AS ConstraintObjectId, type_desc AS ConstraintType, constraints.name, 0 as index_id
+            FROM sys.objects constraints
+           WHERE constraints.parent_object_id = @TableObjectId
+           UNION ALL
+          SELECT indexes.object_id AS ConstraintObjectId, CASE WHEN indexes.is_unique = 1 THEN 'UNIQUE_' ELSE '' END + 'INDEX' AS ConstraintType, indexes.name, indexes.index_id
+            FROM sys.indexes AS indexes
+           WHERE indexes.object_id = @TableObjectId
+             AND indexes.is_unique_constraint = 0
+             AND indexes.is_primary_key = 0
+        ) constraints
+   ORDER BY CASE ConstraintType 
+                 WHEN 'PRIMARY_KEY_CONSTRAINT' THEN '1'
+                 WHEN 'UNIQUE_CONSTRAINT' THEN '2'
+                 WHEN 'CHECK_CONSTRAINT' THEN '3'
+                 WHEN 'UNIQUE_INDEX' THEN '4'
+                 WHEN 'INDEX' THEN '5'
+                 WHEN 'DEFAULT_CONSTRAINT' THEN '6'
+                 WHEN 'FOREIGN_KEY_CONSTRAINT' THEN '7'
+                 ELSE ConstraintType 
+            END
+   ASC;
+GO
+
 CREATE FUNCTION tSQLt.Private_FindConstraint
 (
   @TableObjectId INT,
@@ -2809,7 +2841,225 @@ RETURN
    WHERE KC.object_id = @ConstraintObjectId;
 GO
 
+CREATE PROCEDURE tSQLt.Private_CreateFakeCloneOfTable
+  @SchemaName NVARCHAR(MAX),
+  @TableName NVARCHAR(MAX),
+  @OrigTableFullName NVARCHAR(MAX)
+AS
+BEGIN
+   DECLARE @name		SYSNAME;
+   DECLARE @Cmd			NVARCHAR(MAX);
+   DECLARE @Cols		NVARCHAR(MAX);
+   DECLARE @Constraint	NVARCHAR(MAX);
+   DECLARE @Verbose     BIT;
+   SET @Verbose = ISNULL((SELECT CAST(Value AS BIT) FROM tSQLt.Private_GetConfiguration('Verbose')),0);
+   SET @name = tSQLt.Private::CreateUniqueObjectName() + '_'
 
+   DECLARE @Constraints TABLE (
+      SourceObjectId    INT
+     ,object_id			INT
+     ,ConstraintType	SYSNAME
+     ,name				SYSNAME
+     ,index_id			SMALLINT
+     ,sql				NVARCHAR(MAX)
+   );
+
+   INSERT
+     INTO @Constraints
+   SELECT OBJECT_ID(@OrigTableFullName) as SourceObjectId
+         ,*
+         ,NULL as sql
+     FROM tSQLt.Private_FindAllConstraints(OBJECT_ID(@OrigTableFullName));
+   
+   SELECT @Cols = 
+     (
+         SELECT  ','+ QUOTENAME(columns.name)
+                +cc.ColumnDefinition
+                +id.IdentityDefinition
+                +CASE WHEN cc.IsComputedColumn = 1 OR id.IsIdentityColumn = 1 
+                      THEN ''
+                      WHEN columns.is_nullable = 0
+                      THEN ' NOT NULL'
+                      ELSE ' NULL'
+                END
+                +ISNULL(' CONSTRAINT ' + QUOTENAME(RIGHT(@name + default_constraints.name,255))
+                +' DEFAULT ' + default_constraints.definition+' ','')
+           FROM sys.columns
+           JOIN (
+                   SELECT SourceObjectId
+                     FROM @Constraints
+                 GROUP BY SourceObjectId
+                ) Src
+             ON Src.SourceObjectId = columns.object_id
+           LEFT
+           JOIN sys.default_constraints
+             ON default_constraints.parent_object_id = columns.object_id
+            AND default_constraints.parent_column_id = columns.column_id
+          CROSS
+          APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(columns.user_type_id, columns.max_length, columns.precision, columns.scale, columns.collation_name, columns.object_id, columns.column_id, 1) cc
+          CROSS
+          APPLY tSQLt.Private_GetIdentityDefinition(columns.object_id, columns.column_id, 1) AS id
+       ORDER BY column_id
+         FOR XML PATH(''), TYPE
+        ).value('.', 'NVARCHAR(MAX)'
+    );
+
+  UPDATE Constraints
+     SET sql =
+         ',CONSTRAINT '
+        +QUOTENAME(RIGHT(@name + Constraints.name,255))
+        +' '
+        +CASE key_constraints.type_desc 
+               WHEN 'UNIQUE_CONSTRAINT' 
+              THEN 'UNIQUE'
+              ELSE 'PRIMARY KEY'
+          END
+        +'('
+        +STUFF((
+                  SELECT ','+QUOTENAME(columns.name)+CASE index_columns.is_descending_key WHEN 1 THEN ' DESC' ELSE ' ASC' END
+                    FROM sys.index_columns
+                    JOIN sys.columns
+                      ON index_columns.object_id = columns.object_id
+                     AND index_columns.column_id = columns.column_id
+                   WHERE key_constraints.unique_index_id = index_columns.index_id
+                     AND key_constraints.parent_object_id = index_columns.object_id
+                     FOR XML PATH(''),TYPE
+                ).value('.','NVARCHAR(MAX)'),
+                1,
+                1,
+                ''
+               )
+          +')' 
+    FROM sys.key_constraints
+    JOIN @Constraints Constraints
+      ON Constraints.object_id = key_constraints.object_id;
+
+  UPDATE Constraints
+     SET sql =
+         ',CONSTRAINT ' + QUOTENAME(RIGHT(@name + Constraints.name,255)) + ' CHECK ' + definition 
+   FROM sys.check_constraints
+   JOIN @Constraints Constraints
+     ON Constraints.object_id = check_constraints.object_id;
+
+
+  UPDATE Constraints
+     SET sql =
+          ',CONSTRAINT ' + QUOTENAME(RIGHT(@name + Constraints.name,255))
+         +' FOREIGN KEY (' + parCol.ColNames + ')' 
+         +' REFERENCES ' 
+         + ISNULL(QUOTENAME(OBJECT_SCHEMA_NAME(renamed.ObjectId)) + '.' + renamed.OriginalName
+                 ,QUOTENAME(OBJECT_SCHEMA_NAME(foreign_keys.referenced_object_id)) + '.' + QUOTENAME(OBJECT_NAME(foreign_keys.referenced_object_id))
+                 )
+         +'(' + refCol.ColNames + ')'
+         +'ON DELETE '
+         +CASE foreign_keys.delete_referential_action
+               WHEN 0 THEN 'NO ACTION'
+               WHEN 1 THEN 'CASCADE'
+               WHEN 2 THEN 'SET NULL'
+               WHEN 3 THEN 'SET DEFAULT'
+          END
+         +' '
+         +'ON UPDATE '
+         +CASE foreign_keys.update_referential_action
+               WHEN 0 THEN 'NO ACTION'
+               WHEN 1 THEN 'CASCADE'
+               WHEN 2 THEN 'SET NULL'
+               WHEN 3 THEN 'SET DEFAULT'
+          END
+     FROM sys.foreign_keys
+     JOIN @Constraints Constraints
+       ON Constraints.object_id = foreign_keys.object_id
+     LEFT
+     JOIN tSQLt.Private_RenamedObjectLog renamed
+       ON renamed.ObjectId = foreign_keys.referenced_object_id
+    CROSS
+    APPLY tSQLt.Private_GetForeignKeyParColumns(foreign_keys.object_id) AS parCol
+    CROSS
+    APPLY tSQLt.Private_GetForeignKeyRefColumns(foreign_keys.object_id) AS refCol;
+
+  UPDATE Constraints
+     SET sql =
+          ',CONSTRAINT ' + QUOTENAME(RIGHT(@name + Constraints.name,255))
+         +' FOREIGN KEY (' + parCol.ColNames + ')' 
+         +' REFERENCES ' + QUOTENAME(OBJECT_SCHEMA_NAME(renamed.ObjectId)) + '.' + renamed.OriginalName
+         +'(' + refCol.ColNames + ')'
+         +'ON DELETE '
+         +CASE foreign_keys.delete_referential_action
+               WHEN 0 THEN 'NO ACTION'
+               WHEN 1 THEN 'CASCADE'
+               WHEN 2 THEN 'SET NULL'
+               WHEN 3 THEN 'SET DEFAULT'
+          END
+         +' '
+         +'ON UPDATE '
+         +CASE foreign_keys.update_referential_action
+               WHEN 0 THEN 'NO ACTION'
+               WHEN 1 THEN 'CASCADE'
+               WHEN 2 THEN 'SET NULL'
+               WHEN 3 THEN 'SET DEFAULT'
+          END
+     FROM sys.foreign_keys
+     JOIN @Constraints Constraints
+       ON Constraints.object_id = foreign_keys.object_id
+     JOIN tSQLt.Private_RenamedObjectLog renamed
+       ON renamed.ObjectId = foreign_keys.referenced_object_id
+    CROSS
+    APPLY tSQLt.Private_GetForeignKeyParColumns(foreign_keys.object_id) AS parCol
+    CROSS
+    APPLY tSQLt.Private_GetForeignKeyRefColumns(foreign_keys.object_id) AS refCol;
+
+  UPDATE Constraints
+     SET sql =
+          ',INDEX '
+         +QUOTENAME(RIGHT(@name + Constraints.name,255))
+         +' '
+         +CASE WHEN indexes.is_unique = 1 THEN 'UNIQUE ' ELSE '' END + indexes.type_desc
+         +' ('
+         +STUFF((
+                  SELECT ','+QUOTENAME(columns.name)+CASE index_columns.is_descending_key WHEN 1 THEN ' DESC' ELSE ' ASC' END
+                    FROM sys.index_columns
+                    JOIN sys.columns
+                      ON index_columns.object_id = columns.object_id
+                     AND index_columns.column_id = columns.column_id
+                   WHERE indexes.index_id = index_columns.index_id
+                     AND indexes.object_id = index_columns.object_id
+                     FOR XML PATH(''),TYPE
+                ).value('.','NVARCHAR(MAX)'),
+                1,
+                1,
+                ''
+               )
+         +')' 
+         +ISNULL(' WHERE ' + indexes.filter_definition,'') 
+    FROM sys.indexes
+    JOIN @Constraints Constraints
+      ON Constraints.object_id = indexes.object_id
+     AND Constraints.index_id = indexes.index_id
+   WHERE indexes.is_unique_constraint = 0
+     AND indexes.is_primary_key = 0;
+ 
+   SELECT @Constraint = 
+   (
+      SELECT sql
+        FROM @Constraints
+      FOR XML PATH(''), TYPE
+   ).value('.', 'NVARCHAR(MAX)');
+ 
+   SELECT @Cmd = 
+     'CREATE TABLE ' 
+   + @SchemaName 
+   + '.' 
+   + @TableName 
+   + '(' 
+   + STUFF(@Cols,1,1,'') 
+   + ISNULL(STUFF(@Constraint,1,0,''),'')
+   + ')';
+
+   IF @Verbose = 1
+     SELECT @cmd;
+
+   EXEC (@Cmd);
+END;
 GO
 
 CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
@@ -2868,8 +3118,6 @@ BEGIN
       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
       @level1type = N'TABLE',  @level1name = @UnquotedTableName;
 END;
-
-
 GO
 
 CREATE PROCEDURE tSQLt.FakeTable
@@ -2877,7 +3125,8 @@ CREATE PROCEDURE tSQLt.FakeTable
     @SchemaName NVARCHAR(MAX) = NULL, --parameter preserved for backward compatibility. Do not use. Will be removed soon.
     @Identity BIT = NULL,
     @ComputedColumns BIT = NULL,
-    @Defaults BIT = NULL
+    @Defaults BIT = NULL,
+    @Clone BIT = 0
 AS
 BEGIN
    DECLARE @OrigSchemaName NVARCHAR(MAX);
@@ -2918,12 +3167,13 @@ BEGIN
      SET @OrigTableFullName = @SchemaName + '.' + @NewNameOfOriginalTable;
    END;
 
-   EXEC tSQLt.Private_CreateFakeOfTable @SchemaName, @TableName, @OrigTableFullName, @Identity, @ComputedColumns, @Defaults;
+   IF (@Clone = 1)
+     EXEC tSQLt.Private_CreateFakeCloneOfTable @SchemaName, @TableName, @OrigTableFullName;
+   ELSE
+     EXEC tSQLt.Private_CreateFakeOfTable @SchemaName, @TableName, @OrigTableFullName, @Identity, @ComputedColumns, @Defaults;
 
    EXEC tSQLt.Private_MarkFakeTable @SchemaName, @TableName, @NewNameOfOriginalTable;
 END
-
-
 GO
 
 CREATE PROCEDURE tSQLt.Private_CreateProcedureSpy
