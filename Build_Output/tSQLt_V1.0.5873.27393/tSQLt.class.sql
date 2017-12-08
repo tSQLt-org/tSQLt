@@ -1274,10 +1274,6 @@ BEGIN
 END;
 GO
 
-
-GO
-
-
 CREATE PROCEDURE tSQLt.Private_GetSetupProcedureName
   @TestClassId INT = NULL,
   @SetupProcName NVARCHAR(MAX) OUTPUT
@@ -1290,6 +1286,49 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE tSQLt.ExpectException
+@ExpectedMessage NVARCHAR(MAX) = NULL,
+@ExpectedSeverity INT = NULL,
+@ExpectedState INT = NULL,
+@Message NVARCHAR(MAX) = NULL,
+@ExpectedMessagePattern NVARCHAR(MAX) = NULL,
+@ExpectedErrorNumber INT = NULL
+AS
+BEGIN
+ IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
+ BEGIN
+   DELETE #ExpectException;
+   RAISERROR('Each test can only contain one call to tSQLt.ExpectException.',16,10);
+ END;
+ 
+ INSERT INTO #ExpectException(ExpectException, ExpectedMessage, ExpectedSeverity, ExpectedState, ExpectedMessagePattern, ExpectedErrorNumber, FailMessage)
+ VALUES(1, @ExpectedMessage, @ExpectedSeverity, @ExpectedState, @ExpectedMessagePattern, @ExpectedErrorNumber, @Message);
+END;
+
+
+GO
+
+CREATE PROCEDURE tSQLt.ExpectNoException
+  @Message NVARCHAR(MAX) = NULL
+AS
+BEGIN
+ IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 0))
+ BEGIN
+   DELETE #ExpectException;
+   RAISERROR('Each test can only contain one call to tSQLt.ExpectNoException.',16,10);
+ END;
+ IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
+ BEGIN
+   DELETE #ExpectException;
+   RAISERROR('tSQLt.ExpectNoException cannot follow tSQLt.ExpectException inside a single test.',16,10);
+ END;
+ 
+ INSERT INTO #ExpectException(ExpectException, FailMessage)
+ VALUES(0, @Message);
+END;
+
+
+GO
 CREATE PROCEDURE tSQLt.Private_RunTest
    @TestName NVARCHAR(MAX),
    @SetUp NVARCHAR(MAX) = NULL
@@ -1306,6 +1345,7 @@ BEGIN
     DECLARE @PreExecTrancount INT;
 
 	DECLARE @ExpectException INT;
+	DECLARE @ExpectNoException INT;
 	DECLARE @ExpectedMessage NVARCHAR(MAX);
 	DECLARE @ExpectedMessagePattern NVARCHAR(MAX);
 	DECLARE @ExpectedSeverity INT;
@@ -1371,6 +1411,58 @@ BEGIN
 			@FailMessage = FailMessage
 		FROM #ExpectException;
 
+        IF (NOT EXISTS(SELECT TOP 1 NULL FROM #ExpectException))
+        BEGIN
+          SELECT @ExpectNoException = MAX(CASE WHEN name = 'ExpectNoException' THEN CONVERT(INT,value) ELSE 0 END),
+              @ExpectedMessage = MAX(CASE WHEN name = 'ExpectedMessage' THEN CONVERT(NVARCHAR(MAX),value) ELSE '' END), 
+              @ExpectedSeverity = MAX(CASE WHEN name = 'ExpectedSeverity' THEN CONVERT(INT,value) ELSE 0 END),
+              @ExpectedState = MAX(CASE WHEN name = 'ExpectedState' THEN CONVERT(INT,value) ELSE 0 END),
+              @ExpectedMessagePattern = MAX(CASE WHEN name = 'ExpectedMessagePattern' THEN CONVERT(NVARCHAR(MAX),value) ELSE '' END),
+              @ExpectedErrorNumber = MAX(CASE WHEN name = 'ExpectedErrorNumber' THEN CONVERT(INT,value) ELSE 0 END),
+              @FailMessage = MAX(CASE WHEN name = 'FailMessage' THEN CONVERT(NVARCHAR(MAX),value) ELSE '' END)
+          FROM  sys.extended_properties 
+          WHERE [major_id] = OBJECT_ID(@TestName)
+          AND	[minor_id] = 0;
+
+          IF (@@ROWCOUNT <> 0)
+            IF (@ExpectNoException <> 0)
+              EXEC tSQLt.ExpectNoException @Message = @FailMessage;
+            ELSE 
+            BEGIN
+              SELECT @ExpectNoException = NULLIF(@ExpectNoException,0),
+                    @ExpectedSeverity = NULLIF(@ExpectedSeverity,0),
+                    @ExpectedState = NULLIF(@ExpectedState,0),
+                    @ExpectedErrorNumber = NULLIF(@ExpectedErrorNumber,0),
+                    @ExpectedMessage = NULLIF(@ExpectedMessage,''),
+                    @FailMessage = NULLIF(@FailMessage,'');
+
+              IF (COALESCE(@ExpectedMessage,
+                           CONVERT(NVARCHAR(MAX),@ExpectedSeverity),
+                           CONVERT(NVARCHAR(MAX),@ExpectedState),
+                           @ExpectedMessagePattern,
+                           CONVERT(NVARCHAR(MAX),@ExpectedErrorNumber),
+                           @FailMessage) IS NOT NULL)
+              BEGIN
+                EXEC tSQLt.ExpectException
+                     @ExpectedMessage = @ExpectedMessage,
+                     @ExpectedSeverity = @ExpectedSeverity,
+                     @ExpectedState = @ExpectedState,
+                     @Message = @FailMessage,
+                     @ExpectedMessagePattern = @ExpectedMessagePattern,
+                     @ExpectedErrorNumber = @ExpectedErrorNumber;
+
+		        SELECT @ExpectException = ExpectException,
+			        @ExpectedMessage = ExpectedMessage, 
+			        @ExpectedSeverity = ExpectedSeverity,
+			        @ExpectedState = ExpectedState,
+			        @ExpectedMessagePattern = ExpectedMessagePattern,
+			        @ExpectedErrorNumber = ExpectedErrorNumber,
+			        @FailMessage = FailMessage
+		        FROM #ExpectException;
+              END;
+            END;
+        END;
+
         EXEC (@Cmd);
         SET @TestEndTime = GETDATE();
         IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
@@ -1393,6 +1485,7 @@ BEGIN
             COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + 
             '[' +COALESCE(LTRIM(STR(ERROR_SEVERITY())), '<ERROR_SEVERITY() is NULL>') + ','+COALESCE(LTRIM(STR(ERROR_STATE())), '<ERROR_STATE() is NULL>') + ']' +
             '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
+
 
           IF(@ExpectException IS NOT NULL)
           BEGIN
@@ -1527,8 +1620,17 @@ BEGIN
 			tSQLt.Private_GetQuotedFullName(setups.object_id)
        FROM		sys.procedures tests
 	  LEFT JOIN sys.procedures setups
-			 ON stuff(tests.name,1,4,'setup') = setups.name
-      WHERE LOWER(tests.name) LIKE 'test%';
+			 ON STUFF(tests.name,1,4,'setup') = setups.name
+      WHERE LOWER(tests.name) LIKE 'test%'
+      UNION
+	  SELECT tSQLt.Private_GetQuotedFullName(tests.object_id),
+			 tSQLt.Private_GetQuotedFullName(setups.object_id)
+       FROM	    sys.procedures tests
+	  LEFT JOIN sys.procedures setups
+			 ON REPLACE(tests.name,'test','setup') = setups.name
+      WHERE LOWER(tests.name) LIKE '%test%'
+      AND   tests.schema_id = @TestClassId
+      ;
 
     OPEN testCases;
     
@@ -2026,49 +2128,6 @@ GO
 
 GO
 
-CREATE PROCEDURE tSQLt.ExpectException
-@ExpectedMessage NVARCHAR(MAX) = NULL,
-@ExpectedSeverity INT = NULL,
-@ExpectedState INT = NULL,
-@Message NVARCHAR(MAX) = NULL,
-@ExpectedMessagePattern NVARCHAR(MAX) = NULL,
-@ExpectedErrorNumber INT = NULL
-AS
-BEGIN
- IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
- BEGIN
-   DELETE #ExpectException;
-   RAISERROR('Each test can only contain one call to tSQLt.ExpectException.',16,10);
- END;
- 
- INSERT INTO #ExpectException(ExpectException, ExpectedMessage, ExpectedSeverity, ExpectedState, ExpectedMessagePattern, ExpectedErrorNumber, FailMessage)
- VALUES(1, @ExpectedMessage, @ExpectedSeverity, @ExpectedState, @ExpectedMessagePattern, @ExpectedErrorNumber, @Message);
-END;
-
-
-GO
-
-CREATE PROCEDURE tSQLt.ExpectNoException
-  @Message NVARCHAR(MAX) = NULL
-AS
-BEGIN
- IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 0))
- BEGIN
-   DELETE #ExpectException;
-   RAISERROR('Each test can only contain one call to tSQLt.ExpectNoException.',16,10);
- END;
- IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
- BEGIN
-   DELETE #ExpectException;
-   RAISERROR('tSQLt.ExpectNoException cannot follow tSQLt.ExpectException inside a single test.',16,10);
- END;
- 
- INSERT INTO #ExpectException(ExpectException, FailMessage)
- VALUES(0, @Message);
-END;
-
-
-GO
 
 GO
 CREATE FUNCTION tSQLt.Private_SqlVersion()
