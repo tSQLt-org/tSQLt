@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_2005:STORMWIND\martin.isaksen">
+        <ConnectionNode Name="Dev_2005:MacWin7A\meinse00">
           <Created>2015-07-26T21:07:57.2567069-06:00</Created>
           <Type>SQL</Type>
           <Server>Dev_2005</Server>
@@ -15,7 +15,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Dev_tSQLt:STORMWIND\martin.isaksen">
+        <ConnectionNode Name="Dev_tSQLt:MacWin7A\meinse00">
           <Created>2014-07-30T11:44:05.3611369-06:00</Created>
           <Type>SQL</Type>
           <Server>Dev_tSQLt</Server>
@@ -516,6 +516,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.TableToText.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.TemporaryObject.tbl.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.TemporaryObject.tbl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt._Header.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
