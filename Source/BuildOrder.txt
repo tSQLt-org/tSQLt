@@ -31,7 +31,10 @@ tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.RemoveObject.ssp.sql
 tSQLt.RemoveObjectIfExists.ssp.sql
 tSQLt.Private_CleanTestResult.ssp.sql
+tSQLt.Private_CleanTemporaryObject.ssp.sql
 tSQLt.Private_Init.ssp.sql
+tSQLt.TemporaryObject.tbl.sql
+tSQLt.SaveTemporaryObjectId.ssp.sql
 Run_Methods.sql
 tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql
