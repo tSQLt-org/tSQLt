@@ -11,3 +11,8 @@
 /tSQLtCLR/tSQLtExternalAccessKey/bin
 /tSQLtCLR/tSQLtExternalAccessKey/obj
 /tSQLtCLR/tSQLtCLR.v12.suo
+bin
+obj
+*.dbmdl
+*.jfm
+
