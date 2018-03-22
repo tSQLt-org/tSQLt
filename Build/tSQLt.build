@@ -49,10 +49,10 @@
  </target>
 
  <target name="clr.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:AssemblyOriginatorKeyFile=SigningKey.pfx /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   <exec program="cmd" workingdir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
    <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:AssemblyOriginatorKeyFile=SigningKey.pfx /nologo"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   </exec>
 
   <exec program="cmd" workingdir="." failonerror="true" output="temp/Version.txt">
