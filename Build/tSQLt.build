@@ -3,7 +3,6 @@
  <description>Build tSQLt</description>
  <target name="clean" description="remove all generated files">
   <echo message="${msbuild.path}" />
-  <echo message="${msbuild.cert}" />
   <echo message="${db.server}" />
   <echo message="${db.name}" />
  </target>
