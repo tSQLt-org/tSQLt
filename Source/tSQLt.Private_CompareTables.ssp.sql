@@ -57,6 +57,27 @@ BEGIN
          END';
     DECLARE @UnequalRowsExist INT;
     EXEC sp_executesql @cmd, N'@r INT OUTPUT',@UnequalRowsExist OUTPUT;
+
+    -- TODO find better solution!
+    SET @cmd = N'DECLARE @Overflow bigint = ( SELECT COUNT_BIG(*)
+                                 FROM   ' + @ResultTable + N' ) - 20;
+    IF @Overflow > 0
+    BEGIN;
+        WITH cte
+          AS ( SELECT   TOP ( @Overflow )
+                        *
+               FROM     ' + @ResultTable + N'
+               ORDER BY CASE WHEN ' + @MatchIndicatorColumnName + N' IN (''<'', ''>'')
+                                 THEN 1
+                             ELSE 0
+                        END )
+        DELETE cte;
+
+        INSERT INTO ' + @ResultTable + N'
+            ( ' + @MatchIndicatorColumnName + N' )
+        VALUES ( ''?'' );
+    END;';
+    EXEC sys.sp_executesql @cmd;
     
     RETURN @UnequalRowsExist;
 END;
