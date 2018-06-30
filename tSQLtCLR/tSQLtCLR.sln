@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tSQLtCLR", "tSQLtCLR\tSQLtCLR.csproj", "{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}"
 EndProject
@@ -13,6 +13,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnsignedEmpty", "UnsignedEm
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		CI(NoSigning)|Any CPU = CI(NoSigning)|Any CPU
+		CI(NoSigning)|Mixed Platforms = CI(NoSigning)|Mixed Platforms
+		CI(NoSigning)|x86 = CI(NoSigning)|x86
 		CruiseControl|Any CPU = CruiseControl|Any CPU
 		CruiseControl|Mixed Platforms = CruiseControl|Mixed Platforms
 		CruiseControl|x86 = CruiseControl|x86
@@ -24,6 +27,12 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CI(NoSigning)|Any CPU.ActiveCfg = CI(NoSigning)|Any CPU
+		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CI(NoSigning)|Any CPU.Build.0 = CI(NoSigning)|Any CPU
+		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CI(NoSigning)|Mixed Platforms.ActiveCfg = CI(NoSigning)|Any CPU
+		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CI(NoSigning)|Mixed Platforms.Build.0 = CI(NoSigning)|Any CPU
+		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CI(NoSigning)|x86.ActiveCfg = CI(NoSigning)|Any CPU
+		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CI(NoSigning)|x86.Build.0 = CI(NoSigning)|Any CPU
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CruiseControl|Any CPU.ActiveCfg = CruiseControl|Any CPU
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CruiseControl|Any CPU.Build.0 = CruiseControl|Any CPU
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.CruiseControl|Mixed Platforms.ActiveCfg = CruiseControl|Any CPU
@@ -39,6 +48,12 @@ Global
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}.Release|x86.ActiveCfg = Release|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CI(NoSigning)|Any CPU.ActiveCfg = CI(NoSigning)|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CI(NoSigning)|Any CPU.Build.0 = CI(NoSigning)|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CI(NoSigning)|Mixed Platforms.ActiveCfg = CI(NoSigning)|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CI(NoSigning)|Mixed Platforms.Build.0 = CI(NoSigning)|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CI(NoSigning)|x86.ActiveCfg = CI(NoSigning)|Any CPU
+		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CI(NoSigning)|x86.Build.0 = CI(NoSigning)|Any CPU
 		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CruiseControl|Any CPU.ActiveCfg = CruiseControl|Any CPU
 		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CruiseControl|Any CPU.Build.0 = CruiseControl|Any CPU
 		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.CruiseControl|Mixed Platforms.ActiveCfg = CruiseControl|Any CPU
@@ -54,6 +69,12 @@ Global
 		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}.Release|x86.ActiveCfg = Release|Any CPU
+		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CI(NoSigning)|Any CPU.ActiveCfg = CI(NoSigning)|Any CPU
+		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CI(NoSigning)|Any CPU.Build.0 = CI(NoSigning)|Any CPU
+		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CI(NoSigning)|Mixed Platforms.ActiveCfg = CI(NoSigning)|x86
+		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CI(NoSigning)|Mixed Platforms.Build.0 = CI(NoSigning)|x86
+		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CI(NoSigning)|x86.ActiveCfg = CI(NoSigning)|x86
+		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CI(NoSigning)|x86.Build.0 = CI(NoSigning)|x86
 		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CruiseControl|Any CPU.ActiveCfg = CruiseControl|Any CPU
 		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CruiseControl|Any CPU.Build.0 = CruiseControl|Any CPU
 		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.CruiseControl|Mixed Platforms.ActiveCfg = CruiseControl|x86
@@ -70,6 +91,12 @@ Global
 		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.Release|Mixed Platforms.Build.0 = Release|x86
 		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.Release|x86.ActiveCfg = Release|x86
 		{09611E35-7E79-4DD3-8BCD-83F27535FB5D}.Release|x86.Build.0 = Release|x86
+		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CI(NoSigning)|Any CPU.ActiveCfg = CI(NoSigning)|Any CPU
+		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CI(NoSigning)|Any CPU.Build.0 = CI(NoSigning)|Any CPU
+		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CI(NoSigning)|Mixed Platforms.ActiveCfg = CI(NoSigning)|Any CPU
+		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CI(NoSigning)|Mixed Platforms.Build.0 = CI(NoSigning)|Any CPU
+		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CI(NoSigning)|x86.ActiveCfg = CI(NoSigning)|Any CPU
+		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CI(NoSigning)|x86.Build.0 = CI(NoSigning)|Any CPU
 		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CruiseControl|Any CPU.ActiveCfg = CruiseControl|Any CPU
 		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CruiseControl|Any CPU.Build.0 = CruiseControl|Any CPU
 		{14624277-A18F-4D80-BC04-FDFCD09E13D8}.CruiseControl|Mixed Platforms.ActiveCfg = Release|Any CPU
@@ -88,5 +115,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {732D09E1-56A0-4FFC-A5EC-6EBCEE3F7E92}
 	EndGlobalSection
 EndGlobal
