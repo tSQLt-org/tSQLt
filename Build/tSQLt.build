@@ -49,10 +49,10 @@
  </target>
 
  <target name="clr.compile">
-  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   <exec program="cmd" workingdir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
    <arg value="/c"/>
-   <arg value="${msbuild.path}msbuild.exe tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   </exec>
 
   <exec program="cmd" workingdir="." failonerror="true" output="temp/Version.txt">
@@ -72,10 +72,10 @@
  </target>
 
  <target name="tSQLtExternalAccessKey.compile">
-  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
   <exec program="cmd" workingdir="../tSQLtCLR/tSQLtExternalAccessKey/" failonerror="true">
    <arg value="/c"/>
-   <arg value="${msbuild.path}msbuild.exe tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
   </exec>
  </target>
 
@@ -169,18 +169,18 @@
  </target>
 
  <target name="clr.testutil.compile">
-  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   <exec program="cmd" workingdir="../tSQLtCLR/tSQLtTestUtilCLR/" failonerror="true">
    <arg value="/c"/>
-   <arg value="${msbuild.path}msbuild.exe tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   </exec>
  </target>
 
  <target name="clr.UnsignedEmpty.compile">
-  <echo message="Compile CLR Command: ${msbuild.path}msbuild.exe UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
   <exec program="cmd" workingdir="../tSQLtCLR/UnsignedEmpty/" failonerror="true">
    <arg value="/c"/>
-   <arg value="${msbuild.path}msbuild.exe UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
   </exec>
  </target>
 
