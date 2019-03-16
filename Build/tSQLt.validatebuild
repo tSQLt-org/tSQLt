@@ -3,7 +3,7 @@
 
  <target name="all" depends="deploy.all, validate.tSQLt, validate.Example" />
  
- <target name="deploy.all" depends="hello, init, create.tSQLt.scripts, create.Example.scripts, deploy.tSQLt" />
+ <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, deploy.tSQLt, deploy.Example" />
 
  <target name="hello" description="announcement">
   <loadfile
@@ -18,6 +18,20 @@
   <echo message="tSQLt build version is: [V${clr.version}]" />
   <echo message="db.server: ${db.server}" />
   <echo message="db.name: ${db.name}" />
+ </target>
+
+ <target name="reset.parameter.variables">
+  <property name="append.source" value="" />
+  <property name="append.target" value="" />
+  <property name="append.file.content" value="" />
+  <property name="execute.sql.elevated" value="false" />
+  <property name="execute.sql.outputfile" value="" />
+  <property name="execute.sql.filename" value="" />
+  <property name="execute.sql.statement" value="" />
+  <property name="execute.sql.database" value="" />
+  <property name="deployandrun.tests.filename" value="" />
+  <property name="deployandrun.tests.elevated" value="false" />
+  <property name="deployandrun.tests.outputfile" value="" />
  </target>
 
  <!--=======================================================================-->
@@ -178,19 +192,20 @@
 
  <target name="deploy.tSQLt" description="execute create scripts">
   <echo message="##teamcity[progressMessage 'Deploying tSQLt']" />
-  <property name="execute.sql.outputfile" value="" />
+  <call target="reset.parameter.variables" />
+
   <property name="execute.sql.database" value="tempdb" />
   <property name="execute.sql.filename" value="temp/temp_create_db.sql" />
   <call target="execute.sql.file" />
 
   <property name="execute.sql.database" value="${db.name}" />
-  
   <property name="execute.sql.filename" value="temp/tSQLt.class.sql" />
   <call target="execute.sql.file" />
  </target>
 
 
  <target name="deployandrun.tests" description="deploy and run one tests file">
+  <property name="execute.sql.database" value="${db.name}" />
   <property name="execute.sql.outputfile" value="" />
   <property name="execute.sql.statement" value="EXEC tSQLt.Reset;" />
   <call target="execute.sql.statement" />
@@ -210,7 +225,10 @@
 
  <target name="validate.tSQLt" description="run the tests">
   <echo message="##teamcity[progressMessage 'Validating tSQLt']" />
-  
+
+  <call target="reset.parameter.variables" />
+  <property name="execute.sql.database" value="${db.name}" />
+
   <!-- prepare master -->
   <property name="execute.sql.elevated" value="true" />
   <property name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
@@ -245,11 +263,13 @@
   <call target="execute.sql.file" />
 
   <!-- EAKE Tests -->
+  <property name="deployandrun.tests.elevated" value="true" />
   <property name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
   <property name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
   <call target="deployandrun.tests" />
 
   <!-- Enable EA -->
+  <property name="execute.sql.elevated" value="true" />
   <property name="execute.sql.filename" value="temp/EnableExternalAccess.sql" />
   <call target="execute.sql.file" />
 
@@ -267,7 +287,8 @@
 
  <target name="deploy.Example" description="execute create scripts">
   <echo message="##teamcity[progressMessage 'Deploying Example']" />
-  <property name="execute.sql.outputfile" value="" />
+  <call target="reset.parameter.variables" />
+
   <property name="execute.sql.database" value="tempdb" />
   <property name="execute.sql.filename" value="temp/temp_create_example.sql" />
   <call target="execute.sql.file" />
@@ -275,6 +296,8 @@
 
  <target name="validate.Example" description="run the tests">
   <echo message="##teamcity[progressMessage 'Validating Example']" />
+  <call target="reset.parameter.variables" />
+
   <property name="execute.sql.database" value="tSQLt_Example" />
   <property name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
   <property name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
