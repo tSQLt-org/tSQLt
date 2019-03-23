@@ -115,7 +115,7 @@
  <!--========                   create database                    =========-->
  <!--=======================================================================-->
 
- <target name="execute.sql.satement_or_file">
+ <target name="execute.sql.statement_or_file">
   <choose>
    <when test="${execute.sql.elevated == 'true'}">
     <property name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
@@ -152,7 +152,7 @@
   <property name="execute.sql.statement" value="" />
   <property name="temp.execute.sql.filename" value="${execute.sql.filename}" />
   <property name="execute.sql.filename" value="&quot;${execute.sql.filename}&quot;" />
-  <call target="execute.sql.satement_or_file" />
+  <call target="execute.sql.statement_or_file" />
   <property name="execute.sql.statement" value="${temp.execute.sql.statement}" />
   <property name="execute.sql.filename" value="${temp.execute.sql.filename}" />
  </target>
@@ -164,7 +164,7 @@
   </if>
   <property name="temp.execute.sql.filename" value="${execute.sql.filename}" />
   <property name="execute.sql.filename" value="" />
-  <call target="execute.sql.satement_or_file" />
+  <call target="execute.sql.statement_or_file" />
   <property name="execute.sql.filename" value="${temp.execute.sql.filename}" />
  </target>
 
