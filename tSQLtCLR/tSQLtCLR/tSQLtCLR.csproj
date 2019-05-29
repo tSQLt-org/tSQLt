@@ -57,7 +57,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>SigningKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CruiseControl|AnyCPU'">
     <OutputPath>bin\CruiseControl\</OutputPath>
@@ -108,7 +109,6 @@
       <LastGenOutput>AssemblyCopyright.cs</LastGenOutput>
     </None>
     <None Include="PostBuild.bat" />
-    <None Include="SigningKey.pfx" />
     <None Include="sql.proj">
       <InProject>false</InProject>
     </None>
