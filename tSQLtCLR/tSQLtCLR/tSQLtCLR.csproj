@@ -57,8 +57,7 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>SigningKey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CruiseControl|AnyCPU'">
     <OutputPath>bin\CruiseControl\</OutputPath>
@@ -78,7 +77,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -109,6 +108,7 @@
       <LastGenOutput>AssemblyCopyright.cs</LastGenOutput>
     </None>
     <None Include="PostBuild.bat" />
+    <None Include="SigningKey.pfx" />
     <None Include="sql.proj">
       <InProject>false</InProject>
     </None>
