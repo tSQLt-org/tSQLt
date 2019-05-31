@@ -197,11 +197,29 @@
           <AssociatedConnUserName />
           <FullPath>SqlLoginNbuild.bat</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.build.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.build.xml</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.copybuild.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.copybuild.xml</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.local_build_output.build">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.local_build_output.build</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.validatebuild.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.validatebuild.xml</FullPath>
         </FileNode>
         <FileNode Name="VersionInfo.vbs">
           <AssociatedConnectionMoniker />
