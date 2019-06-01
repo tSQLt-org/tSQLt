@@ -197,9 +197,32 @@
  <!--========                   create database                    =========-->
  <!--=======================================================================-->
 
+ <target name="execute.sql.statement_or_file.elevated" if="execute.sql.statement_or_file.permissions.elevated">
+  <echo message="execute.sql.statement_or_file.elevated: ${execute.sql.filename}" />
+  <antcall target="execute.sql.statement_or_file.exec">
+   <param name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
+  </antcall>
+ </target>
+ <target name="execute.sql.statement_or_file.default" if="execute.sql.statement_or_file.permissions.default">
+  <echo message="execute.sql.statement_or_file.default: ${execute.sql.filename}" />
+  <antcall target="execute.sql.statement_or_file.exec">
+   <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
+  </antcall>
+ </target>
+ <target name="execute.sql.statement_or_file.with.permissions">
+  <antcall target="execute.sql.statement_or_file.default" />
+  <antcall target="execute.sql.statement_or_file.elevated" />
+ </target>
+
  <target name="execute.sql.statement_or_file">
   <echo message="execute.sql.statement_or_file: ${execute.sql.filename}" />
-  <antcall target="execute.sql.statement_or_file.exec">
+  <condition property="execute.sql.statement_or_file.permissions.elevated">
+   <equals arg1="${execute.sql.elevated}" arg2="true" />
+  </condition>
+  <condition property="execute.sql.statement_or_file.permissions.default">
+   <equals arg1="${execute.sql.elevated}" arg2="false" />
+  </condition>
+  <antcall target="execute.sql.statement_or_file.with.permissions">
    <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
    <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -E" />
   </antcall>
@@ -223,7 +246,7 @@
   -->
  </target>
  <target name="execute.sql.statement_or_file.exec">
-  <echo message="execute.sql.statement_or_file.exec: ${execute.sql.filename}" />
+  <echo message="execute.sql.statement_or_file.exec: ${execute.sql.filename}${execute.sql.statement}" />
   <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <exec executable="cmd" failonerror="true">
@@ -236,40 +259,34 @@
  <target name="execute.sql.file">
   <echo message="execute.sql.file: ${execute.sql.filename}" />
   <antcall target="execute.sql.statement_or_file">
+   <param name="temp.execute.sql.statement" value="" />
    <param name="execute.sql.filename" value="&quot;${execute.sql.filename}&quot;" />
   </antcall>
  </target>
 
- <target name="execute.sql.statement" description="execute create scripts and run the tests">
-  <echo message="${execute.sql.statement}" />
-  <if test="${not property::exists('execute.sql.filename')}">
-   <property name="execute.sql.filename" value="" />
-  </if>
-  <property name="temp.execute.sql.filename" value="${execute.sql.filename}" />
-  <property name="execute.sql.filename" value="" />
-  <antcall target="execute.sql.statement_or_file" />
-  <property name="execute.sql.filename" value="${temp.execute.sql.filename}" />
+ <target name="execute.sql.statement">
+  <echo message="execute.sql.statement: ${execute.sql.statement}" />
+  <antcall target="execute.sql.statement_or_file">
+   <param name="temp.execute.sql.filename" value="" />
+   <param name="temp.execute.sql.statement" value="${execute.sql.statement}" />
+  </antcall>
  </target>
 
  <target name="execute.sql.tests">
-  <property name="temp.execute.sql.outputfile" value="${execute.sql.outputfile}" />
-  <property name="temp.execute.sql.filename" value="${execute.sql.filename}" />
-  <property name="temp.execute.sql.statement" value="${execute.sql.statement}" />
+  <antcall target="execute.sql.statement">
+   <param name="temp.execute.sql.statement" value="${execute.sql.statement}" />
+   <param name="execute.sql.outputfile" value="" />
+  </antcall>
 
-  <property name="execute.sql.outputfile" value="" />
-  <antcall target="execute.sql.statement" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.outputfile" value="${execute.sql.outputfile}" />
+   <param name="execute.sql.filename" value="temp/GetTestResults.sql" />
+  </antcall>
 
-  <property name="execute.sql.outputfile" value="${temp.execute.sql.outputfile}" />
-  <property name="execute.sql.filename" value="temp/GetTestResults.sql" />
-  <antcall target="execute.sql.file" />
-
-  <property name="execute.sql.outputfile" value="" />
-  <property name="execute.sql.filename" value="temp/GetFailedTestCount.sql" />
-  <antcall target="execute.sql.file" />
-
-  <property name="execute.sql.outputfile" value="" />
-  <property name="execute.sql.filename" value="${temp.execute.sql.filename}" />
-  <property name="execute.sql.statement" value="${temp.execute.sql.statement}" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.outputfile" value="" />
+   <param name="execute.sql.filename" value="temp/GetFailedTestCount.sql" />
+  </antcall>
  </target>
 
 
@@ -291,10 +308,9 @@
 
  <target name="deployandrun.tests" description="deploy and run one tests file">
   <antcall target="execute.sql.statement">
-   <!--TODO-->
-   <property name="execute.sql.database" value="${db.name}" />
-   <property name="execute.sql.outputfile" value="" />
-   <property name="execute.sql.statement" value="EXEC tSQLt.Reset;" />
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.outputfile" value="" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.Reset;" />
   </antcall>
 
   <antcall target="execute.sql.file">
@@ -317,24 +333,31 @@
   <echo message="##teamcity[progressMessage 'Validating tSQLt']" />
 
   <antcall target="reset.parameter.variables" />
-  <property name="execute.sql.database" value="${db.name}" />
 
   <!-- prepare master -->
-  <property name="execute.sql.elevated" value="true" />
-  <property name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
+  </antcall>
 
-  <property name="execute.sql.elevated" value="true" />
-  <property name="execute.sql.filename" value="temp/Install(master.tSQLt_testutil).sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/Install(master.tSQLt_testutil).sql" />
+  </antcall>
 
-  <property name="execute.sql.elevated" value="true" />
-  <property name="execute.sql.filename" value="temp/Drop(tSQLtExternalAccessKey).sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/Drop(tSQLtExternalAccessKey).sql" />
+  </antcall>
 
   <!-- run bootstrap tests -->
-  <property name="execute.sql.filename" value="temp/BootStrapTest.sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.filename" value="temp/BootStrapTest.sql" />
+  </antcall>
 
   <!-- run non-specific tests -->
   <property name="deployandrun.tests.filename" value="temp/AllTests.Main.sql" />
@@ -348,9 +371,11 @@
   <antcall target="deployandrun.tests" />
 
   <!-- create EXTERNAL_ACCESS key -->
-  <property name="execute.sql.elevated" value="true" />
-  <property name="execute.sql.filename" value="temp/Install(tSQLtExternalAccessKey).sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/Install(tSQLtExternalAccessKey).sql" />
+  </antcall>
 
   <!-- EAKE Tests -->
   <property name="deployandrun.tests.elevated" value="true" />
@@ -359,9 +384,11 @@
   <antcall target="deployandrun.tests" />
 
   <!-- Enable EA -->
-  <property name="execute.sql.elevated" value="true" />
-  <property name="execute.sql.filename" value="temp/EnableExternalAccess.sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/EnableExternalAccess.sql" />
+  </antcall>
 
   <!-- EA Tests -->
   <property name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS.sql" />
@@ -369,9 +396,11 @@
   <antcall target="deployandrun.tests" />
 
   <!-- cleanup master -->
-  <property name="execute.sql.elevated" value="true" />
-  <property name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
+  </antcall>
 
  </target>
 
@@ -379,19 +408,21 @@
   <echo message="##teamcity[progressMessage 'Deploying Example']" />
   <antcall target="reset.parameter.variables" />
 
-  <property name="execute.sql.database" value="tempdb" />
-  <property name="execute.sql.filename" value="temp/temp_create_example.sql" />
-  <antcall target="execute.sql.file" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="tempdb" />
+   <param name="execute.sql.filename" value="temp/temp_create_example.sql" />
+  </antcall>
  </target>
 
  <target name="validate.Example" description="run the tests">
   <echo message="##teamcity[progressMessage 'Validating Example']" />
   <antcall target="reset.parameter.variables" />
 
-  <property name="execute.sql.database" value="tSQLt_Example" />
-  <property name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
-  <property name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
-  <antcall target="execute.sql.tests" />
+  <antcall target="execute.sql.tests">
+   <param name="execute.sql.database" value="tSQLt_Example" />
+   <param name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
+   <param name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
+  </antcall>
 
  </target>
 
