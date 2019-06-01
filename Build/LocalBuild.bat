@@ -3,12 +3,12 @@
 ECHO +-------------------+
 ECHO : Starting BUILD    :
 ECHO +-------------------+
-REM CALL %1\bin\ant -buildfile tSQLt.build.xml -Dmsbuild.path=%2 || goto :error
+CALL %1\bin\ant -buildfile tSQLt.build.xml -Dmsbuild.path=%2 || goto :error
 
 ECHO +-------------------+
 ECHO : Copying BUILD     :
 ECHO +-------------------+
-REM CALL %1\bin\ant -buildfile tSQLt.copybuild.xml -debug|| goto :error
+CALL %1\bin\ant -buildfile tSQLt.copybuild.xml -debug|| goto :error
 
 ECHO +-------------------+
 ECHO : Validating BUILD  :
