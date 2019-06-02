@@ -5,12 +5,16 @@
 
 
  <target name="hello" description="announcement">
-  <loadfile
-    failonerror="true"
-    srcfile="output/Version.txt"
-    property="clr.version"
-   />
-  <property name="clr.version" value="${string::trim(clr.version)}" />
+  <loadfile srcFile="output/Version.txt" property="clr.version" failonerror="true">
+   <filterchain>
+    <striplinebreaks />
+    <tokenfilter>
+     <deletecharacters chars="\t" />
+     <trim />
+     <ignoreblank />
+    </tokenfilter>
+   </filterchain>
+  </loadfile>
 
   <echo message="Copying tSQLt build files to local Build_Output. (Version:${clr.version})" />
  </target>

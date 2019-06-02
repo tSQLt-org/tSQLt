@@ -51,6 +51,7 @@
  <target name="clr.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   <delete dir="../tSQLtCLR/tSQLtCLR/bin/CruiseControl" />
+  <delete dir="../tSQLtCLR/tSQLtCLR/obj/CruiseControl" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
@@ -61,12 +62,16 @@
    <arg value="cscript //nologo VersionInfo.vbs ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll"/>
   </exec>
 
-  <loadfile
-    failonerror="true"
-    srcFile="temp/Version.txt"
-    property="clr.version"
-   />
-  <property name="clr.version" value="${string::trim(clr.version)}" />
+  <loadfile srcFile="temp/Version.txt" property="clr.version" failonerror="true">
+   <filterchain>
+    <striplinebreaks />
+    <tokenfilter>
+     <deletecharacters chars="\t" />
+     <trim />
+     <ignoreblank />
+    </tokenfilter>
+   </filterchain>
+  </loadfile>
 
   <echo message="CLR Version is: [V${clr.version}]"/>
 
@@ -75,6 +80,7 @@
  <target name="tSQLtExternalAccessKey.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
   <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/bin/CruiseControl" />
+  <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/obj/CruiseControl" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtExternalAccessKey/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
@@ -175,6 +181,7 @@
  <target name="clr.testutil.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl" />
+  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/obj/CruiseControl" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtTestUtilCLR/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
@@ -184,6 +191,7 @@
  <target name="clr.UnsignedEmpty.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
   <delete dir="../tSQLtCLR/UnsignedEmpty/bin/CruiseControl" />
+  <delete dir="../tSQLtCLR/UnsignedEmpty/obj/CruiseControl" />
   <exec executable="cmd" dir="../tSQLtCLR/UnsignedEmpty/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>

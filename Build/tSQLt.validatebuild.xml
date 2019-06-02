@@ -324,8 +324,6 @@
    <param name="execute.sql.outputfile" value="${deployandrun.tests.outputfile}" />
    <param name="execute.sql.statement" value="EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;" />
   </antcall>
-
-  <property name="deployandrun.tests.elevated" value="false" />
  </target>
 
 
@@ -360,15 +358,21 @@
   </antcall>
 
   <!-- run non-specific tests -->
-  <property name="deployandrun.tests.filename" value="temp/AllTests.Main.sql" />
-  <property name="deployandrun.tests.outputfile" value="output/TestResults.xml" />
-  <antcall target="deployandrun.tests" />
+  <antcall target="deployandrun.tests">
+   <param name="deployandrun.tests.elevated" value="false" />
+   <param name="deployandrun.tests.filename" value="temp/AllTests.Main.sql" />
+   <param name="deployandrun.tests.outputfile" value="output/TestResults.xml" />
+  </antcall>
 
   <!-- run SA tests -->
   <property name="deployandrun.tests.elevated" value="true" />
   <property name="deployandrun.tests.filename" value="temp/AllTests.SA.sql" />
   <property name="deployandrun.tests.outputfile" value="output/TestResults_SA.xml" />
-  <antcall target="deployandrun.tests" />
+  <antcall target="deployandrun.tests">
+   <param name="deployandrun.tests.elevated" value="true" />
+   <param name="deployandrun.tests.filename" value="temp/AllTests.SA.sql" />
+   <param name="deployandrun.tests.outputfile" value="output/TestResults_SA.xml" />
+  </antcall>
 
   <!-- create EXTERNAL_ACCESS key -->
   <antcall target="execute.sql.file">
@@ -378,10 +382,11 @@
   </antcall>
 
   <!-- EAKE Tests -->
-  <property name="deployandrun.tests.elevated" value="true" />
-  <property name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
-  <property name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
-  <antcall target="deployandrun.tests" />
+  <antcall target="deployandrun.tests">
+   <param name="deployandrun.tests.elevated" value="true" />
+   <param name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
+   <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
+  </antcall>
 
   <!-- Enable EA -->
   <antcall target="execute.sql.file">
@@ -391,9 +396,11 @@
   </antcall>
 
   <!-- EA Tests -->
-  <property name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS.sql" />
-  <property name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS.xml" />
-  <antcall target="deployandrun.tests" />
+  <antcall target="deployandrun.tests">
+   <param name="deployandrun.tests.elevated" value="false" />
+   <param name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS.sql" />
+   <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS.xml" />
+  </antcall>
 
   <!-- cleanup master -->
   <antcall target="execute.sql.file">
