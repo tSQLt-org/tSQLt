@@ -57,11 +57,13 @@
    <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
   </exec>
 
+  <echo message="Read Version from tSQLtCLR.dll" />
   <exec executable="cmd" dir="." failonerror="true" output="temp/Version.txt">
    <arg value="/c"/>
    <arg value="cscript //nologo VersionInfo.vbs ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll"/>
   </exec>
 
+  <echo message="Parse Version from tSQLtCLR.dll" />
   <loadfile srcFile="temp/Version.txt" property="clr.version" failonerror="true">
    <filterchain>
     <striplinebreaks />

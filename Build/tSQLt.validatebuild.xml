@@ -3,45 +3,6 @@
 
  <target name="all" depends="deploy.all, validate.tSQLt, validate.Example" />
 
- <target name="testi">
-  <echo message="I1pv:${pv}" />
-  <echo message="I1:${testp}" />
-  <property name="testp" value="v:${v}" />
-  <echo message="I2:${testp}" />
-  <echo message="Iov:${ov}" />
-  <antcall target="testii" />
- </target>
- <target name="testii">
-  <echo message="IIpv:${pv}" />
-  <echo message="II:${testp}" />
-  <echo message="IIov:${ov}" />
- </target>
- <target name="testo">
-  <echo message="-----------" />
-  <echo message="- testo   -" />
-  <echo message="-----------" />
-  <property name="pv" value="false" />
-  <echo message="O1pv:${pv}" />
-  <echo message="O1:${testp}" />
-  <echo message="----------------------" />
-  <echo message="- calling testi(v=1) -" />
-  <echo message="----------------------" />
-  <antcall target ="testi">
-   <param name="v" value="1" />
-   <param name="pv" value="true" />
-   <param name="ov" value="o1" />
-  </antcall>
-  <echo message="O2:${testp}" />
-  <echo message="----------------------" />
-  <echo message="- calling testi(v=2) -" />
-  <echo message="----------------------" />
-  <antcall target ="testi">
-   <param name="v" value="2" />
-   <param name="ov" value="o2" />
-  </antcall>
-  <echo message="O3:${testp}" />
- </target>
-
  <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, deploy.tSQLt, deploy.Example" />
 
  <target name="hello" description="announcement">
@@ -197,44 +158,43 @@
  <!--========                   create database                    =========-->
  <!--=======================================================================-->
 
- <target name="execute.sql.statement_or_file.elevated" if="execute.sql.statement_or_file.permissions.elevated">
-  <echo message="execute.sql.statement_or_file.elevated: ${execute.sql.filename}" />
+ <target name="execute.sql.statement_or_file.permissions.elevated" if="execute.sql.statement_or_file.permissions.elevated">
+  <echo message="--> execute.sql.statement_or_file.elevated" />
   <antcall target="execute.sql.statement_or_file.exec">
    <param name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
   </antcall>
  </target>
- <target name="execute.sql.statement_or_file.default" if="execute.sql.statement_or_file.permissions.default">
-  <echo message="execute.sql.statement_or_file.default: ${execute.sql.filename}" />
+ <target name="execute.sql.statement_or_file.permissions.default" unless="execute.sql.statement_or_file.permissions.elevated">
+  <echo message="--> execute.sql.statement_or_file.default" />
   <antcall target="execute.sql.statement_or_file.exec">
    <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.with.permissions">
-  <antcall target="execute.sql.statement_or_file.default" />
-  <antcall target="execute.sql.statement_or_file.elevated" />
+  <echo message="execute.sql.statement_or_file.with.permissions started" />
+  <echo message="  +----> filename: ${execute.sql.filename}" />
+  <echo message="  +----> statement: ${execute.sql.statement}" />
+  <echo message="  +----> executeas: ${execute.sql.executeas}" />
+  <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
+  <antcall target="execute.sql.statement_or_file.permissions.default" />
+  <antcall target="execute.sql.statement_or_file.permissions.elevated" />
+  <echo message="execute.sql.statement_or_file.with.permissions finished" />
  </target>
 
- <target name="execute.sql.statement_or_file">
-  <echo message="execute.sql.statement_or_file: ${execute.sql.filename}" />
+ <target name="execute.sql.statement_or_file" description="Execute a SQL Statement or File.">
+  <echo message="execute.sql.statement_or_file started" />
+  <echo message="  +----> filename: ${execute.sql.filename}" />
+  <echo message="  +----> statement: ${execute.sql.statement}" />
+
   <condition property="execute.sql.statement_or_file.permissions.elevated">
    <equals arg1="${execute.sql.elevated}" arg2="true" />
-  </condition>
-  <condition property="execute.sql.statement_or_file.permissions.default">
-   <equals arg1="${execute.sql.elevated}" arg2="false" />
   </condition>
   <antcall target="execute.sql.statement_or_file.with.permissions">
    <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
    <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -E" />
   </antcall>
-   <!--
-  <choose>
-   <when test="${execute.sql.elevated == 'true'}">
-    <property name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
-   </when>
-   <otherwise>
-    <property name="execute.sql.executeas" value="temp/temp_executeas.sql" />
-   </otherwise>
-  </choose>
+ </target>
+ <!--
   <choose>
    <when test="${property::exists('db.user')}">
     <property name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -U&quot;${db.user}&quot; -P&quot;${db.password}&quot;" />
@@ -244,20 +204,43 @@
    </otherwise>
   </choose>
   -->
- </target>
  <target name="execute.sql.statement_or_file.exec">
-  <echo message="execute.sql.statement_or_file.exec: ${execute.sql.filename}${execute.sql.statement}" />
+  <echo message="execute.sql.statement_or_file.exec started" />
+  <echo message="  +----> filename: ${execute.sql.filename}" />
+  <echo message="  +----> statement: ${execute.sql.statement}" />
+  <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
+  <echo message="  +----> executeas: ${execute.sql.executeas}" />
+  <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
   <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
+  <condition property="execute.sql.statement_or_file.output.tofile">
+   <not>
+    <equals arg1="${execute.sql.outputfile}" arg2="" />
+   </not>
+  </condition>
+  <antcall target="execute.sql.statement_or_file.exec.output.tofile" />
+  <antcall target="execute.sql.statement_or_file.exec.output.toconsole" />
+ </target>
+
+ <target name="execute.sql.statement_or_file.exec.output.tofile" if="execute.sql.statement_or_file.output.tofile">
+  <echo message="execute.sql.statement_or_file.exec.output.tofile started" />
+  <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
+  <exec executable="cmd" failonerror="true" output="${execute.sql.outputfile}">
+   <arg value="/c"/>
+   <arg value="${execute.sql.sqlcmd}"/>
+  </exec>
+ </target>
+ <target name="execute.sql.statement_or_file.exec.output.toconsole" unless="execute.sql.statement_or_file.output.tofile">
+  <echo message="execute.sql.statement_or_file.exec.output.toconsole started" />
   <exec executable="cmd" failonerror="true">
    <arg value="/c"/>
    <arg value="${execute.sql.sqlcmd}"/>
-   <!--<arg value=" > &quot;${execute.sql.outputfile}&quot;" if="${execute.sql.outputfile!=''}" />-->
   </exec>
  </target>
 
  <target name="execute.sql.file">
   <echo message="execute.sql.file: ${execute.sql.filename}" />
+  <echo message="execute.sql.file output: ${execute.sql.outputfile}" />
   <antcall target="execute.sql.statement_or_file">
    <param name="temp.execute.sql.statement" value="" />
    <param name="execute.sql.filename" value="&quot;${execute.sql.filename}&quot;" />
@@ -267,25 +250,27 @@
  <target name="execute.sql.statement">
   <echo message="execute.sql.statement: ${execute.sql.statement}" />
   <antcall target="execute.sql.statement_or_file">
-   <param name="temp.execute.sql.filename" value="" />
-   <param name="temp.execute.sql.statement" value="${execute.sql.statement}" />
+   <param name="execute.sql.filename" value="" />
+   <param name="execute.sql.statement" value="${execute.sql.statement}" />
   </antcall>
  </target>
 
  <target name="execute.sql.tests">
   <antcall target="execute.sql.statement">
-   <param name="temp.execute.sql.statement" value="${execute.sql.statement}" />
+   <param name="execute.sql.statement" value="${execute.sql.statement}" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.outputfile" value="${execute.sql.outputfile}" />
    <param name="execute.sql.filename" value="temp/GetTestResults.sql" />
+   <param name="execute.sql.statement" value="" />
   </antcall>
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.filename" value="temp/GetFailedTestCount.sql" />
+   <param name="execute.sql.statement" value="" />
   </antcall>
  </target>
 
@@ -316,12 +301,14 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.elevated" value="true" />
    <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.filename" value="${deployandrun.tests.filename}" />
   </antcall>
 
   <antcall target="execute.sql.tests">
    <param name="execute.sql.elevated" value="${deployandrun.tests.elevated}" />
    <param name="execute.sql.outputfile" value="${deployandrun.tests.outputfile}" />
+   <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.statement" value="EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;" />
   </antcall>
  </target>

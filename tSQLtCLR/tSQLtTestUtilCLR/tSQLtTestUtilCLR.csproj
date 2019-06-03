@@ -46,8 +46,7 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>SigningKey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CI%28NoSigning%29|AnyCPU'">
     <OutputPath>bin\CI%28NoSigning%29\</OutputPath>
@@ -59,7 +58,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -84,6 +83,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="SigningKey.pfx" />
   </ItemGroup>
   <!-- Was : <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" /> - - Why did we need to change this? -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
