@@ -14,12 +14,12 @@
 
  <target
    name="package.create.tSQLt"
-   depends="init, init.tSQLt, clr.compile, tSQLtExternalAccessKey.compile, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
+   depends="init, init.tSQLtCLR, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
    />
 
  <target
   name="package.create.tSQLt.tests"
-  depends="init, init.tSQLt.tests, clr.testutil.compile, clr.UnsignedEmpty.compile, package.test.files, package.test.create.artifacts"
+  depends="init, init.tSQLt.tests, package.test.files, package.test.create.artifacts"
    />
 
  <target
@@ -31,36 +31,20 @@
  <!--========                 Misc                                 =========-->
  <!--=======================================================================-->
 
- <target name="init" description="prepare output directory">
+ <target name="init" description="prepare directories">
   <mkdir dir="output" />
- </target>
-
- <target name="teamcity" description="misc teamcity tasks">
-  <echo message="##teamcity[buildNumber 'V${clr.version}']" />
- </target>
-
- <!--=======================================================================-->
- <!--========                 Build tSQLt.zip                      =========-->
- <!--=======================================================================-->
-
- <target name="init.tSQLt" description="prepare directories for tSQLt build">
   <delete dir="temp"/>
   <mkdir dir="temp"/>
  </target>
 
- <target name="clr.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
-  <delete dir="../tSQLtCLR/tSQLtCLR/bin/CruiseControl" />
-  <delete dir="../tSQLtCLR/tSQLtCLR/obj/CruiseControl" />
-  <exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
-   <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=CruiseControl /nologo"/>
-  </exec>
-
+ <target name="init.tSQLtCLR" description="open tSQLtCLR artifact">
+  <echo message="Unzip tSQLtCLR.zip" />
+  <unzip src="output/tSQLtCLR.zip" dest="output/tSQLtCLR" />
+  
   <echo message="Read Version from tSQLtCLR.dll" />
   <exec executable="cmd" dir="." failonerror="true" output="temp/Version.txt">
    <arg value="/c"/>
-   <arg value="cscript //nologo VersionInfo.vbs ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll"/>
+   <arg value="cscript //nologo VersionInfo.vbs output/tSQLtCLR/tSQLtCLR.dll"/>
   </exec>
 
   <echo message="Parse Version from tSQLtCLR.dll" />
@@ -75,20 +59,16 @@
    </filterchain>
   </loadfile>
 
-  <echo message="CLR Version is: [V${clr.version}]"/>
+  <echo message="CLR Version is: [V${clr.version}]"/> </target>
 
+ <target name="teamcity" description="misc teamcity tasks">
+  <echo message="##BUILD[buildNumber 'V${clr.version}']" />
  </target>
 
- <target name="tSQLtExternalAccessKey.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
-  <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/bin/CruiseControl" />
-  <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/obj/CruiseControl" />
-  <exec executable="cmd" dir="../tSQLtCLR/tSQLtExternalAccessKey/" failonerror="true">
-   <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=CruiseControl /nologo"/>
-  </exec>
- </target>
-
+ <!--=======================================================================-->
+ <!--========                 Build tSQLt.zip                      =========-->
+ <!--=======================================================================-->
+ 
  <target name="package.copy.files">
   <copy file="../Source/SetClrEnabled.sql" todir="temp"/>
   <copy file="ReleaseNotes.txt" todir="temp"/>
@@ -99,13 +79,13 @@
   <echo message="Generating CREATE ASSEMBLY statement."/>
   <exec executable="cmd" dir="." failonerror="true" output="temp/CreateAssembly.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtCLR/bin/CruiseControl/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000"/>
   </exec>
 
   <echo message="Generating GettSQLtExternalAccessKeyBytes function."/>
   <exec executable="cmd" dir="." failonerror="true" output="temp/tSQLt.Private_GetExternalAccessKeyBytes.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtExternalAccessKey/bin/CruiseControl/tSQLtExternalAccessKey.dll ../Source/tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql 0x000000 0x000001"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtExternalAccessKey.dll ../Source/tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql 0x000000 0x000001"/>
   </exec>
 
   <exec executable="cmd" dir="." failonerror="true">
@@ -180,37 +160,20 @@
   <mkdir dir="temp"/>
  </target>
 
- <target name="clr.testutil.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
-  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl" />
-  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/obj/CruiseControl" />
-  <exec executable="cmd" dir="../tSQLtCLR/tSQLtTestUtilCLR/" failonerror="true">
-   <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=CruiseControl /nologo"/>
-  </exec>
- </target>
-
- <target name="clr.UnsignedEmpty.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
-  <delete dir="../tSQLtCLR/UnsignedEmpty/bin/CruiseControl" />
-  <delete dir="../tSQLtCLR/UnsignedEmpty/obj/CruiseControl" />
-  <exec executable="cmd" dir="../tSQLtCLR/UnsignedEmpty/" failonerror="true">
-   <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=CruiseControl /nologo"/>
-  </exec>
- </target>
-
  <target name="package.test.files">
+  <echo message="scripting tSQLtTestUtilCLR.dll" />
   <exec executable="cmd" dir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/tSQLtTestUtilCLR/bin/CruiseControl/tSQLtTestUtilCLR.dll ../TestUtil/tSQLtTestUtilCLR.mdl.sql 0x000000"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtTestUtilCLR.dll ../TestUtil/tSQLtTestUtilCLR.mdl.sql 0x000000"/>
   </exec>
 
+  <echo message="scripting UnsignedEmpty.dll" />
   <exec executable="cmd" dir="." failonerror="true" output="temp/GetUnsignedEmptyBytes.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe ../tSQLtCLR/UnsignedEmpty/bin/CruiseControl/UnsignedEmpty.dll ../TestUtil/GetUnsignedEmptyBytes.mdl.sql 0x000000"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/UnsignedEmpty.dll ../TestUtil/GetUnsignedEmptyBytes.mdl.sql 0x000000"/>
   </exec>
 
+  <echo message="Building TestUtil.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -218,6 +181,7 @@
    <arg value="temp/TestUtil.sql"/>
   </exec>
 
+  <echo message="Building AllTests.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -225,6 +189,7 @@
    <arg value="temp/AllTests.sql"/>
   </exec>
 
+  <echo message="Building AllTests.2008.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -232,6 +197,7 @@
    <arg value="temp/AllTests.2008.sql"/>
   </exec>
 
+  <echo message="Building AllTests.2012.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -239,6 +205,7 @@
    <arg value="temp/AllTests.2012.sql"/>
   </exec>
 
+  <echo message="Building AllTests.2014.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -246,6 +213,7 @@
    <arg value="temp/AllTests.2014.sql"/>
   </exec>
 
+  <echo message="Building AllTests.EXTERNAL_ACCESS.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -253,6 +221,7 @@
    <arg value="temp/AllTests.EXTERNAL_ACCESS.sql"/>
   </exec>
 
+  <echo message="Building AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -260,6 +229,7 @@
    <arg value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql"/>
   </exec>
 
+  <echo message="Building AllTests.SA.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -267,6 +237,7 @@
    <arg value="temp/AllTests.SA.sql"/>
   </exec>
 
+  <echo message="Copying misc SQL files" />
   <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build.SA).sql" todir="temp"/>

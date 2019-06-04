@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<project name="tSQLt" default="all" basedir=".">
+ <description>Build tSQLt</description>
+ <target name="clean" description="remove all generated files">
+  <echo message="${msbuild.path}" />
+  <echo message="${db.server}" />
+  <echo message="${db.name}" />
+ </target>
+
+ <target
+   name="all"
+   depends="init, clr.compile, tSQLtExternalAccessKey.compile, clr.testutil.compile, clr.UnsignedEmpty.compile, package.files"
+   />
+
+
+ <!--=======================================================================-->
+ <!--========                 Misc                                 =========-->
+ <!--=======================================================================-->
+
+ <target name="init" description="prepare output directory">
+  <mkdir dir="output" />
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
+  <mkdir dir="temp/tSQLtCLR"/>
+  <property name="build.configuration" value="NoSigningForCI" />
+ </target>
+
+ <!--=======================================================================-->
+ <!--========                 Build tSQLt CLRs                     =========-->
+ <!--=======================================================================-->
+
+ <target name="clr.compile">
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <delete dir="../tSQLtCLR/tSQLtCLR/bin/${build.configuration}" />
+  <delete dir="../tSQLtCLR/tSQLtCLR/obj/${build.configuration}" />
+  <exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+  </exec>
+ </target>
+
+ <target name="tSQLtExternalAccessKey.compile">
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/bin/${build.configuration}" />
+  <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/obj/${build.configuration}" />
+  <exec executable="cmd" dir="../tSQLtCLR/tSQLtExternalAccessKey/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
+  </exec>
+ </target>
+
+ <target name="clr.testutil.compile">
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/bin/${build.configuration}" />
+  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/obj/${build.configuration}" />
+  <exec executable="cmd" dir="../tSQLtCLR/tSQLtTestUtilCLR/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+  </exec>
+ </target>
+
+ <target name="clr.UnsignedEmpty.compile">
+  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <delete dir="../tSQLtCLR/UnsignedEmpty/bin/${build.configuration}" />
+  <delete dir="../tSQLtCLR/UnsignedEmpty/obj/${build.configuration}" />
+  <exec executable="cmd" dir="../tSQLtCLR/UnsignedEmpty/" failonerror="true">
+   <arg value="/c"/>
+   <arg value="&quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
+  </exec>
+ </target>
+
+ <target name="package.files">
+  <copy todir="temp/tSQLtCLR" flatten="true">
+   <fileset dir="../tSQLtCLR">
+    <include name="*/bin/${build.configuration}/*.dll"/>
+   </fileset>
+  </copy>
+  <delete file="output/tSQLtCLR.zip" />
+  <zip zipfile="output/tSQLtCLR.zip">
+   <fileset dir="temp/tSQLtCLR">
+    <include name="*.*"/>
+   </fileset>
+  </zip>
+ </target>
+</project>
