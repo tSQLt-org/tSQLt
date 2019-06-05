@@ -39,7 +39,7 @@
 
  <target name="init.tSQLtCLR" description="open tSQLtCLR artifact">
   <echo message="Unzip *.dll from tSQLtCLR.zip" />
-  <copy todir="output/tSQLtCLR" flatten="true" preservelastmodified="true">
+  <copy todir="output/tSQLtCLR/" flatten="true" preservelastmodified="true" verbose="true" force="true">
    <zipfileset src="output/tSQLtCLR.zip">
     <patternset>
      <include name="*.dll"/>
