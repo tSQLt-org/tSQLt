@@ -22,7 +22,7 @@
   <delete dir="temp"/>
   <mkdir dir="temp"/>
   <mkdir dir="temp/tSQLtCLR"/>
-  <property name="build.configuration" value="NoSigningForCI" />
+  <property name="build.configuration" value="CruiseControl" />
  </target>
 
  <!--=======================================================================-->

@@ -38,8 +38,14 @@
  </target>
 
  <target name="init.tSQLtCLR" description="open tSQLtCLR artifact">
-  <echo message="Unzip tSQLtCLR.zip" />
-  <unzip src="output/tSQLtCLR.zip" dest="output/tSQLtCLR" />
+  <echo message="Unzip *.dll from tSQLtCLR.zip" />
+  <copy todir="output/tSQLtCLR" flatten="true" preservelastmodified="true">
+   <zipfileset src="output/tSQLtCLR.zip">
+    <patternset>
+     <include name="*.dll"/>
+    </patternset>
+   </zipfileset>
+  </copy>
   
   <echo message="Read Version from tSQLtCLR.dll" />
   <exec executable="cmd" dir="." failonerror="true" output="temp/Version.txt">
