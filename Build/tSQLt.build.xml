@@ -44,22 +44,16 @@
    <arg value="dir output /S" />
   </exec>
   <unzip src="${basedir}/output/tSQLtCLR.zip" dest="${basedir}/output/tSQLtCLR"/>
+ 
   <copy todir="${basedir}/output/tSQLtCLR/" flatten="true" preservelastmodified="true" verbose="true" force="true">
+   <!-- Fixing odd unzip dir behaviour in Azure DevOps  -->
    <fileset dir="${basedir}/output/tSQLtCLR/tSQLtCLR/" erroronmissingdir="false">
     <patternset>
      <include name="*.dll"/>
     </patternset>
    </fileset>
   </copy>
-  <!--
-  <copy todir="output/tSQLtCLR/" flatten="true" preservelastmodified="true" verbose="true" force="true">
-   <zipfileset src="output/tSQLtCLR.zip">
-    <patternset>
-     <include name="*.dll"/>
-    </patternset>
-   </zipfileset>
-  </copy>
-  -->
+ 
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c" />
    <arg value="dir output /S" />
