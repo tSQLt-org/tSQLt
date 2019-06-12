@@ -43,9 +43,9 @@
    <arg value="/c" />
    <arg value="dir output /S" />
   </exec>
-  <unzip src="output/tSQLtCLR.zip" dest="output/tSQLtCLR"/>
-  <copy todir="output/tSQLtCLR/" flatten="true" preservelastmodified="true" verbose="true" force="true">
-   <fileset dir="output/tSQLtCLR/tSQLtCLR/" erroronmissingdir="false">
+  <unzip src="${basedir}/output/tSQLtCLR.zip" dest="${basedir}/output/tSQLtCLR"/>
+  <copy todir="${basedir}/output/tSQLtCLR/" flatten="true" preservelastmodified="true" verbose="true" force="true">
+   <fileset dir="${basedir}/output/tSQLtCLR/tSQLtCLR/" erroronmissingdir="false">
     <patternset>
      <include name="*.dll"/>
     </patternset>
