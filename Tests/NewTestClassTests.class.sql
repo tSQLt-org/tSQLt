@@ -39,7 +39,11 @@ BEGIN
       SET @Err = ERROR_MESSAGE();
     END CATCH
     
-    IF @Err NOT LIKE '%Attempted to execute tSQLt.NewTestClass on ''MySchema'' which is an existing schema but not a test class%(Error originated in Private_DisallowOverwritingNonTestSchema)%'
+    DECLARE @ExpectedErr NVARCHAR(MAX) =
+        '%Attempted to execute tSQLt.NewTestClass on ''MySchema'' which is an existing schema but not a test class%(Error originated in '+
+        CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'tSQLt.' ELSE '' END+
+        'Private_DisallowOverwritingNonTestSchema)%'
+    IF @Err NOT LIKE @ExpectedErr
     BEGIN
         EXEC tSQLt.Fail 'Unexpected error message was: ', @Err;
     END;
@@ -59,7 +63,8 @@ BEGIN
       SET @ErrProc = ERROR_PROCEDURE();
     END CATCH
     
-    EXEC tSQLt.AssertEqualsString 'NewTestClass', @ErrProc;
+    DECLARE @ExpectedErrProc NVARCHAR(MAX) = CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'tSQLt.' ELSE '' END + 'NewTestClass'
+    EXEC tSQLt.AssertEqualsString @ExpectedErrProc, @ErrProc;
 END;
 GO
 

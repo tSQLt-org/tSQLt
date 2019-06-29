@@ -16,6 +16,8 @@ CALL %1\bin\ant -buildfile Build\tSQLt.build.xml || goto :error
 ECHO +-------------------------+
 ECHO : Copying BUILD           :
 ECHO +-------------------------+
+ECHO :- THIS STEP IS OPTIONAL -:
+ECHO +-------------------------+
 CALL %1\bin\ant -buildfile Build\tSQLt.copybuild.xml || goto :error
 
 ECHO +-------------------------+

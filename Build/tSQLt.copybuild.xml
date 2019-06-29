@@ -21,10 +21,10 @@
 
  <target name="copy" description="prepare directories for tSQLt build">
 
-  <mkdir dir="../BuildOutput" />
+  <mkdir dir="../Build_Output" />
    
   <delete>
-   <fileset dir="../BuildOutput">
+   <fileset dir="../Build_Output">
     <include name="*.sql" />
     <include name="*.txt" />
     <include name="*.zip" />

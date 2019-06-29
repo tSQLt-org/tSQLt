@@ -98,30 +98,30 @@ AS
 BEGIN
     DECLARE @TranName sysname; 
     SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_Run_handles_uncommitable_transaction' ORDER BY Id DESC;
-    EXEC ('CREATE PROC testUncommitable AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
+    EXEC ('CREATE PROC tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063 AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
     BEGIN TRY
-        EXEC tSQLt.Run 'testUncommitable';
+        EXEC tSQLt.Run 'tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063';
     END TRY
     BEGIN CATCH
+      --SELECT * FROM tSQLt.TestResult WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063';
       IF NOT EXISTS(SELECT 1
                       FROM tSQLt.TestResult
-                     WHERE TestCase = 'testUncommitable'
+                     WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063'
                        AND Result = 'Error'
-                       AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{testUncommitable,1}%'
+                       AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{'+
+                                     CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'tSQLt_test.' ELSE '' END+
+                                     'testUncommitable00A1030051764AE7A946E827159E7063,1}%'
                        AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
                    )
       BEGIN
-        EXEC tSQLt.Fail 'tSQLt.Run ''testUncommitable'' did not error correctly';
+        EXEC tSQLt.Fail 'tSQLt.Run ''tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063'' did not error correctly';
       END;
       IF(@@TRANCOUNT > 0)
       BEGIN
-        EXEC tSQLt.Fail 'tSQLt.Run ''testUncommitable'' did not rollback the transactions';
+        EXEC tSQLt.Fail 'tSQLt.Run ''tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063'' did not rollback the transactions';
       END
       DELETE FROM tSQLt.TestResult
-             WHERE TestCase = 'testUncommitable'
-               AND Result = 'Error'
-               AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{testUncommitable,1}%'
-               AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
+             WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063'
       BEGIN TRAN
       SAVE TRAN @TranName
     END CATCH
