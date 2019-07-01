@@ -98,13 +98,21 @@
   <echo message="Generating CREATE ASSEMBLY statement."/>
   <exec executable="cmd" dir="." failonerror="true" output="temp/CreateAssembly.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000 &quot;&quot; 200 &quot;'+\n'&quot;"/>
+  </exec>
+  <exec executable="cmd" dir="." failonerror="true" >
+   <arg value="/c"/>
+   <arg value="type temp\CreateAssembly.sql"/>
   </exec>
 
-  <echo message="Generating GettSQLtExternalAccessKeyBytes function."/>
+  <echo message="Generating GetSQLtExternalAccessKeyBytes function."/>
   <exec executable="cmd" dir="." failonerror="true" output="temp/tSQLt.Private_GetExternalAccessKeyBytes.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtExternalAccessKey.dll ../Source/tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql 0x000000 0x000001"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtExternalAccessKey.dll ../Source/tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql 0x000000 0x000001 200 &quot;+\n0x&quot;"/>
+  </exec>
+  <exec executable="cmd" dir="." failonerror="true" >
+   <arg value="/c"/>
+   <arg value="type temp\tSQLt.Private_GetExternalAccessKeyBytes.sql"/>
   </exec>
 
   <exec executable="cmd" dir="." failonerror="true">

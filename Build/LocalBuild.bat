@@ -1,6 +1,6 @@
 @ECHO OFF
 
-REM CALL %1\bin\ant -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path=%2 || goto :error
+REM CALL %1\bin\ant -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path=%2 -verbose || goto :error
 REM goto :EOF
 
 ECHO +-------------------------+

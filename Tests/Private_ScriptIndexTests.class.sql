@@ -14,8 +14,11 @@ BEGIN
     EXEC(@setup2);
 
     DECLARE @ScriptedCmd NVARCHAR(MAX);
+    DECLARE @object_id INT = OBJECT_ID(@object_name);
+    DECLARE @index_id INT = (SELECT index_id FROM sys.indexes AS I WHERE I.name = @index_name AND I.object_id = OBJECT_ID(@object_name));
+
     SELECT @ScriptedCmd = create_cmd
-      FROM tSQLt.Private_ScriptIndex(OBJECT_ID(@object_name),(SELECT index_id FROM sys.indexes AS I WHERE I.name = @index_name AND I.object_id = OBJECT_ID(@object_name)));
+      FROM tSQLt.Private_ScriptIndex(@object_id,@index_id);
 
     EXEC tSQLt.AssertEqualsString @Expected = @index_create_cmd, @Actual = @ScriptedCmd;
   END TRY

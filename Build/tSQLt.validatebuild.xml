@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
- <target name="all" depends="deploy.all, validate.tSQLt, validate.Example" />
+ <target name="all" depends="deploy.all, validate.tSQLt, validate.Example, report.SQL.Version" />
 
  <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, deploy.tSQLt, deploy.Example" />
 
@@ -42,6 +42,15 @@
   <echo message="db.version.ge.2012: ${db.version.ge.2012}" />
   <echo message="db.version.ge.2014: ${db.version.ge.2014}" />
 
+ </target>
+
+ <target name="report.SQL.Version">
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.outputfile" value="" />
+   <param name="execute.sql.filename" value="PrintVersionInfo.sql" />
+  </antcall>
  </target>
 
  <target name="reset.parameter.variables">
@@ -352,9 +361,6 @@
   </antcall>
 
   <!-- run SA tests -->
-  <property name="deployandrun.tests.elevated" value="true" />
-  <property name="deployandrun.tests.filename" value="temp/AllTests.SA.sql" />
-  <property name="deployandrun.tests.outputfile" value="output/TestResults_SA.xml" />
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="true" />
    <param name="deployandrun.tests.filename" value="temp/AllTests.SA.sql" />
