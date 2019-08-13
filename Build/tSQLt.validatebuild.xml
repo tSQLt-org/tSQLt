@@ -220,7 +220,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
+  <property name="execute.sql.sqlcmd" value="${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
@@ -234,15 +234,13 @@
  <target name="execute.sql.statement_or_file.exec.output.tofile" if="execute.sql.statement_or_file.output.tofile">
   <echo message="execute.sql.statement_or_file.exec.output.tofile started" />
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
-  <exec executable="cmd" failonerror="true" output="${execute.sql.outputfile}">
-   <arg value="/c"/>
+  <exec executable="sqlcmd" failonerror="true" output="${execute.sql.outputfile}">
    <arg value="${execute.sql.sqlcmd}"/>
   </exec>
  </target>
  <target name="execute.sql.statement_or_file.exec.output.toconsole" unless="execute.sql.statement_or_file.output.tofile">
   <echo message="execute.sql.statement_or_file.exec.output.toconsole started" />
-  <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
+  <exec executable="sqlcmd" failonerror="true">
    <arg value="${execute.sql.sqlcmd}"/>
   </exec>
  </target>
