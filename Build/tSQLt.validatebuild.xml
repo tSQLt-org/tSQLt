@@ -200,7 +200,7 @@
   </condition>
   <antcall target="execute.sql.statement_or_file.with.permissions">
    <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
-   <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -E" />
+   <param name="execute.sql.sqlconnect" value="-S &quot;${db.server}&quot; -U&quot;${db.user}&quot; -P&quot;${db.password}&quot;" />
   </antcall>
  </target>
  <!--
