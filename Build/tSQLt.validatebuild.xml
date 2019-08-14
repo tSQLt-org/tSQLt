@@ -221,7 +221,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="${execute.sql.sqlconnect} -i ${execute.sql.executeas} ${execute.sql.filename} " />
+  <property name="execute.sql.sqlcmd" value="${execute.sql.sqlconnect} -i ${execute.sql.filename} -vNewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=${execute.sql.statement}" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
