@@ -223,7 +223,7 @@
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
   <property name="execute.sql.sqlcmd" value="${execute.sql.sqlconnect} -i ${execute.sql.filename}" />
   <echo message="${execute.sql.sqlcmd}" />
-  <property name="execute.sql.sqlcmd.variables" value="-v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot;" />
+  <property name="execute.sql.sqlcmd.variables" value="-vNewDbName=${db.name} -vDbName=${execute.sql.database} -vExecuteStatement=&quot;${execute.sql.statement}&quot;" />
   <echo message="${execute.sql.sqlcmd.variables}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
@@ -239,7 +239,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <exec executable="sqlcmd" failonerror="true" output="${execute.sql.outputfile}">
    <arg line="${execute.sql.sqlcmd}"/>
-   <arg value="${execute.sql.sqlcmd.variables}" />
+   <arg line="${execute.sql.sqlcmd.variables}" />
   </exec>
  </target>
  <target name="execute.sql.statement_or_file.exec.output.toconsole" unless="execute.sql.statement_or_file.output.tofile">
