@@ -212,6 +212,7 @@
     <property name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -E" />
    </otherwise>
   </choose>
+  -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot;
   -->
  <target name="execute.sql.statement_or_file.exec">
   <echo message="execute.sql.statement_or_file.exec started" />
@@ -220,7 +221,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="${execute.sql.sqlconnect} -l 30 -i ${execute.sql.executeas} ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot;" />
+  <property name="execute.sql.sqlcmd" value="${execute.sql.sqlconnect} -i ${execute.sql.executeas} ${execute.sql.filename} " />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
