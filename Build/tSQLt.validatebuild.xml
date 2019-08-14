@@ -224,7 +224,7 @@
   <property name="execute.sql.sqlcmd" value="${execute.sql.sqlconnect} -i ${execute.sql.filename} -vNewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=${execute.sql.statement}" />
   <echo message="${execute.sql.sqlcmd}" />
   <property name="execute.sql.sqlcmd.variables" value="-v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=${execute.sql.statement}" />
-  <echo message="${execute.sql.sqlcmd.variables" />
+  <echo message="${execute.sql.sqlcmd.variables}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
     <equals arg1="${execute.sql.outputfile}" arg2="" />
