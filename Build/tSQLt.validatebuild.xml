@@ -170,13 +170,15 @@
  <target name="execute.sql.statement_or_file.permissions.elevated" if="execute.sql.statement_or_file.permissions.elevated">
   <echo message="--> execute.sql.statement_or_file.elevated" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
+   <param name="execute.sql.executeas" value="${db.sauser}" />
+   <param name="execute.sql.executepassword" value="${db.sapassword}" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.permissions.default" unless="execute.sql.statement_or_file.permissions.elevated">
   <echo message="--> execute.sql.statement_or_file.default" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
+   <param name="execute.sql.executeas" value="${db.user}" />
+   <param name="execute.sql.executepassword" value="${db.password}" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.with.permissions">
@@ -184,7 +186,6 @@
   <echo message="  +----> filename: ${execute.sql.filename}" />
   <echo message="  +----> statement: ${execute.sql.statement}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
-  <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
   <antcall target="execute.sql.statement_or_file.permissions.default" />
   <antcall target="execute.sql.statement_or_file.permissions.elevated" />
   <echo message="execute.sql.statement_or_file.with.permissions finished" />
@@ -199,8 +200,8 @@
    <equals arg1="${execute.sql.elevated}" arg2="true" />
   </condition>
   <antcall target="execute.sql.statement_or_file.with.permissions">
-   <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
-   <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -E" />
+   <param name="execute.sql.executeas" value="${db.user}" />
+   <param name="execute.sql.executepassword" value="${db.password}" />
   </antcall>
  </target>
  <!--
@@ -216,12 +217,10 @@
  <target name="execute.sql.statement_or_file.exec">
   <echo message="execute.sql.statement_or_file.exec started" />
   <echo message="  +----> filename: ${execute.sql.filename}" />
-  <echo message="  +----> statement: ${execute.sql.statement}" />
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
-  <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
-  <echo message="${execute.sql.sqlcmd}" />
+  <property name="execute.sql.powerShellCmd" value="powershell -ExecutionPolicy bypass -Command &quot;Invoke-SqlCmd -ServerInstance '${db.server},${db.port}' -InputFile ${execute.sql.filename} -Username ${execute.sql.executeas} -Password ${execute.sql.executepassword} -Variable NewDbName=${db.name},DbName=${execute.sql.database}&quot;" />
+  <echo message="${execute.sql.powerShellCmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
     <equals arg1="${execute.sql.outputfile}" arg2="" />
@@ -235,15 +234,15 @@
   <echo message="execute.sql.statement_or_file.exec.output.tofile started" />
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <exec executable="cmd" failonerror="true" output="${execute.sql.outputfile}">
-   <arg value="/c"/>
-   <arg value="${execute.sql.sqlcmd}"/>
+   <arg value="/c" />
+   <arg value="${execute.sql.powerShellCmd}"/>
   </exec>
  </target>
  <target name="execute.sql.statement_or_file.exec.output.toconsole" unless="execute.sql.statement_or_file.output.tofile">
   <echo message="execute.sql.statement_or_file.exec.output.toconsole started" />
   <exec executable="cmd" failonerror="true">
-   <arg value="/c"/>
-   <arg value="${execute.sql.sqlcmd}"/>
+   <arg value="/c" />
+   <arg value="${execute.sql.powerShellCmd}"/>
   </exec>
  </target>
 
@@ -252,7 +251,7 @@
   <echo message="execute.sql.file output: ${execute.sql.outputfile}" />
   <antcall target="execute.sql.statement_or_file">
    <param name="temp.execute.sql.statement" value="" />
-   <param name="execute.sql.filename" value="&quot;${execute.sql.filename}&quot;" />
+   <param name="execute.sql.filename" value="'${execute.sql.filename}'" />
   </antcall>
  </target>
 
