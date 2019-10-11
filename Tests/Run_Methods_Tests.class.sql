@@ -72,12 +72,14 @@ BEGIN
         SET @ErrorRaised = 1;
     END CATCH
     SELECT Class, TestCase, Msg 
-      INTO actual
+      INTO Run_Methods_Tests.actual
       FROM tSQLt.TestResult;
-    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{Test Case A,1}' Msg
-      INTO expected;
+    SELECT TOP(0)* INTO Run_Methods_Tests.expected FROM  Run_Methods_Tests.actual;
+
+    INSERT INTO Run_Methods_Tests.expected
+    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{'+CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'MyTestClass.' ELSE '' END+'Test Case A,1}' Msg
     
-    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+    EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.expected', 'Run_Methods_Tests.actual';
 END;
 GO
 
@@ -677,7 +679,7 @@ BEGIN
     INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime)
     VALUES ('MyTestClass2', 'testC', 'Failure', '2015-07-24T00:00:01.111', '2015-08-17T20:31:24.758');
     INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime)
-    VALUES ('MyTestClass2', 'testD', 'Error', '2015-07-24T00:00:01.666', '2015-07-24T00:00:01.669');
+    VALUES ('MyTestClass2', 'testD', 'Error', '2015-07-24T00:00:01.664', '2015-07-24T00:00:01.667');
     
     EXEC tSQLt.XmlResultFormatter;
     

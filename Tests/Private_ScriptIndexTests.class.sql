@@ -8,15 +8,31 @@ CREATE PROCEDURE Private_ScriptIndexTests.[assert index is scripted correctly]
   @index_name NVARCHAR(MAX) = 'Private_ScriptIndexTests.T1 - IDX1'
 AS
 BEGIN
-  EXEC(@setup1);
-  EXEC(@index_create_cmd);
-  EXEC(@setup2);
+  BEGIN TRY
+    EXEC(@setup1);
+    EXEC(@index_create_cmd);
+    EXEC(@setup2);
 
-  DECLARE @ScriptedCmd NVARCHAR(MAX);
-  SELECT @ScriptedCmd = create_cmd
-    FROM tSQLt.Private_ScriptIndex(OBJECT_ID(@object_name),(SELECT index_id FROM sys.indexes AS I WHERE I.name = @index_name AND I.object_id = OBJECT_ID(@object_name)));
+    DECLARE @ScriptedCmd NVARCHAR(MAX);
+    DECLARE @object_id INT = OBJECT_ID(@object_name);
+    DECLARE @index_id INT = (SELECT index_id FROM sys.indexes AS I WHERE I.name = @index_name AND I.object_id = OBJECT_ID(@object_name));
 
-  EXEC tSQLt.AssertEqualsString @Expected = @index_create_cmd, @Actual = @ScriptedCmd;
+    SELECT @ScriptedCmd = create_cmd
+      FROM tSQLt.Private_ScriptIndex(@object_id,@index_id);
+
+    EXEC tSQLt.AssertEqualsString @Expected = @index_create_cmd, @Actual = @ScriptedCmd;
+  END TRY
+  BEGIN CATCH
+    DECLARE 
+      @EL NVARCHAR(MAX) = CAST(ERROR_LINE() AS NVARCHAR(MAX)),
+      @EM NVARCHAR(MAX) = ERROR_MESSAGE(),
+      @EN NVARCHAR(MAX) = CAST(ERROR_NUMBER() AS NVARCHAR(MAX)),
+      @EP NVARCHAR(MAX) = ERROR_PROCEDURE(),
+      @ES NVARCHAR(MAX) = CAST(ERROR_SEVERITY() AS NVARCHAR(MAX)),
+      @ET NVARCHAR(MAX) = CAST(ERROR_STATE() AS NVARCHAR(MAX));
+    RAISERROR('<EN>%s</EN><EM>%s</EM><ES>%s</ES><ET>%s</ET><EP>%s</EP><EL>%s</EL>',16,10,@EN,@EM,@ES,@ET,@EP,@EL)WITH NOWAIT;
+  END CATCH;
+  RETURN;
 END;
 GO
 CREATE PROCEDURE Private_ScriptIndexTests.[test scripts simple index]
