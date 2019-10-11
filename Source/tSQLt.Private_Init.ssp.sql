@@ -6,6 +6,7 @@ CREATE PROCEDURE tSQLt.Private_Init
 AS
 BEGIN
   EXEC tSQLt.Private_CleanTestResult;
+  EXEC tSQLt.Private_CleanTemporaryObject;
 
   DECLARE @enable BIT; SET @enable = 1;
   DECLARE @version_match BIT;SET @version_match = 0;
