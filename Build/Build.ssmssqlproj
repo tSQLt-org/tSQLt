@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_2014:MacWin7A\meinse00">
+        <ConnectionNode Name="Dev_2014:WIN10A\meinse00">
           <Created>2014-12-31T18:06:01.9272147-05:00</Created>
           <Type>SQL</Type>
           <Server>Dev_2014</Server>
@@ -15,7 +15,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Dev_tSQLt:MacWin7A\meinse00">
+        <ConnectionNode Name="Dev_tSQLt:WIN10A\meinse00">
           <Created>2014-11-24T18:10:21.4587287-05:00</Created>
           <Type>SQL</Type>
           <Server>Dev_tSQLt</Server>
@@ -115,6 +115,12 @@
           <AssociatedConnUserName />
           <FullPath>Install(tSQLtExternalAccessKey).sql</FullPath>
         </FileNode>
+        <FileNode Name="PrintVersionInfo.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>PrintVersionInfo.sql</FullPath>
+        </FileNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
@@ -136,6 +142,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>CreateAssemblyGenerator.exe</FullPath>
+        </FileNode>
+        <FileNode Name="Install the tSQLt build.docx">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Install the tSQLt build.docx</FullPath>
         </FileNode>
         <FileNode Name="License.txt">
           <AssociatedConnectionMoniker />
@@ -191,11 +203,41 @@
           <AssociatedConnUserName />
           <FullPath>SqlLoginNbuild.bat</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.build.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.build.xml</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.buildCLR.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.buildCLR.xml</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.copybuild.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.copybuild.xml</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.experiments.build.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.experiments.build.xml</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.local_build_output.build">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.local_build_output.build</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.validatebuild.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.validatebuild.xml</FullPath>
         </FileNode>
         <FileNode Name="VersionInfo.vbs">
           <AssociatedConnectionMoniker />

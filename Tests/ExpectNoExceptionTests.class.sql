@@ -25,7 +25,9 @@ BEGIN
 
     DECLARE @ExpectedMessage NVARCHAR(MAX);
     SET @ExpectedMessage = 'Expected no error to be raised. Instead this error was encountered:'+CHAR(13)+CHAR(10)+
-                           'test error message[[]16,10]{TestExpectingNoException,1}';
+                           'test error message[[]16,10]{'+
+                           CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'MyTestClass.' ELSE '' END+
+                           'TestExpectingNoException,1}';
     EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingNoException', @ExpectedMessage;
 END;
 GO

@@ -18,8 +18,11 @@ AS
 BEGIN
   ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
   EXEC master.tSQLt_testutil.tSQLtTestUtil_ExternalAccessRevoke;
-
-  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed: ALTER ASSEMBLY%tSQLtCLR%failed%EXTERNAL_ACCESS%';
+  DECLARE @ExpectedMessagePattern NVARCHAR(MAX) =  
+              'The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed: ALTER ASSEMBLY%tSQLtCLR%failed%'+
+              CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT)>=14 THEN 'UNSAFE ASSEMBLY' ELSE 'EXTERNAL_ACCESS' END+
+              '%';
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = @ExpectedMessagePattern;
   EXEC tSQLt.EnableExternalAccess;
 END;
 GO

@@ -1,0 +1,338 @@
+<?xml version="1.0"?>
+<project name="tSQLt" default="all" basedir=".">
+ <description>Build tSQLt</description>
+ <target name="clean" description="remove all generated files">
+  <echo message="${msbuild.path}" />
+  <echo message="${db.server}" />
+  <echo message="${db.name}" />
+ </target>
+
+ <target
+   name="all"
+   depends="package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests, teamcity"
+   />
+
+ <target
+   name="package.create.tSQLt"
+   depends="init, init.tSQLtCLR, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
+   />
+
+ <target
+  name="package.create.tSQLt.tests"
+  depends="init, init.tSQLt.tests, package.test.files, package.test.create.artifacts"
+   />
+
+ <target
+   name="package.create.SQLPromptSnippets"
+   depends="init, init.SQLPromptSnippets, package.SQLPromptSnippets.copy, package.SQLPromptSnippets.create.artifacts"
+   />
+
+ <!--=======================================================================-->
+ <!--========                 Misc                                 =========-->
+ <!--=======================================================================-->
+
+ <target name="init" description="prepare directories">
+  <mkdir dir="output" />
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
+ </target>
+
+ <target name="init.tSQLtCLR" description="open tSQLtCLR artifact">
+  <echo message="Start: Unzip *.dll from tSQLtCLR.zip" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c" />
+   <arg value="dir output /S" />
+  </exec>
+  <unzip src="${basedir}/output/tSQLtCLR.zip" dest="${basedir}/output/tSQLtCLR"/>
+ 
+  <copy todir="${basedir}/output/tSQLtCLR/" flatten="true" preservelastmodified="true" verbose="true" force="true">
+   <!-- Fixing odd unzip dir behaviour in Azure DevOps  -->
+   <fileset dir="${basedir}/output/tSQLtCLR/tSQLtCLR/" erroronmissingdir="false">
+    <patternset>
+     <include name="*.dll"/>
+    </patternset>
+   </fileset>
+  </copy>
+ 
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c" />
+   <arg value="dir output /S" />
+  </exec>
+  <echo message="Finished: Unzip *.dll from tSQLtCLR.zip" />
+
+  <echo message="Read Version from tSQLtCLR.dll" />
+  <exec executable="cmd" dir="." failonerror="true" output="temp/Version.txt">
+   <arg value="/c"/>
+   <arg value="cscript //nologo VersionInfo.vbs output/tSQLtCLR/tSQLtCLR.dll"/>
+  </exec>
+
+  <echo message="Parse Version from tSQLtCLR.dll" />
+  <loadfile srcFile="temp/Version.txt" property="clr.version" failonerror="true">
+   <filterchain>
+    <striplinebreaks />
+    <tokenfilter>
+     <deletecharacters chars="\t" />
+     <trim />
+     <ignoreblank />
+    </tokenfilter>
+   </filterchain>
+  </loadfile>
+
+  <echo message="CLR Version is: [V${clr.version}]"/> </target>
+
+ <target name="teamcity" description="misc teamcity tasks">
+  <echo message="##BUILD[buildNumber 'V${clr.version}']" />
+ </target>
+
+ <!--=======================================================================-->
+ <!--========                 Build tSQLt.zip                      =========-->
+ <!--=======================================================================-->
+ 
+ <target name="package.copy.files">
+  <copy file="../Source/SetClrEnabled.sql" todir="temp"/>
+  <copy file="ReleaseNotes.txt" todir="temp"/>
+  <copy file="License.txt" todir="temp"/>
+ </target>
+
+ <target name="package.construct.tsqlt">
+  <echo message="Generating CREATE ASSEMBLY statement."/>
+  <exec executable="cmd" dir="." failonerror="true" output="temp/CreateAssembly.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000 &quot;&quot; 200 &quot;'+\n'&quot;"/>
+  </exec>
+  <exec executable="cmd" dir="." failonerror="true" >
+   <arg value="/c"/>
+   <arg value="type temp\CreateAssembly.sql"/>
+  </exec>
+
+  <echo message="Generating GetSQLtExternalAccessKeyBytes function."/>
+  <exec executable="cmd" dir="." failonerror="true" output="temp/tSQLt.Private_GetExternalAccessKeyBytes.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtExternalAccessKey.dll ../Source/tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql 0x000000 0x000001 200 &quot;+\n0x&quot;"/>
+  </exec>
+  <exec executable="cmd" dir="." failonerror="true" >
+   <arg value="/c"/>
+   <arg value="type temp\tSQLt.Private_GetExternalAccessKeyBytes.sql"/>
+  </exec>
+
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Source/BuildOrder.txt"/>
+   <arg value="temp/tSQLt.class.sql"/>
+   <arg value="---Build"/>
+  </exec>
+ </target>
+
+ <target name="replace.in.file">
+  <echo message="File: ${replace.file}" />
+  <echo message="Token: ${replace.token}" />
+  <echo message="Value: ${replace.value}" />
+  <move file="${replace.file}" tofile="${replace.file}.replacement.temp">
+   <filterchain>
+    <replacestring from="${replace.token}" to="${replace.value}" />
+    <tabstospaces tablength="1"/>
+   </filterchain>
+  </move>
+  <move file="${replace.file}.replacement.temp" tofile="${replace.file}" />
+ </target>
+
+ <target name="package.set.build.version">
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ReleaseNotes.txt" />
+   <param name="replace.token" value="LATEST-BUILD-NUMBER" />
+   <param name="replace.value" value="${clr.version}" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/tSQLt.class.sql" />
+   <param name="replace.token" value="$LATEST-BUILD-NUMBER$" />
+   <param name="replace.value" value="${clr.version}" />
+  </antcall>
+
+ </target>
+
+ <target name="package.create.example">
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Examples/BuildOrder.txt"/>
+   <arg value="temp/Example.sql"/>
+  </exec>
+ </target>
+
+ <target name="package.create.artifacts">
+  <delete file="output/tSQLt.zip" />
+  <delete file="output/ReadMe.txt" />
+  <delete file="output/Version.txt" />
+  <zip zipfile="output/tSQLt.zip">
+   <fileset dir="temp">
+    <include name="ReleaseNotes.txt"/>
+    <include name="License.txt"/>
+    <include name="tSQLt.class.sql"/>
+    <include name="SetClrEnabled.sql"/>
+    <include name="Example.sql"/>
+   </fileset>
+  </zip>
+  <copy file="temp/Version.txt" tofile="output/Version.txt"/>
+  <copy file="temp/ReleaseNotes.txt" tofile="output/ReadMe.txt"/>
+ </target>
+
+ <!--=======================================================================-->
+ <!--========                 Build tSQLt Tests                    =========-->
+ <!--=======================================================================-->
+
+ <target name="init.tSQLt.tests" description="prepare directories for tSQLt build">
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
+ </target>
+
+ <target name="package.test.files">
+  <echo message="scripting tSQLtTestUtilCLR.dll" />
+  <exec executable="cmd" dir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtTestUtilCLR.dll ../TestUtil/tSQLtTestUtilCLR.mdl.sql 0x000000"/>
+  </exec>
+
+  <echo message="scripting UnsignedEmpty.dll" />
+  <exec executable="cmd" dir="." failonerror="true" output="temp/GetUnsignedEmptyBytes.sql">
+   <arg value="/c"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/UnsignedEmpty.dll ../TestUtil/GetUnsignedEmptyBytes.mdl.sql 0x000000"/>
+  </exec>
+
+  <echo message="Building TestUtil.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../TestUtil/BuildOrder.txt"/>
+   <arg value="temp/TestUtil.sql"/>
+  </exec>
+
+  <echo message="Building AllTests.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests/*.class.sql"/>
+   <arg value="temp/AllTests.sql"/>
+  </exec>
+
+  <echo message="Building AllTests.2008.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.2008/*.class.sql"/>
+   <arg value="temp/AllTests.2008.sql"/>
+  </exec>
+
+  <echo message="Building AllTests.2012.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.2012/*.class.sql"/>
+   <arg value="temp/AllTests.2012.sql"/>
+  </exec>
+
+  <echo message="Building AllTests.2014.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.2014/*.class.sql"/>
+   <arg value="temp/AllTests.2014.sql"/>
+  </exec>
+
+  <echo message="Building AllTests.EXTERNAL_ACCESS.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.EXTERNAL_ACCESS/*.class.sql"/>
+   <arg value="temp/AllTests.EXTERNAL_ACCESS.sql"/>
+  </exec>
+
+  <echo message="Building AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.EXTERNAL_ACCESS_KEY_EXISTS/*.class.sql"/>
+   <arg value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql"/>
+  </exec>
+
+  <echo message="Building AllTests.SA.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Tests.SA/*.class.sql"/>
+   <arg value="temp/AllTests.SA.sql"/>
+  </exec>
+
+  <echo message="Copying misc SQL files" />
+  <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
+  <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
+  <copy file="ExecuteAs(tSQLt.Build.SA).sql" todir="temp"/>
+  <copy file="Drop(tSQLtExternalAccessKey).sql" todir="temp"/>
+  <copy file="Install(tSQLtExternalAccessKey).sql" todir="temp"/>
+  <copy file="ChangeDbAndExecuteStatement(tSQLt.Build).sql" todir="temp"/>
+  <copy file="EnableExternalAccess.sql" todir="temp"/>
+  <copy file="CreateBuildDb.sql" todir="temp"/>
+  <copy file="Drop(master.tSQLt_testutil).sql" todir="temp"/>
+  <copy file="Install(master.tSQLt_testutil).sql" todir="temp"/>
+  <copy file="GetTestResults.sql" todir="temp"/>
+  <copy file="GetFailedTestCount.sql" todir="temp"/>
+  <copy file="../Examples/TestThatExamplesAreDeployed.sql" todir="temp"/>
+ </target>
+
+ <target name="package.test.create.artifacts">
+  <delete file="output/tSQLt.tests.zip" />
+  <zip zipfile="output/tSQLt.tests.zip">
+   <fileset dir="temp">
+    <include name="TestUtil.sql"/>
+    <include name="AllTests.sql"/>
+    <include name="AllTests.2008.sql"/>
+    <include name="AllTests.2012.sql"/>
+    <include name="AllTests.2014.sql"/>
+    <include name="AllTests.EXTERNAL_ACCESS.sql"/>
+    <include name="AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql"/>
+    <include name="AllTests.SA.sql"/>
+    <include name="BootStrapTest.sql"/>
+    <include name="ExecuteAs(tSQLt.Build).sql"/>
+    <include name="ExecuteAs(tSQLt.Build.SA).sql"/>
+    <include name="Drop(tSQLtExternalAccessKey).sql"/>
+    <include name="Install(tSQLtExternalAccessKey).sql"/>
+    <include name="EnableExternalAccess.sql"/>
+    <include name="Drop(master.tSQLt_testutil).sql"/>
+    <include name="Install(master.tSQLt_testutil).sql"/>
+    <include name="ChangeDbAndExecuteStatement(tSQLt.Build).sql"/>
+    <include name="CreateBuildDb.sql"/>
+    <include name="GetTestResults.sql"/>
+    <include name="GetFailedTestCount.sql"/>
+    <include name="TestThatExamplesAreDeployed.sql"/>
+   </fileset>
+  </zip>
+ </target>
+
+ <!--=======================================================================-->
+ <!--========                 Build SQLPromptSnippets              =========-->
+ <!--=======================================================================-->
+
+ <target name="init.SQLPromptSnippets" description="prepare directories for SQLPromptSnippets build">
+  <delete dir="temp"/>
+  <mkdir dir="temp"/>
+ </target>
+
+ <target name="package.SQLPromptSnippets.copy">
+  <copy todir="temp">
+   <fileset dir="../Snippets">
+    <include name="*.sqlpromptsnippet" />
+    <include name="ReadMe.txt" />
+   </fileset>
+  </copy>
+ </target>
+
+ <target name="package.SQLPromptSnippets.create.artifacts">
+  <delete file="output/tSQLtSnippets(SQLPrompt).zip" />
+  <zip zipfile="output/tSQLtSnippets(SQLPrompt).zip">
+   <fileset dir="temp">
+    <include name="*.*"/>
+   </fileset>
+  </zip>
+ </target>
+</project>
