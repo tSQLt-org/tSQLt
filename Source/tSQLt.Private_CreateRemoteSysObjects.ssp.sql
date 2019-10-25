@@ -22,7 +22,8 @@ AS
                 ( 'default_constraints', 'Private_SysDefaultConstraints' ),
                 ( 'identity_columns', 'Private_SysIdentityColumns' ),
                 ( 'columns', 'Private_SysColumns' ),
-                ( 'objects', 'Private_SysObjects' );
+                ( 'objects', 'Private_SysObjects' ),
+                ( 'schemas', 'Private_SysSchemas' );
 
         DECLARE @cursor AS CURSOR;
  

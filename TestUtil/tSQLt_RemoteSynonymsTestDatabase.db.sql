@@ -19,12 +19,32 @@ IF EXISTS ( SELECT  *
 GO
 
 IF EXISTS ( SELECT  *
+            FROM    sys.tables t
+                    JOIN sys.schemas s ON s.schema_id = t.schema_id
+            WHERE   t.name = 'tbli'
+                    AND s.name = 'MyTestClass' )
+    BEGIN
+        DROP TABLE MyTestClass.tbli;
+    END;
+GO
+
+IF EXISTS ( SELECT  *
             FROM    sys.types t
                     JOIN sys.schemas s ON s.schema_id = t.schema_id
             WHERE   t.name = 'UDT'
                     AND s.name = 'MyTestClass' )
     BEGIN
         DROP TYPE MyTestClass.UDT;
+    END;
+GO
+
+IF EXISTS ( SELECT  *
+            FROM    sys.types t
+                    JOIN sys.schemas s ON s.schema_id = t.schema_id
+            WHERE   t.name = 'UDTi'
+                    AND s.name = 'MyTestClass' )
+    BEGIN
+        DROP TYPE MyTestClass.UDTi;
     END;
 GO
 
@@ -92,5 +112,12 @@ GO
 
 CREATE TABLE MyTestClass.tbl(i MyTestClass.UDT)
 GO
+
+CREATE TYPE MyTestClass.UDTi FROM INT;
+GO
+
+CREATE TABLE MyTestClass.tbli(i MyTestClass.UDTi)
+GO
+
 USE $(NewDbName)
 GO

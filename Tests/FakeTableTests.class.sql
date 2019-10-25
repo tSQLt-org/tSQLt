@@ -946,26 +946,49 @@ CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForComputedC
    @ClearComputedCols INT
 AS
 BEGIN
+
+  DECLARE @Database NVARCHAR(MAX),
+          @Instance NVARCHAR(MAX),
+          @Schema NVARCHAR(MAX),
+          @Table NVARCHAR(MAX);
+
+   SELECT  @Instance = PARSENAME(S.base_object_name, 4),
+            @Database = PARSENAME(S.base_object_name, 3),
+            @Schema = PARSENAME(S.base_object_name, 2),
+            @Table = PARSENAME(S.base_object_name, 1)
+     FROM sys.synonyms AS S 
+    WHERE S.object_id = OBJECT_ID(@TableName);
+
+  IF (@Database IS NOT NULL)
+  BEGIN
+    EXEC tSQLt.Private_CreateRemoteSysObjects @Instance = @Instance, @Database = @Database;
+  END
+  CREATE TABLE #Expected(column_id INT, IsComputedColumn BIT, is_persisted BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+  CREATE TABLE #Actual(column_id INT, IsComputedColumn BIT, is_persisted BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+   
+  INSERT  INTO #Expected
   SELECT c.column_id, CASE WHEN cc.column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, cc.is_persisted, c.name, cc.definition, c.user_type_id
-    INTO #Expected
-    FROM sys.columns c
-    LEFT OUTER JOIN sys.computed_columns cc ON cc.object_id = c.object_id
+    FROM tSQLt.Private_SysColumns c
+    JOIN tSQLt.Private_SysObjects o ON o.object_id = c.object_id
+    JOIN tSQLt.Private_SysSchemas s ON s.schema_id = o.schema_id
+    LEFT OUTER JOIN tSQLt.Private_SysComputedColumns cc ON cc.object_id = c.object_id
                                               AND cc.column_id = c.column_id
                                               AND @ClearComputedCols = 0
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+   WHERE o.name = COALESCE(@Table,PARSENAME(@TableName, 1)) AND s.name = COALESCE(@Schema, PARSENAME(@TableName, 2));
 
   EXEC (@Cmd);  
-
+  
+  INSERT  INTO #Actual
   SELECT c.column_id, CASE WHEN cc.column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, cc.is_persisted, c.name, cc.definition, c.user_type_id
-    INTO #Actual
     FROM sys.columns c
     LEFT OUTER JOIN sys.computed_columns cc ON cc.object_id = c.object_id
                                               AND cc.column_id = c.column_id
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+   WHERE c.object_id = OBJECT_ID(@TableName);
    
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+
 
 CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols
    @TableName NVARCHAR(MAX),
@@ -996,6 +1019,16 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 1;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves persisted computed columns if @ComputedColumns = 1]
 AS
 BEGIN
@@ -1004,6 +1037,16 @@ BEGIN
   CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
   
   EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @ComputedColumns = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves persisted computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 1;';
 END;
 GO
 
@@ -1018,6 +1061,16 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable does not preserve persisted computed columns if @ComputedColumns = 0]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 0;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable does not preserve persisted computed columns if @ComputedColumns is not specified]
 AS
 BEGIN
@@ -1026,6 +1079,16 @@ BEGIN
   CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
 
   EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'';';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable does not preserve persisted computed columns if @ComputedColumns is not specified]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'';';
 END;
 GO
 
@@ -1040,28 +1103,62 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves multiple mixed persisted computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (NotComputed INT, ComputedAndPersisted AS (NotComputed + 5) PERSISTED, ComputedNotPersisted AS (NotComputed + 7), AnotherComputed AS (GETDATE()));
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 1;';
+END;
+GO
+
 CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForDefaults
    @TableName NVARCHAR(MAX),
    @Cmd NVARCHAR(MAX),
    @ClearDefaults INT
 AS
 BEGIN
+
+  DECLARE @Database NVARCHAR(MAX),
+          @Instance NVARCHAR(MAX),
+          @Schema NVARCHAR(MAX),
+          @Table NVARCHAR(MAX);
+
+   SELECT  @Instance = PARSENAME(S.base_object_name, 4),
+            @Database = PARSENAME(S.base_object_name, 3),
+            @Schema = PARSENAME(S.base_object_name, 2),
+            @Table = PARSENAME(S.base_object_name, 1)
+     FROM sys.synonyms AS S 
+    WHERE S.object_id = OBJECT_ID(@TableName);
+
+  IF (@Database IS NOT NULL)
+  BEGIN
+    EXEC tSQLt.Private_CreateRemoteSysObjects @Instance = @Instance, @Database = @Database;
+  END
+  CREATE TABLE #Expected(column_id INT, IsComputedColumn BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+  CREATE TABLE #Actual(column_id INT, IsComputedColumn BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+   
+    INSERT  INTO #Expected
   SELECT c.column_id, CASE WHEN dc.parent_column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, c.name, dc.definition, c.user_type_id
-    INTO #Expected
-    FROM sys.columns c
-    LEFT OUTER JOIN sys.default_constraints dc ON dc.parent_object_id = c.object_id
+    FROM tSQLt.Private_SysColumns c
+    JOIN tSQLt.Private_SysObjects o ON o.object_id = c.object_id
+    JOIN tSQLt.Private_SysSchemas s ON s.schema_id = o.schema_id
+    LEFT OUTER JOIN tSQLt.Private_SysDefaultConstraints dc ON dc.parent_object_id = c.object_id
                                               AND dc.parent_column_id = c.column_id
                                               AND @ClearDefaults = 0
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
-
+   WHERE o.name = COALESCE(@Table,PARSENAME(@TableName, 1)) AND s.name = COALESCE(@Schema, PARSENAME(@TableName, 2));
+  
+   IF NOT EXISTS (SELECT 1 FROM #Expected) EXEC tSQLt.Fail;
+  
   EXEC (@Cmd);  
 
+    INSERT INTO #Actual
   SELECT c.column_id, CASE WHEN dc.parent_column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, c.name, dc.definition, c.user_type_id
-    INTO #Actual
     FROM sys.columns c
     LEFT OUTER JOIN sys.default_constraints dc ON dc.parent_object_id = c.object_id
                                               AND dc.parent_column_id = c.column_id
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+   WHERE c.object_id = OBJECT_ID(@TableName);
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -1096,6 +1193,17 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remoteFakeTable does not preserve defaults if @Defaults is not specified]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT DEFAULT(5));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1''';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable does not preserve defaults if @Defaults = 0]
 AS
 BEGIN
@@ -1107,6 +1215,17 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable does not preserve defaults if @Defaults = 0]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT DEFAULT(5));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 0;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves defaults if @Defaults = 1]
 AS
 BEGIN
@@ -1115,6 +1234,17 @@ BEGIN
   CREATE TABLE dbo.tst1(x INT DEFAULT(5));
   
   EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves defaults if @Defaults = 1]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT DEFAULT(5));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 1;';
 END;
 GO
 
@@ -1132,6 +1262,18 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves defaults if @Defaults = 1 when multiple columns exist on table]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (    ColWithNoDefault CHAR(3),
+    ColWithDefault DATETIME DEFAULT(GETDATE()));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 1;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves defaults if @Defaults = 1 when multiple varied columns exist on table]
 AS
 BEGIN
@@ -1144,6 +1286,19 @@ BEGIN
   );
   
   EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves defaults if @Defaults = 1 when multiple varied columns exist on table]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (    ColWithNoDefault CHAR(3),
+    ColWithDefault DATETIME DEFAULT(GETDATE()),
+    ColWithDiffDefault INT DEFAULT(-3));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 1;';
 END;
 GO
 
@@ -1166,6 +1321,35 @@ BEGIN
     INTO #Actual
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves the collation of a column]
+AS
+BEGIN
+     CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x VARCHAR(30) COLLATE Latin1_General_BIN,
+                        y VARCHAR(40));
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+    CREATE TABLE #Expected (name NVARCHAR(MAX), collation_name NVARCHAR(MAX));
+    CREATE TABLE #Actual (name NVARCHAR(MAX), collation_name NVARCHAR(MAX));
+
+   INSERT INTO #Expected
+   SELECT C.name ,C.collation_name
+     FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns AS C 
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables AS t ON t.object_id = C.object_id
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas AS s ON s.schema_id = t.schema_id
+     WHERE t.name = 'tst1' AND s.name = 'dbo';
+
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
+  INSERT INTO #Actual
+  SELECT name, collation_name
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('FakeTableTests.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -1304,24 +1488,6 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE FakeTableTests.[test Private_ResolveFakeTableNamesForBackwardCompatibility accepts parms in wrong order]
-AS
-BEGIN
-  EXEC ('CREATE SCHEMA MySchema');
-  EXEC ('CREATE TABLE MySchema.MyTable (i INT)');
-          
-  SELECT CleanSchemaName, CleanTableName
-    INTO #actual
-    FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility('MySchema','MyTable');
-  
-  SELECT TOP(0) * INTO #expected FROM #actual;
-  
-  INSERT INTO #expected (CleanSchemaName, CleanTableName) VALUES ('[MySchema]', '[MyTable]');
-  
-  EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
-END;
-GO
-
 CREATE PROC FakeTableTests.[test FakeTable preserves UDTd]
 AS
 BEGIN
@@ -1344,6 +1510,32 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves UDTd]
+AS
+BEGIN
+  CREATE SYNONYM dbo.tbl FOR tSQLt_RemoteSynonymsTestDatabase.MyTestClass.tbli;
+
+   CREATE TABLE #Expected (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+   CREATE TABLE #Actual (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+     
+	 INSERT INTO #Expected
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns AS C 
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables AS t ON t.object_id = C.object_id
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas AS s ON s.schema_id = t.schema_id
+     WHERE t.name = 'tbli' AND s.name = 'MyTestClass';
+
+   EXEC tSQLt.FakeTable @TableName = 'dbo.tbl';
+
+     INSERT INTO #Actual
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('dbo.tbl');
+
+   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves UDTd based on char type]
 AS
 BEGIN
@@ -1362,6 +1554,32 @@ BEGIN
     FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('MyTestClass.tbl');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves UDTd based on char type]
+AS
+BEGIN
+   CREATE SYNONYM dbo.tbl FOR tSQLt_RemoteSynonymsTestDatabase.MyTestClass.tbl;
+   
+   CREATE TABLE #Expected (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+   CREATE TABLE #Actual (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+     
+	 INSERT INTO #Expected
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns AS C 
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables AS t ON t.object_id = C.object_id
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas AS s ON s.schema_id = t.schema_id
+     WHERE t.name = 'tbl' AND s.name = 'MyTestClass';
+
+   EXEC tSQLt.FakeTable @TableName = 'dbo.tbl';
+
+     INSERT INTO #Actual
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('dbo.tbl');
+
+   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
 END;
 GO

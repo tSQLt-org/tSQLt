@@ -13,6 +13,11 @@ AS
 BEGIN
    DECLARE @Cmd NVARCHAR(MAX);
    DECLARE @Cols NVARCHAR(MAX);
+
+   IF (@RemoteObjectID IS NOT NULL)
+   BEGIN
+      EXEC tSQLt.Private_CreateRemoteUserDefinedDataTypes @RemoteObjectID = @RemoteObjectID
+   END
    
    SELECT @Cols = 
    (

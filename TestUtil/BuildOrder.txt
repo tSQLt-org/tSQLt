@@ -1,3 +1,4 @@
+tSQLt_RemoteSynonymsTestDatabase.db.sql
 tSQLt_testutil.class.sql
 ../Build/temp/CreateTestUtilAssembly.sql
 ../Build/temp/GetUnsignedEmptyBytes.sql
