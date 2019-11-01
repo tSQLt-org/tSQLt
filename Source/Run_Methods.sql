@@ -375,7 +375,7 @@ BEGIN
    SELECT TC.Name
      FROM tSQLt.TestClasses AS TC
      JOIN tSQLt.Private_NewTestClassList AS PNTCL
-       ON PNTCL.ClassName = TC.Name;
+       ON PNTCL.ClassName = TC.Name COLLATE database_default;
 
   OPEN @TestClassCursor;
 END;
