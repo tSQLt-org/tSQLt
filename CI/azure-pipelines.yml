@@ -12,12 +12,23 @@ pool:
   vmImage: 'vs2017-win2016'
 
 steps:
-- task: DownloadPackage@0
-  displayName: 'Download Package'
+- checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+  clean: true
+  path: source
+
+- task: MSBuild@1
+  displayName: 'Build solution tSQLtCLR/tSQLtCLR.sln'
   inputs:
-    feed: '6859c2dc-e26c-4f93-9db2-74832242fff8'
-    definition: '844a5d94-f64b-400a-851b-b0c0d1ad900c'
-    version: 0.92.0
+    solution: tSQLtCLR/tSQLtCLR.sln
+    platform: 'Any CPU'
+    configuration: NoSigningForCI
+
+
+
+
+
+
+
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
