@@ -11,6 +11,10 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 
+variables:
+  CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
+
+
 steps:
 - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
   clean: true
@@ -22,6 +26,32 @@ steps:
     solution: tSQLtCLR/tSQLtCLR.sln
     platform: 'Any CPU'
     configuration: NoSigningForCI
+
+- task: CopyFiles@2
+  displayName: 'Copy all dll files to the ArtifactStagingDirectory'
+  inputs:
+    SourceFolder: tSQLtCLR
+    Contents: '*/bin/*/*.dll'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+    flattenFolders: true
+
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'Pay-As-You-Go(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    KeyVaultName: 'tSQLtSigningKey'
+    SecretsFilter: '*'
+
+- task: PowerShell@1
+  inputs:
+    scriptType: 'inlineScript'
+    inlineScript: |
+        $filePath = '$(Build.ArtifactStagingDirectory)/tSQLtCLR/tSQLtCLR.dll';
+        $base64 = '$env:tSQLt_CRED';
+        $buffer = [System.Convert]::FromBase64String($base64);
+        $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($buffer);
+        Set-AuthenticodeSignature -FilePath $filePath -Certificate $certificate;
+  env:
+    tSQLt_CRED: $(tSQLtOfficialSigningKey)
 
 
 
