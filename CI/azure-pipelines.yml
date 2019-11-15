@@ -52,7 +52,7 @@ steps:
         $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($buffer);
         Set-AuthenticodeSignature -FilePath $filePath -Certificate $certificate;
   env:
-    tSQLt_CRED: $(tSQLtOfficialSigningKey)
+    tSQLt_CRED: $(tSQLtOfficialSigningKeyB)
 
 
 
