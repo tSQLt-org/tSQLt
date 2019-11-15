@@ -6,7 +6,7 @@
 # https://aka.ms/yaml
 
 trigger:
-- master
+- CITesting
 
 pool:
   vmImage: 'ubuntu-latest'
