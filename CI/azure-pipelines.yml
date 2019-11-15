@@ -43,7 +43,7 @@ steps:
 
 
 - script: |
-    echo key: ----;$(tSQLtOfficialSigningKeyB);----
+    echo key: ----;$(tSQLtOfficialSigningKey);----
   displayName: 'print key'
 
 
@@ -58,7 +58,7 @@ steps:
         $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($buffer);
         Set-AuthenticodeSignature -FilePath $filePath -Certificate $certificate;
   env:
-    tSQLt_CRED: $(tSQLtOfficialSigningKeyB)
+    tSQLt_CRED: $(tSQLtOfficialSigningKey)
 
 
 
