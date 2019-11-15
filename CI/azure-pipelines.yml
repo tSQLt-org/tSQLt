@@ -41,6 +41,12 @@ steps:
     KeyVaultName: 'tSQLtSigningKey'
     SecretsFilter: '*'
 
+
+- script: |
+    echo key: ----;$(tSQLtOfficialSigningKeyB);----
+  displayName: 'print key'
+
+
 - task: PowerShell@1
   inputs:
     scriptType: 'inlineScript'
@@ -61,6 +67,3 @@ steps:
 
 
 
-- script: |
-    echo key: ----;$(tSQLtOfficialSigningKeyB);----
-  displayName: 'print key'
