@@ -9,11 +9,15 @@ trigger:
 - CITesting
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'vs2017-win2016'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: DownloadPackage@0
+  displayName: 'Download Package'
+  inputs:
+    feed: '6859c2dc-e26c-4f93-9db2-74832242fff8'
+    definition: '844a5d94-f64b-400a-851b-b0c0d1ad900c'
+    version: 0.92.0
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
