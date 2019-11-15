@@ -47,6 +47,7 @@ steps:
     inlineScript: |
         $filePath = '$(Build.ArtifactStagingDirectory)/tSQLtCLR/tSQLtCLR.dll';
         $base64 = '$env:tSQLt_CRED';
+        write-host $base64;
         $buffer = [System.Convert]::FromBase64String($base64);
         $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($buffer);
         Set-AuthenticodeSignature -FilePath $filePath -Certificate $certificate;
