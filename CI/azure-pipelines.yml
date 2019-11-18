@@ -43,7 +43,7 @@ steps:
 
 - task: authenticode-sign@4
   inputs:
-    filePath: 'tSQLtCLR.dll'
+    filePath: 'tSQLt*.dll'
     signRootPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
     timestampServer: 'http://timestamp.digicert.com'
     timestampAlgo: 'sha256'
