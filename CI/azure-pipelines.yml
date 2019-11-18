@@ -42,23 +42,23 @@ steps:
     SecretsFilter: '*'
 
 
-- script: |
-    echo key: ----;$(tSQLtOfficialSigningKey);----
-  displayName: 'print key'
-
-
-- task: PowerShell@1
+- task: DownloadPackage@0
+  displayName: 'Download Package'
   inputs:
-    scriptType: 'inlineScript'
-    inlineScript: |
-        $filePath = '$(Build.ArtifactStagingDirectory)/tSQLtCLR/tSQLtCLR.dll';
-        $base64 = $env:tSQLt_CRED;
-        write-host $base64;
-        $buffer = [System.Convert]::FromBase64String($base64);
-        $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($buffer);
-        Set-AuthenticodeSignature -FilePath $filePath -Certificate $certificate;
-  env:
-    tSQLt_CRED: $(tSQLtOfficialSigningKey)
+    feed: '6859c2dc-e26c-4f93-9db2-74832242fff8'
+    definition: '844a5d94-f64b-400a-851b-b0c0d1ad900c'
+    version: 0.92.0
+
+- task: jabbera.authenticode-sign.authenticode-sign.authenticode-sign@4
+  displayName: 'Authenticode Sign tSQLtCLR.dll'
+  inputs:
+    filePath: tSQLtCLR.dll
+    signRootPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+    certificateLocation: pfxFile
+    pfxFile: '$(CertificatePath)'
+    pfxPassword: '$(tSQLtSigningKeyPassword)'
+    additionalArguments: /debug
+
 
 
 
