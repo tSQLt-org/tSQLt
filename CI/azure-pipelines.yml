@@ -55,15 +55,6 @@ steps:
     pfxPassword: '$(tSQLtSigningKeyPassword)'
     additionalArguments: '/debug'
 
-- task: ArchiveFiles@2
-  displayName: 'Archive $(Build.ArtifactStagingDirectory)/tSQLtCLR'
-  inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
-    includeRootFolder: true
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
-    replaceExistingArchive: true
-
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
