@@ -91,7 +91,8 @@ jobs:
   - task: DownloadPipelineArtifact@2
     inputs:
         buildType: 'current'
-        artifact: 'tSQLtClrDlls'
+        artifactName: 'tSQLtClrDlls'
+        itemPattern: '*.zip'
         targetPath: '$(Pipeline.Workspace)'
 
   - task: CopyFiles@2
