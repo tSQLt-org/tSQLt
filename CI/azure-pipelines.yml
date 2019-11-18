@@ -61,9 +61,18 @@ jobs:
         pfxPassword: '$(tSQLtSigningKeyPassword)'
         additionalArguments: '/debug'
 
+  - task: ArchiveFiles@2
+    inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
+        replaceExistingArchive: true
+        verbose: true
+
   - task: PublishPipelineArtifact@1
     inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+        targetPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
         artifact: 'tSQLtClrDlls'
         publishLocation: 'pipeline'
 
@@ -84,3 +93,24 @@ jobs:
         buildType: 'current'
         artifact: 'tSQLtClrDlls'
         targetPath: '$(Pipeline.Workspace)'
+
+  - task: CopyFiles@2
+    displayName: 'Copy Files to: Build/output'
+    inputs:
+        SourceFolder: '$(System.ArtifactsDirectory)/tSQLtCLR'
+        Contents: '*.zip'
+        TargetFolder: Build/output
+
+  - task: Ant@1
+    displayName: 'Ant -debug Build/tSQLt.build.xml'
+    inputs:
+        buildFile: Build/tSQLt.build.xml
+        options: '-debug '
+        targets: all
+        publishJUnitResults: false
+
+  - script: |
+       dir /S
+       dir $(System.ArtifactsDirectory) /S
+    displayName: 'Complete Directory Listing (Run always)'
+    condition: always()
