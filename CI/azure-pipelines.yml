@@ -41,24 +41,19 @@ steps:
     KeyVaultName: 'tSQLtSigningKey'
     SecretsFilter: '*'
 
-
-- task: DownloadPackage@0
-  displayName: 'Download Package'
+- task: authenticode-sign@4
   inputs:
-    feed: '6859c2dc-e26c-4f93-9db2-74832242fff8'
-    definition: '844a5d94-f64b-400a-851b-b0c0d1ad900c'
-    version: 0.92.0
-
-- task: jabbera.authenticode-sign.authenticode-sign.authenticode-sign@4
-  displayName: 'Authenticode Sign tSQLtCLR.dll'
-  inputs:
-    filePath: tSQLtCLR.dll
+    filePath: 'tSQLtCLR.dll'
     signRootPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
-    certificateLocation: pfxFile
+    timestampServer: 'http://timestamp.digicert.com'
+    timestampAlgo: 'sha256'
+    timestampServerDelay: '15'
+    fileAlgo: 'sha256'
+    retryCount: '5'
+    certificateLocation: 'pfxFile'
     pfxFile: '$(CertificatePath)'
     pfxPassword: '$(tSQLtSigningKeyPassword)'
-    additionalArguments: /debug
-
+    additionalArguments: '/debug'
 
 
 
