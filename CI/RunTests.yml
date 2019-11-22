@@ -17,3 +17,20 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
+
+- task: DownloadPipelineArtifact@2
+  inputs:
+    buildType: 'specific'
+    project: '276a22c3-dbc9-4c7c-8e4e-18c70ef165d8'
+    definition: '1'
+    specificBuildWithTriggering: true
+    buildVersionToDownload: 'latest'
+    artifactName: 'tSQLtPreTests'
+    itemPattern: '*.*'
+    targetPath: '$(Pipeline.Workspace)'
+
+- script: |
+    dir /S
+    dir $(Pipeline.Workspace)
+  displayName: 'Complete Directory Listing (Run always)'
+  condition: always()
