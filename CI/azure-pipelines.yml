@@ -103,23 +103,18 @@ jobs:
         targets: all
         publishJUnitResults: false
 
-  - script: |
-       dir /S
-       dir $(System.ArtifactsDirectory) /S
-    displayName: 'Complete Directory Listing (Run always)'
-    condition: always()
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)/Build/output/'
+      artifact: 'tSQLtPreTests'
+      publishLocation: 'pipeline'
 
 
-- job: CreatetSQLtPackage
-  timeoutInMinutes: 10
-  cancelTimeoutInMinutes: 2
-  dependsOn: BuildSQLScripts
+#  - script: |
+#       dir /S
+#       dir $(System.ArtifactsDirectory) /S
+#    displayName: 'Complete Directory Listing (Run always)'
+#    condition: always()
 
-  steps:
 
-  - script: |
-       dir /S
-       dir $(System.ArtifactsDirectory) /S
-    displayName: 'Complete Directory Listing (Run always)'
-    condition: always()
 
