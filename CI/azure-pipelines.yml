@@ -95,12 +95,6 @@ jobs:
         itemPattern: '*.zip'
         targetPath: '$(Build.SourcesDirectory)/Build/output'
 
-  - script: |
-       dir /S
-       dir $(System.ArtifactsDirectory) /S
-    displayName: 'Complete Directory Listing (Run always)'
-    condition: always()
-
   - task: Ant@1
     displayName: 'Ant -debug Build/tSQLt.build.xml'
     inputs:
@@ -109,5 +103,23 @@ jobs:
         targets: all
         publishJUnitResults: false
 
+  - script: |
+       dir /S
+       dir $(System.ArtifactsDirectory) /S
+    displayName: 'Complete Directory Listing (Run always)'
+    condition: always()
 
+
+- job: CreatetSQLtPackage
+  timeoutInMinutes: 10
+  cancelTimeoutInMinutes: 2
+  dependsOn: BuildSQLScripts
+
+  steps:
+
+  - script: |
+       dir /S
+       dir $(System.ArtifactsDirectory) /S
+    displayName: 'Complete Directory Listing (Run always)'
+    condition: always()
 
