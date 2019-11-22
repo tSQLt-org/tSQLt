@@ -89,21 +89,17 @@ jobs:
     displayName: 'create Build/output'
 
   - task: DownloadPipelineArtifact@2
-  # ????????????????????????????????????????????????????
-  # it looks like this is pulling from the master branch
-  # ????????????????????????????????????????????????????
     inputs:
         buildType: 'current'
         artifactName: 'tSQLtClrDlls'
         itemPattern: '*.zip'
-        targetPath: '$(Pipeline.Workspace)'
+        targetPath: '$(Build.SourcesDirectory)/Build/output'
 
-  - task: CopyFiles@2
-    displayName: 'Copy Files to: Build/output'
-    inputs:
-        SourceFolder: '$(System.ArtifactsDirectory)/tSQLtCLR'
-        Contents: '*.zip'
-        TargetFolder: Build/output
+  - script: |
+       dir /S
+       dir $(System.ArtifactsDirectory) /S
+    displayName: 'Complete Directory Listing (Run always)'
+    condition: always()
 
   - task: Ant@1
     displayName: 'Ant -debug Build/tSQLt.build.xml'
@@ -113,9 +109,5 @@ jobs:
         targets: all
         publishJUnitResults: false
 
-  - script: |
-       dir /S
-       dir $(System.ArtifactsDirectory) /S
-    displayName: 'Complete Directory Listing (Run always)'
-    condition: always()
+
 
