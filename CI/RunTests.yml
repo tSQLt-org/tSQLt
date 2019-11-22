@@ -30,6 +30,6 @@ steps:
     targetPath: '$(Pipeline.Workspace)'
 
 - script: |
-    dir $(Pipeline.Workspace) /S
+    dir /S $(Pipeline.Workspace)
   displayName: 'Complete Directory Listing (Run always)'
   condition: always()
