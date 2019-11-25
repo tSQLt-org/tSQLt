@@ -9,7 +9,7 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 
-
+steps:
 
 - task: AzureKeyVault@1
   inputs:
