@@ -10,10 +10,14 @@ pool:
   vmImage: 'vs2017-win2016'
 
 steps:
-- script: sqlcmd -?
+- script: |
+    C:
+    CD C:\
+    DIR SQLCMD.* /S
   displayName: 'Run a one-line script'
 
 - task: SqlDacpacDeploymentOnMachineGroup@0
+  condition: always()
   inputs:
     TaskType: 'sqlInline'
     InlineSql: 'SELECT @@VERSION'
