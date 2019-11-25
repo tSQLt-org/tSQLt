@@ -13,6 +13,20 @@ steps:
 - script: where.exe SQLCMD
   displayName: 'Run a one-line script'
 
+- task: AzureKeyVault@1
+  inputs:
+    KeyVaultName: 'tSQLtCI1078'
+    SecretsFilter: '*'
+
+
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: 'Invoke-Sqlcmd -ServerInstance SQL2008SP3 -Username tSQLt -Password "$env:password" -Query "SELECT @@VERSION;"'
+  env:
+    password: $(tSQLt---LoginForCIVMs---)
+
 - task: SqlDacpacDeploymentOnMachineGroup@0
   condition: always()
   inputs:
