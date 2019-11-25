@@ -7,16 +7,19 @@ trigger:
 - CITesting
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'vs2017-win2016'
 
 steps:
-- script: echo Hello, world!
+- script: sqlcmd -?
   displayName: 'Run a one-line script'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: SqlDacpacDeploymentOnMachineGroup@0
+  inputs:
+    TaskType: 'sqlInline'
+    InlineSql: 'SELECT @@VERSION'
+    ServerName: 'SQL2008SP3'
+    DatabaseName: 'tempdb'
+    AuthScheme: 'windowsAuthentication'
 
 - task: DownloadPipelineArtifact@2
   inputs:
