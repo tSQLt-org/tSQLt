@@ -10,10 +10,7 @@ pool:
   vmImage: 'vs2017-win2016'
 
 steps:
-- script: |
-    C:
-    CD C:\
-    DIR SQLCMD.* /S
+- script: where.exe SQLCMD
   displayName: 'Run a one-line script'
 
 - task: SqlDacpacDeploymentOnMachineGroup@0
