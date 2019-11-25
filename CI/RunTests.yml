@@ -9,9 +9,7 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 
-steps:
-- script: where.exe SQLCMD
-  displayName: 'Run a one-line script'
+
 
 - task: AzureKeyVault@1
   inputs:
