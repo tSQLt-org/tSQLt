@@ -54,9 +54,9 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
-        "notes": "parameters('VM_Notes')",
+        "notes": "[parameters('VM_Notes')]",
         "galleryImageReference": {
-          "offer": "parameters('VM_Offer')",
+          "offer": "[parameters('VM_Offer')]",
           "publisher": "MicrosoftSQLServer",
           "sku": "Enterprise",
           "osType": "Windows",
