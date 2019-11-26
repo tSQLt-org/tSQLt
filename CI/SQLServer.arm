@@ -30,14 +30,14 @@
       "type": "string",
       "defaultValue": "SQL2008b"
     },
-	"VM_Notes":{
-	  "type":"string",
-	  "defaultValue:"SQL Server 2008 R2 SP3 Enterprise on Windows Server 2008 R2"
-	},
-	"VM_Offer":{
-	  "type":"string",
-	  "defaultValue":"SQL2008R2SP3-WS2008R2SP1"
-	}
+    "VMNotes": {
+      "type": "string",
+      "defaultValue": "SQL Server 2008 R2 SP3 Enterprise on Windows Server 2008 R2"
+    },
+    "VMOffer": {
+      "type": "string",
+      "defaultValue": "SQL2008R2SP3-WS2008R2SP1"
+    }
   },
   "variables": {
     "labSubnetName": "[concat(variables('labVirtualNetworkName'), 'Subnet')]",
@@ -54,9 +54,9 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
-        "notes": "[parameters('VM_Notes')]",
+        "notes": "[parameters('VMNotes')]",
         "galleryImageReference": {
-          "offer": "[parameters('VM_Offer')]",
+          "offer": "[parameters('VMOffer')]",
           "publisher": "MicrosoftSQLServer",
           "sku": "Enterprise",
           "osType": "Windows",
