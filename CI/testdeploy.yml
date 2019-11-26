@@ -1,0 +1,20 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- CITesting
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+steps:
+
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    KeyVaultName: 'tSQLtCI1078'
+    SecretsFilter: '*'
+
+
