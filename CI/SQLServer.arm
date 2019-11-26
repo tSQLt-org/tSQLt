@@ -36,7 +36,7 @@
 	},
 	"VM_Offer":{
 	  "type":"string",
-	  "defaultValue:"SQL2008R2SP3-WS2008R2SP1"
+	  "defaultValue":"SQL2008R2SP3-WS2008R2SP1"
 	}
   },
   "variables": {
