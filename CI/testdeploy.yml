@@ -17,4 +17,3 @@ steps:
     KeyVaultName: 'tSQLtCI1078'
     SecretsFilter: '*'
 
-
