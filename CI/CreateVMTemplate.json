@@ -4,7 +4,7 @@
   "parameters": {
     "newVMName": {
       "type": "string",
-      "defaultValue": "SQL2008SP3"
+      "defaultValue": "SQL2008SP3B"
     },
     "labName": {
       "type": "string",
@@ -24,7 +24,7 @@
     },
     "Configure_WinRM_hostName": {
       "type": "string",
-      "defaultValue": "SQL2008SP3.sebastiansqlity.onmicrosoft.com"
+      "defaultValue": "SQL2008SP3B.sebastiansqlity.onmicrosoft.com"
     }
   },
   "variables": {
