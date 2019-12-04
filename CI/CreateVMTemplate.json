@@ -19,8 +19,8 @@
       "defaultValue": "tSQLt"
     },
     "password": {
-      "type": "securestring",
-      "defaultValue": "[[[tSQLt-Password]]"
+      "type": "string",
+      "defaultValue": "yeyeyeyeyeiueriuweryiwuerywieury77RR(u)"
     },
     "Configure_WinRM_hostName": {
       "type": "string",
