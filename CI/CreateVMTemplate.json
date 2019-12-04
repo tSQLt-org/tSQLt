@@ -4,7 +4,7 @@
   "parameters": {
     "newVMName": {
       "type": "string",
-      "defaultValue": "SQL2008SP3B"
+      "defaultValue": "SQL2008SP3B"	
     },
     "labName": {
       "type": "string",
@@ -60,7 +60,7 @@
             "parameters": [
               {
                 "name": "hostName",
-                "value": "[concat(parameters('newVMName'),'.', parameters('domain')]"
+                "value": "[concat(parameters('newVMName'),'.', parameters('domain'))]"
               }
             ]
           }
