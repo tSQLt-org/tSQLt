@@ -22,9 +22,9 @@
       "type": "string",
       "defaultValue": "yeyeyeyeyeiueriuweryiwuerywieury77RR(u)"
     },
-    "Configure_WinRM_hostName": {
+    "domain": {
       "type": "string",
-      "defaultValue": "SQL2008SP3B.sebastiansqlity.onmicrosoft.com"
+      "defaultValue": "sebastiansqlity.onmicrosoft.com"
     }
   },
   "variables": {
@@ -60,7 +60,7 @@
             "parameters": [
               {
                 "name": "hostName",
-                "value": "[parameters('Configure_WinRM_hostName')]"
+                "value": "[concat(parameters('newVMName'),'.', parameters('domain')]"
               }
             ]
           }
