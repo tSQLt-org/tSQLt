@@ -38,6 +38,14 @@ steps:
 
 - script: echo $(CreateVM.vmLabId)
 
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo 'env start------------'
+      env | sort
+      echo 'env stop-------------'
+
 
 - task: AzurePowerShell@4
   inputs:
