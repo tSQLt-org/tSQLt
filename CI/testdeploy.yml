@@ -27,6 +27,13 @@ steps:
     ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' '
     
 
+- task: AzurePowerShell@4
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: 'Write-Output $(labVMId)'
+    errorActionPreference: 'continue'
+    azurePowerShellVersion: 'LatestVersion'
 
 - task: AzurePowerShell@4
   inputs:
