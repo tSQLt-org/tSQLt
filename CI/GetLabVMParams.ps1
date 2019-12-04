@@ -1,5 +1,10 @@
 Param( [string] $labVmId)
 
+
+Write-Host $labVmId;
+
+
+
 $labVmComputeId = (Get-AzResource -Id $labVmId).Properties.ComputeId
 
 # Get lab VM resource group name
