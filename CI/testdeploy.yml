@@ -24,7 +24,7 @@ steps:
     VirtualMachineName: 'SQL2008SP3C'
     TemplateFile: 'CI/CreateVMTemplate.json'
 #    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
-    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''P@ssW0rD!eae!!'' -AsPlainText -Force)'
+    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''P@ssW0rD!eae!!'' '
     
 
 
