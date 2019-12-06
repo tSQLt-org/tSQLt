@@ -14,6 +14,22 @@
       "type": "string",
       "defaultValue": "Standard_B2s"
     },
+    "template": {
+      "type": "string",
+      "defaultValue": "sql2014sp3-ws2012r2"
+    },
+    "templateDescription": {
+      "type": "string",
+      "defaultValue": "Free SQL Server License: SQL Server 2014 SP3 Developer on Windows Server 2012 R2 "
+    },
+    "templatePublisher": {
+      "type": "string",
+      "defaultValue": "microsoftsqlserver"
+    },
+    "templateSKU": {
+      "type": "string",
+      "defaultValue": "sqldev"
+    },
     "userName": {
       "type": "string",
       "defaultValue": "tSQLt"
@@ -42,11 +58,11 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
-        "notes": "SQL Server 2008 R2 SP3 Enterprise on Windows Server 2008 R2",
+        "notes": "[parameters('templateDescription')]",
         "galleryImageReference": {
-          "offer": "SQL2008R2SP3-WS2008R2SP1",
-          "publisher": "MicrosoftSQLServer",
-          "sku": "Enterprise",
+          "offer": "[parameters('template')]",
+          "publisher": "[parameters('templatePublisher')]",
+          "sku": "[parameters('templateSKU')]",
           "osType": "Windows",
           "version": "latest"
         },
