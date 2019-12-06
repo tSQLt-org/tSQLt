@@ -1,5 +1,8 @@
 Param( [string] $labVmId)
 
+#$labVmId = "/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2014SP3D"
+
+
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
@@ -14,8 +17,12 @@ Write-Host $env:UserDomain
 Write-Host $env:ComputerName
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 
+$labAzResource = (Get-AzResource -Id $labVmId)
+
+Write-Host $labAzResource.Properties.toString()
 
 $labVmComputeId = (Get-AzResource -Id $labVmId).Properties.ComputeId
+Write-Host "labVmComputeId:" $labVmComputeId
 
 # Get lab VM resource group name
 $labVmRgName = (Get-AzResource -Id $labVmComputeId).ResourceGroupName
