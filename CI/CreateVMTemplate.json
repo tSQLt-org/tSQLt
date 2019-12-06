@@ -85,16 +85,6 @@
         "disallowPublicIpAddress": false,
         "storageType": "Standard",
         "allowClaim": true,
-        "networkInterface": {
-          "sharedPublicIpAddressConfiguration": {
-            "inboundNatRules": [
-              {
-                "transportProtocol": "tcp",
-                "backendPort": 3389
-              }
-            ]
-          }
-        }
       }
     }
   ],
