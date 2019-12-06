@@ -3,11 +3,12 @@ GO
 ---Build+
 GO
 CREATE PROCEDURE tSQLt.Private_CreateFakeFunction
-  @FunctionName NVARCHAR(MAX),
-  @FakeFunctionName NVARCHAR(MAX),
-  @FunctionObjectId INT,
-  @FakeFunctionObjectId INT,
-  @IsScalarFunction BIT
+  @FunctionName         NVARCHAR(MAX),
+  @FakeFunctionName     NVARCHAR(MAX) = NULL,
+  @FunctionObjectId     INT = NULL,
+  @FakeFunctionObjectId INT = NULL,
+  @IsScalarFunction     BIT = NULL,
+  @FakeDataSource       NVARCHAR(MAX) = NULL 
 AS
 BEGIN
   DECLARE @ReturnType NVARCHAR(MAX);
@@ -43,6 +44,12 @@ BEGIN
   IF(@IsScalarFunction = 1)
   BEGIN
     EXEC('CREATE FUNCTION '+@FunctionName+'('+@ParameterList+') RETURNS '+@ReturnType+' AS BEGIN RETURN '+@FakeFunctionName+'('+@ParameterCallList+');END;');	
+  END
+  ELSE IF (@FakeDataSource IS NOT NULL)
+  BEGIN
+    DECLARE @newTbleName VARCHAR(35);
+    EXEC tSQLt.Private_PrepareFakeFunctionOutputTable @FakeDataSource, @newTbleName OUTPUT;
+    EXEC ('CREATE FUNCTION '+@FunctionName+'('+@ParameterList+') RETURNS TABLE AS RETURN ( SELECT * FROM '+@newTbleName+');');
   END
   ELSE
   BEGIN

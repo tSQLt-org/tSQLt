@@ -6,6 +6,7 @@ tSQLt.Private_ResetNewTestClassList.ssp.sql
 tSQLt.Private_SysTypes.svw.sql
 tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql
+tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql
 tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql
 tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
 tSQLt.NewTestClass.ssp.sql

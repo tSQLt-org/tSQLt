@@ -3,8 +3,10 @@ GO
 ---Build+
 GO
 CREATE PROCEDURE tSQLt.FakeFunction
-  @FunctionName NVARCHAR(MAX),
-  @FakeFunctionName NVARCHAR(MAX)
+  @FunctionName     NVARCHAR(MAX),
+  @FakeFunctionName NVARCHAR(MAX) = NULL,
+  @FakeDataSource   NVARCHAR(MAX) = NULL
+
 AS
 BEGIN
   DECLARE @FunctionObjectId INT;
@@ -14,6 +16,7 @@ BEGIN
   EXEC tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction 
                @FunctionName = @FunctionName,
                @FakeFunctionName = @FakeFunctionName,
+               @FakeDataSource   = @FakeDataSource,
                @FunctionObjectId = @FunctionObjectId OUT,
                @FakeFunctionObjectId = @FakeFunctionObjectId OUT,
                @IsScalarFunction = @IsScalarFunction OUT;
@@ -23,6 +26,7 @@ BEGIN
   EXEC tSQLt.Private_CreateFakeFunction 
                @FunctionName = @FunctionName,
                @FakeFunctionName = @FakeFunctionName,
+               @FakeDataSource   = @FakeDataSource,
                @FunctionObjectId = @FunctionObjectId,
                @FakeFunctionObjectId = @FakeFunctionObjectId,
                @IsScalarFunction = @IsScalarFunction;
