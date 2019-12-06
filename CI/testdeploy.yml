@@ -17,15 +17,15 @@ steps:
 #    KeyVaultName: 'tSQLtCIDevTestLab35738'
 #    SecretsFilter: '*'
 
-- task: AzureDevTestLabsCreateVM@3
-  name: CreateVM
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    LabID: /subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3
-    VirtualMachineName: '$(vmName)'
-    TemplateFile: 'CI/CreateVMTemplate.json'
-#    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
-    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' '
+#- task: AzureDevTestLabsCreateVM@3
+#  name: CreateVM
+#  inputs:
+#    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+#    LabID: /subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3
+#    VirtualMachineName: '$(vmName)'
+#    TemplateFile: 'CI/CreateVMTemplate.json'
+##    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
+#    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' '
     
 #- task: AzureDevTestLabsCreateVM@3
 #  inputs:
@@ -53,6 +53,7 @@ steps:
     ScriptType: 'FilePath'
     ScriptPath: 'CI/GetLabVMParams.ps1'
     #/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2008SP3C
+    #/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2014SP3C
     #ScriptArguments: '-labVmId ''$(labVMId)'''
-    ScriptArguments: '-labVmId ''/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2008SP3C'' '
+    ScriptArguments: '-labVmId ''/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2014SP3C'' '
     azurePowerShellVersion: 'LatestVersion'
