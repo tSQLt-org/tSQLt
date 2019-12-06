@@ -9,7 +9,10 @@ Write-Host "x<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-
+Write-Host $env:UserName
+Write-Host $env:UserDomain
+Write-Host $env:ComputerName
+Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 
 
 $labVmComputeId = (Get-AzResource -Id $labVmId).Properties.ComputeId
