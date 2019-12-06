@@ -84,7 +84,7 @@
         "labSubnetName": "[variables('labSubnetName')]",
         "disallowPublicIpAddress": false,
         "storageType": "Standard",
-        "allowClaim": true,
+        "allowClaim": true
       }
     }
   ],
