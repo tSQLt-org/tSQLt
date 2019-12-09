@@ -17,6 +17,7 @@ tSQLt.Private_AlterSysObjectForRemote.ssp.sql
 tSQLt.Private_CreateRemoteSysObjects.ssp.sql
 tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql
 tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
+tSQLt.Private_ValidateSynonymCompatibilityWithFakeTable.ssp.sql
 tSQLt.NewTestClass.ssp.sql
 tSQLt.Fail.ssp.sql
 tSQLt.class.sql

@@ -4,11 +4,22 @@ GO
 ---Build+
 GO
 CREATE PROCEDURE tSQLt.Private_GetRemoteObjectId
-    @OrigTableFullName NVARCHAR(MAX) ,
-    @RemoteObjectId INT OUTPUT
+    @SynonymObjectId INT ,
+    @RemoteObjectId INT OUTPUT ,
+    @OrigTableFullName sysname OUTPUT
 AS
     BEGIN
-        DECLARE @RemotePath NVARCHAR(MAX) = COALESCE(QUOTENAME(PARSENAME(@OrigTableFullName, 4))+ '.', '')
+        DECLARE @Database NVARCHAR(MAX);
+        DECLARE @Instance NVARCHAR(MAX);
+
+        SELECT  @OrigTableFullName = S.base_object_name ,
+                @Database = PARSENAME(S.base_object_name, 3) ,
+                @Instance = PARSENAME(S.base_object_name, 4)
+        FROM    sys.synonyms AS S
+        WHERE   S.object_id = @SynonymObjectId;
+
+        DECLARE @RemotePath NVARCHAR(MAX) = COALESCE(QUOTENAME(PARSENAME(@OrigTableFullName,
+                                                              4)) + '.', '')
             + QUOTENAME(PARSENAME(@OrigTableFullName, 3));
         DECLARE @Cmd NVARCHAR(MAX);
         DECLARE @params NVARCHAR(MAX) = '@RemoteObjectID INT OUT, @OrigTableFullName NVARCHAR(MAX)';
@@ -23,6 +34,13 @@ AS
 
         EXEC sp_executesql @Cmd, @params, @RemoteObjectID OUT,
             @OrigTableFullName;
+
+                        
+        IF ( @RemoteObjectID > 0 )
+            BEGIN
+                EXEC tSQLt.Private_CreateRemoteSysObjects @Instance = @Instance,
+                    @Database = @Database;
+            END;
     END;
 GO
 ---Build-
