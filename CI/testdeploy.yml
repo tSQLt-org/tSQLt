@@ -17,6 +17,7 @@ steps:
 #    KeyVaultName: 'tSQLtCIDevTestLab35738'
 #    SecretsFilter: '*'
 
+#99b462ca-b6c9-46be-b82b-927b91100ec9  (service connection id)
 - task: AzureDevTestLabsCreateVM@3
   name: CreateVM
   inputs:
