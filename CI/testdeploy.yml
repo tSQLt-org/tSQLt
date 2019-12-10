@@ -65,3 +65,13 @@ steps:
     ScriptArguments: '-labVmId ''$(CREATEVM.LABVMID)'' ' 
     #/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2014SP3D
     azurePowerShellVersion: 'LatestVersion'
+
+- task: PowerShellOnTargetMachines@3
+  inputs:
+    Machines: '$(labVMFqdn)'
+    UserName: 'tSQLt'
+    UserPassword: 'qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'
+    InlineScript: |
+      # Write your powershell commands here.
+      
+      Write-Output "Hello World"
