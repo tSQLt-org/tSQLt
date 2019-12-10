@@ -67,6 +67,14 @@ steps:
     #/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2014SP3D
     azurePowerShellVersion: 'LatestVersion'
 
+
+### New-NetFirewallRule -DisplayName "Allow WinRM" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
+### New-NetFirewallRule -DisplayName "Allow SQLServer" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
+### SqlCmd -S localhost -E -Q "PRINT @@VERSION;"
+### SqlCmd -S localhost -E -Q "CREATE LOGIN tSQLtExternal WITH PASSWORD = 'qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)',CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF,DEFAULT_DATABASE = tempdb;ALTER SERVER ROLE sysadmin ADD MEMBER tSQLtExternal;"
+### SqlCmd -S localhost -E -Q "EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'LoginMode', REG_DWORD, 2"
+### Restart-Service -Name "SQL Server (MSSQLSERVER)"
+
 - task: PowerShellOnTargetMachines@3
   inputs:
     Machines: '$(labVMFqdn)'
