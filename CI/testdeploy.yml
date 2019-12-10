@@ -38,7 +38,14 @@ steps:
 ###    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
 ##    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' '
 
-- script: echo $(CreateVM.vmLabId)
+
+#Batch script: %CREATEVM_LABVMID%
+#PowerShell script: $env:CREATEVM_LABVMID
+#Bash script: $CREATEVM_LABVMID
+
+- script: echo %CREATEVM_LABVMID%
+
+
 
 - task: Bash@3
   inputs:
