@@ -68,6 +68,20 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
 
 
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      Write-Host "Hello World"
+      
+      Get-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName"
+      
+      Start-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName"
+
+
+
 ### New-NetFirewallRule -DisplayName "Allow WinRM" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
 ### New-NetFirewallRule -DisplayName "Allow SQLServer" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 ### SqlCmd -S localhost -E -Q "PRINT @@VERSION;"
