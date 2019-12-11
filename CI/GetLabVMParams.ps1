@@ -32,7 +32,7 @@ Write-Host "##vso[task.setvariable variable=labVmRgName;]$labVmRgName"
 
 # Get the lab VM Name
 $labVmName = (Get-AzResource -Id $labVmId).Name
-Write-Host "labVmName:" $labVmName
+Write-Host "##vso[task.setvariable variable=labVmName;]$labVmName"
 
 # Get lab VM public IP address
 $labVMIpAddress = (Get-AzPublicIpAddress -ResourceGroupName $labVmRgName -Name $labVmName).IpAddress
