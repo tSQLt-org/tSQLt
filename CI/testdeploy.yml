@@ -70,20 +70,12 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
 
 
-- task: PowerShell@2
-  name: start_VM
+- task: AzureCLI@2
   inputs:
-    targetType: 'inline'
-    script: |
-      # Write your PowerShell commands here.
-      
-      Write-Host "Starting Virtual Machine -> ResourceGroupName $env:labVmRgName Name $env:labVmName"
-      
-      Get-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName" -Status
-      
-      Start-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName"
-      
-      Get-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName" -Status
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az vm show -g $env:labVmRgName -n $env:$labVmName -d'
 
 
 
