@@ -84,7 +84,8 @@ steps:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     scriptType: 'ps'
     scriptLocation: 'inlineScript'
-    inlineScript: 'az vm show -g $env:labVmRgName -n $env:labVmName -d'
+    inlineScript: 'az vm show -g $env:labVmRgName -n NonExistingVM -d'
+#    inlineScript: 'az vm show -g $env:labVmRgName -n $env:labVmName -d'
 
 
 
