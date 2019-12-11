@@ -70,6 +70,14 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
 
 
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      Write-Host "labVmRgName   $env:labVmRgName ---- labVmName   $env:labVmName"
+
 - task: AzureCLI@2
   name: Get_Vm_Status
   inputs:
