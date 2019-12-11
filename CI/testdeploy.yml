@@ -50,6 +50,7 @@ steps:
 
 
 - task: Bash@3
+  name: print_environment_variables
   inputs:
     targetType: 'inline'
     script: |
@@ -59,6 +60,7 @@ steps:
 
 
 - task: AzurePowerShell@4
+  name: get_VM_parameters
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'FilePath'
@@ -68,12 +70,22 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
 
 
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az vm show -g $env:labVmRgName -n $env:$labVmName -d'
+
+
+
 ### New-NetFirewallRule -DisplayName "Allow WinRM" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
 ### New-NetFirewallRule -DisplayName "Allow SQLServer" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 ### SqlCmd -S localhost -E -Q "PRINT @@VERSION;"
 ### SqlCmd -S localhost -E -Q "CREATE LOGIN tSQLtExternal WITH PASSWORD = 'qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)',CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF,DEFAULT_DATABASE = tempdb;ALTER SERVER ROLE sysadmin ADD MEMBER tSQLtExternal;"
 ### SqlCmd -S localhost -E -Q "EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'LoginMode', REG_DWORD, 2"
 ### Restart-Service -Name "SQL Server (MSSQLSERVER)"
+### sql2014sp3d.eastus2.cloudapp.azure.com
 
 - task: PowerShellOnTargetMachines@3
   inputs:
