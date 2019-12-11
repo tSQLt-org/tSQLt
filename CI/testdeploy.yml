@@ -50,6 +50,7 @@ steps:
 
 
 - task: Bash@3
+  name: print_environment_variables
   inputs:
     targetType: 'inline'
     script: |
@@ -59,6 +60,7 @@ steps:
 
 
 - task: AzurePowerShell@4
+  name: get_VM_parameters
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'FilePath'
@@ -69,16 +71,19 @@ steps:
 
 
 - task: PowerShell@2
+  name: start_VM
   inputs:
     targetType: 'inline'
     script: |
       # Write your PowerShell commands here.
       
-      Write-Host "Hello World"
+      Write-Host "Starting Virtual Machine -> ResourceGroupName $env:labVmRgName Name $env:labVmName"
       
-      Get-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName"
+      Get-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName" -Status
       
       Start-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName"
+      
+      Get-AzVM -ResourceGroupName "$env:labVmRgName" -Name "$env:labVmName" -Status
 
 
 
