@@ -12,9 +12,9 @@ tSQLt.Private_SysObjects.svw.sql
 tSQLt.Private_SysSchemas.svw.sql
 tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql
+tSQLt.Private_CreateRemoteSysObjects.ssp.sql
 tSQLt.Private_GetRemoteObjectId.ssp.sql
 tSQLt.Private_AlterSysObjectForRemote.ssp.sql
-tSQLt.Private_CreateRemoteSysObjects.ssp.sql
 tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql
 tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
 tSQLt.Private_ValidateSynonymCompatibilityWithFakeTable.ssp.sql

@@ -275,6 +275,7 @@
   <copy file="CreateBuildDb.sql" todir="temp"/>
   <copy file="Drop(master.tSQLt_testutil).sql" todir="temp"/>
   <copy file="Install(master.tSQLt_testutil).sql" todir="temp"/>
+  <copy file="GrantUserAccessToRemoteDatabase.sql" todir="temp"/>
   <copy file="GetTestResults.sql" todir="temp"/>
   <copy file="GetFailedTestCount.sql" todir="temp"/>
   <copy file="../Examples/TestThatExamplesAreDeployed.sql" todir="temp"/>
@@ -300,6 +301,7 @@
     <include name="EnableExternalAccess.sql"/>
     <include name="Drop(master.tSQLt_testutil).sql"/>
     <include name="Install(master.tSQLt_testutil).sql"/>
+    <include name="GrantUserAccessToRemoteDatabase.sql"/>
     <include name="ChangeDbAndExecuteStatement(tSQLt.Build).sql"/>
     <include name="CreateBuildDb.sql"/>
     <include name="GetTestResults.sql"/>

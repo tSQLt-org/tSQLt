@@ -239,6 +239,10 @@
   <call target="execute.sql.file" />
 
   <property name="execute.sql.elevated" value="true" />
+  <property name="execute.sql.filename" value="temp/GrantUserAccessToRemoteDatabase.sql" />
+  <call target="execute.sql.file" />
+
+  <property name="execute.sql.elevated" value="true" />
   <property name="execute.sql.filename" value="temp/Drop(tSQLtExternalAccessKey).sql" />
   <call target="execute.sql.file" />
 
