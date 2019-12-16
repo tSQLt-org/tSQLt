@@ -41,11 +41,11 @@
     "domain": {
       "type": "string",
       "defaultValue": "sebastiansqlity.onmicrosoft.com"
-    }
+    },
     "DSCURI": {
       "type": "string",
       "defaultValue": ""
-    }
+    },
     "DSCSAS": {
       "type": "string",
       "defaultValue": ""
