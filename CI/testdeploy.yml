@@ -19,14 +19,14 @@ steps:
 
 #b874bbd7-99a6-4e8a-b268-5543839da064  (service principal client id)
 
-  - task: ArchiveFiles@2
-    inputs:
-        rootFolderOrFile: '$(Build.SourcesDirectory)/CI/DSC'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.SourcesDirectory)/CI/DSC.zip'
-        replaceExistingArchive: true
-        verbose: true
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)/CI/DSC'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.SourcesDirectory)/CI/DSC.zip'
+    replaceExistingArchive: true
+    verbose: true
 
 - task: Bash@3
   inputs:
