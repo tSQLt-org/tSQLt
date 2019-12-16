@@ -42,6 +42,14 @@
       "type": "string",
       "defaultValue": "sebastiansqlity.onmicrosoft.com"
     }
+    "DSCURI": {
+      "type": "string",
+      "defaultValue": ""
+    }
+    "DSCSAS": {
+      "type": "string",
+      "defaultValue": ""
+    }
   },
   "variables": {
     "labSubnetName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_Subnet')]",
@@ -195,7 +203,7 @@
 	  "type": "Microsoft.Compute/virtualMachines/extensions",
 	  "name": "Microsoft.Powershell.DSC",
 	  "apiVersion": "2018-06-30",
-	  "location": "[parameters('location')]",
+      "location": "[resourceGroup().location]",
 	  "dependsOn": [
 		"[concat('Microsoft.Compute/virtualMachines/', parameters('VMName'))]"
 	  ],
@@ -204,26 +212,16 @@
 		"type": "DSC",
 		"typeHandlerVersion": "2.77",
 		"autoUpgradeMinorVersion": true,
-		"protectedSettings": {
-		  "Items": {
-			"registrationKeyPrivate": "[listKeys(resourceId('Microsoft.Automation/automationAccounts/', parameters('automationAccountName')), '2018-06-30').Keys[0].value]"
-		  }
-		},
 		"settings": {
 		  "configuration": {
-			"url": " needs to be zip file --> create zip from ps1 file in pipeline",
-			"script": "IisInstall.ps1",
-		  	"function": "IISInstall"
+			"url": "[variables('DSCURI')]/DSC.zip[variables('DSCSAS')]",
+			"script": "SetupVM.ps1",
+		  	"function": "Setup-VM"
 		  },
 		  "Properties": [
 			{
-			  "Name": "RegistrationUrl",
-			  "Value": "[reference(concat('Microsoft.Automation/automationAccounts/', parameters('automationAccountName'))).registrationUrl]",
-			  "TypeName": "System.String"
-			},
-			{
-			  "Name": "NodeConfigurationName",
-			  "Value": "[parameters('nodeConfigurationName')]",
+			  "Name": "test",
+			  "Value": "test",
 			  "TypeName": "System.String"
 			}
 		  ]
