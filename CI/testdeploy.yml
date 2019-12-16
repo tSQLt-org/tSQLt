@@ -28,13 +28,6 @@ steps:
     replaceExistingArchive: true
     verbose: true
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-      # Write your commands here
-      
-      echo 1/0
 
 - task: AzureDevTestLabsCreateVM@3
   name: CreateVM
