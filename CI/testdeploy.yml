@@ -19,6 +19,27 @@ steps:
 
 #b874bbd7-99a6-4e8a-b268-5543839da064  (service principal client id)
 
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)/CI/DSC'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/DSC.zip'
+    replaceExistingArchive: true
+    verbose: true
+
+- task: AzureFileCopy@3
+  name: CopyDSC
+  inputs:
+    SourcePath: '$(Build.ArtifactStagingDirectory)/DSC.zip'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    Destination: 'AzureBlob'
+    storage: 'tsqltdtl3dscstorage'
+    ContainerName: 'dsc'
+    outputStorageUri: 'DSC_Storage_URI'
+    outputStorageContainerSasToken: 'DSC_Storage_SAS_Token'
+    sasTokenTimeOutInMinutes: '60'
+
 - task: AzureDevTestLabsCreateVM@3
   name: CreateVM
   condition: and(succeeded(), eq(variables['CreateNewVm'], '1'))
@@ -28,7 +49,7 @@ steps:
     VirtualMachineName: '$(vmName)'
     TemplateFile: 'CI/CreateVMTemplate.json'
 #    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
-    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' '
+    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
 
 
 ##- task: AzureDevTestLabsCreateVM@3
