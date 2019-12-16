@@ -80,7 +80,7 @@
               "sourceAddressPrefix":  "*",
               "destinationAddressPrefix":  "*"
             }
-          }
+          },
           {
             "name":  "default-allow-SQL",
             "properties": {
@@ -93,7 +93,7 @@
               "sourceAddressPrefix":  "*",
               "destinationAddressPrefix":  "*"
             }
-          }
+          },
           {
             "name":  "default-allow-WinRM",
             "properties": {
