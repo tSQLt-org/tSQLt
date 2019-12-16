@@ -228,7 +228,11 @@
 		},
 		"protectedSettings": {
 		  "Properties": [
-			"password": "od LPL/U1p9lvcnp..."
+			{
+			  "Name": "password",
+			  "Value": "test",
+			  "TypeName": "System.String"
+			}
 	      ]
 		}
 	  }
