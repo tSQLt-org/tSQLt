@@ -49,7 +49,7 @@ steps:
     VirtualMachineName: '$(vmName)'
     TemplateFile: 'CI/CreateVMTemplate.json'
 #    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
-    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' '
+    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
 
 
 ##- task: AzureDevTestLabsCreateVM@3
