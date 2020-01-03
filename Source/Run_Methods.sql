@@ -526,7 +526,11 @@ BEGIN
 END;
 GO
 
+-- @CastToNvarchar is for use with sqlcmd in order to
+-- capture the full output.
+-- e.g. sqlcmd -y0 -Q "EXEC tSQLt.XmlResultFormatter @CastToNvarchar=1"
 CREATE PROCEDURE tSQLt.XmlResultFormatter
+    @CastToNvarchar int = 0
 AS
 BEGIN
     DECLARE @XmlOutput XML;
@@ -735,7 +739,14 @@ BEGIN
        FOR XML EXPLICIT
        );
 
-    EXEC tSQLt.Private_PrintXML @XmlOutput;
+    If @CastToNvarchar = 1
+    BEGIN
+        SELECT CAST(@XmlOutput AS nvarchar(max))
+    END
+    ELSE
+    BEGIN
+        EXEC tSQLt.Private_PrintXML @XmlOutput;
+    END
 END;
 GO
 
