@@ -58,7 +58,10 @@
     "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
-	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]"
+	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
+	"labSubnetPrefix": "10.0.0.1/24",
+	"publicIPAddressName": "labPublicIPAddressName",
+	"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('labVirtualNetworkName'), variables('labSubnetName'))]"
   },
   "resources": [
     {
@@ -122,14 +125,14 @@
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "[variables('addressPrefix')]"
+            "[variables('labSubnetPrefix')]"
           ]
         },
         "subnets": [
           {
-            "name": "[variables('subnetName')]",
+            "name": "[variables('labSubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('subnetPrefix')]",
+              "addressPrefix": "[variables('labSubnetPrefix')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
               }
