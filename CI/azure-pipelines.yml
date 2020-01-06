@@ -41,6 +41,7 @@ jobs:
         TargetFolder: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
         flattenFolders: true
 
+
   - task: AzureKeyVault@1
     inputs:
         azureSubscription: 'Pay-As-You-Go(58c04a99-5b92-410c-9e41-10262f68ca80)'
