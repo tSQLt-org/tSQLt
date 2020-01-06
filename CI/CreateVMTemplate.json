@@ -57,7 +57,8 @@
     "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
     "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
-    "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]"
+    "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
+	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
   },
   "resources": [
     {
@@ -140,7 +141,7 @@
     {
       "type": "Microsoft.Network/networkInterfaces",
       "apiVersion": "2018-11-01",
-      "name": "[variables('nicName')]",
+      "name": "[variables('labNicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
