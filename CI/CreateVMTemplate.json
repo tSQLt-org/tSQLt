@@ -113,7 +113,7 @@
     {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2018-11-01",
-      "name": "[variables('virtualNetworkName')]",
+      "name": "[variables('labVirtualNetworkName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
@@ -144,7 +144,7 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks/', variables('labVirtualNetworkName'))]"
       ],
       "properties": {
         "ipConfigurations": [
