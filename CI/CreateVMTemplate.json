@@ -214,7 +214,7 @@
 		"autoUpgradeMinorVersion": true,
 		"settings": {
 		  "configuration": {
-			"url": "[variables('DSCURI')]/DSC.zip[variables('DSCSAS')]",
+			"url": "[concat(variables('DSCURI'),'/DSC.zip',variables('DSCSAS'))]",
 			"script": "SetupVM.ps1",
 		  	"function": "Setup-VM"
 		  },
