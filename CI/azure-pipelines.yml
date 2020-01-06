@@ -44,9 +44,9 @@ jobs:
 
   - task: AzureKeyVault@1
     inputs:
-        azureSubscription: 'Pay-As-You-Go(58c04a99-5b92-410c-9e41-10262f68ca80)'
-        KeyVaultName: 'tSQLtSigningKey'
-        SecretsFilter: '*'
+      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+      KeyVaultName: 'tSQLtSigningKey'
+      SecretsFilter: '*'
 
   - task: authenticode-sign@4
     inputs:
