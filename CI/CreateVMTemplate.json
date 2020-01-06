@@ -58,7 +58,7 @@
     "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
-	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
+	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]"
   },
   "resources": [
     {
