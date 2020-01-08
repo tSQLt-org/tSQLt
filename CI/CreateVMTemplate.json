@@ -147,7 +147,7 @@
 	  "name": "[variables('labPublicIPAddressName')]",
       "location": "[resourceGroup().location]",
 	  "properties": {  
-	  },
+	  }
 	},	
     {
       "type": "Microsoft.Network/networkInterfaces",
