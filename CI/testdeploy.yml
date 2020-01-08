@@ -11,6 +11,26 @@ pool:
 
 steps:
 
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    subscriptionId: '58c04a99-5b92-410c-9e41-10262f68ca80'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: 'tSQLtCI_DevTestLab_3_RG'
+    location: 'East US 2'
+    templateLocation: 'Linked artifact'
+    csmFile: 'CI/CreateVMTemplate.json'
+    deploymentMode: 'Validation'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your commands here
+      
+      echx
+
 #- task: AzureKeyVault@1
 #  inputs:
 #    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
