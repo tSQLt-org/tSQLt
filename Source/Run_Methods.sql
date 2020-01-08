@@ -530,7 +530,7 @@ GO
 -- capture the full output.
 -- e.g. sqlcmd -y0 -Q "EXEC tSQLt.XmlResultFormatter @CastToNvarchar=1"
 CREATE PROCEDURE tSQLt.XmlResultFormatter
-    @CastToNvarchar int = 0
+    @CastToNvarchar bit = 0
 AS
 BEGIN
     DECLARE @XmlOutput XML;
