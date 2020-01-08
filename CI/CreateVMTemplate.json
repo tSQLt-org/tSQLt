@@ -60,7 +60,7 @@
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
 	"labSubnetPrefix": "10.0.0.1/24",
-	"publicIPAddressName": "labPublicIPAddressName",
+	"labPublicIPAddressName": "labPublicIPAddressName",
 	"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('labVirtualNetworkName'), variables('labSubnetName'))]"
   },
   "resources": [
@@ -147,7 +147,7 @@
       "name": "[variables('labNicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses/', variables('labPublicIPAddressName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks/', variables('labVirtualNetworkName'))]"
       ],
       "properties": {
@@ -157,7 +157,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('labPublicIPAddressName'))]"
               },
               "subnet": {
                 "id": "[variables('subnetRef')]"
