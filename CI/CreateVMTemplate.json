@@ -60,7 +60,7 @@
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
 	"labSubnetPrefix": "10.0.0.1/24",
-	"labPublicIPAddressName": "labPublicIPAddressXXXXName",
+	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1']",
 	"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('labVirtualNetworkName'), variables('labSubnetName'))]"
   },
   "resources": [
@@ -141,6 +141,14 @@
         ]
       }
     },
+	{
+	  "type": "Microsoft.Network/publicIPAddresses",
+	  "apiVersion": "2018-08-01",
+	  "name": "[variables('labPublicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+	  "properties": {  
+	  },
+	},	
     {
       "type": "Microsoft.Network/networkInterfaces",
       "apiVersion": "2018-11-01",
