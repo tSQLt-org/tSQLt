@@ -56,6 +56,7 @@
 	"networkSecurityGroupName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_NSG')]",
     "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
     "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
+	"labVirtualNetworkRefName": "[concat(parameters('labName'), '/', parameters('labVirtualNetworkName'))]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
@@ -115,9 +116,9 @@
       }
     },
     {
-      "type": "Microsoft.Network/virtualNetworks",
+      "type": "microsoft.devtestlab/labs/virtualnetworks",
       "apiVersion": "2018-11-01",
-      "name": "[variables('labVirtualNetworkName')]",
+      "name": "[variables('labVirtualNetworkRefName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
