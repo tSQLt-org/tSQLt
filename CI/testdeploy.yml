@@ -12,6 +12,7 @@ pool:
 steps:
 
 - task: AzureResourceManagerTemplateDeployment@3
+  name: Validate_VM_ArmTemplate
   inputs:
     deploymentScope: 'Resource Group'
     azureResourceManagerConnection: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -25,6 +26,7 @@ steps:
 
 
 - task: ArchiveFiles@2
+  name: Build_DSC_Zip_File
   inputs:
     rootFolderOrFile: '$(Build.SourcesDirectory)/CI/DSC'
     includeRootFolder: false
@@ -34,7 +36,7 @@ steps:
     verbose: true
 
 - task: AzureFileCopy@3
-  name: CopyDSC
+  name: COPY_DSC_zip_to_Azure_Storage
   inputs:
     SourcePath: '$(Build.ArtifactStagingDirectory)/DSC.zip'
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
