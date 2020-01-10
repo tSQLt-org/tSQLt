@@ -141,7 +141,7 @@
 		"subnetOverrides": [
 		  {
 			"useInVmCreationPermission": "Allow",
-			"usePublicIpAddressPermission": "Allow",
+			"usePublicIpAddressPermission": "Allow"
 		  }
 		]
 
