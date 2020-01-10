@@ -117,7 +117,7 @@
     },
     {
       "type": "microsoft.devtestlab/labs/virtualnetworks",
-      "apiVersion": "2018-11-01",
+      "apiVersion": "2018-09-15",
       "name": "[variables('labVirtualNetworkRefName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
