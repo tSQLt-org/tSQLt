@@ -54,8 +54,8 @@
   "variables": {
     "labSubnetName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_Subnet')]",
 	"networkSecurityGroupName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_NSG')]",
-    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
     "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
+    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
 	"labVirtualNetworkRefName": "[concat(parameters('labName'), '/', variables('labVirtualNetworkName'))]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
@@ -157,7 +157,7 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/publicIPAddresses/', variables('labPublicIPAddressName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks/', variables('labVirtualNetworkName'))]"
+        "[variables('labVirtualNetworkId')]"
       ],
       "properties": {
         "ipConfigurations": [
