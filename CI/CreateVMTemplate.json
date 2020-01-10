@@ -136,7 +136,16 @@
               "addressPrefix": "[variables('labSubnetPrefix')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
-              }
+              },
+
+		"subnetOverrides": [
+		  {
+			"useInVmCreationPermission": "Allow",
+			"usePublicIpAddressPermission": "Allow",
+		  }
+		]
+
+
             }
           }
         ]
