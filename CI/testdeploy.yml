@@ -23,21 +23,6 @@ steps:
     csmFile: 'CI/CreateVMTemplate.json'
     deploymentMode: 'Validation'
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-      # Write your commands here
-      
-      echx
-
-#- task: AzureKeyVault@1
-#  inputs:
-#    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-#    KeyVaultName: 'tSQLtCIDevTestLab35738'
-#    SecretsFilter: '*'
-
-#b874bbd7-99a6-4e8a-b268-5543839da064  (service principal client id)
 
 - task: ArchiveFiles@2
   inputs:
