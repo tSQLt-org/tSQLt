@@ -62,7 +62,7 @@
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
 	"labSubnetPrefix": "10.0.0.0/24",
 	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1')]",
-	"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('labVirtualNetworkName'), variables('labSubnetName'))]"
+	"subnetRef": "[resourceId('Microsoft.DevTestLab/labs/virtualNetworks/subnets', parameters('labName'), variables('labVirtualNetworkName'), variables('labSubnetName'))]"
   },
   "resources": [
     {
