@@ -8,7 +8,8 @@
     }
  },
   "variables": {
-    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]"
+    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]",
+    "newLabVirtualNetworkSubNetName": "[concat(variables('newLabVirtualNetworkName'),'Subnet')]"
   },
 	"resources": [
 		{
@@ -28,6 +29,7 @@
                 {
 				  "subnetOverrides": [
 				    {
+					  "resourceId":"[resourceid('Microsoft.Network/virtualNetworks/subnets',variables('newLabVirtualNetworkName'),variables('newLabVirtualNetworkSubNetName'))]",
 					  "useInVmCreationPermission": "Allow",
 					  "usePublicIpAddressPermission": "Allow",
 
