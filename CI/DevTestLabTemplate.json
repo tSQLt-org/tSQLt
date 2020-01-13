@@ -8,8 +8,7 @@
     }
  },
   "variables": {
-    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]",
-    "newLabVirtualNetworkSubnetName": "[concat(valiables('newLabVirtualNetworkName'),'_SubNet')]"
+    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]"
   },
 	"resources": [
 		{
@@ -26,11 +25,12 @@
 				"[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
 			  ],
 			  "properties": [
+
 				"subnetOverrides": [
 				  {
 					"useInVmCreationPermission": "Allow",
 					"usePublicIpAddressPermission": "Allow",
-					
+
 					"sharedPublicIpAddressConfiguration": {
 					  "allowedPorts": [
 						{
@@ -42,10 +42,12 @@
 						  "backendPort": "1433"
 						}
 					  ]
-					
-					
+
+					}
+
 				  }
-                ]
+
+				]
 			  ]
 			}
 		  ]
