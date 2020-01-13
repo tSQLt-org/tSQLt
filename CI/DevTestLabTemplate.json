@@ -24,31 +24,33 @@
 			  "dependsOn": [
 				"[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
 			  ],
-			  "properties": [
+			  "properties": 
+                {
+				  "subnetOverrides": [
+				    {
+					  "useInVmCreationPermission": "Allow",
+					  "usePublicIpAddressPermission": "Allow",
 
-				"subnetOverrides": [
-				  {
-					"useInVmCreationPermission": "Allow",
-					"usePublicIpAddressPermission": "Allow",
+					  "sharedPublicIpAddressConfiguration": 
+					  {
+					    "allowedPorts": [
+						  {
+						    "transportProtocol": "Tcp",
+						    "backendPort": "5986"
+						  },
+						  {
+						    "transportProtocol": "Tcp",
+						    "backendPort": "1433"
+						  }
+					    ]
 
-					"sharedPublicIpAddressConfiguration": {
-					  "allowedPorts": [
-						{
-						  "transportProtocol": "Tcp",
-						  "backendPort": "5986"
-						},
-						{
-						  "transportProtocol": "Tcp",
-						  "backendPort": "1433"
-						}
-					  ]
+					  }
 
-					}
+				    }
 
-				  }
-
-				]
-			  ]
+				  ]
+				}
+			  
 			}
 		  ]
 		}
