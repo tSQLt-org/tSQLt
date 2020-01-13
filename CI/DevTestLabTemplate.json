@@ -9,6 +9,7 @@
  },
   "variables": {
     "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]"
+    "newLabVirtualNetworkSubnetName": "[concat(valiables('newLabVirtualNetworkName'),'_SubNet')]"
   },
 	"resources": [
 		{
@@ -25,11 +26,20 @@
 				"[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
 			  ],
 			  "properties": [
+				"subnets": [
+				  {
+					"name": "[variables('labSubnetName')]",
+					"properties": {
+					  "addressPrefix": "10.0.0.0/24"
+					  }
+				  }
+				],
 				"subnetOverrides": [
 				  {
 					"useInVmCreationPermission": "Allow",
 					"usePublicIpAddressPermission": "Allow"
 				  }
+                ]
 			  ]
 			}
 		  ]
