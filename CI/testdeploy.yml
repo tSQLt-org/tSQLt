@@ -30,7 +30,7 @@ steps:
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
-    Inline: 'New-AzResourceGroupDeployment -ResourceGroupName "DevTestLab_Generic_RG" -TemplateFile "CI/DevTestLabTemplate.json" -DevTestLabName "somethingrather_a'
+    Inline: 'New-AzResourceGroupDeployment -ResourceGroupName "DevTestLab_Generic_RG" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "somethingrather_a"'
     azurePowerShellVersion: 'LatestVersion'
 
 
