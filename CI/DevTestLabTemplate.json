@@ -63,7 +63,7 @@
 		  "resources": [
 			{
 			  "apiVersion": "2018-10-15-preview",
-			  "name": "[variables('labVirtualNetworkName')]",
+			  "name": "[variables('newLabVirtualNetworkName')]",
 			  "type": "virtualNetworks",
 			  "dependsOn": [
 				"[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
