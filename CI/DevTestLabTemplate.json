@@ -1,0 +1,81 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+     "newVMName": {
+      "type": "string",
+      "defaultValue": "SQL2008SP3B"	
+    },
+    "newLabName": {
+      "type": "string",
+      "defaultValue": "tsqltci_devtestlab_10"
+    },
+    "size": {
+      "type": "string",
+      "defaultValue": "Standard_B2s"
+    },
+    "template": {
+      "type": "string",
+      "defaultValue": "sql2014sp3-ws2012r2"
+    },
+    "templateDescription": {
+      "type": "string",
+      "defaultValue": "Free SQL Server License: SQL Server 2014 SP3 Developer on Windows Server 2012 R2 "
+    },
+    "templatePublisher": {
+      "type": "string",
+      "defaultValue": "microsoftsqlserver"
+    },
+    "templateSKU": {
+      "type": "string",
+      "defaultValue": "sqldev"
+    },
+    "userName": {
+      "type": "string",
+      "defaultValue": "tSQLt"
+    },
+    "password": {
+      "type": "string",
+      "defaultValue": "yeyeyeyeyeiueriuweryiwuerywieury77RR(u)"
+    },
+    "domain": {
+      "type": "string",
+      "defaultValue": "sebastiansqlity.onmicrosoft.com"
+    },
+    "DSCURI": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "DSCSAS": {
+      "type": "string",
+      "defaultValue": ""
+    }
+ },
+  "variables": {
+    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]"
+  },
+	"resources": [
+		{
+		  "apiVersion": "2018-10-15-preview",
+		  "type": "Microsoft.DevTestLab/labs",
+		  "name": "[parameters('newLabName')]",
+		  "location": "[resourceGroup().location]",
+		  "resources": [
+			{
+			  "apiVersion": "2018-10-15-preview",
+			  "name": "[variables('labVirtualNetworkName')]",
+			  "type": "virtualNetworks",
+			  "dependsOn": [
+				"[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
+			  ]
+			}
+		  ]
+		}
+	  ],
+	"outputs": {
+    "labId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
+    }
+  }
+}
