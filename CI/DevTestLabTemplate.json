@@ -8,7 +8,7 @@
     }
  },
   "variables": {
-    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]"
+    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]",
     "newLabVirtualNetworkSubnetName": "[concat(valiables('newLabVirtualNetworkName'),'_SubNet')]"
   },
 	"resources": [
@@ -30,7 +30,7 @@
 				  {
 					"name": "[variables('labSubnetName')]",
 					"properties": {
-					  "addressPrefix": "10.0.0.0/24"
+					  "addressPrefix": "10.0.0.0/8"
 					  }
 				  }
 				],
