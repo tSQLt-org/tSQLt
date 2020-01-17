@@ -9,12 +9,15 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 
+variables:
+  DevTestLabName: 'DevTestLab_$(Date:yyyyMMdd)_$(BuildID)'
+
 steps:
 
 - task: CmdLine@2
   inputs:
     script: |
-      echo %DEVTESTLABNAME%
+      echo %DevTestLabName%
       
       echx
 
