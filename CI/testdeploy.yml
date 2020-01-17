@@ -14,12 +14,9 @@ variables:
 
 steps:
 
-- task: CmdLine@2
-  inputs:
-    script: |
-      echo %DevTestLabName%
-      
-      echx
+- bash: |
+    echo "##vso[task.setvariable variable=DevTestLabName]DevTestLab_$(Date:yyyyMMdd)_$(BuildID)"
+    echo "$DevTestLabName"
 
 - task: AzureResourceManagerTemplateDeployment@3
   name: Validate_VM_ArmTemplate
