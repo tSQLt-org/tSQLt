@@ -10,8 +10,8 @@ pool:
   vmImage: 'vs2017-win2016'
 
 variables:
-  DevTestLabName: $[join(join(join('DevTestLab_',format('{0:yyyyMMdd}', pipeline.startTime)),'_'),Build.BuildID)]
-  Test01: $[Build.BuildID]
+  DevTestLabName: $[join(join(join('DevTestLab_',format('{0:yyyyMMdd}', pipeline.startTime)),'_'),'BuildNo')]
+  Test01: $[variables.BuildID]
   Test02: $[format('{0:yyyyMMdd}', pipeline.startTime)]
   Test03: $[join('_',format('{0:yyyyMMdd}', pipeline.startTime))]
 
