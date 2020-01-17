@@ -18,12 +18,18 @@ variables:
 steps:
 
 - bash: |
+    echo Test01
     echo $(Test01)
+    echo Test02
     echo $(Test02)
+    echo Test03
     echo $(Test03)
+    echo Done
 
 - bash: |
+    echo DevTestLabName
     echo $(DevTestLabName)
+    echo --------------
 
 - bash: |
     echx
