@@ -16,7 +16,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $DevTestLabName = ([string]::IsNullOrEmpty($env:DevTestLabNameOverride))?('DevTestLab_' + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId)):($env:DevTestLabNameOverride)
+      $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {('DevTestLab_' + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       Write-Host $DevTestLabName
       Write-Host "##vso[task.setvariable variable=DevTestLabName;]$DevTestLabName"
 
