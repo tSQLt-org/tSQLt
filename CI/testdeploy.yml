@@ -10,7 +10,7 @@ pool:
   vmImage: 'vs2017-win2016'
 
 variables:
-  DevTestLabName: 'DevTestLab_$(Date:yyyyMMdd)_$(BuildID)'
+  DevTestLabName: DevTestLab_$(Date:yyyyMMdd)_$(BuildID)
 
 steps:
 
