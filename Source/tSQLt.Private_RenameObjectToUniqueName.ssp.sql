@@ -8,6 +8,7 @@ CREATE PROCEDURE tSQLt.Private_RenameObjectToUniqueName
 AS
 BEGIN
    SET @NewName=tSQLt.Private::CreateUniqueObjectName();
+   SET @NewName=RIGHT(@NewName + '_' + PARSENAME(@ObjectName,1),255);
 
    DECLARE @RenameCmd NVARCHAR(MAX);
    SET @RenameCmd = 'EXEC sp_rename ''' + 

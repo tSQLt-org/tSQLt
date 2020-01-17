@@ -1,19 +1,24 @@
 IF OBJECT_ID('tSQLt.NewTestClass') IS NOT NULL DROP PROCEDURE tSQLt.NewTestClass;
 GO
 ---Build+
-CREATE PROCEDURE tSQLt.NewTestClass
-    @ClassName NVARCHAR(MAX)
+CREATE PROCEDURE [tSQLt].[NewTestClass]
+     @ClassName NVARCHAR(MAX)
+	,@IsMSBuild	BIT	= 0
 AS
 BEGIN
   BEGIN TRY
-    EXEC tSQLt.Private_DisallowOverwritingNonTestSchema @ClassName;
-
-    EXEC tSQLt.DropClass @ClassName = @ClassName;
+	IF (@IsMSBuild = 0)
+	BEGIN
+		EXEC tSQLt.Private_DisallowOverwritingNonTestSchema @ClassName;
+		EXEC tSQLt.DropClass @ClassName = @ClassName;
+	END;
 
     DECLARE @QuotedClassName NVARCHAR(MAX);
     SELECT @QuotedClassName = tSQLt.Private_QuoteClassNameForNewTestClass(@ClassName);
 
-    EXEC ('CREATE SCHEMA ' + @QuotedClassName);  
+	IF (NOT EXISTS (SELECT 1 FROM SYS.SCHEMAS WHERE NAME = @ClassName))
+		EXEC ('CREATE SCHEMA ' + @QuotedClassName);  
+
     EXEC tSQLt.Private_MarkSchemaAsTestClass @QuotedClassName;
   END TRY
   BEGIN CATCH
