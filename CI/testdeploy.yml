@@ -17,16 +17,9 @@ steps:
     targetType: 'inline'
     script: |
       $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {('DevTestLab_' + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
-      Write-Host $DevTestLabName
+      Write-Host 'DevTestLabName: '+$DevTestLabName
       Write-Host "##vso[task.setvariable variable=DevTestLabName;]$DevTestLabName"
 
-- bash: |
-    echo DevTestLabName
-    echo $(DevTestLabName)
-    echo --------------
-
-- bash: |
-    echx
 
 - task: AzureResourceManagerTemplateDeployment@3
   name: Validate_VM_ArmTemplate
@@ -47,7 +40,7 @@ steps:
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
-    Inline: 'New-AzResourceGroupDeployment -ResourceGroupName "DevTestLab_Generic_RG" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName ""'
+    Inline: 'New-AzResourceGroupDeployment -ResourceGroupName "DevTestLab_Generic_RG" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"'
     azurePowerShellVersion: 'LatestVersion'
 
 
