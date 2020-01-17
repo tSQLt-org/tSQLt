@@ -10,12 +10,17 @@ pool:
   vmImage: 'vs2017-win2016'
 
 variables:
-  DevTestLabName: DevTestLab_$[format('{0:yyyyMMdd}', pipeline.startTime)]_$[Build.BuildID]
+  DevTestLabName: $[join(join(join('DevTestLab_',format('{0:yyyyMMdd}', pipeline.startTime)),'_'),Build.BuildID)]
+  Test01: $[Build.BuildID]
+  Test02: $[format('{0:yyyyMMdd}', pipeline.startTime)]
+  Test03: $[join('_',format('{0:yyyyMMdd}', pipeline.startTime))]
 
 steps:
 
 - bash: |
-    echo $DevTestLabName
+    echo $(Test01)
+    echo $(Test02)
+    echo $(Test03)
 
 - bash: |
     echo $(DevTestLabName)
