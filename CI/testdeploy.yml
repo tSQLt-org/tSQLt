@@ -13,7 +13,7 @@ variables:
   DevTestLabName: $[join(join(join('DevTestLab_',format('{0:yyyyMMdd}', pipeline.startTime)),'_'),'BuildNo')]
   Test01: $[variables.BuildID]
   Test02: $[format('{0:yyyyMMdd}', pipeline.startTime)]
-  Test03: $[join('_',format('{0:yyyyMMdd}', pipeline.startTime))]
+  Test03: $[join('',['_',format('{0:yyyyMMdd}', pipeline.startTime)])]
 
 steps:
 
