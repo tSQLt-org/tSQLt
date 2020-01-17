@@ -45,7 +45,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2"
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"'
+      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"
     azurePowerShellVersion: 'LatestVersion'
 
 
