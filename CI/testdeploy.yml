@@ -16,13 +16,13 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $DevTestLabNameX = 'DevTestLab_' + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildNumber)
-      Write-Host $DevTestLabNameX
-      Write-Host "##vso[task.setvariable variable=DevTestLabNameX;]$DevTestLabNameX"
+      $DevTestLabName = ([string]::IsNullOrEmpty($env:DevTestLabNameOverride))?('DevTestLab_' + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId)):($env:DevTestLabNameOverride)
+      Write-Host $DevTestLabName
+      Write-Host "##vso[task.setvariable variable=DevTestLabName;]$DevTestLabName"
 
 - bash: |
     echo DevTestLabName
-    echo $(DevTestLabNameX)
+    echo $(DevTestLabName)
     echo --------------
 
 - bash: |
