@@ -9,33 +9,20 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 
-variables:
-  DevTestLabName: $[join(join(join('DevTestLab_',format('{0:yyyyMMdd}', pipeline.startTime)),'_'),'BuildNo')]
-  Test01: $[variables.BuildID]
-  Test02: $[format('{0:yyyyMMdd}', pipeline.startTime)]
-  Test03: $[join('',['_',format('{0:yyyyMMdd}', pipeline.startTime)])]
-  Test04:
-    - string1
-    - string2
-    - string3
-  Test05: $[join(',',Test04)]
 
 steps:
 
-- bash: |
-    echo Test01
-    echo $(Test01)
-    echo Test02
-    echo $(Test02)
-    echo Test03
-    echo $(Test03)
-    echo Test05
-    echo $(Test05)
-    echo Done
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $DevTestLabNameX = 'DevTestLab_' + $(pipeline.startTime).tostring(“yyyyMMdd”) + '_' + $(Build.BuildNumber)
+      Write-Host $DevTestLabNameX
+      Write-Host "##vso[task.setvariable variable=DevTestLabNameX;]$DevTestLabNameX"
 
 - bash: |
     echo DevTestLabName
-    echo $(DevTestLabName)
+    echo $(DevTestLabNameX)
     echo --------------
 
 - bash: |
