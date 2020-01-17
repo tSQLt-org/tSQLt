@@ -16,7 +16,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $DevTestLabNameX = 'DevTestLab_' + $(pipeline.startTime).tostring(“yyyyMMdd”) + '_' + $(Build.BuildNumber)
+      $DevTestLabNameX = 'DevTestLab_' + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildNumber)
       Write-Host $DevTestLabNameX
       Write-Host "##vso[task.setvariable variable=DevTestLabNameX;]$DevTestLabNameX"
 
