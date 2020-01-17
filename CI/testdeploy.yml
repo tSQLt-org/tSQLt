@@ -15,7 +15,10 @@ variables:
 steps:
 
 - bash: |
-    echo "$DevTestLabName"
+    echo $DevTestLabName
+
+- bash: |
+    echo $(DevTestLabName)
 
 - bash: |
     echx
