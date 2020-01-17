@@ -45,6 +45,7 @@ steps:
 
 
 - task: CmdLine@2
+  condition: false
   inputs:
     script: |
       echo end pipeline here
