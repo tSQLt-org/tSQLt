@@ -10,7 +10,7 @@ pool:
   vmImage: 'vs2017-win2016'
 
 variables:
-  DevTestLabName: DevTestLab_$[format('{0:yyyyMMdd}', pipeline.startTime)]_$[BuildID]
+  DevTestLabName: DevTestLab_$[format('{0:yyyyMMdd}', pipeline.startTime)]_$[variables.BuildID]
 
 steps:
 
