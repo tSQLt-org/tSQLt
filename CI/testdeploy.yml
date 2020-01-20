@@ -54,9 +54,9 @@ steps:
       Write-Host 'GetAzResource'
       Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts"
       Write-Host '-------------'
-      $StorageAccount = Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts"
+      $StorageAccount = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts").ResourceName
       Write-Host "StorageAccount: >>>" $StorageAccount.ResourceName "<<<"
-      Write-Host "##vso[task.setvariable variable=StorageAccount;]$StorageAccount.ResourceName"
+      Write-Host "##vso[task.setvariable variable=StorageAccount;]$StorageAccount"
       Write-Host '-------------'
       Write-Host 'Currently Existing tSQLtCI Resource Groups:'
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
