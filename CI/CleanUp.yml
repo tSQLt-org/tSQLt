@@ -16,7 +16,7 @@ steps:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
     Inline: |
-      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { Write-Host $_.Name }
+      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { Write-Host $_ }
     azurePowerShellVersion: 'LatestVersion'
   
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { Start-Job -InputObject $_ -ScriptBlock { $Input | Remove-AzResourceGroup -Force } }
