@@ -24,7 +24,7 @@ steps:
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object 
       { 
         Write-Host $_.ResourceGroupName 
-        $_ | Get-AzResourceLock
+        #$_ | Get-AzResourceLock
       }
 - task: AzurePowerShell@5
   name: Delete_RGs
