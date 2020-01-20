@@ -62,12 +62,11 @@ steps:
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
     azurePowerShellVersion: 'LatestVersion'
 
-- task: AzurePowerShell@5
+- task: PowerShell@2
   name: Confirm_Variable_Was_Written
   inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
+    targetType: 'inline'
+    script: |
       Write-Host "StorageAccount: >>>" $(StorageAccount) "<<<"
 
 
