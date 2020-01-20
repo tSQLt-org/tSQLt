@@ -48,7 +48,10 @@ steps:
     Inline: |
       New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2"
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"
+      $StorageAccount = Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts"
+      Write-Host "StorageAccount: " $StorageAccount
     azurePowerShellVersion: 'LatestVersion'
+
 
 
 - task: CmdLine@2
