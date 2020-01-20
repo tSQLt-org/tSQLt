@@ -66,132 +66,11 @@
   },
   "resources": [
     {
-      "comments":  "Default Network Security Group for template",
-      "type":  "Microsoft.Network/networkSecurityGroups",
-      "apiVersion":  "2019-08-01",
-      "name":  "[variables('networkSecurityGroupName')]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "securityRules": [
-          {
-            "name":  "default-allow-RDP",
-            "properties": {
-              "priority":  1000,
-              "access":  "Allow",
-              "direction":  "Inbound",
-              "destinationPortRange":  "3389",
-              "protocol":  "Tcp",
-              "sourcePortRange":  "*",
-              "sourceAddressPrefix":  "*",
-              "destinationAddressPrefix":  "*"
-            }
-          },
-          {
-            "name":  "default-allow-SQL",
-            "properties": {
-              "priority":  2000,
-              "access":  "Allow",
-              "direction":  "Inbound",
-              "destinationPortRange":  "1433",
-              "protocol":  "Tcp",
-              "sourcePortRange":  "*",
-              "sourceAddressPrefix":  "*",
-              "destinationAddressPrefix":  "*"
-            }
-          },
-          {
-            "name":  "default-allow-WinRM",
-            "properties": {
-              "priority":  3000,
-              "access":  "Allow",
-              "direction":  "Inbound",
-              "destinationPortRange":  "5986",
-              "protocol":  "Tcp",
-              "sourcePortRange":  "*",
-              "sourceAddressPrefix":  "*",
-              "destinationAddressPrefix":  "*"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "microsoft.devtestlab/labs/virtualnetworks",
-      "apiVersion": "2018-09-15",
-      "name": "[variables('labVirtualNetworkRefName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
-      ],
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('labSubnetPrefix')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('labSubnetName')]",
-            "properties": {
-              "addressPrefix": "[variables('labSubnetPrefix')]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
-              },
-
-		"subnetOverrides": [
-		  {
-			"useInVmCreationPermission": "Allow",
-			"usePublicIpAddressPermission": "Allow"
-		  }
-		]
-
-
-            }
-          }
-        ]
-      }
-    },
-	{
-	  "type": "Microsoft.Network/publicIPAddresses",
-	  "apiVersion": "2018-08-01",
-	  "name": "[variables('labPublicIPAddressName')]",
-      "location": "[resourceGroup().location]",
-	  "properties": {  
-	  }
-	},	
-    {
-      "type": "Microsoft.Network/networkInterfaces",
-      "apiVersion": "2018-11-01",
-      "name": "[variables('labNicName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses/', variables('labPublicIPAddressName'))]",
-        "[variables('labVirtualNetworkId')]"
-      ],
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('labPublicIPAddressName'))]"
-              },
-              "subnet": {
-                "id": "[variables('subnetRef')]"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
       "apiVersion": "2018-10-15-preview",
       "type": "Microsoft.DevTestLab/labs/virtualmachines",
       "name": "[variables('vmName')]",
       "location": "[resourceGroup().location]",
       "properties": {
-        "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
         "notes": "[parameters('templateDescription')]",
         "galleryImageReference": {
           "offer": "[parameters('template')]",
@@ -215,10 +94,30 @@
             ]
           }
         ],
-        "labSubnetName": "[variables('labSubnetName')]",
         "disallowPublicIpAddress": false,
         "storageType": "Standard",
-        "allowClaim": true
+        "allowClaim": true,
+		"networkInterface": {
+			"sharedPublicIpAddressConfiguration": {
+				"inboundNatRules": [
+				  {
+					"transportProtocol": "tcp",
+					"frontendPort": "23389",
+					"backendPort": "3389"
+				  },
+				  {
+					"transportProtocol": "tcp",
+					"frontendPort": "25986",
+					"backendPort": "5986"
+				  },
+				  {
+					"transportProtocol": "tcp",
+					"frontendPort": "21433",
+					"backendPort": "1433"
+				  }
+				]
+			}
+		}		
       }
     },
 	{
