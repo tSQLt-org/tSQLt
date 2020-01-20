@@ -9,6 +9,9 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 
+variables:
+  NamePreFix: 'tSQLtCI_DevTestLab_'
+
 
 steps:
 
@@ -17,7 +20,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {('DevTestLab_' + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
+      $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {($(NamePreFix) + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
