@@ -58,6 +58,7 @@ steps:
       Write-Host "StorageAccount: >>>" $StorageAccount.ResourceName "<<<"
       Write-Host "StorageAccount: >>>" $StorageAccount.ResourceName.toString() "<<<"
       Write-Host '-------------'
+      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
     azurePowerShellVersion: 'LatestVersion'
 
 
