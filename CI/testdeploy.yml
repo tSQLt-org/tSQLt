@@ -55,7 +55,8 @@ steps:
       Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts"
       Write-Host '-------------'
       $StorageAccount = Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts"
-      Write-Host "StorageAccount: " $StorageAccount.toString()
+      Write-Host "StorageAccount: >>>" $StorageAccount.ResourceName "<<<"
+      Write-Host "StorageAccount: >>>" $StorageAccount.ResourceName.toString() "<<<"
       Write-Host '-------------'
     azurePowerShellVersion: 'LatestVersion'
 
@@ -91,6 +92,8 @@ steps:
     outputStorageUri: 'DSC_Storage_URI'
     outputStorageContainerSasToken: 'DSC_Storage_SAS_Token'
     sasTokenTimeOutInMinutes: '60'
+
+
 
 - task: AzureDevTestLabsCreateVM@3
   name: CreateVM
