@@ -69,10 +69,17 @@ namespace tSQLtCLR
             
             cmd.Connection = connection;
             cmd.CommandText = Command.ToString();
-
+            
             SqlDataReader dataReader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
 
             return dataReader;
+        }
+
+        public SqlDataAdapter getSQLAdapterForCommand(SqlString Command)
+        {
+            infoMessage = SqlString.Null;
+            connection.InfoMessage += OnInfoMessage;
+            return new SqlDataAdapter(Command.ToString(), connection);
         }
 
         protected void OnInfoMessage(object sender, SqlInfoMessageEventArgs args)

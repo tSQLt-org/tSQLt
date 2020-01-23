@@ -22,6 +22,12 @@ namespace tSQLtCLR
             filter.sendSelectedResultSetToSqlContext(resultSetNo, command);
         }
 
+        public static void ResultSetToTable(string targetTable, SqlInt32 resultsetNo, SqlString command)
+        {
+            ResultSetToTable filter = new ResultSetToTable(new TestDatabaseFacade());
+            filter.sendSelectedResultSetToTable(targetTable, resultsetNo, command);
+        }
+
         public static void NewConnection(SqlString command)
         {
             CommandExecutor executor = new CommandExecutor();
