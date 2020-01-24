@@ -10,7 +10,7 @@
       "type": "string",
       "defaultValue": "tsqltci_devtestlab_3"
     },
-    "labVirtualNetworkName": {
+    "DevTestLabVirtualNetworkResourceId": {
       "type": "string",
       "defaultValue": ""
     },
@@ -58,8 +58,6 @@
   "variables": {
     "labSubnetName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_Subnet')]",
 	"networkSecurityGroupName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_NSG')]",
-    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
-	"labVirtualNetworkRefName": "[concat(parameters('labName'), '/', variables('labVirtualNetworkName'))]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
@@ -101,7 +99,7 @@
         "storageType": "Standard",
         "allowClaim": true,
 		"networkInterface": {
-		    "virtualNetworkId":"[variables('labVirtualNetworkId')]",
+		    "virtualNetworkId":"[parameters('DevTestLabVirtualNetworkResourceId')]",
 			"sharedPublicIpAddressConfiguration": {
 				"inboundNatRules": [
 				  {
