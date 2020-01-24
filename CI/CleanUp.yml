@@ -38,7 +38,9 @@ steps:
           Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{
             Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName}|ForEach{
               Write-Host $_.ResourceType "->" $_.ResourceName
-              $_ | Remove-AzResourceLock -Force }}
+              #$_ | Remove-AzResourceLock -Force 
+            }
+          }
           Write-Host "Removing RG";
           $_ | Remove-AzResourceGroup -Force 
           Write-Host "Done" }
