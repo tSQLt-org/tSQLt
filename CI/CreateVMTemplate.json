@@ -10,6 +10,10 @@
       "type": "string",
       "defaultValue": "tsqltci_devtestlab_3"
     },
+    "labVirtualNetworkName": {
+      "type": "string",
+      "defaultValue": ""
+    },
     "size": {
       "type": "string",
       "defaultValue": "Standard_B2s"
@@ -54,7 +58,6 @@
   "variables": {
     "labSubnetName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_Subnet')]",
 	"networkSecurityGroupName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_NSG')]",
-    "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
     "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
 	"labVirtualNetworkRefName": "[concat(parameters('labName'), '/', variables('labVirtualNetworkName'))]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
@@ -98,6 +101,7 @@
         "storageType": "Standard",
         "allowClaim": true,
 		"networkInterface": {
+		    "virtualNetworkId":"[variables('labVirtualNetworkId')]",
 			"sharedPublicIpAddressConfiguration": {
 				"inboundNatRules": [
 				  {
