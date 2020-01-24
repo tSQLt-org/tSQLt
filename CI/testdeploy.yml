@@ -53,10 +53,15 @@ steps:
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"
       Write-Host 'GetAzResource'
       Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts"
+      Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks"
       Write-Host '-------------'
       $DevTestLabStorageAccount = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts").ResourceName
       Write-Host "DevTestLabStorageAccount: >>>" $DevTestLabStorageAccount.ResourceName "<<<"
       Write-Host "##vso[task.setvariable variable=DevTestLabStorageAccount;]$DevTestLabStorageAccount"
+      Write-Host '-------------'
+      $DevTestLabVirtualNetworkResourceId = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks").ResourceId
+      Write-Host "DevTestLabVirtualNetworkResourceId: >>>" $DevTestLabVirtualNetworkResourceId "<<<"
+      Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkResourceId;]$DevTestLabVirtualNetworkResourceId"
       Write-Host '-------------'
       Write-Host 'Currently Existing tSQLtCI Resource Groups:'
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
@@ -103,7 +108,7 @@ steps:
     VirtualMachineName: '$(vmName)'
     TemplateFile: 'CI/CreateVMTemplate.json'
 #    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
-    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
+    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -DevTestLabVirtualNetworkResourceId ''$(DevTestLabVirtualNetworkResourceId)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
 
 
 - script: echo %CREATEVM_LABVMID%
