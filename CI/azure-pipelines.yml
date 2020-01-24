@@ -1,1 +1,121 @@
-#tSQLt
+#tSQLt CI
+
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- CITesting
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+variables:
+  CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
+
+jobs:
+
+- job: CompileCLR
+  timeoutInMinutes: 10
+  cancelTimeoutInMinutes: 2
+
+  steps:
+
+  - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+    clean: true
+    path: source
+
+  - task: MSBuild@1
+    displayName: 'Build solution tSQLtCLR/tSQLtCLR.sln'
+    inputs:
+        solution: tSQLtCLR/tSQLtCLR.sln
+        platform: 'Any CPU'
+        configuration: NoSigningForCI
+
+  - task: CopyFiles@2
+    displayName: 'Copy all dll files to the ArtifactStagingDirectory'
+    inputs:
+        SourceFolder: tSQLtCLR
+        Contents: '*/bin/*/*.dll'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+        flattenFolders: true
+
+
+  - task: AzureKeyVault@1
+    inputs:
+      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+      KeyVaultName: 'tSQLtSigningKey'
+      SecretsFilter: '*'
+
+  - task: authenticode-sign@4
+    inputs:
+        filePath: 'tSQLt*.dll'
+        signRootPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+        timestampServer: 'http://timestamp.digicert.com'
+        timestampAlgo: 'sha256'
+        timestampServerDelay: '15'
+        fileAlgo: 'sha256'
+        retryCount: '5'
+        certificateLocation: 'pfxFile'
+        pfxFile: '$(CertificatePath)'
+        pfxPassword: '$(tSQLtSigningKeyPassword)'
+        additionalArguments: '/debug'
+
+  - task: ArchiveFiles@2
+    inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
+        replaceExistingArchive: true
+        verbose: true
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
+        artifact: 'tSQLtClrDlls'
+        publishLocation: 'pipeline'
+
+
+
+- job: BuildSQLScripts
+  timeoutInMinutes: 10
+  cancelTimeoutInMinutes: 2
+  dependsOn: CompileCLR
+
+  steps:
+
+  - script: 'MKDIR Build\output'
+    displayName: 'create Build/output'
+
+  - task: DownloadPipelineArtifact@2
+    inputs:
+        buildType: 'current'
+        artifactName: 'tSQLtClrDlls'
+        itemPattern: '*.zip'
+        targetPath: '$(Build.SourcesDirectory)/Build/output'
+
+  - task: Ant@1
+    displayName: 'Ant -debug Build/tSQLt.build.xml'
+    inputs:
+        buildFile: Build/tSQLt.build.xml
+        options: '-debug '
+        targets: all
+        publishJUnitResults: false
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)/Build/output/'
+      artifact: 'tSQLtPreTests'
+      publishLocation: 'pipeline'
+
+
+#  - script: |
+#       dir /S
+#       dir $(System.ArtifactsDirectory) /S
+#    displayName: 'Complete Directory Listing (Run always)'
+#    condition: always()
+
+
+
