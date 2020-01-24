@@ -24,7 +24,7 @@ steps:
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { 
         Write-Host $_.ResourceGroupName 
         Write-Host $_.ResourceType 
-        Get-AzResourceLock -ResourceType * -ResourceName "$_.ResourceGroupName"
+        Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName}
       }
 - task: AzurePowerShell@5
   name: Delete_RGs
@@ -33,5 +33,10 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
-      #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { Start-Job -InputObject $_ -ScriptBlock { $Input | Remove-AzResourceGroup -Force } }
-      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
+      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { 
+        Start-Job -InputObject $_ -ScriptBlock { 
+          Get-AzResource -ResourceGroup $Input.ResourceGroupName |ForEach{Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName}|Remove-AzResourceLock -Force
+          $Input | Remove-AzResourceGroup -Force 
+        } 
+      }
+      #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
