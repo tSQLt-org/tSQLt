@@ -56,14 +56,11 @@
     }
   },
   "variables": {
-    "labSubnetName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_Subnet')]",
-	"networkSecurityGroupName": "[concat(variables('labVirtualNetworkName'), '_', parameters('newVMName'), '_NSG')]",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
 	"labSubnetPrefix": "10.0.0.0/24",
 	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1')]",
-	"subnetRef": "[resourceId('Microsoft.DevTestLab/labs/virtualNetworks/subnets', parameters('labName'), variables('labVirtualNetworkName'), variables('labSubnetName'))]"
   },
   "resources": [
     {
