@@ -60,7 +60,7 @@
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
 	"labSubnetPrefix": "10.0.0.0/24",
-	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1')]",
+	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1')]"
   },
   "resources": [
     {
