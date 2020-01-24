@@ -36,7 +36,12 @@ steps:
         #Start-Job -InputObject $_ -ScriptBlock { 
           Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
           Write-Host "Removing Locks"
-          Get-AzResource -ResourceGroup $Input.ResourceGroupName |ForEach{Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName}|Remove-AzResourceLock -Force
+          Get-AzResource -ResourceGroup $Input.ResourceGroupName |ForEach{
+            Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName}|ForEach{
+              Write-Host $_.ResourceType "->" $_.ResourceName
+              $_ | Remove-AzResourceLock -Force
+            }
+          }
           Write-Host "Removing RG"
           $Input | Remove-AzResourceGroup -Force 
           Write-Host "Done"
