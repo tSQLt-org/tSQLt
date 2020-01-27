@@ -103,17 +103,27 @@ steps:
 
 
 
-- task: AzureDevTestLabsCreateVM@3
+#- task: AzureDevTestLabsCreateVM@3
+#  name: CreateVM
+#  condition: and(succeeded(), eq(variables['CreateNewVm'], '1'))
+#  inputs:
+#    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+#    LabID: /subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/$(DevTestLabRGName)/providers/Microsoft.DevTestLab/labs/$(DevTestLabName)
+#    VirtualMachineName: '$(vmName)'
+#    TemplateFile: 'CI/CreateVMTemplate.json'
+##    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
+#    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -DevTestLabVirtualNetworkResourceId ''$(DevTestLabVirtualNetworkResourceId)'' -DevTestLabVirtualNetworkName ''$(DevTestLabVirtualNetworkName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
+
+- task: AzurePowerShell@5
   name: CreateVM
-  condition: and(succeeded(), eq(variables['CreateNewVm'], '1'))
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    LabID: /subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/$(DevTestLabRGName)/providers/Microsoft.DevTestLab/labs/$(DevTestLabName)
-    VirtualMachineName: '$(vmName)'
-    TemplateFile: 'CI/CreateVMTemplate.json'
-#    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
-    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -DevTestLabVirtualNetworkResourceId ''$(DevTestLabVirtualNetworkResourceId)'' -DevTestLabVirtualNetworkName ''$(DevTestLabVirtualNetworkName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
-
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Write-Host 'Creating New VM'
+      New-AzResource -Name "$(vmName)"  -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkResourceId "$(DevTestLabVirtualNetworkResourceId)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
+      Write-Host 'Finished Creating New VM'
 
 - script: echo %CREATEVM_LABVMID%
 
