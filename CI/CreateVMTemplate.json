@@ -96,7 +96,7 @@
         "storageType": "Standard",
         "allowClaim": true,
 		"networkInterface": {
-		    "virtualNetworkId":"[parameters('DevTestLabVirtualNetworkResourceId')]",
+		    "virtualNetworkId":"[resourceId('Microsoft.Network/virtualNetworks',parameters('DevTestLabVirtualNetworkName'))]",
 			"sharedPublicIpAddressConfiguration": {
 				"inboundNatRules": [
 				  {
