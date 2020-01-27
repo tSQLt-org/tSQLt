@@ -14,6 +14,10 @@
       "type": "string",
       "defaultValue": ""
     },
+    "DevTestLabVirtualNetworkName": {
+      "type": "string",
+      "defaultValue": ""
+    },
     "size": {
       "type": "string",
       "defaultValue": "Standard_B2s"
