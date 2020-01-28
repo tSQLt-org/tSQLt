@@ -44,7 +44,8 @@ steps:
 
 
 - task: AzurePowerShell@5
-  name: Create_DevTest_Lab_Resource_Group
+  name: Create_Resource_Group
+  condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
   inputs:
     azurePowerShellVersion: 'LatestVersion'
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -54,6 +55,7 @@ steps:
 
 - task: AzurePowerShell@5
   name: Create_DevTest_Lab_With_Other_Resources
+  condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
   inputs:
     azurePowerShellVersion: 'LatestVersion'
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
