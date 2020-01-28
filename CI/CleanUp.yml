@@ -9,6 +9,13 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 
+schedules:
+- cron: "0 3 * * *"
+  displayName: Daily 3AM cleanup
+  branches:
+    include:
+    - CITesting
+
 variables:
   GetResourceGroupsStatement: 'Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"}'
 
