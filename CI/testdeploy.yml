@@ -23,7 +23,7 @@ steps:
     Inline: |
       Write-Host 'Creating New VM'
       $DevTestLabVirtualNetworkResourceId = (Get-AzResource -ResourceGroupName "tSQLtCI_DevTestLab_20200128_682_RG" -ResourceType "Microsoft.Network/virtualNetworks").ResourceId
-            $DevTestLabVirtualNetworkName = (Get-AzResource -ResourceGroupName "tSQLtCI_DevTestLab_20200128_682_RG" -ResourceType "Microsoft.Network/virtualNetworks").Name
+      $DevTestLabVirtualNetworkName = (Get-AzResource -ResourceGroupName "tSQLtCI_DevTestLab_20200128_682_RG" -ResourceType "Microsoft.Network/virtualNetworks").Name
 
       #New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkResourceId "$(DevTestLabVirtualNetworkResourceId)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
       New-AzResourceGroupDeployment -ResourceGroupName "tSQLtCI_DevTestLab_20200128_682_RG" -TemplateFile "CI/CreateVMTemplate.json" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$DevTestLabVirtualNetworkName" -DevTestLabVirtualNetworkResourceId "$DevTestLabVirtualNetworkResourceId" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
