@@ -122,7 +122,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Write-Host 'Creating New VM'
-      New-AzResource -Name "$(vmName)"  -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkResourceId "$(DevTestLabVirtualNetworkResourceId)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
+      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkResourceId "$(DevTestLabVirtualNetworkResourceId)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
       Write-Host 'Finished Creating New VM'
 
 - script: echo %CREATEVM_LABVMID%
