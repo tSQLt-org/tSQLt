@@ -123,7 +123,6 @@ steps:
     Inline: |
       Write-Host 'Creating New VM'
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVirtualNetworkName)" -DevTestLabVirtualNetworkResourceId "$(DevTestLabVirtualNetworkResourceId)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
-      #New-AzResourceGroupDeployment -ResourceGroupName "tSQLtCI_DevTestLab_20200128_682_RG" -TemplateFile "CI/CreateVMTemplate.json" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVirtualNetworkName)" -DevTestLabVirtualNetworkResourceId "$(DevTestLabVirtualNetworkResourceId)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
       Write-Host 'Finished Creating New VM'
 
 - script: echo %CREATEVM_LABVMID%
