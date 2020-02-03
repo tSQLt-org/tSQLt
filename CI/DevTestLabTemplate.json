@@ -30,6 +30,7 @@
 				  "subnetOverrides": [
 				    {
 					  "resourceId":"[resourceid('Microsoft.Network/virtualNetworks/subnets',variables('newLabVirtualNetworkName'),variables('newLabVirtualNetworkSubNetName'))]",
+					  "labSubnetName":"[variables('newLabVirtualNetworkSubNetName')]",
 					  "useInVmCreationPermission": "Allow",
 					  "usePublicIpAddressPermission": "Allow",
 
