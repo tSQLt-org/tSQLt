@@ -74,6 +74,7 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "notes": "[parameters('templateDescription')]",
+		"labVirtualNetworkId":"[resourceId('Microsoft.Network/virtualNetworks',parameters('DevTestLabVirtualNetworkName'))]",
         "galleryImageReference": {
           "offer": "[parameters('template')]",
           "publisher": "[parameters('templatePublisher')]",
