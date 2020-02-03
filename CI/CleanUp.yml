@@ -15,6 +15,7 @@ schedules:
   branches:
     include:
     - CITesting
+  always: true
 
 variables:
   GetResourceGroupsStatement: 'Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"}'
