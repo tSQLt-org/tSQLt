@@ -10,11 +10,11 @@
       "type": "string",
       "defaultValue": "tsqltci_devtestlab_3"
     },
-    "DevTestLabVirtualNetworkResourceId": {
+    "DevTestLabVirtualNetworkName": {
       "type": "string",
       "defaultValue": ""
     },
-    "DevTestLabVirtualNetworkName": {
+    "DevTestLabVirtualNetworkSubNetName": {
       "type": "string",
       "defaultValue": ""
     },
@@ -75,6 +75,7 @@
       "properties": {
         "notes": "[parameters('templateDescription')]",
 		"labVirtualNetworkId":"[resourceId('Microsoft.Network/virtualNetworks',parameters('DevTestLabVirtualNetworkName'))]",
+		"labSubnetName":"[parameters('DevTestLabVirtualNetworkSubNetName')]",
         "galleryImageReference": {
           "offer": "[parameters('template')]",
           "publisher": "[parameters('templatePublisher')]",
