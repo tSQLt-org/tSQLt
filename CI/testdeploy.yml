@@ -78,7 +78,7 @@ steps:
       Write-Host "DevTestLabStorageAccount: >>>" $DevTestLabStorageAccount "<<<"
       Write-Host "##vso[task.setvariable variable=DevTestLabStorageAccount;]$DevTestLabStorageAccount"
       Write-Host '-------------'
-      $TempDevTestLabVirtualNetwork = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks")
+      $TempDevTestLabVirtualNetwork = @(Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks")[0]
       $DevTestLabVirtualNetworkName = $TempDevTestLabVirtualNetwork.Name
       Write-Host "DevTestLabVirtualNetworkName: >>>" $DevTestLabVirtualNetworkName "<<<"
       Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkName;]$DevTestLabVirtualNetworkName"
