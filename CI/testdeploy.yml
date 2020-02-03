@@ -83,7 +83,7 @@ steps:
       Write-Host "DevTestLabVirtualNetworkName: >>>" $DevTestLabVirtualNetworkName "<<<"
       Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkName;]$DevTestLabVirtualNetworkName"
       Write-Host '-------------'
-      $DevTestLabVirtualNetworkSubNetName = $TempDevTestLabVirtualNetwork.properties.allowedSubnets[0].labSubnetName
+      $DevTestLabVirtualNetworkSubNetName = @(Get-AzVirtualNetwork -Name "$TempDevTestLabVirtualNetwork" -ResourceGroupName "$(DevTestLabRGName)")[0].SubNets[0].Name
       Write-Host "DevTestLabVirtualNetworkSubNetName: >>>" $DevTestLabVirtualNetworkSubNetName "<<<"
       Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkSubNetName;]$DevTestLabVirtualNetworkSubNetName"
       Write-Host '-------------'
