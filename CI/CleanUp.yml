@@ -54,6 +54,8 @@ steps:
       $RGTBD = (ConvertFrom-JSON $(skipsubsequent))
       $RGTBD | FT
 
+
+
 - task: AzurePowerShell@5
   condition: false
   name: Delete_RGs
