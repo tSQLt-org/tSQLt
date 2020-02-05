@@ -42,7 +42,8 @@ steps:
       Start-Sleep -s 15
       Write-Host '-----------------------------'
       Write-Host 'Setting Variable'
-      Write-Host '##vso[task.setvariable variable=skipsubsequent;isOutput=true]' (ConvertTo-JSON $RGTBD)
+      $SerializedListOfRGs=(ConvertTo-JSON -AsArray -InputObject $RGTBD)
+      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs;isOutput=true]$SerializedListOfRGs"
 
 - task: AzurePowerShell@5
   name: print_stuff
@@ -51,7 +52,7 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
-      $RGTBD = (ConvertFrom-JSON $(skipsubsequent))
+      $RGTBD = (ConvertFrom-JSON $(SerializedListOfRGs))
       $RGTBD | FT
 
 
