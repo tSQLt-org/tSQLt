@@ -39,7 +39,7 @@ steps:
       }
       Write-Host '-----------------------------'
       Write-Host 'Sleeping for 15 seconds'
-      Start-Sleep -s 15
+      #Start-Sleep -s 15
       Write-Host '-----------------------------'
       Write-Host 'Setting Variable'
       $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGTBD -AsArray)
