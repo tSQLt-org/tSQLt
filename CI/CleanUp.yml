@@ -54,7 +54,11 @@ steps:
       $RGTBD = (ConvertFrom-JSON $(skipsubsequent))
       $RGTBD | FT
 
-
+- task: ManualIntervention@8
+  timeoutInMinutes: 1
+  inputs:
+    instructions: 'press key'
+    onTimeout: 'resume'
 
 - task: AzurePowerShell@5
   condition: false
