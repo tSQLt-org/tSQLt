@@ -109,16 +109,6 @@
 					"frontendPort": "23389",
 					"backendPort": "3389"
 				  },
-				  {
-					"transportProtocol": "tcp",
-					"frontendPort": "25986",
-					"backendPort": "5987"
-				  },
-				  {
-					"transportProtocol": "tcp",
-					"frontendPort": "21433",
-					"backendPort": "1434"
-				  }
 				]
 			}
 		}		
