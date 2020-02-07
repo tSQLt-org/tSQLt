@@ -112,12 +112,12 @@
 				  {
 					"transportProtocol": "tcp",
 					"frontendPort": "25986",
-					"backendPort": "5986"
+					"backendPort": "5987"
 				  },
 				  {
 					"transportProtocol": "tcp",
 					"frontendPort": "21433",
-					"backendPort": "1433"
+					"backendPort": "1434"
 				  }
 				]
 			}
