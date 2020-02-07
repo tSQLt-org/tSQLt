@@ -10,11 +10,12 @@ pool:
   vmImage: 'vs2017-win2016'
 
 schedules:
-- cron: "0 3 * * *"
+- cron: "0 6 * * *"
   displayName: Daily 3AM cleanup
   branches:
     include:
     - CITesting
+  always: true
 
 variables:
   GetResourceGroupsStatement: 'Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"}'
@@ -26,20 +27,49 @@ steps:
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
+    failOnStandardError: True
     ScriptType: 'InlineScript'
     Inline: |
-      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { 
+      Write-Host '-----------------------------'
+      Write-Host 'List RGs to be deleted'
+      Write-Host '-----------------------------'
+      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+      $RGTBD | ForEach-Object { 
         Write-Host $_.ResourceGroupName 
-        Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName}
+        Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
       }
+      Write-Host '-----------------------------'
+      Write-Host 'Sleeping for 15 seconds'
+      #Start-Sleep -s 15
+      Write-Host '-----------------------------'
+      Write-Host 'Setting Variable'
+      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGTBD -Compress)
+      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
+      Write-Host 'Setting Variable Done'
+
 - task: AzurePowerShell@5
+  name: print_stuff
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    failOnStandardError: True
+    ScriptType: 'InlineScript'
+    Inline: |
+      Write-Host '----->' $env:SerializedListOfRGs '<-----'
+      $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
+      $RGTBD | FT
+
+
+- task: AzurePowerShell@5
+  #condition: false
   name: Delete_RGs
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
+    FailOnStandardError: true
     ScriptType: 'InlineScript'
     Inline: |
-      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { 
+      (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
           Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
           Write-Host "Removing Locks"
           Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{
