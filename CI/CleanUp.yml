@@ -43,6 +43,7 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'Setting Variable'
       $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGTBD -AsArray)
+      Write-Host 'Setting Variable2'
       Write-Host "##vso[task.setvariable variable=SerializedListOfRGs;isOutput=true]$SerializedListOfRGs"
 
 - task: AzurePowerShell@5
