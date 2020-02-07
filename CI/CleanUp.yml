@@ -66,7 +66,7 @@ steps:
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
-    failOnStandardError: true
+    FailOnStandardError: true
     ScriptType: 'InlineScript'
     Inline: |
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
