@@ -55,6 +55,7 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
+      Write-Host '----->' $env:SerializedListOfRGsI '<-----'
       $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGsI)
       $RGTBD | FT
 
