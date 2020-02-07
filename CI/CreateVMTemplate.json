@@ -98,7 +98,7 @@
             ]
           }
         ],
-        "disallowPublicIpAddress": false,
+        "disallowPublicIpAddress": true,
         "storageType": "Standard",
         "allowClaim": true,
 		"networkInterface": {
