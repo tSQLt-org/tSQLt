@@ -43,13 +43,13 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'Setting Variable'
       $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGTBD)
-      Write-Host 'Setting Variable2'
-      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs;isOutput=true]$SerializedListOfRGs"
+      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
+      Write-Host 'Setting Variable Done'
 
 - task: AzurePowerShell@5
   name: print_stuff
   env: 
-    SerializedListOfRGsI: $env:SerializedListOfRGs
+    SerializedListOfRGsI: $SerializedListOfRGs
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
