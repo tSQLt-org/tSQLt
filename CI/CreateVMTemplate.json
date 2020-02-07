@@ -102,13 +102,22 @@
         "storageType": "Standard",
         "allowClaim": true,
 		"networkInterface": {
-		    "virtualNetworkId":"[resourceId('Microsoft.Network/virtualNetworks',parameters('DevTestLabVirtualNetworkName'))]",
 			"sharedPublicIpAddressConfiguration": {
 				"inboundNatRules": [
 				  {
 					"transportProtocol": "tcp",
 					"frontendPort": "23389",
 					"backendPort": "3389"
+				  },
+				  {
+					"transportProtocol": "tcp",
+					"frontendPort": "25986",
+					"backendPort": "5986"
+				  },
+				  {
+					"transportProtocol": "tcp",
+					"frontendPort": "21433",
+					"backendPort": "1433"
 				  }
 				]
 			}
