@@ -140,7 +140,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Write-Host 'Creating New VM'
-      $XXXXXXXXXXXX = $(DevTestLabVirtualNetworkSubNetName)
+      $XXXXXXXXXXXX = $env:DevTestLabVirtualNetworkSubNetName
       Write-Host 'XXXXXXXXXXXX:' $XXXXXXXXXXXX
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVirtualNetworkName)" -DevTestLabVirtualNetworkSubNetName "$XXXXXXXXXXXX" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
       Write-Host 'Finished Creating New VM'
