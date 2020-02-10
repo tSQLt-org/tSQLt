@@ -117,7 +117,7 @@
 	{
 	  "type": "Microsoft.Compute/virtualMachines/extensions",
 	  "name": "Microsoft.Powershell/DSC",
-	  "apiVersion": "2018-06-30",
+	  "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
 	  "dependsOn": [
         "[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
