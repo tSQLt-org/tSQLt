@@ -57,6 +57,10 @@
     "DSCSAS": {
       "type": "string",
       "defaultValue": ""
+    },
+    "ContactEmail": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
   "variables": {
@@ -151,6 +155,30 @@
 	      ]
 		}
 	  }
+	},
+	{
+		"type": "microsoft.devtestlab/labs/virtualmachines/schedules",
+		"apiVersion": "2018-09-15",
+		"name": "[concat(parameters('labName'), '/', parameters('newVMName'),'/labvmsshutdown')]",
+		"location": "[resourceGroup().location]",
+		"dependsOn": [
+		"[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
+		],
+		"properties": {
+			"status": "Enabled",
+			"taskType": "LabVmsShutdownTask",
+			"dailyRecurrence": {
+				"time": "0700"
+			},
+			"timeZoneId": "GMT Standard Time",
+			"notificationSettings": {
+				"status": "Enabled",
+				"timeInMinutes": 30,
+				"emailRecipient": "parameters('ContactEmail')",
+				"notificationLocale": "en"
+			},
+			"targetResourceId": "[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
+		}
 	}
   ],
   "outputs": {
