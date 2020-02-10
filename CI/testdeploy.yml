@@ -3,6 +3,8 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+name: $(Date:yyyyMMdd)$(Rev:-r)-$(Build.BuildId)
+
 trigger:
 - CITesting
 
