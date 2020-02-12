@@ -53,7 +53,9 @@ steps:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
     Inline: |
+      Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
       New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
+      Write-Host 'Done.'
 
 - task: AzurePowerShell@5
   name: Create_DevTest_Lab_With_Other_Resources
