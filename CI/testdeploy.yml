@@ -18,7 +18,6 @@ variables:
 steps:
 
 - task: AzurePowerShell@4
-  name: Create_Resource_Group
   condition: true
   inputs:
     azurePowerShellVersion: 'LatestVersion'
@@ -28,7 +27,6 @@ steps:
       Get-Location | FT
 
 - task: AzurePowerShell@5
-  name: Create_Resource_Group
   condition: true
   inputs:
     azurePowerShellVersion: 'LatestVersion'
