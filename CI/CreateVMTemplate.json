@@ -102,24 +102,10 @@
             ]
           }
         ],
-        "disallowPublicIpAddress": true,
+        "disallowPublicIpAddress": false,
         "storageType": "Standard",
         "allowClaim": true,
 		"networkInterface": {
-			"sharedPublicIpAddressConfiguration": {
-				"inboundNatRules": [
-				  {
-					"transportProtocol": "tcp",
-					"frontendPort": "23389",
-					"backendPort": "3389"
-				  },
-				  {
-					"transportProtocol": "tcp",
-					"frontendPort": "21433",
-					"backendPort": "1433"
-				  }
-				]
-			}
 		}		
       }
     },
