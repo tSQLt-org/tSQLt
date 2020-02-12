@@ -62,7 +62,7 @@ steps:
       Write-Host 'Done.'
 
 
-- task: AzurePowerShell@4
+- task: AzurePowerShell@5
   name: Create_DevTest_Lab_With_Other_Resources
   condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
   inputs:
