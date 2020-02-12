@@ -44,7 +44,7 @@ steps:
       Get-Location | FT
 
 - task: CmdLine@2
-  condition: true
+  condition: false
   inputs:
     script: |
       echo end pipeline here      
@@ -88,7 +88,7 @@ steps:
       Write-Host 'Done.'
 
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   name: Create_DevTest_Lab_With_Other_Resources
   condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
   inputs:
@@ -96,6 +96,7 @@ steps:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
     Inline: |
+      Set-Location $(Build.Repository.LocalPath)
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"
 
 - task: AzurePowerShell@4
@@ -154,6 +155,7 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
+      Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
       $XXXXXXXXXXXX = $env:DevTestLabVirtualNetworkSubNetName
       Write-Host 'XXXXXXXXXXXX:' $XXXXXXXXXXXX
