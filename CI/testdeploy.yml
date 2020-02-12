@@ -24,7 +24,6 @@ steps:
       echo end pipeline here      
       echx
 
-
 - task: PowerShell@2
   name: Generate_DevTest_Lab_Name
   inputs:
@@ -36,7 +35,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
       Write-Host 'DevTestLabName: ' $DevTestLabName
       Write-Host "##vso[task.setvariable variable=DevTestLabName;]$DevTestLabName"
-
 
 - task: AzureResourceManagerTemplateDeployment@3
   name: Validate_VM_ArmTemplate
@@ -50,8 +48,6 @@ steps:
     templateLocation: 'Linked artifact'
     csmFile: 'CI/DevTestLabTemplate.json'
     deploymentMode: 'Validation'
-
-
 
 - task: AzurePowerShell@4
   name: Create_Resource_Group
@@ -103,13 +99,6 @@ steps:
       Write-Host 'Currently Existing tSQLtCI Resource Groups:'
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
 
-#- task: PowerShell@2
-#  name: Confirm_Variable_Was_Written
-#  inputs:
-#    targetType: 'inline'
-#    script: |
-#      Write-Host "DevTestLabStorageAccount: >>>" $(DevTestLabStorageAccount) "<<<"
-
 - task: ArchiveFiles@2
   name: Build_DSC_Zip_File
   inputs:
@@ -131,19 +120,6 @@ steps:
     outputStorageUri: 'DSC_Storage_URI'
     outputStorageContainerSasToken: 'DSC_Storage_SAS_Token'
     sasTokenTimeOutInMinutes: '60'
-
-
-
-#- task: AzureDevTestLabsCreateVM@3
-#  name: CreateVM
-#  condition: and(succeeded(), eq(variables['CreateNewVm'], '1'))
-#  inputs:
-#    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-#    LabID: /subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/$(DevTestLabRGName)/providers/Microsoft.DevTestLab/labs/$(DevTestLabName)
-#    VirtualMachineName: '$(vmName)'
-#    TemplateFile: 'CI/CreateVMTemplate.json'
-##    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
-#    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -DevTestLabVirtualNetworkResourceId ''$(DevTestLabVirtualNetworkResourceId)'' -DevTestLabVirtualNetworkName ''$(DevTestLabVirtualNetworkName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
 
 - task: AzurePowerShell@4
   name: CreateVM
