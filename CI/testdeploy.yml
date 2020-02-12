@@ -25,6 +25,10 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Get-Location | FT
+      Set-Location $(Agent.BuildDirectory)
+      Get-Location | FT
+      Set-Location $(Build.Repository.LocalPath)
+      Get-Location | FT
 
 - task: AzurePowerShell@5
   condition: true
@@ -33,6 +37,10 @@ steps:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
     Inline: |
+      Get-Location | FT
+      Set-Location $(Agent.BuildDirectory)
+      Get-Location | FT
+      Set-Location $(Build.Repository.LocalPath)
       Get-Location | FT
 
 - task: CmdLine@2
