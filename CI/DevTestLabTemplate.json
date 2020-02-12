@@ -32,7 +32,7 @@
 					{
 					  "resourceId": "[resourceid('Microsoft.Network/virtualNetworks/subnets',variables('newLabVirtualNetworkName'),variables('newLabVirtualNetworkSubNetName'))]",
 					  "labSubnetName": "[variables('newLabVirtualNetworkSubNetName')]",
-					  "allowPublicIp": "true"
+					  "allowPublicIp": "Allow"
 					}
 				  ],
 				  "subnetOverrides": [
