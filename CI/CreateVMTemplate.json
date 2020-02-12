@@ -72,7 +72,7 @@
   },
   "resources": [
     {
-      "apiVersion": "2018-10-15-preview",
+      "apiVersion": "2018-09-15",
       "type": "Microsoft.DevTestLab/labs/virtualmachines",
       "name": "[variables('vmName')]",
       "location": "[resourceGroup().location]",
@@ -113,6 +113,11 @@
 					"frontendPort": "23389",
 					"backendPort": "3389"
 				  },
+				  {
+					"transportProtocol": "tcp",
+					"frontendPort": "21433",
+					"backendPort": "1433"
+				  }
 				]
 			}
 		}		
@@ -120,7 +125,7 @@
     },
 	{
 	  "type": "Microsoft.Compute/virtualMachines/extensions",
-	  "name": "Microsoft.Powershell.DSC",
+	  "name": "Microsoft.Powershell/DSC",
 	  "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
 	  "dependsOn": [
