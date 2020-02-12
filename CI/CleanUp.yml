@@ -22,7 +22,7 @@ variables:
 
 steps:
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   name: List_RGs_To_Be_Deleted
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -47,7 +47,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
       Write-Host 'Setting Variable Done'
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   name: print_stuff
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -60,7 +60,7 @@ steps:
       $RGTBD | FT
 
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   #condition: false
   name: Delete_RGs
   inputs:
