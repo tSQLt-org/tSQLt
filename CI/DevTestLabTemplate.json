@@ -21,12 +21,20 @@
 			{
 			  "apiVersion": "2018-09-15",
 			  "name": "[variables('newLabVirtualNetworkName')]",
-			  "type": "virtualNetworks",
+			  "type": "Microsoft.DevTestLab/labs/virtualNetworks",
+			  "location": "[resourceGroup().location]",
 			  "dependsOn": [
 				"[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
 			  ],
 			  "properties": 
                 {
+				  "allowedSubnets": [
+					{
+					  "resourceId": "[resourceid('Microsoft.Network/virtualNetworks/subnets',variables('newLabVirtualNetworkName'),variables('newLabVirtualNetworkSubNetName'))]",
+					  "labSubnetName": "[variables('newLabVirtualNetworkSubNetName')]",
+					  "allowPublicIp": "true"
+					}
+				  ],
 				  "subnetOverrides": [
 				    {
 					  "resourceId":"[resourceid('Microsoft.Network/virtualNetworks/subnets',variables('newLabVirtualNetworkName'),variables('newLabVirtualNetworkSubNetName'))]",
