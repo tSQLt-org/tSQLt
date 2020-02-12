@@ -17,52 +17,8 @@ variables:
 
 steps:
 
-- task: AzurePowerShell@4
-  condition: true
-  inputs:
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      echo end pipeline here      
-      echx
-
-- task: AzurePowerShell@5
-  condition: true
-  inputs:
-    errorActionPreference: 'stop'
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      echo end pipeline here      
-      echx
-
-- task: AzurePowerShell@5
-  condition: true
-  inputs:
-    failOnStandardError: true
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      echo end pipeline here      
-      echx
-
-- task: AzurePowerShell@5
-  condition: true
-  inputs:
-    errorActionPreference: 'stop'
-    failOnStandardError: true
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      echo end pipeline here      
-      echx
-
 - task: CmdLine@2
-  condition: true
+  condition: false
   inputs:
     script: |
       echo end pipeline here      
@@ -97,7 +53,7 @@ steps:
 
 
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   name: Create_Resource_Group
   condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
   inputs:
@@ -110,7 +66,7 @@ steps:
       Write-Host 'Done.'
 
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   name: Create_DevTest_Lab_With_Other_Resources
   condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
   inputs:
@@ -120,7 +76,7 @@ steps:
     Inline: |
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   name: Get_DevTest_Lab_Environment_Variables
   inputs:
     azurePowerShellVersion: 'LatestVersion'
@@ -189,7 +145,7 @@ steps:
 ##    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -password (ConvertTo-SecureString -String ''$(password)'' -AsPlainText -Force)'
 #    ParameterOverrides: '-newVMName ''$(vmName)'' -userName ''$(userName)'' -DevTestLabVirtualNetworkResourceId ''$(DevTestLabVirtualNetworkResourceId)'' -DevTestLabVirtualNetworkName ''$(DevTestLabVirtualNetworkName)'' -password ''qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'' -DSCURI ''$(DSC_Storage_URI)'' -DSCSAS ''$(DSC_Storage_SAS_Token)'' '
 
-- task: AzurePowerShell@5
+- task: AzurePowerShell@4
   name: CreateVM
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
