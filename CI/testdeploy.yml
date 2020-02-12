@@ -17,8 +17,28 @@ variables:
 
 steps:
 
+- task: AzurePowerShell@4
+  name: Create_Resource_Group
+  condition: true
+  inputs:
+    azurePowerShellVersion: 'LatestVersion'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Get-Location | FT
+
+- task: AzurePowerShell@5
+  name: Create_Resource_Group
+  condition: true
+  inputs:
+    azurePowerShellVersion: 'LatestVersion'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Get-Location | FT
+
 - task: CmdLine@2
-  condition: false
+  condition: true
   inputs:
     script: |
       echo end pipeline here      
