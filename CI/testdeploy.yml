@@ -54,7 +54,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
-      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
+      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Confirm
       Write-Host 'Done.'
 
 - task: CmdLine@2
