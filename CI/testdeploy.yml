@@ -17,6 +17,58 @@ variables:
 
 steps:
 
+- task: AzurePowerShell@4
+  condition: true
+  inputs:
+    azurePowerShellVersion: 'LatestVersion'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      echo end pipeline here      
+      echx
+
+- task: AzurePowerShell@5
+  condition: true
+  inputs:
+    errorActionPreference: 'stop'
+    azurePowerShellVersion: 'LatestVersion'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      echo end pipeline here      
+      echx
+
+- task: AzurePowerShell@5
+  condition: true
+  inputs:
+    failOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      echo end pipeline here      
+      echx
+
+- task: AzurePowerShell@5
+  condition: true
+  inputs:
+    errorActionPreference: 'stop'
+    failOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      echo end pipeline here      
+      echx
+
+- task: CmdLine@2
+  condition: true
+  inputs:
+    script: |
+      echo end pipeline here      
+      echx
+
+
 - task: PowerShell@2
   name: Generate_DevTest_Lab_Name
   inputs:
@@ -57,22 +109,6 @@ steps:
       New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
       Write-Host 'Done.'
 
-- task: AzurePowerShell@5
-  condition: true
-  inputs:
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      echo end pipeline here      
-      echx
-
-- task: CmdLine@2
-  condition: true
-  inputs:
-    script: |
-      echo end pipeline here      
-      echx
 
 - task: AzurePowerShell@5
   name: Create_DevTest_Lab_With_Other_Resources
