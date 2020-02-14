@@ -1,75 +1,126 @@
 {
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "newLabName": {
-      "type": "string",
-      "defaultValue": "tsqltci_devtestlab_10"
-    }
- },
-  "variables": {
-    "newLabVirtualNetworkName": "[concat(parameters('newLabName'),'_VNet')]",
-    "newLabVirtualNetworkSubNetName": "[concat(variables('newLabVirtualNetworkName'),'Subnet')]"
-  },
-	"resources": [
-		{
-		  "apiVersion": "2018-09-15",
-		  "type": "Microsoft.DevTestLab/labs",
-		  "name": "[parameters('newLabName')]",
-		  "location": "[resourceGroup().location]",
-		  "resources": [
-			{
-			  "apiVersion": "2018-09-15",
-			  "name": "[variables('newLabVirtualNetworkName')]",
-			  "type": "virtualNetworks",
-			  "location": "[resourceGroup().location]",
-			  "dependsOn": [
-				"[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
-			  ],
-			  "properties": 
-                {
-				  "allowedSubnets": [
-					{
-					  "resourceId": "[resourceid('Microsoft.Network/virtualNetworks/subnets',variables('newLabVirtualNetworkName'),variables('newLabVirtualNetworkSubNetName'))]",
-					  "labSubnetName": "[variables('newLabVirtualNetworkSubNetName')]",
-					  "allowPublicIp": "Allow"
-					}
-				  ],
-				  "subnetOverrides": [
-				    {
-					  "resourceId":"[resourceid('Microsoft.Network/virtualNetworks/subnets',variables('newLabVirtualNetworkName'),variables('newLabVirtualNetworkSubNetName'))]",
-					  "labSubnetName":"[variables('newLabVirtualNetworkSubNetName')]",
-					  "useInVmCreationPermission": "Allow",
-					  "usePublicIpAddressPermission": "Allow",
-
-					  "sharedPublicIpAddressConfiguration": 
-					  {
-					    "allowedPorts": [
-						  {
-						    "transportProtocol": "Tcp",
-						    "backendPort": "5986"
-						  },
-						  {
-						    "transportProtocol": "Tcp",
-						    "backendPort": "1433"
-						  }
-					    ]
-
-					  }
-
-				    }
-
-				  ]
-				}
-			  
-			}
-		  ]
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+		"newLabName": {
+			"type": "string",
+			"defaultValue": "tsqltci_default_devtestlab"
+		},
+		"VNetId": {
+			"type": "string",
+			"defaultValue": ""
+		},
+		"SubNetName": {
+			"type": "string",
+			"defaultValue": ""
 		}
-	  ],
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "microsoft.devtestlab/labs",
+            "apiVersion": "2018-09-15",
+            "name": "[parameters('newLabName')]",
+            "location": "eastus2",
+            "properties": {
+                "labStorageType": "Premium",
+                "mandatoryArtifactsResourceIdsLinux": [],
+                "mandatoryArtifactsResourceIdsWindows": [],
+                "premiumDataDisks": "Disabled",
+                "environmentPermission": "Reader",
+                "announcement": {
+                    "enabled": "Disabled",
+                    "expired": false
+                },
+                "support": {
+                    "enabled": "Disabled"
+                }
+            }
+        },
+        {
+            "type": "microsoft.devtestlab/labs/artifactsources",
+            "apiVersion": "2018-09-15",
+            "name": "[concat(parameters('newLabName'), '/public environment repo')]",
+            "dependsOn": [
+                "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
+            ],
+            "properties": {
+                "displayName": "Public Environment Repo",
+                "uri": "https://github.com/Azure/azure-devtestlab.git",
+                "sourceType": "GitHub",
+                "armTemplateFolderPath": "/Environments",
+                "branchRef": "master",
+                "status": "Enabled"
+            }
+        },
+        {
+            "type": "microsoft.devtestlab/labs/artifactsources",
+            "apiVersion": "2018-09-15",
+            "name": "[concat(parameters('newLabName'), '/public repo')]",
+            "dependsOn": [
+                "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
+            ],
+            "properties": {
+                "displayName": "Public Artifact Repo",
+                "uri": "https://github.com/Azure/azure-devtestlab.git",
+                "sourceType": "GitHub",
+                "folderPath": "/Artifacts",
+                "branchRef": "master",
+                "status": "Enabled"
+            }
+        },
+        {
+            "type": "microsoft.devtestlab/labs/schedules",
+            "apiVersion": "2018-09-15",
+            "name": "[concat(parameters('newLabName'), '/labvmsshutdown')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
+            ],
+            "properties": {
+                "status": "Enabled",
+                "taskType": "LabVmsShutdownTask",
+                "dailyRecurrence": {
+                    "time": "0100"
+                },
+                "timeZoneId": "Eastern Standard Time",
+                "notificationSettings": {
+                    "status": "Disabled",
+                    "timeInMinutes": 30
+                }
+            }
+        },
+        {
+            "type": "microsoft.devtestlab/labs/virtualnetworks",
+            "apiVersion": "2018-09-15",
+            "name": "[concat(parameters('newLabName'), '/tsqltci_devtestlab_20200214_868_vnet0001')]",
+            "dependsOn": [
+                "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
+            ],
+            "properties": {
+                "allowedSubnets": [
+                    {
+                        "resourceId": "[concat(parameters('VNetId'), '/subnets/', parameters('SubNetName') )]",
+                        "labSubnetName": "[parameters('SubNetName')]",
+                        "allowPublicIp": "Allow"
+                    }
+                ],
+                "externalProviderResourceId": "[parameters('VNetId')]",
+                "subnetOverrides": [
+                    {
+                        "resourceId": "[concat(parameters('VNetId'), '/subnets/', parameters('SubNetName') )]",
+                        "labSubnetName": "[parameters('SubNetName')]",
+                        "useInVmCreationPermission": "Allow",
+                        "usePublicIpAddressPermission": "Allow"
+                    }
+                ]
+            }
+        }
+    ],
 	"outputs": {
-    "labId": {
-      "type": "string",
-      "value": "[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
+      "labId": {
+        "type": "string",
+        "value": "[resourceId('Microsoft.DevTestLab/labs', parameters('newLabName'))]"
+      }
     }
-  }
 }
