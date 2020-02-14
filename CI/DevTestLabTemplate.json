@@ -6,7 +6,7 @@
 			"type": "string",
 			"defaultValue": "tsqltci_default_devtestlab"
 		},
-		"VNetId": {
+		"VNetName": {
 			"type": "string",
 			"defaultValue": ""
 		},
@@ -100,15 +100,15 @@
             "properties": {
                 "allowedSubnets": [
                     {
-                        "resourceId": "[concat(parameters('VNetId'), '/subnets/', parameters('SubNetName') )]",
+                        "resourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',(parameters('VNetName'), parameters('SubNetName') )]",
                         "labSubnetName": "[parameters('SubNetName')]",
                         "allowPublicIp": "Allow"
                     }
                 ],
-                "externalProviderResourceId": "[parameters('VNetId')]",
+                "externalProviderResourceId": "[resourceId('Microsoft.Network/virtualNetworks',(parameters('VNetName'))]",
                 "subnetOverrides": [
                     {
-                        "resourceId": "[concat(parameters('VNetId'), '/subnets/', parameters('SubNetName') )]",
+                        "resourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',(parameters('VNetName'), parameters('SubNetName') )]",
                         "labSubnetName": "[parameters('SubNetName')]",
                         "useInVmCreationPermission": "Allow",
                         "usePublicIpAddressPermission": "Allow"
