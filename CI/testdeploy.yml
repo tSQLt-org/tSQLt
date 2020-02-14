@@ -39,6 +39,18 @@ steps:
       Write-Host 'DevTestLabVNetName: ' $DevTestLabVNetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetName;]$DevTestLabVNetName"
 
+- task: AzurePowerShell@4
+  name: Create_Resource_Group
+  condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
+  inputs:
+    azurePowerShellVersion: 'LatestVersion'
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
+      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
+      Write-Host 'Done.'
+
 - task: AzureResourceManagerTemplateDeployment@3
   name: Validate_VNet_ArmTemplate
   inputs:
@@ -77,18 +89,6 @@ steps:
     templateLocation: 'Linked artifact'
     csmFile: 'CI/CreateVMTemplate.json'
     deploymentMode: 'Validation'
-
-- task: AzurePowerShell@4
-  name: Create_Resource_Group
-  condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
-  inputs:
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
-      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
-      Write-Host 'Done.'
 
 
 - task: AzurePowerShell@4
