@@ -100,8 +100,8 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
-
+      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
+      $VNet |FT
 
 - task: CmdLine@2
   condition: true
@@ -109,7 +109,6 @@ steps:
     script: |
       echo end pipeline here      
       echx
-
 
 
 - task: AzurePowerShell@4
@@ -121,7 +120,17 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"
+      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"" -VNetName "$(DevTestLabVNetName)" -SubNetName "$()"
+
+
+- task: CmdLine@2
+  condition: true
+  inputs:
+    script: |
+      echo end pipeline here      
+      echx
+
+
 
 - task: AzurePowerShell@4
   name: Get_DevTest_Lab_Environment_Variables
