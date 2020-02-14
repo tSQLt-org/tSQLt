@@ -101,7 +101,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
-      $VNet |FT
+      $VNet.Outputs |FT
 
 - task: CmdLine@2
   condition: true
