@@ -100,15 +100,15 @@
             "properties": {
                 "allowedSubnets": [
                     {
-                        "resourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',(parameters('VNetName'), parameters('SubNetName') )]",
+                        "resourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('VNetName'), parameters('SubNetName') )]",
                         "labSubnetName": "[parameters('SubNetName')]",
                         "allowPublicIp": "Allow"
                     }
                 ],
-                "externalProviderResourceId": "[resourceId('Microsoft.Network/virtualNetworks',(parameters('VNetName'))]",
+                "externalProviderResourceId": "[resourceId('Microsoft.Network/virtualNetworks',parameters('VNetName'))]",
                 "subnetOverrides": [
                     {
-                        "resourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',(parameters('VNetName'), parameters('SubNetName') )]",
+                        "resourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('VNetName'), parameters('SubNetName') )]",
                         "labSubnetName": "[parameters('SubNetName')]",
                         "useInVmCreationPermission": "Allow",
                         "usePublicIpAddressPermission": "Allow"
