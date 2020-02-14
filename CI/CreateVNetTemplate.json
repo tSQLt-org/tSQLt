@@ -8,7 +8,7 @@
         }
     },
     "variables": {
-	    "virtualNetworks_VNet_Subnet_Name": "[concat(parameters('VNet_name'), '_SubNet_01')]"
+	    "virtualNetworks_VNet_Subnet_Name": "[concat(parameters('VNet_name'), '_SubNet_01')]",
 	    "networkSecurityGroups_NSG_name": "[concat(variables('virtualNetworks_VNet_Subnet_Name'), '_NSG_01')]"
 	},
     "resources": [
