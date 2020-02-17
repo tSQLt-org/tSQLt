@@ -49,6 +49,9 @@ BEGIN
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     DECLARE @TestResultId INT;
     DECLARE @PreExecTrancount INT;
+    DECLARE @TempObjectId INT;
+    DECLARE @OrgObjectId INT;
+    DECLARE @FullObjectName NVARCHAR(MAX);
 
     DECLARE @VerboseMsg NVARCHAR(MAX);
     DECLARE @Verbose BIT;
@@ -193,6 +196,18 @@ BEGIN
         END;
     END CATCH
 
+    SELECT @FullObjectName = QUOTENAME(SCHEMA_NAME(O3.schema_id))+'.'+QUOTENAME(O3.name),
+        @TempObjectId = O5.object_id,
+        @OrgObjectId = O4.object_id
+    FROM tSQLt.Private_RenamedObjectLog AS PROL
+    INNER JOIN sys.objects AS O ON O.object_id = PROL.ObjectId
+    INNER JOIN sys.schemas AS S ON S.schema_id = O.schema_id
+    INNER JOIN sys.objects AS O2 ON QUOTENAME(O2.name) = PROL.OriginalName AND O2.schema_id = S.schema_id
+    INNER JOIN sys.objects AS O5 ON O5.parent_object_id = O2.object_id
+    INNER JOIN sys.objects AS O3 ON O3.object_id = O5.object_id
+    INNER JOIN sys.objects AS O4 ON O4.parent_object_id = PROL.ObjectId
+    WHERE O4.type = 'TR';
+
     BEGIN TRY
         ROLLBACK TRAN @TranName;
     END TRY
@@ -233,7 +248,12 @@ BEGIN
                'Error', 
                'TestResult entry is missing; Original outcome: ' + @Result + ', ' + @Msg;
     END    
-      
+
+    IF @TempObjectId IS NOT NULL
+        AND @FullObjectName NOT LIKE '%tSQLt_tempobject_%'
+    BEGIN
+        EXEC tSQLt.SaveTemporaryObjectId @TempObjectId, @OrgObjectId;
+    END
 
     COMMIT;
 
