@@ -102,16 +102,8 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
-      Write-Host ">>>"$DevTestLabVNetSubnetName"<<<"
+      Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
-
-
-- task: CmdLine@2
-  condition: true
-  inputs:
-    script: |
-      echo end pipeline here %DevTestLabVNetSubnetName%     
-      echx
 
 
 - task: AzurePowerShell@4
@@ -123,7 +115,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"" -VNetName "$(DevTestLabVNetName)" -SubNetName "$()"
+      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)"" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)"
 
 
 - task: CmdLine@2
