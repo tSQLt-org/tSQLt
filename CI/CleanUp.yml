@@ -33,7 +33,7 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'List RGs to be deleted'
       Write-Host '-----------------------------'
-      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "Trxxue" -and $_.Tags.Department -eq "tSQLtCI"} 
       $RGTBD | ForEach-Object { 
         Write-Host $_.ResourceGroupName 
         Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
@@ -72,14 +72,19 @@ steps:
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
           Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
           Write-Host "Removing Locks"
-          Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{
-            Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
-              Write-Host $_.ResourceType "->" $_.ResourceName
-              $_ | Remove-AzResourceLock -Force 
+          if($_.ResourceGroupName -ne $null)
+          {
+            Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{
+              Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
+                Write-Host $_.ResourceType "->" $_.ResourceName
+                $_ | Remove-AzResourceLock -Force 
+              }
             }
+            Write-Host "Removing RG";
+            $_ | Remove-AzResourceGroup -Force 
+          }else{
+            Write-Host "Skipped..."
           }
-          Write-Host "Removing RG";
-          $_ | Remove-AzResourceGroup -Force 
           Write-Host "Done" 
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
