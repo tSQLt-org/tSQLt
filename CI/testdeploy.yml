@@ -118,15 +118,6 @@ steps:
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)"
 
 
-- task: CmdLine@2
-  condition: true
-  inputs:
-    script: |
-      echo end pipeline here      
-      echx
-
-
-
 - task: AzurePowerShell@4
   name: Get_DevTest_Lab_Environment_Variables
   inputs:
@@ -142,15 +133,15 @@ steps:
       Write-Host "DevTestLabStorageAccount: >>>" $DevTestLabStorageAccount "<<<"
       Write-Host "##vso[task.setvariable variable=DevTestLabStorageAccount;]$DevTestLabStorageAccount"
       Write-Host '-------------'
-      $TempDevTestLabVirtualNetwork = @(Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks")[0]
-      $DevTestLabVirtualNetworkName = $TempDevTestLabVirtualNetwork.Name
-      Write-Host "DevTestLabVirtualNetworkName: >>>" $DevTestLabVirtualNetworkName "<<<"
-      Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkName;]$DevTestLabVirtualNetworkName"
-      Write-Host '-------------'
-      $DevTestLabVirtualNetworkSubNetName = @(Get-AzVirtualNetwork -Name $TempDevTestLabVirtualNetwork.Name -ResourceGroupName "$(DevTestLabRGName)")[0].SubNets[0].Name
-      Write-Host "DevTestLabVirtualNetworkSubNetName: >>>" $DevTestLabVirtualNetworkSubNetName "<<<"
-      Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkSubNetName;]$DevTestLabVirtualNetworkSubNetName"
-      Write-Host '-------------'
+      #$TempDevTestLabVirtualNetwork = @(Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks")[0]
+      #$DevTestLabVirtualNetworkName = $TempDevTestLabVirtualNetwork.Name
+      #Write-Host "DevTestLabVirtualNetworkName: >>>" $DevTestLabVirtualNetworkName "<<<"
+      #Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkName;]$DevTestLabVirtualNetworkName"
+      #Write-Host '-------------'
+      #$DevTestLabVirtualNetworkSubNetName = @(Get-AzVirtualNetwork -Name $TempDevTestLabVirtualNetwork.Name -ResourceGroupName "$(DevTestLabRGName)")[0].SubNets[0].Name
+      #Write-Host "DevTestLabVirtualNetworkSubNetName: >>>" $DevTestLabVirtualNetworkSubNetName "<<<"
+      #Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkSubNetName;]$DevTestLabVirtualNetworkSubNetName"
+      #Write-Host '-------------'
       Write-Host 'Currently Existing tSQLtCI Resource Groups:'
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
 
@@ -185,9 +176,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
-      $XXXXXXXXXXXX = $env:DevTestLabVirtualNetworkSubNetName
-      Write-Host 'XXXXXXXXXXXX:' $XXXXXXXXXXXX
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVirtualNetworkName)" -DevTestLabVirtualNetworkSubNetName "$XXXXXXXXXXXX" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)" -ContactEmail "$(ContactEmail)"
+      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)" -ContactEmail "$(ContactEmail)"
       Write-Host 'Finished Creating New VM'
 
 - script: echo %CREATEVM_LABVMID%
