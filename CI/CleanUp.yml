@@ -72,7 +72,7 @@ steps:
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
           Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
           Write-Host "Removing Locks"
-          if($_.ResourceGroupName -neq null)
+          if($_.ResourceGroupName -ne $null)
           {
             Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{
               Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
