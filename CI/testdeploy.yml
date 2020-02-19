@@ -32,7 +32,7 @@ steps:
       $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
-      $NewVMName = $DevTestLabName+'_'+$(template)
+      $NewVMName = $DevTestLabName+'_$(template)'
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
       Write-Host 'DevTestLabName: ' $DevTestLabName
