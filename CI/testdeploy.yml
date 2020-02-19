@@ -101,14 +101,16 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
-      $VNet.Outputs.subnetName |FT
-      $VNet.OutputsString |FT
+      $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
+      Write-Host ">>>"$DevTestLabVNetSubnetName"<<<"
+      Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
+
 
 - task: CmdLine@2
   condition: true
   inputs:
     script: |
-      echo end pipeline here      
+      echo end pipeline here %DevTestLabVNetSubnetName%     
       echx
 
 
