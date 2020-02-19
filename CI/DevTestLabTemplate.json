@@ -93,7 +93,7 @@
         {
             "type": "microsoft.devtestlab/labs/virtualnetworks",
             "apiVersion": "2018-09-15",
-            "name": "[concat(parameters('newLabName'), '/tsqltci_devtestlab_20200214_868_vnet0001')]",
+            "name": "[concat(parameters('newLabName'), '/', parameters('VNetName'))]",
             "dependsOn": [
                 "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
             ],
