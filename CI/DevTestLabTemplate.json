@@ -8,11 +8,11 @@
 		},
 		"VNetName": {
 			"type": "string",
-			"defaultValue": ""
+			"defaultValue": "tsqltci_default_devtestlab_vnet001"
 		},
 		"SubNetName": {
 			"type": "string",
-			"defaultValue": ""
+			"defaultValue": "tsqltci_default_devtestlab_vnet001_SubNet_01"
 		}
     },
     "variables": {},
