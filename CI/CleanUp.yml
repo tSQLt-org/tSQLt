@@ -33,7 +33,7 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'List RGs to be deleted'
       Write-Host '-----------------------------'
-      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "Trxxue" -and $_.Tags.Department -eq "tSQLtCI"} 
+      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
       $RGTBD | ForEach-Object { 
         Write-Host $_.ResourceGroupName 
         Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
