@@ -297,7 +297,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New DSC'
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName) -DeploymentDebugLogLevel All" 
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName)" -DeploymentDebugLogLevel All
       Write-Host 'Finished Creating New DSC'
 
 
