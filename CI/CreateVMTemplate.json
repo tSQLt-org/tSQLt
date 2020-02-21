@@ -110,6 +110,44 @@
       }
     },
 	{
+	  "type": "Microsoft.Compute/virtualMachines/extensions",
+	  "name": "[concat(variables('vmName'),'/Microsoft.Powershell.DSC')]",
+	  "apiVersion": "2019-07-01",
+      "location": "[resourceGroup().location]",
+	  "dependsOn": [
+        "[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
+	  ],
+	  "properties": {
+		"publisher": "Microsoft.Powershell",
+		"type": "DSC",
+		"typeHandlerVersion": "2.77",
+		"autoUpgradeMinorVersion": true,
+		"settings": {
+		  "configuration": {
+			"url": "[concat(parameters('DSCURI'),'/DSC.zip',parameters('DSCSAS'))]",
+			"script": "SetupVM.ps1",
+		  	"function": "Setup-VM"
+		  },
+		  "Properties": [
+			{
+			  "Name": "test",
+			  "Value": "test",
+			  "TypeName": "System.String"
+			}
+		  ]
+		},
+		"protectedSettings": {
+		  "Properties": [
+			{
+			  "Name": "password",
+			  "Value": "test",
+			  "TypeName": "System.String"
+			}
+	      ]
+		}
+	  }
+	},
+	{
 		"type": "microsoft.devtestlab/labs/virtualmachines/schedules",
 		"apiVersion": "2018-09-15",
 		"name": "[concat(parameters('labName'), '/', parameters('newVMName'),'/labvmsshutdown')]",
