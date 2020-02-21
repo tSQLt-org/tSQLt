@@ -2,6 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "DSCURI": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "DSCSAS": {
+      "type": "string",
+      "defaultValue": ""
+    },
     "newVMName": {
       "type": "string",
       "defaultValue": "SQL2008SP3B"	
