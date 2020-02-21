@@ -32,7 +32,7 @@ steps:
       $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
-      $NewVMName = $DevTestLabName+('_$(template)').replace('-','_')
+      $NewVMName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {($DevTestLabName+('_$(template)').replace('-','_'))} else {($env:vmNameOverride)}
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
       Write-Host 'DevTestLabName: ' $DevTestLabName
@@ -41,6 +41,14 @@ steps:
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetName;]$DevTestLabVNetName"
       Write-Host 'NewVMName: ' $NewVMName
       Write-Host "##vso[task.setvariable variable=NewVMName;]$NewVMName"
+
+- task: CmdLine@2
+  condition: true
+  inputs:
+    script: |
+      echo end pipeline here      
+      echx
+
 
 - task: AzurePowerShell@4
   name: Create_Resource_Group
@@ -148,6 +156,21 @@ steps:
       Write-Host 'Currently Existing tSQLtCI Resource Groups:'
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
 
+- task: AzurePowerShell@4
+  name: CreateVM
+  condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Set-Location $(Build.Repository.LocalPath)
+      Write-Host 'Creating New VM'
+      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)" -ContactEmail "$(ContactEmail)"
+      Write-Host 'Finished Creating New VM'
+
+
+
 - task: ArchiveFiles@2
   name: Build_DSC_Zip_File
   inputs:
@@ -170,19 +193,7 @@ steps:
     outputStorageContainerSasToken: 'DSC_Storage_SAS_Token'
     sasTokenTimeOutInMinutes: '60'
 
-- task: AzurePowerShell@4
-  name: CreateVM
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    azurePowerShellVersion: 'LatestVersion'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Set-Location $(Build.Repository.LocalPath)
-      Write-Host 'Creating New VM'
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)" -ContactEmail "$(ContactEmail)"
-      Write-Host 'Finished Creating New VM'
 
-- script: echo %CREATEVM_LABVMID%
 
 
 #- task: CmdLine@2
