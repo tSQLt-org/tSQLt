@@ -117,7 +117,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      Write-Host "Getting labVMId"
+      Write-Host "Getting DevTestLabVNetSubnetName"
       $DevTestLabVNetSubnetName = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks" -Name "$(DevTestLabVNetName)").Properties.Subnets[0].Name
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
@@ -210,7 +210,6 @@ steps:
 
 - task: AzurePowerShell@4
   name: GetLabVmId
-  condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
