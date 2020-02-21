@@ -32,22 +32,15 @@ steps:
       $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
-      $NewVMName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {($DevTestLabName+('_$(template)').replace('-','_'))} else {($env:vmNameOverride)}
+      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {($DevTestLabName+('_$(template)').replace('-','_'))} else {($env:vmNameOverride)}
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
       Write-Host 'DevTestLabName: ' $DevTestLabName
       Write-Host "##vso[task.setvariable variable=DevTestLabName;]$DevTestLabName"
       Write-Host 'DevTestLabVNetName: ' $DevTestLabVNetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetName;]$DevTestLabVNetName"
-      Write-Host 'NewVMName: ' $NewVMName
-      Write-Host "##vso[task.setvariable variable=NewVMName;]$NewVMName"
-
-- task: CmdLine@2
-  condition: true
-  inputs:
-    script: |
-      echo end pipeline here      
-      echx
+      Write-Host 'vmName: ' $vmName
+      Write-Host "##vso[task.setvariable variable=vmName;]$vmName"
 
 
 - task: AzurePowerShell@4
@@ -169,7 +162,12 @@ steps:
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)" -ContactEmail "$(ContactEmail)"
       Write-Host 'Finished Creating New VM'
 
-
+- task: CmdLine@2
+  condition: true
+  inputs:
+    script: |
+      echo end pipeline here      
+      echx
 
 - task: ArchiveFiles@2
   name: Build_DSC_Zip_File
