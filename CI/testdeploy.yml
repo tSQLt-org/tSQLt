@@ -246,7 +246,7 @@ steps:
 
 
 - task: CmdLine@2
-  condition: true
+  condition: false
   inputs:
     script: |
       echo end pipeline here      
@@ -285,7 +285,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New DSC'
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DSCTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" 
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DSCTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName) -DeploymentDebugLogLevel All" 
       Write-Host 'Finished Creating New DSC'
 
 
