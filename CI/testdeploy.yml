@@ -94,6 +94,19 @@ steps:
     csmFile: 'CI/CreateVMTemplate.json'
     deploymentMode: 'Validation'
 
+- task: AzureResourceManagerTemplateDeployment@3
+  name: Validate_DSC_ArmTemplate
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    subscriptionId: '58c04a99-5b92-410c-9e41-10262f68ca80'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: '$(DevTestLabRGName)'
+    location: 'East US 2'
+    templateLocation: 'Linked artifact'
+    csmFile: 'CI/DSCTemplate.json'
+    deploymentMode: 'Validation'
+
 
 - task: AzurePowerShell@4
   name: Create_VNet
@@ -284,7 +297,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New DSC'
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DSCTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName) -DeploymentDebugLogLevel All" 
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName) -DeploymentDebugLogLevel All" 
       Write-Host 'Finished Creating New DSC'
 
 
