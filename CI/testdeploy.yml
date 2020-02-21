@@ -231,13 +231,6 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
 
 
-- task: CmdLine@2
-  condition: false
-  inputs:
-    script: |
-      echo end pipeline here      
-      echx
-
 - task: ArchiveFiles@2
   name: Build_DSC_Zip_File
   inputs:
