@@ -202,7 +202,7 @@ steps:
 
 
 - task: AzurePowerShell@4
-  name: CreateVM
+  name: GetLabVmId
   condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
