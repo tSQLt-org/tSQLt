@@ -110,7 +110,7 @@
       }
     },
 	{
-	  "type": "Microsoft.Compute/virtualMachines/extensions",
+	  "type": "Microsoft.DevTestLab/labs/virtualmachines/extensions",
 	  "name": "[concat(variables('vmName'),'/Microsoft.Powershell.DSC')]",
 	  "apiVersion": "2019-07-01",
       "location": "[resourceGroup().location]",
