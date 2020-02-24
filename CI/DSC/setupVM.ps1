@@ -1,5 +1,7 @@
 Function Setup-VM() {
 
+    Write-Host 'Setting up VM for tSQLt CI execution...'
+	#<#
 	New-NetFirewallRule -DisplayName "Allow WinRM" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
 	New-NetFirewallRule -DisplayName "Allow SQLServer" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
 
@@ -9,5 +11,7 @@ Function Setup-VM() {
 	SqlCmd -S localhost -E -Q "EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'LoginMode', REG_DWORD, 2"
 
 	Restart-Service -Name "SQL Server (MSSQLSERVER)"
-
+    ##>
+    Write-Host 'Done setting up VM for tSQLt CI execution.'
 }
+Setup-VM
