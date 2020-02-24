@@ -32,7 +32,7 @@ steps:
       $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
-      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('$(Build.BuildId)'+(('$(template)').replace('-',''))+''+$DevTestLabName).substring(0,15)} else {($env:vmNameOverride)}
+      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)'+(('$(template)').replace('-',''))+''+$DevTestLabName).substring(0,15)} else {($env:vmNameOverride)}
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
       Write-Host 'DevTestLabName: ' $DevTestLabName
@@ -52,7 +52,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
+      Set-PSDebug -Trace 1;
       New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
+      Set-PSDebug -Trace 0;
       Write-Host 'Done.'
 
 - task: AzureResourceManagerTemplateDeployment@3
@@ -117,7 +119,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
+      Set-PSDebug -Trace 1;
       $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
+      Set-PSDebug -Trace 0;
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
@@ -131,7 +135,9 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host "Getting DevTestLabVNetSubnetName"
+      Set-PSDebug -Trace 1;
       $DevTestLabVNetSubnetName = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks" -Name "$(DevTestLabVNetName)").Properties.Subnets[0].Name
+      Set-PSDebug -Trace 0;
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
 
@@ -145,7 +151,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
+      Set-PSDebug -Trace 1;
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)"
+      Set-PSDebug -Trace 0;
 
 
 - task: AzurePowerShell@4
@@ -179,7 +187,7 @@ steps:
 
 - task: ArchiveFiles@2
   name: Build_DSC_Zip_File_deleteme
-  condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
+  condition: and(false, succeeded(), eq(variables['CreateNewVM'], '1'))
   inputs:
     rootFolderOrFile: '$(Build.SourcesDirectory)/CI/DSC'
     includeRootFolder: false
@@ -190,7 +198,7 @@ steps:
 
 - task: AzureFileCopy@3
   name: COPY_DSC_zip_to_Azure_Storage_deleteme
-  condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
+  condition: and(false, succeeded(), eq(variables['CreateNewVM'], '1'))
   inputs:
     SourcePath: '$(Build.ArtifactStagingDirectory)/DSC.zip'
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -214,12 +222,13 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)" -ContactEmail "$(ContactEmail)"
+      Set-PSDebug -Trace 1;
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -ContactEmail "$(ContactEmail)"
+      Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
       $labVMId = $VM.Outputs.labVMId.Value
       Write-Host 'labVMId: ' $labVMId
       Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
-
 
 - task: AzurePowerShell@4
   name: GetLabVmId
@@ -254,6 +263,21 @@ steps:
     ScriptPath: 'CI/GetLabVMParams.ps1'
     ScriptArguments: '-labVmId ''$(labVMId)'' ' 
     azurePowerShellVersion: 'LatestVersion'
+
+
+
+- task: AzurePowerShell@4
+  name: StartVM
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Set-Location $(Build.Repository.LocalPath)
+      Write-Host 'Starting the New VM'
+      Set-PSDebug -Trace 1;
+      Start-AzVM -Name "$(vmName)" -ResourceGroupName "$(labVmRgName)"
+      Set-PSDebug -Trace 0;
 
 
 
@@ -297,7 +321,9 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New DSC'
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName)" -DeploymentDebugLogLevel All
+      Set-PSDebug -Trace 1;
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
+      Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New DSC'
 
 
