@@ -52,7 +52,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
-      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
+      $cmd = 'New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force'
+      Write-Host $cmd
+      $cmd
       Write-Host 'Done.'
 
 - task: AzureResourceManagerTemplateDeployment@3
@@ -117,7 +119,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
+      Set-PSDebug -Trace 1;
       $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -DeploymentDebugLogLevel All
+      Set-PSDebug -Trace 0;
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
