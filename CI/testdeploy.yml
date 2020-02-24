@@ -230,7 +230,6 @@ steps:
       Write-Host 'labVMId: ' $labVMId
       Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
 
-
 - task: AzurePowerShell@4
   name: GetLabVmId
   inputs:
@@ -264,6 +263,22 @@ steps:
     ScriptPath: 'CI/GetLabVMParams.ps1'
     ScriptArguments: '-labVmId ''$(labVMId)'' ' 
     azurePowerShellVersion: 'LatestVersion'
+
+
+
+- task: AzurePowerShell@4
+  name: StartVM
+  condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Set-Location $(Build.Repository.LocalPath)
+      Write-Host 'Starting the New VM'
+      Set-PSDebug -Trace 1;
+      Start-AzureRmVM -Name "$(vmName)" -ResourceGroupName "$(labVmRgName)"
+      Set-PSDebug -Trace 0;
 
 
 
