@@ -52,9 +52,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
-      $cmd = 'New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force'
-      Write-Host $cmd
-      $cmd
+      Set-PSDebug -Trace 1;
+      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
+      Set-PSDebug -Trace 0;
       Write-Host 'Done.'
 
 - task: AzureResourceManagerTemplateDeployment@3
@@ -135,7 +135,9 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host "Getting DevTestLabVNetSubnetName"
+      Set-PSDebug -Trace 1;
       $DevTestLabVNetSubnetName = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks" -Name "$(DevTestLabVNetName)").Properties.Subnets[0].Name
+      Set-PSDebug -Trace 0;
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
 
@@ -149,7 +151,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
+      Set-PSDebug -Trace 1;
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)"
+      Set-PSDebug -Trace 0;
 
 
 - task: AzurePowerShell@4
@@ -218,7 +222,9 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
+      Set-PSDebug -Trace 1;
       $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -ContactEmail "$(ContactEmail)"
+      Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
       $labVMId = $VM.Outputs.labVMId.Value
       Write-Host 'labVMId: ' $labVMId
@@ -301,7 +307,9 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New DSC'
+      Set-PSDebug -Trace 1;
       $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
+      Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New DSC'
 
 
