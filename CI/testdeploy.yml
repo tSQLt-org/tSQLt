@@ -117,7 +117,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -DeploymentDebugLogLevel "all"
+      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -DeploymentDebugLogLevel All
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
