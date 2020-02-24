@@ -120,7 +120,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Set-PSDebug -Trace 1;
-      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -DeploymentDebugLogLevel All
+      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
       Set-PSDebug -Trace 0;
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
@@ -301,7 +301,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New DSC'
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)" -DeploymentDebugLogLevel All
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/DSCTemplate.json" -newVMName "$(vmName)" -DSCURI "$(DSC_Storage_URI)" -DSCSAS "$(DSC_Storage_SAS_Token)"
       Write-Host 'Finished Creating New DSC'
 
 
