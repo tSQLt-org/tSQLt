@@ -277,7 +277,7 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Starting the New VM'
       Set-PSDebug -Trace 1;
-      Start-AzureRmVM -Name "$(vmName)" -ResourceGroupName "$(labVmRgName)"
+      Start-AzVM -Name "$(vmName)" -ResourceGroupName "$(labVmRgName)"
       Set-PSDebug -Trace 0;
 
 
