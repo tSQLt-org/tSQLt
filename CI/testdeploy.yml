@@ -5,8 +5,15 @@
 
 name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 
-trigger:
-- CITesting
+trigger: none
+pr: none
+schedules:
+  - cron: 30 12 26 2 *
+    displayName: Scheduled once(ish)
+    branches:
+      include:
+      - CITesting
+    always: true
 
 pool:
   vmImage: 'vs2017-win2016'
