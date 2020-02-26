@@ -8,7 +8,7 @@ name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 trigger: none
 pr: none
 schedules:
-  - cron: 35 12 26 2 *
+  - cron: 35 12 2 3 *
     displayName: Scheduled once(ish)
     branches:
       include:
