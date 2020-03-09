@@ -30,6 +30,19 @@ variables:
 
 steps:
 
+- task: PowerShellOnTargetMachines@3
+  inputs:
+    Machines: 'v1016sql2014sp3.eastus2.cloudapp.azure.com'
+    UserName: 'tSQLt'
+    UserPassword: 'qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)'
+    InlineScript: 'sqlcmd -Q "INSERT tempdb.dbo.loglog SELECT @@VERSION,SUSER_NAME(),SYSDATETIME()"'
+- task: CmdLine@2
+  condition: true
+  inputs:
+    script: |
+      echo end pipeline here      
+      echx
+
 - task: CmdLine@2
   condition: false
   inputs:
