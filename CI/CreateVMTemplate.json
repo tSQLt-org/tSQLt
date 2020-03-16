@@ -247,7 +247,7 @@
 			}
 		},
 		"dependsOn": [
-			"[resourceId('Microsoft.Compute/virtualMachines', parameters('sqlVirtualMachineName'))]"
+			"[resourceId('Microsoft.Compute/virtualMachines', parameters('newVMName'))]"
 		]
 	}
 	
