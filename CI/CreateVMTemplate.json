@@ -208,7 +208,7 @@
 		"apiVersion": "2017-03-01-preview",
 		"location": "[resourceGroup().location]",
 		"properties": {
-			"virtualMachineResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('newVMName'))]",
+			"virtualMachineResourceId": "[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
 			"sqlManagement": "Full",
 			"SqlServerLicenseType": "PAYG",
 			"AutoPatchingSettings": {
@@ -247,7 +247,7 @@
 			}
 		},
 		"dependsOn": [
-			"[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('newVMName'))]"
+			"[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
 		]
 	}
 	
