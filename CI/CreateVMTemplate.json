@@ -247,7 +247,7 @@
 			}
 		},
 		"dependsOn": [
-			"[resourceId('Microsoft.Compute/virtualMachines', parameters('newVMName'))]"
+			"[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('newVMName'))]"
 		]
 	}
 	
