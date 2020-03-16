@@ -231,7 +231,7 @@
 					"DefaultFilePath": "[parameters('logPath')]"
 				},
 				"SQLTempDbSettings": {
-					"DefaultFilePath": "[parameters('tempDbPath')]",
+					"DefaultFilePath": "[parameters('tempDbPath')]"
 				}
 			},
 			"ServerConfigurationsManagementSettings": {
