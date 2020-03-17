@@ -208,7 +208,7 @@
 		"apiVersion": "2017-03-01-preview",
 		"location": "[resourceGroup().location]",
 		"properties": {
-			"virtualMachineResourceId": "[resourceId('Microsoft.Compute', parameters('newVMName'))]",
+			"virtualMachineResourceId": "[reference(resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))).computeId]",
 			"sqlManagement": "Full",
 			"SqlServerLicenseType": "PAYG",
 			"AutoPatchingSettings": {
