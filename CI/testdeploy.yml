@@ -8,13 +8,13 @@ name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 trigger: none
 pr: none
 schedules:
-  - cron: 0 17 6 3 *
+  - cron: 0 12 20 3 *
     displayName: Scheduled once(ish)
     branches:
       include:
       - CITesting
     always: true
-  - cron: 15 17 6 3 *
+  - cron: 15 12 20 3 *
     displayName: Scheduled once(ish)
     branches:
       include:
@@ -293,6 +293,24 @@ steps:
       Set-PSDebug -Trace 0;
 
 
+
+- task: AzurePowerShell@4
+  name: SetupSQL
+  condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Set-Location $(Build.Repository.LocalPath)
+      Write-Host 'Creating New VM'
+      Set-PSDebug -Trace 1;
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "41433" -sqlAuthenticationLogin "tSQLt_External" -sqlAuthenticationPassword "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -newVMName "$(vmName)" -newVMRID "$(labVmId)"
+      Set-PSDebug -Trace 0;
+      Write-Host 'Finished Creating New VM'
+      $labVMId = $VM.Outputs.labVMId.Value
+      Write-Host 'labVMId: ' $labVMId
+      Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
 
 - task: CmdLine@2
   condition: false
