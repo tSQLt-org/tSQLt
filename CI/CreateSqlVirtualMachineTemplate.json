@@ -1,0 +1,135 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+	"sqlConnectivityType": {
+		"type": "string",
+      "defaultValue": "Public"
+	},
+	"sqlPortNumber": {
+		"type": "int",
+      "defaultValue": 41433
+	},
+	"sqlStorageDisksCount": {
+		"type": "int",
+      "defaultValue": 1
+	},
+	"sqlStorageWorkloadType": {
+		"type": "string",
+      "defaultValue": "DW"
+	},
+	"sqlStorageDisksConfigurationType": {
+		"type": "string",
+      "defaultValue": "NEW"
+	},
+	"sqlStorageStartingDeviceId": {
+		"type": "int",
+      "defaultValue": 2
+	},
+	"sqlStorageDeploymentToken": {
+		"type": "int",
+      "defaultValue": 50726
+	},
+	"sqlAutopatchingDayOfWeek": {
+		"type": "string",
+      "defaultValue": "Sunday"
+	},
+	"sqlAutopatchingStartHour": {
+		"type": "string",
+      "defaultValue": "2"
+	},
+	"sqlAutopatchingWindowDuration": {
+		"type": "string",
+      "defaultValue": "60"
+	},
+	"sqlAuthenticationLogin": {
+		"type": "string",
+      "defaultValue": "tSQLt"
+	},
+	"sqlAuthenticationPassword": {
+		"type": "securestring",
+      "defaultValue": "sdlfksdlkfjlsdkjf39939^"
+	},
+	"dataPath": {
+		"type": "string",
+      "defaultValue": "C:\\sql\\data"
+	},
+	"dataDisksLUNs": {
+		"type": "array",
+      "defaultValue": [0]
+	},
+	"logPath": {
+		"type": "string",
+      "defaultValue": "C:\\sql\\log"
+	},
+	"logDisksLUNs": {
+		"type": "array",
+      "defaultValue": [0]
+	},
+	"tempDbPath": {
+		"type": "string",
+      "defaultValue": "C:\\sql\\tempDb"
+	},
+	"tempDisksLUNs": {
+		"type": "array",
+      "defaultValue": [0]
+	},
+	"rServicesEnabled": {
+		"type": "string",
+      "defaultValue": "false"
+	},	
+	"newVMName": {
+		"type": "string",
+      "defaultValue": "V1052sql2014sp3"
+	},	
+	"labName": {
+		"type": "string",
+      "defaultValue": "tSQLtCI_DevTestLab_20200318_1052"
+	},	
+	"newVMRID": {
+		"type": "string",
+      "defaultValue": "/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_20200318_1052-V1052sql2014sp3-155797/providers/Microsoft.Compute/virtualMachines/V1052sql2014sp3"
+	}	
+
+  },
+  "resources": [
+
+	{
+		"name": "[parameters('newVMName')]",
+		"type": "Microsoft.SqlVirtualMachine/SqlVirtualMachines",
+		"apiVersion": "2017-03-01-preview",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"virtualMachineResourceId": "[parameters('newVMRID')]",
+			"sqlManagement": "Full",
+			"SqlServerLicenseType": "PAYG",
+			"AutoPatchingSettings": {
+				"Enable": true,
+				"DayOfWeek": "[parameters('sqlAutopatchingDayOfWeek')]",
+				"MaintenanceWindowStartingHour": "[parameters('sqlAutopatchingStartHour')]",
+				"MaintenanceWindowDuration": "[parameters('sqlAutopatchingWindowDuration')]"
+			},
+			"KeyVaultCredentialSettings": {
+				"Enable": false,
+				"CredentialName": ""
+			},
+			"StorageConfigurationSettings": {
+				"DiskConfigurationType": "[parameters('sqlStorageDisksConfigurationType')]",
+				"StorageWorkloadType": "[parameters('sqlStorageWorkloadType')]"
+			},
+			"ServerConfigurationsManagementSettings": {
+				"SQLConnectivityUpdateSettings": {
+					"ConnectivityType": "[parameters('sqlConnectivityType')]",
+					"Port": "[parameters('sqlPortNumber')]",
+					"SQLAuthUpdateUserName": "[parameters('sqlAuthenticationLogin')]",
+					"SQLAuthUpdatePassword": "[parameters('sqlAuthenticationPassword')]"
+				},
+				"AdditionalFeaturesServerConfigurations": {
+					"IsRServicesEnabled": "[parameters('rServicesEnabled')]"
+				}
+			}
+		}
+	}
+
+  ]
+}

@@ -5,6 +5,10 @@
         "VNet_name": {
             "defaultValue": "VNet_00001",
             "type": "String"
+        },
+        "SQL_Port": {
+            "defaultValue": "41433",
+            "type": "String"
         }
     },
     "variables": {
@@ -20,34 +24,16 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "Port_1433",
+                        "name": "SQL_Port
                         "properties": {
                             "description": "SQL Server",
                             "protocol": "TCP",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "1433",
+                            "destinationPortRange": "[parameters('SQL_Port')]",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 100,
-                            "direction": "Inbound",
-                            "sourcePortRanges": [],
-                            "destinationPortRanges": [],
-                            "sourceAddressPrefixes": [],
-                            "destinationAddressPrefixes": []
-                        }
-                    },
-                    {
-                        "name": "Port_5986",
-                        "properties": {
-                            "description": "WinScript",
-                            "protocol": "TCP",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "5986",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 110,
                             "direction": "Inbound",
                             "sourcePortRanges": [],
                             "destinationPortRanges": [],
