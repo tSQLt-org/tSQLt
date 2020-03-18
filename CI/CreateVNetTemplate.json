@@ -24,7 +24,7 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "SQL_Port
+                        "name": "SQL_Port",
                         "properties": {
                             "description": "SQL Server",
                             "protocol": "TCP",
