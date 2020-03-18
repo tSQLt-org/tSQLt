@@ -133,7 +133,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Set-PSDebug -Trace 1;
-      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)"
+      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -SQL_Port "41433"
       Set-PSDebug -Trace 0;
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
@@ -195,34 +195,6 @@ steps:
       #Write-Host '-------------'
       Write-Host 'Currently Existing tSQLtCI Resource Groups:'
       Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
-
-
-
-- task: ArchiveFiles@2
-  name: Build_DSC_Zip_File_deleteme
-  condition: and(false, succeeded(), eq(variables['CreateNewVM'], '1'))
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)/CI/DSC'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/DSC.zip'
-    replaceExistingArchive: true
-    verbose: true
-
-- task: AzureFileCopy@3
-  name: COPY_DSC_zip_to_Azure_Storage_deleteme
-  condition: and(false, succeeded(), eq(variables['CreateNewVM'], '1'))
-  inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/DSC.zip'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    Destination: 'AzureBlob'
-    storage: '$(DevTestLabStorageAccount)'
-    ContainerName: 'dsc'
-    outputStorageUri: 'DSC_Storage_URI'
-    outputStorageContainerSasToken: 'DSC_Storage_SAS_Token'
-    sasTokenTimeOutInMinutes: '60'
-
-
 
 
 - task: AzurePowerShell@4
