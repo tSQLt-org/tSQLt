@@ -200,57 +200,7 @@
 			},
 			"targetResourceId": "[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
 		}
-	},
-
-	{
-		"name": "[parameters('newVMName')]",
-		"type": "Microsoft.SqlVirtualMachine/SqlVirtualMachines",
-		"apiVersion": "2017-03-01-preview",
-		"location": "[resourceGroup().location]",
-		"properties": {
-			"virtualMachineResourceId": "[reference(resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))).computeId]",
-			"sqlManagement": "Full",
-			"SqlServerLicenseType": "PAYG",
-			"AutoPatchingSettings": {
-				"Enable": true,
-				"DayOfWeek": "[parameters('sqlAutopatchingDayOfWeek')]",
-				"MaintenanceWindowStartingHour": "[parameters('sqlAutopatchingStartHour')]",
-				"MaintenanceWindowDuration": "[parameters('sqlAutopatchingWindowDuration')]"
-			},
-			"KeyVaultCredentialSettings": {
-				"Enable": false,
-				"CredentialName": ""
-			},
-			"StorageConfigurationSettings": {
-				"DiskConfigurationType": "[parameters('sqlStorageDisksConfigurationType')]",
-				"StorageWorkloadType": "[parameters('sqlStorageWorkloadType')]",
-				"SQLDataSettings": {
-					"DefaultFilePath": "[parameters('dataPath')]"
-				},
-				"SQLLogSettings": {
-					"DefaultFilePath": "[parameters('logPath')]"
-				},
-				"SQLTempDbSettings": {
-					"DefaultFilePath": "[parameters('tempDbPath')]"
-				}
-			},
-			"ServerConfigurationsManagementSettings": {
-				"SQLConnectivityUpdateSettings": {
-					"ConnectivityType": "[parameters('sqlConnectivityType')]",
-					"Port": "[parameters('sqlPortNumber')]",
-					"SQLAuthUpdateUserName": "[parameters('sqlAuthenticationLogin')]",
-					"SQLAuthUpdatePassword": "[parameters('sqlAuthenticationPassword')]"
-				},
-				"AdditionalFeaturesServerConfigurations": {
-					"IsRServicesEnabled": "[parameters('rServicesEnabled')]"
-				}
-			}
-		},
-		"dependsOn": [
-			"[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
-		]
 	}
-	
   ],
   "outputs": {
     "labVMId": {
