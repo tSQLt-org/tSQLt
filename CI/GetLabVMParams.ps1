@@ -7,7 +7,8 @@ Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "x<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host $labVmId;
+Write-Host $ResourceGroupName;
+Write-Host $VMName;
 Write-Host "x<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
@@ -16,9 +17,15 @@ Write-Host $env:UserName
 Write-Host $env:UserDomain
 Write-Host $env:ComputerName
 Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 
 $labAzResource = (Get-AzResource -Name $VMName -ResourceType Microsoft.DevTestLab/labs/virtualmachines -ResourceGroupName $ResourceGroupName)
 ##Get-AzResource -Name "V1062sql2014sp3" -ResourceType "Microsoft.DevTestLab/labs/virtualmachines" -ResourceGroupName "tSQLtCI_DevTestLab_20200320_1062"
+$labAzResource
+Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 
 Write-Host $labAzResource.Properties.toString()
 
