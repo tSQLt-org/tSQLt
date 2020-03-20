@@ -140,22 +140,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
 
 - task: AzurePowerShell@4
-  name: GetSubnetName
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    azurePowerShellVersion: 'LatestVersion'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Set-Location $(Build.Repository.LocalPath)
-      Write-Host "Getting DevTestLabVNetSubnetName"
-      Set-PSDebug -Trace 1;
-      $DevTestLabVNetSubnetName = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks" -Name "$(DevTestLabVNetName)").Properties.Subnets[0].Name
-      Set-PSDebug -Trace 0;
-      Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
-      Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
-
-
-- task: AzurePowerShell@4
   name: Create_DevTest_Lab_With_Other_Resources
   condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
   inputs:
@@ -167,35 +151,6 @@ steps:
       Set-PSDebug -Trace 1;
       New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)"
       Set-PSDebug -Trace 0;
-
-
-- task: AzurePowerShell@4
-  name: Get_DevTest_Lab_Environment_Variables
-  inputs:
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Write-Host 'GetAzResource'
-      Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts"
-      Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks"
-      Write-Host '-------------'
-      $DevTestLabStorageAccount = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Storage/storageAccounts").ResourceName
-      Write-Host "DevTestLabStorageAccount: >>>" $DevTestLabStorageAccount "<<<"
-      Write-Host "##vso[task.setvariable variable=DevTestLabStorageAccount;]$DevTestLabStorageAccount"
-      Write-Host '-------------'
-      #$TempDevTestLabVirtualNetwork = @(Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.Network/virtualNetworks")[0]
-      #$DevTestLabVirtualNetworkName = $TempDevTestLabVirtualNetwork.Name
-      #Write-Host "DevTestLabVirtualNetworkName: >>>" $DevTestLabVirtualNetworkName "<<<"
-      #Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkName;]$DevTestLabVirtualNetworkName"
-      #Write-Host '-------------'
-      #$DevTestLabVirtualNetworkSubNetName = @(Get-AzVirtualNetwork -Name $TempDevTestLabVirtualNetwork.Name -ResourceGroupName "$(DevTestLabRGName)")[0].SubNets[0].Name
-      #Write-Host "DevTestLabVirtualNetworkSubNetName: >>>" $DevTestLabVirtualNetworkSubNetName "<<<"
-      #Write-Host "##vso[task.setvariable variable=DevTestLabVirtualNetworkSubNetName;]$DevTestLabVirtualNetworkSubNetName"
-      #Write-Host '-------------'
-      Write-Host 'Currently Existing tSQLtCI Resource Groups:'
-      Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} 
-
 
 - task: AzurePowerShell@4
   name: CreateVM
@@ -216,31 +171,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
 
 - task: AzurePowerShell@4
-  name: GetLabVmId
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    azurePowerShellVersion: 'LatestVersion'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Set-Location $(Build.Repository.LocalPath)
-      Write-Host "Getting labVMId"
-      $labVmId = (Get-AzResource -ResourceGroupName "$(DevTestLabRGName)" -ResourceType "Microsoft.DevTestLab/labs/virtualMachines" -Name "$(vmName)").ResourceId
-      Write-Host 'labVMId: ' $labVMId
-      Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
-
-
-
-- task: Bash@3
-  name: print_environment_variables
-  inputs:
-    targetType: 'inline'
-    script: |
-      echo 'env start------------'
-      env | sort
-      echo 'env stop-------------'
-
-
-- task: AzurePowerShell@4
   name: get_VM_parameters
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -248,8 +178,6 @@ steps:
     ScriptPath: 'CI/GetLabVMParams.ps1'
     ScriptArguments: '-labVmId ''$(labVMId)'' ' 
     azurePowerShellVersion: 'LatestVersion'
-
-
 
 - task: AzurePowerShell@4
   name: StartVM
@@ -263,8 +191,6 @@ steps:
       Set-PSDebug -Trace 1;
       Start-AzVM -Name "$(vmName)" -ResourceGroupName "$(labVmRgName)"
       Set-PSDebug -Trace 0;
-
-
 
 - task: AzurePowerShell@4
   name: SetupSQL
@@ -283,7 +209,13 @@ steps:
       Write-Host 'labVMId: ' $labVMId
       Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
 
-
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      Invoke-Sqlcmd -Query "SELECT @@VERSION V,SUSER_NAME() U,SYSDATETIME() T;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" |FT
 
 - task: CmdLine@2
   condition: true
