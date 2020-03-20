@@ -276,7 +276,7 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "41433" -sqlAuthenticationLogin "tSQLt_External" -sqlAuthenticationPassword "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -newVMName "$(vmName)" -newVMRID "$(labVmId)"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "41433" -sqlAuthenticationLogin "tSQLt_External" -sqlAuthenticationPassword "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -newVMName "$(vmName)" -newVMRID "$(labVmComputeId)"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
       $labVMId = $VM.Outputs.labVMId.Value
