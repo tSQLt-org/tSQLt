@@ -22,28 +22,21 @@ $labAzResource = (Get-AzResource -Id $labVmId)
 Write-Host $labAzResource.Properties.toString()
 
 $labVmComputeId = (Get-AzResource -Id $labVmId).Properties.ComputeId
-Write-Host "labVmComputeId:" $labVmComputeId
+Write-Host "setting variable: labVmComputeId:" $labVmComputeId
+Write-Host "##vso[task.setvariable variable=labVmComputeId;]$labVmComputeId"
 
-# Get lab VM resource group name
 $labVmRgName = (Get-AzResource -Id $labVmComputeId).ResourceGroupName
-Write-Host "labVmRgName:" $labVmRgName
-# Set a variable labVmRgName to store the lab VM resource group name
+Write-Host "setting variable: labVmRgName:" $labVmRgName
 Write-Host "##vso[task.setvariable variable=labVmRgName;]$labVmRgName"
 
-# Get the lab VM Name
 $labVmName = (Get-AzResource -Id $labVmId).Name
+Write-Host "setting labVmName: labVMIpAddress:" $labVMIpAddress
 Write-Host "##vso[task.setvariable variable=labVmName;]$labVmName"
 
-# Get lab VM public IP address
 $labVMIpAddress = (Get-AzPublicIpAddress -ResourceGroupName $labVmRgName -Name $labVmName).IpAddress
-Write-Host "labVMIpAddress:" $labVMIpAddress
-
-# Set a variable labVMIpAddress to store the lab VM Ip address
+Write-Host "setting variable: labVMIpAddress:" $labVMIpAddress
 Write-Host "##vso[task.setvariable variable=labVMIpAddress;]$labVMIpAddress"
 
-# Get lab VM FQDN
 $labVMFqdn = (Get-AzPublicIpAddress -ResourceGroupName $labVmRgName -Name $labVmName).DnsSettings.Fqdn
-Write-Host "labVMFqdn:" $labVMFqdn
-
-# Set a variable labVMFqdn to store the lab VM FQDN name
+Write-Host "setting variable: labVMFqdn:" $labVMFqdn
 Write-Host "##vso[task.setvariable variable=labVMFqdn;]$labVMFqdn"
