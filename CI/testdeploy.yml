@@ -215,12 +215,9 @@ steps:
       Write-Host 'Update VM AutoShutdown Schedule'
       Write-Host "CONTACT_EMAIL:" "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
-      Write-Host 'Finished Creating New VM'
-      $labVMId = $VM.Outputs.labVMId.Value
-      Write-Host 'labVMId: ' $labVMId
-      Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
+      Write-Host 'Finished Updating VM AutoShutdown Schedule'
 
 
 - task: AzurePowerShell@4
