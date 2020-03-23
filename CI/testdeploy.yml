@@ -172,8 +172,11 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
+      Write-Host "USER_NAME:" $env:USER_NAME
+      Write-Host "USER_NAME:" '$env:USER_NAME'
+      Write-Host "USER_NAME:" "$env:USER_NAME"
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$enc:CONTACT_EMAIL"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
 
@@ -186,6 +189,26 @@ steps:
     ScriptPath: 'CI/GetLabVMParams.ps1'
     ScriptArguments: '-ResourceGroupName "$(DevTestLabRGName)" -VMName "$(vmName)"' 
     azurePowerShellVersion: 'LatestVersion'
+
+- task: AzurePowerShell@4
+  name: UpdateAutoShutdown
+  env:
+    CONTACT_EMAIL: $(NotificationEmail)
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Set-Location $(Build.Repository.LocalPath)
+      Write-Host 'Update VM AutoShutdown Schedule'
+      Set-PSDebug -Trace 1;
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
+      Set-PSDebug -Trace 0;
+      Write-Host 'Finished Creating New VM'
+      $labVMId = $VM.Outputs.labVMId.Value
+      Write-Host 'labVMId: ' $labVMId
+      Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
+
 
 - task: AzurePowerShell@4
   name: StartVM
