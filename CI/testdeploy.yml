@@ -257,7 +257,7 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      Invoke-Sqlcmd -Query "SELECT @@VERSION V,SUSER_NAME() U,SYSDATETIME() T;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
+      Invoke-Sqlcmd -Query "PRINT SUSER_NAME();PRINT SYSDATETIME();PRINT @@VERSION;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
 
 - task: CmdLine@2
   condition: true
