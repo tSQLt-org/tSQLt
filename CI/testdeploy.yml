@@ -198,11 +198,9 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Update VM AutoShutdown Schedule'
-      Write-Host "CONTACT_EMAIL:" $env:CONTACT_EMAIL
-      Write-Host "CONTACT_EMAIL:" '$env:CONTACT_EMAIL'
       Write-Host "CONTACT_EMAIL:" "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
       $labVMId = $VM.Outputs.labVMId.Value
