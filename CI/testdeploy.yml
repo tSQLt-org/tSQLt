@@ -76,6 +76,8 @@ steps:
       Set-PSDebug -Trace 0;
       Write-Host 'Done.'
 
+##Need to make sure we're validating the right templates here (and remove unused ones from git repository)
+
 - task: AzureResourceManagerTemplateDeployment@3
   name: Validate_VNet_ArmTemplate
   inputs:
@@ -116,7 +118,7 @@ steps:
     deploymentMode: 'Validation'
 
 - task: AzureResourceManagerTemplateDeployment@3
-  name: Validate_DSC_ArmTemplate
+  name: Validate_VMSchedule_ArmTemplate
   inputs:
     deploymentScope: 'Resource Group'
     azureResourceManagerConnection: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -125,7 +127,20 @@ steps:
     resourceGroupName: '$(DevTestLabRGName)'
     location: 'East US 2'
     templateLocation: 'Linked artifact'
-    csmFile: 'CI/DSCTemplate.json'
+    csmFile: 'CI/CreateVMScheduleTemplate.json'
+    deploymentMode: 'Validation'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  name: Validate_SQLVirtualMachine_ArmTemplate
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    subscriptionId: '58c04a99-5b92-410c-9e41-10262f68ca80'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: '$(DevTestLabRGName)'
+    location: 'East US 2'
+    templateLocation: 'Linked artifact'
+    csmFile: 'CI/CreateSQLVirtualMachineTemplate.json'
     deploymentMode: 'Validation'
 
 
