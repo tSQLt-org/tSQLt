@@ -37,6 +37,12 @@ steps:
       echo end pipeline here      
       echx
 
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    KeyVaultName: 'tSQLtSigningKey'
+    SecretsFilter: '*'
+
 - task: PowerShell@2
   name: Generate_DevTest_Lab_Name
   inputs:
@@ -155,6 +161,10 @@ steps:
 - task: AzurePowerShell@4
   name: CreateVM
   condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+    CONTACT_EMAIL: $(NotificationEmail)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
@@ -163,7 +173,7 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -userName "$(userName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -ContactEmail "$(ContactEmail)"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$enc:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
 
