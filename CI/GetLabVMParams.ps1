@@ -3,31 +3,23 @@ Param( [string] $ResourceGroupName, [string] $VMName)
 #$labVmId = "/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_3_RG/providers/Microsoft.DevTestLab/labs/tSQLtCI_DevTestLab_3/virtualmachines/SQL2014SP3D"
 
 
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "x<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host $ResourceGroupName;
-Write-Host $VMName;
-Write-Host "x<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host $env:UserName
-Write-Host $env:UserDomain
-Write-Host $env:ComputerName
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "<->1<-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "Parameters:";
+Write-Host "ResourceGroupName:" $ResourceGroupName;
+Write-Host "VMName:"            $VMName;
+Write-Host "<->2<-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "Execution Environment"
+Write-Host "UserName:"     $env:UserName
+Write-Host "UserDomain:"   $env:UserDomain
+Write-Host "ComputerName:" $env:ComputerName
+Write-Host "<->3<-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "VM Resource";
 
-$labAzResource = (Get-AzResource -Name $VMName -ResourceType Microsoft.DevTestLab/labs/virtualmachines -ResourceGroupName $ResourceGroupName)
-##Get-AzResource -Name "V1062sql2014sp3" -ResourceType "Microsoft.DevTestLab/labs/virtualmachines" -ResourceGroupName "tSQLtCI_DevTestLab_20200320_1062"
+##(Get-AzResource -ResourceId (Get-AzResource -Name V1087sql2014sp3 -ResourceType Microsoft.DevTestLab/labs/virtualmachines -ResourceGroupName tSQLtCI_DevTestLab_20200323_1087_RG).ResourceId)
+$labAzResource = (Get-AzResource -ResourceId (Get-AzResource -Name $VMName -ResourceType Microsoft.DevTestLab/labs/virtualmachines -ResourceGroupName $ResourceGroupName).ResourceId)
+
 $labAzResource
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Write-Host "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-
-Write-Host $labAzResource.Properties.toString()
+Write-Host "<->4<-><-><-><-><-><-><-><-><-><-><-><-><->";
 
 $labVmComputeId = $labAzResource.Properties.ComputeId
 Write-Host "setting variable: labVmComputeId:" $labVmComputeId
