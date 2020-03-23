@@ -195,7 +195,7 @@
 			"notificationSettings": {
 				"status": "Enabled",
 				"timeInMinutes": 30,
-				"emailRecipient": "parameters('ContactEmail')",
+				"emailRecipient": "[parameters('ContactEmail')]",
 				"notificationLocale": "en"
 			},
 			"targetResourceId": "[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "newVMName": {
+      "type": "string",
+      "defaultValue": "SQL2008SP3B"	
+    },
+    "labName": {
+      "type": "string",
+      "defaultValue": "tsqltci_devtestlab_3"
+    },
+    "ContactEmail": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+  },
+  "resources": [
+	{
+		"type": "microsoft.devtestlab/labs/virtualmachines/schedules",
+		"apiVersion": "2018-09-15",
+		"name": "[concat(parameters('labName'), '/', parameters('newVMName'),'/labvmsshutdown')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"status": "Enabled",
+			"taskType": "LabVmsShutdownTask",
+			"dailyRecurrence": {
+				"time": "0742"
+			},
+			"timeZoneId": "GMT Standard Time",
+			"notificationSettings": {
+				"status": "Enabled",
+				"timeInMinutes": 30,
+				"emailRecipient": "[parameters('ContactEmail')]",
+				"notificationLocale": "en"
+			},
+			"targetResourceId": "[resourceId('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]"
+		}
+	}
+  ]
+}
