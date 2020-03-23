@@ -208,12 +208,13 @@ steps:
       Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
 
 - task: PowerShell@2
+  name: PrintSQLVersionInfo
   inputs:
     targetType: 'inline'
     script: |
       # Write your PowerShell commands here.
       
-      Invoke-Sqlcmd -Query "SELECT @@VERSION V,SUSER_NAME() U,SYSDATETIME() T;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" |FT
+      Invoke-Sqlcmd -Query "SELECT @@VERSION V,SUSER_NAME() U,SYSDATETIME() T;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
 
 - task: CmdLine@2
   condition: true
