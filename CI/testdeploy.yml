@@ -172,9 +172,6 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
-      Write-Host "USER_NAME:" $env:USER_NAME
-      Write-Host "USER_NAME:" '$env:USER_NAME'
-      Write-Host "USER_NAME:" "$env:USER_NAME"
       Set-PSDebug -Trace 1;
       $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
@@ -201,6 +198,9 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Update VM AutoShutdown Schedule'
+      Write-Host "CONTACT_EMAIL:" $env:CONTACT_EMAIL
+      Write-Host "CONTACT_EMAIL:" '$env:CONTACT_EMAIL'
+      Write-Host "CONTACT_EMAIL:" "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 1;
       $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
