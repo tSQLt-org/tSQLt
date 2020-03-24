@@ -235,6 +235,9 @@ steps:
 
 - task: AzurePowerShell@4
   name: SetupSQL
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
@@ -243,7 +246,7 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "41433" -sqlAuthenticationLogin "tSQLt_External" -sqlAuthenticationPassword "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" -newVMName "$(vmName)" -newVMRID "$(labVmComputeId)"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "41433" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$(vmName)" -newVMRID "$(labVmComputeId)"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
       $labVMId = $VM.Outputs.labVMId.Value
@@ -252,14 +255,17 @@ steps:
 
 - task: PowerShell@2
   name: PrintSQLVersionInfo
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
   inputs:
     targetType: 'inline'
     script: |
       # Write your PowerShell commands here.
       
-      Invoke-Sqlcmd -Query "EXEC('SELE'+'CT SU'+'SER_NA'+'ME() U;');" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
-      Invoke-Sqlcmd -Query "SELECT SYSDATETIME() T;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
-      Invoke-Sqlcmd -Query "SELECT @@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
+      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$end:USER_NAME" -Password "$env:PASSWORD" 
+      $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
+
 
 - task: CmdLine@2
   condition: true
