@@ -27,7 +27,7 @@
 			"status": "Enabled",
 			"taskType": "LabVmsShutdownTask",
 			"dailyRecurrence": {
-				"time": "0742"
+				"time": "1335"
 			},
 			"timeZoneId": "GMT Standard Time",
 			"notificationSettings": {
