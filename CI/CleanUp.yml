@@ -11,7 +11,13 @@ pool:
 
 schedules:
 - cron: "0 6 * * *"
-  displayName: Daily 3AM cleanup
+  displayName: Nightly cleanup
+  branches:
+    include:
+    - CITesting
+  always: true
+- cron: "0 8 * * *"
+  displayName: Nightly +2h cleanup
   branches:
     include:
     - CITesting

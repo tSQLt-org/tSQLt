@@ -8,13 +8,13 @@ name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 trigger: none
 pr: none
 schedules:
-  - cron: 0 12 20 3 *
+  - cron: 0 12 24 3 *
     displayName: Scheduled once(ish)
     branches:
       include:
       - CITesting
     always: true
-  - cron: 15 12 20 3 *
+  - cron: 15 12 24 3 *
     displayName: Scheduled once(ish)
     branches:
       include:
@@ -215,12 +215,9 @@ steps:
       Write-Host 'Update VM AutoShutdown Schedule'
       Write-Host "CONTACT_EMAIL:" "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
-      Write-Host 'Finished Creating New VM'
-      $labVMId = $VM.Outputs.labVMId.Value
-      Write-Host 'labVMId: ' $labVMId
-      Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
+      Write-Host 'Finished Updating VM AutoShutdown Schedule'
 
 
 - task: AzurePowerShell@4
@@ -260,7 +257,7 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      Invoke-Sqlcmd -Query "SELECT @@VERSION V,SUSER_NAME() U,SYSDATETIME() T;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
+      Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U;SELECT SYSDATETIME() T;SELECT @@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
 
 - task: CmdLine@2
   condition: true
