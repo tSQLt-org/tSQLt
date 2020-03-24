@@ -72,7 +72,8 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U;SELECT SYSDATETIME() T;SELECT @@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "tSQLt_External" -Password "qTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)" 
+      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" 
+      $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
 
 - task: CmdLine@2
   condition: true
