@@ -74,7 +74,7 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" 
+      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
       $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
 
 
