@@ -154,7 +154,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Set-PSDebug -Trace 1;
-      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -SQL_Port "41433"
+      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -SQL_Port "$(SQL_Port)"
       Set-PSDebug -Trace 0;
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
       Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
@@ -246,7 +246,7 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "41433" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$(vmName)" -newVMRID "$(labVmComputeId)"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$(SQL_Port)" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$(vmName)" -newVMRID "$(labVmComputeId)"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
       $labVMId = $VM.Outputs.labVMId.Value
@@ -263,9 +263,8 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" 
+      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
       $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
-
 
 - task: CmdLine@2
   condition: true
