@@ -64,27 +64,6 @@ steps:
     ScriptArguments: '-ResourceGroupName "$(DevTestLabRGName)" -VMName "$(vmName)"' 
     azurePowerShellVersion: 'LatestVersion'
 
-
-- task: AzurePowerShell@4
-  name: SetupSQL
-  env:
-    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    azurePowerShellVersion: 'LatestVersion'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Set-Location $(Build.Repository.LocalPath)
-      Write-Host 'Creating New VM'
-      Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "41433" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$(vmName)" -newVMRID "$(labVmComputeId)"
-      Set-PSDebug -Trace 0;
-      Write-Host 'Finished Creating New VM'
-      $labVMId = $VM.Outputs.labVMId.Value
-      Write-Host 'labVMId: ' $labVMId
-      Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
-
 - task: PowerShell@2
   name: PrintSQLVersionInfo
   env:
