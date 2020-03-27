@@ -115,6 +115,12 @@
           <AssociatedConnUserName />
           <FullPath>Install(tSQLtExternalAccessKey).sql</FullPath>
         </FileNode>
+        <FileNode Name="PrepServer2014.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>PrepServer2014.sql</FullPath>
+        </FileNode>
         <FileNode Name="PrintVersionInfo.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
