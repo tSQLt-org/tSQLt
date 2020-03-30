@@ -23,7 +23,7 @@ CALL %1\bin\ant -buildfile Build\tSQLt.copybuild.xml || goto :error
 ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
-CALL %1\bin\ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.version=%3 -Ddb.server=%4 -Ddb.name=%5 || goto :error
+CALL %1\bin\ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.version=%3 -Ddb.server=%4 -Ddb.name=%5 -Ddb.login="-E" || goto :error
 
 ECHO +-------------------------+
 ECHO :     BUILD SUCCEEDED     :

@@ -1,9 +1,24 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
- <target name="all" depends="deploy.all, validate.tSQLt, validate.Example, report.SQL.Version" />
+ <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Example, report.SQL.Version" />
 
  <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, deploy.tSQLt, deploy.Example" />
+
+ <target name="validate.parameters">
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="db.version" />
+  </antcall>
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="db.server" />
+  </antcall>
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="db.name" />
+  </antcall>
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="db.login" />
+  </antcall>
+ </target>
 
  <target name="hello" description="announcement">
   <loadfile
@@ -18,6 +33,7 @@
   <echo message="tSQLt build version is: [V${clr.version}]" />
   <echo message="db.server: ${db.server}" />
   <echo message="db.name: ${db.name}" />
+  <echo message="db.login: ${db.login}" />
 
   <condition property="db.version.ge.2008">
    <or>
@@ -42,6 +58,18 @@
   <echo message="db.version.ge.2012: ${db.version.ge.2012}" />
   <echo message="db.version.ge.2014: ${db.version.ge.2014}" />
 
+ </target>
+
+ <target name="validate.parameter">
+  <fail message="Parameter '${parameter.name}' is required">
+   <condition>
+    <not>
+     <and>
+      <isset property="${parameter.name}"/>
+     </and>
+    </not>
+   </condition>
+  </fail>
  </target>
 
  <target name="report.SQL.Version">
@@ -200,7 +228,7 @@
   </condition>
   <antcall target="execute.sql.statement_or_file.with.permissions">
    <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
-   <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; -E" />
+   <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; ${db.login}" />
   </antcall>
  </target>
  <!--
