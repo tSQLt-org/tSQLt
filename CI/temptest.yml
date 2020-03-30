@@ -30,6 +30,15 @@ variables:
 
 steps:
 
+- task: DownloadPipelineArtifact@2
+  inputs:
+    buildType: 'specific'
+    project: '276a22c3-dbc9-4c7c-8e4e-18c70ef165d8'
+    definition: '1'
+    buildVersionToDownload: 'latest'
+    artifactName: 'tSQLtPreTests'
+    targetPath: '$(Pipeline.Workspace)'
+
 - task: AzureKeyVault@1
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
