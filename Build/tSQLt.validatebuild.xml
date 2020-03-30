@@ -23,7 +23,7 @@
  <target name="hello" description="announcement">
   <loadfile
     failonerror="true"
-    srcfile="output/Version.txt"
+    srcfile="../Build_Artifact/Version.txt"
     property="clr.version"
    />
   <property name="clr.version" value="${string::trim(clr.version)}" />
@@ -100,8 +100,8 @@
   <delete dir="temp"/>
   <mkdir dir="temp"/>
 
-  <unzip src="output/tSQLt.zip" dest="temp" />
-  <unzip src="output/tSQLt.tests.zip" dest="temp" />
+  <unzip src="../Build_Artifact/tSQLt.zip" dest="temp" />
+  <unzip src="../Build_Artifact/tSQLt.tests.zip" dest="temp" />
 
   <property name="execute.sql.elevated" value="false" />
   <property name="deployandrun.tests.elevated" value="false" />
