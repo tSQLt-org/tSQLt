@@ -81,7 +81,7 @@ steps:
 - task: Ant@1
   inputs:
     buildFile: 'Build/tSQLt.validatebuild.xml'
-    options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn),$(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $env:USER_NAME -P $env:PASSWORD"'
+    options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn), $(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)"'
     targets: 'all'
     publishJUnitResults: true
     testResultsFiles: '**/TestResults*.xml'
