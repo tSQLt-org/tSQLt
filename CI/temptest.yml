@@ -78,6 +78,17 @@ steps:
       $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
 
 
+- task: Ant@1
+  inputs:
+    buildFile: 'Build/tSQLt.validatebuild.xml'
+    options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn),$(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $env:USER_NAME -P $env:PASSWORD"'
+    targets: 'all'
+    publishJUnitResults: true
+    testResultsFiles: '**/TestResults*.xml'
+    testRunTitle: 'testtitle'
+    javaHomeOption: 'JDKVersion'
+
+
 
 - task: CmdLine@2
   condition: true
