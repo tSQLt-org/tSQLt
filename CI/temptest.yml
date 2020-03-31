@@ -35,6 +35,7 @@ steps:
     script: |
       echo %0
       cd /d c:\
+      echo %CD%
       echo ----
       echo %PATH%
       echo ----
