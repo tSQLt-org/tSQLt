@@ -38,7 +38,7 @@ steps:
 - task: CmdLine@2
   inputs:
     script: |
-      cd /s $(Build.SourcesDirectory)\Build
+      dir /s $(Build.SourcesDirectory)\Build
 
 - task: DownloadPipelineArtifact@2
   inputs:
