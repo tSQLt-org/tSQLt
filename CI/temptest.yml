@@ -34,9 +34,13 @@ steps:
   inputs:
     script: |
       echo %0
-      cd c:\
+      cd /d c:\
       echo ----
-      dir /s sqlcmd*.*
+      echo %PATH%
+      echo ----
+      dir C:\Program Files\Microsoft SQL Server\110\Tools\Binn
+      echo ------------
+      dir /S sqlcmd*.*
 
 - task: CmdLine@2
   inputs:
