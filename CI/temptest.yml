@@ -33,6 +33,13 @@ steps:
 - task: CmdLine@2
   inputs:
     script: |
+      echo "##vso[task.prependpath]C:\Program Files\Microsoft SQL Server\110\Tools\Binn"
+      
+      echo %path%
+
+- task: CmdLine@2
+  inputs:
+    script: |
       echo %0
       cd /d c:\
       echo %CD%
