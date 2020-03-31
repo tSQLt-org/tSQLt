@@ -33,9 +33,10 @@ steps:
 - task: CmdLine@2
   inputs:
     script: |
+      echo %0
       cd c:\
-      
-      dir /S sqlcmd*.*
+      echo ----
+      dir /s sqlcmd*.*
 
 - task: CmdLine@2
   inputs:
