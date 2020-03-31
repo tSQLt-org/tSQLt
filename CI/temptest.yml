@@ -35,11 +35,6 @@ steps:
     script: |
       echo ##vso[task.prependpath]C:\Program Files\Microsoft SQL Server\110\Tools\Binn
 
-- task: CmdLine@2
-  inputs:
-    script: |
-      dir /s $(Build.SourcesDirectory)\Build
-
 - task: DownloadPipelineArtifact@2
   inputs:
     buildType: 'specific'
@@ -82,6 +77,13 @@ steps:
     ScriptPath: 'CI/GetLabVMParams.ps1'
     ScriptArguments: '-ResourceGroupName "$(DevTestLabRGName)" -VMName "$(vmName)"' 
     azurePowerShellVersion: 'LatestVersion'
+
+
+- task: CmdLine@2
+  name: PrepSQLServer
+  inputs:
+    script: |
+      SQLCMD -S "$(labVMFqdn),$(SQL_Port)" -U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password) -i $(Build.SourcesDirectory)\Build\PrepServer2014.sql
 
 - task: PowerShell@2
   name: PrintSQLVersionInfo
