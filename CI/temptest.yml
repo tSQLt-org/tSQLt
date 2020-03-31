@@ -39,7 +39,7 @@ steps:
       echo ----
       echo %PATH%
       echo ----
-      dir C:\Program Files\Microsoft SQL Server\130\Tools\Binn
+      dir "C:\Program Files\Microsoft SQL Server\130\Tools\Binn\"
       echo ------------
       dir /S sqlcmd*.*
 
