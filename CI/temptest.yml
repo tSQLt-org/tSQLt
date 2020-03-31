@@ -30,6 +30,19 @@ variables:
 
 steps:
 
+- task: CmdLine@2
+  inputs:
+    script: |
+      cd c:\
+      
+      dir /S sqlcmd*.*
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      echo 1/0
+
+
 - task: DownloadPipelineArtifact@2
   inputs:
     buildType: 'specific'
