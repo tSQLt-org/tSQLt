@@ -31,6 +31,7 @@ variables:
 steps:
 
 - task: CmdLine@2
+  name: AddSQLCMDToPath
   inputs:
     script: |
       echo ##vso[task.prependpath]C:\Program Files\Microsoft SQL Server\110\Tools\Binn
