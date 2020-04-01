@@ -10,18 +10,24 @@ pool:
   vmImage: 'vs2017-win2016'
 
 schedules:
-- cron: "0 6 * * *"
-  displayName: Nightly cleanup
-  branches:
-    include:
-    - CITesting
-  always: true
-- cron: "0 8 * * *"
-  displayName: Nightly +2h cleanup
-  branches:
-    include:
-    - CITesting
-  always: true
+  - cron: 0 16 3 4 *
+    displayName: Scheduled once(ish)
+    branches:
+      include:
+      - CITesting
+    always: true
+  - cron: "0 6 * * *"
+    displayName: Nightly cleanup
+    branches:
+     include:
+      - CITesting
+    always: true
+  - cron: "0 8 * * *"
+    displayName: Nightly +2h cleanup
+    branches:
+      include:
+      - CITesting
+    always: true
 
 variables:
   GetResourceGroupsStatement: 'Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"}'
