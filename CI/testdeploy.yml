@@ -8,13 +8,13 @@ name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 trigger: none
 pr: none
 schedules:
-  - cron: 0 12 30 3 *
+  - cron: 0 12 3 4 *
     displayName: Scheduled once(ish)
     branches:
       include:
       - CITesting
     always: true
-  - cron: 15 12 30 3 *
+  - cron: 15 12 3 4 *
     displayName: Scheduled once(ish)
     branches:
       include:
@@ -26,7 +26,6 @@ pool:
 
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
-
 
 steps:
 
@@ -60,7 +59,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=DevTestLabVNetName;]$DevTestLabVNetName"
       Write-Host 'vmName: ' $vmName
       Write-Host "##vso[task.setvariable variable=vmName;]$vmName"
-
 
 - task: AzurePowerShell@4
   name: Create_Resource_Group
@@ -142,7 +140,6 @@ steps:
     templateLocation: 'Linked artifact'
     csmFile: 'CI/CreateSQLVirtualMachineTemplate.json'
     deploymentMode: 'Validation'
-
 
 - task: AzurePowerShell@4
   name: Create_VNet
@@ -266,11 +263,14 @@ steps:
       $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
       $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
 
-- task: CmdLine@2
-  condition: true
+- task: PowerShell@2
+  name: PrepSQLServer
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
   inputs:
+    targetType: 'inline'
     script: |
-      echo end pipeline here      
-      echx
-
-
+      # Write your PowerShell commands here.
+      
+      $DS = Invoke-Sqlcmd -InputFile "$(Build.SourcesDirectory)\Build\PrepServer2014.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD"

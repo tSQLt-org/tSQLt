@@ -30,6 +30,12 @@ variables:
 
 steps:
 
+- task: CmdLine@2
+  name: AddSQLCMDToPath
+  inputs:
+    script: |
+      echo ##vso[task.prependpath]C:\Program Files\Microsoft SQL Server\110\Tools\Binn
+
 - task: DownloadPipelineArtifact@2
   inputs:
     buildType: 'specific'
@@ -37,7 +43,7 @@ steps:
     definition: '1'
     buildVersionToDownload: 'latest'
     artifactName: 'tSQLtPreTests'
-    targetPath: '$(Pipeline.Workspace)'
+    targetPath: '$(Build.SourcesDirectory)/Build_Artifact'
 
 - task: AzureKeyVault@1
   inputs:
@@ -73,6 +79,14 @@ steps:
     ScriptArguments: '-ResourceGroupName "$(DevTestLabRGName)" -VMName "$(vmName)"' 
     azurePowerShellVersion: 'LatestVersion'
 
+
+- task: CmdLine@2
+  condition: false
+  name: PrepSQLServer
+  inputs:
+    script: |
+      SQLCMD -S "$(labVMFqdn),$(SQL_Port)" -U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password) -i $(Build.SourcesDirectory)\Build\PrepServer2014.sql
+
 - task: PowerShell@2
   name: PrintSQLVersionInfo
   env:
@@ -100,7 +114,7 @@ steps:
 
 
 - task: CmdLine@2
-  condition: true
+  condition: false
   inputs:
     script: |
       echo end pipeline here      
