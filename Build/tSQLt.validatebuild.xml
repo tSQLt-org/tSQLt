@@ -248,7 +248,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
+  <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; TestCaseFileName=&quot;${execute.sql.testcasefilename}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
@@ -307,6 +307,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.filename" value="temp/GetFailedTestCount.sql" />
+   <param name="execute.sql.testcasefilename" value="${execute.sql.testcasefilename}" />
    <param name="execute.sql.statement" value="" />
   </antcall>
  </target>
@@ -346,6 +347,7 @@
    <param name="execute.sql.elevated" value="${deployandrun.tests.elevated}" />
    <param name="execute.sql.outputfile" value="${deployandrun.tests.outputfile}" />
    <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.testcasefilename" value="${deployandrun.tests.filename}" />
    <param name="execute.sql.statement" value="EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;" />
   </antcall>
  </target>
@@ -379,6 +381,13 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.filename" value="temp/BootStrapTest.sql" />
+  </antcall>
+
+  <!-- Set SummaryError Off -->
+  <antcall target="execute.sql.statement">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=0;" />
+   <param name="execute.sql.outputfile" value="" />
   </antcall>
 
   <!-- run non-specific tests -->
@@ -423,6 +432,13 @@
    <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS.xml" />
   </antcall>
 
+  <!-- Set SummaryError back On -->
+  <antcall target="execute.sql.statement">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;" />
+   <param name="execute.sql.outputfile" value="" />
+  </antcall>
+
   <!-- cleanup master -->
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
@@ -449,6 +465,7 @@
   <antcall target="execute.sql.tests">
    <param name="execute.sql.database" value="tSQLt_Example" />
    <param name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
+   <param name="execute.sql.testcasefilename" value="ExampleDB" />
    <param name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
   </antcall>
 

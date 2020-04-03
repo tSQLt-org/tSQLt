@@ -20,6 +20,8 @@ ECHO :- THIS STEP IS OPTIONAL -:
 ECHO +-------------------------+
 CALL %1\bin\ant -buildfile Build\tSQLt.copybuild.xml || goto :error
 
+pause
+
 ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
