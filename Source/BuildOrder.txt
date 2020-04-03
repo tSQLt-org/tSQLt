@@ -77,5 +77,6 @@ tSQLt.AssertEqualsTableSchema.tables.sql
 tSQLt.AssertEqualsTableSchema.ssp.sql
 tSQLt.AssertStringTable.udt.sql
 tSQLt.AssertStringIn.ssp.sql
+tSQLt.SetSummaryError.ssp.sql
 tSQLt.Reset.ssp.sql
 tSQLt._Footer.sql

@@ -495,6 +495,7 @@ BEGIN
     DECLARE @IsSuccess INT;
     DECLARE @SuccessCnt INT;
     DECLARE @Severity INT;
+    DECLARE @SummaryError INT;
     
     SELECT ROW_NUMBER() OVER(ORDER BY Result DESC, Name ASC) No,Name [Test Case Name],
            RIGHT(SPACE(7)+CAST(DATEDIFF(MILLISECOND,TestStartTime,TestEndTime) AS VARCHAR(7)),7) AS [Dur(ms)], Result
@@ -508,7 +509,15 @@ BEGIN
            @SuccessCnt = SuccessCnt
       FROM tSQLt.TestCaseSummary();
       
+    SELECT @SummaryError = CAST(PC.Value AS INT)
+      FROM tSQLt.Private_Configurations AS PC
+     WHERE PC.Name = 'SummaryError';
+
     SELECT @Severity = 16*(1-@IsSuccess);
+    IF(@SummaryError = 0)
+    BEGIN
+      SET @Severity = 0;
+    END;
     
     SELECT @Msg2 = REPLICATE('-',LEN(@Msg3)),
            @Msg4 = CHAR(13)+CHAR(10);

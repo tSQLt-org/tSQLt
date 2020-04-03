@@ -481,6 +481,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Reset.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.SetSummaryError.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.SetSummaryError.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.SetVerbose.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
