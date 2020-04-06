@@ -119,10 +119,6 @@
   <delete file="temp/AllTests.Main.sql" />
   <antcall target="append.file">
    <param name="append.target" value="temp/AllTests.Main.sql" />
-   <param name="append.source" value="temp/TestUtil.sql" />
-  </antcall>
-  <antcall target="append.file">
-   <param name="append.target" value="temp/AllTests.Main.sql" />
    <param name="append.source" value="temp/AllTests.sql" />
   </antcall>
  </target>
@@ -183,6 +179,10 @@
   <antcall target="append.file">
    <param name="append.target" value="temp/temp_create_example.sql" />
    <param name="append.source" value="temp/Example.sql" />
+  </antcall>
+  <antcall target="append.file">
+   <param name="append.target" value="temp/temp_create_example.sql" />
+   <param name="append.source" value="temp/TestUtil.sql" />
   </antcall>
   <antcall target="append.file">
    <param name="append.target" value="temp/temp_create_example.sql" />
@@ -248,7 +248,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; TestCaseFileName=&quot;${execute.sql.testcasefilename}&quot; -V11" />
+  <property name="execute.sql.sqlcmd" value="sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
@@ -304,11 +304,9 @@
    <param name="execute.sql.statement" value="" />
   </antcall>
 
-  <antcall target="execute.sql.file">
+  <antcall target="execute.sql.statement">
+   <param name="execute.sql.statement" value="EXEC tSQLt_testutil.LogMultiRunResult '${execute.sql.testcasefilename}'" />
    <param name="execute.sql.outputfile" value="" />
-   <param name="execute.sql.filename" value="temp/GetFailedTestCount.sql" />
-   <param name="execute.sql.testcasefilename" value="${execute.sql.testcasefilename}" />
-   <param name="execute.sql.statement" value="" />
   </antcall>
  </target>
 
@@ -383,10 +381,16 @@
    <param name="execute.sql.filename" value="temp/BootStrapTest.sql" />
   </antcall>
 
-  <!-- Set SummaryError Off -->
+  <!-- Install TestUtil -->
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.filename" value="temp/TestUtil.sql" />
+  </antcall>
+
+  <!-- Set SummaryError Off, PrepMultiRun -->
   <antcall target="execute.sql.statement">
    <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=0;" />
+   <param name="execute.sql.statement" value="EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
@@ -432,10 +436,10 @@
    <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS.xml" />
   </antcall>
 
-  <!-- Set SummaryError back On -->
+  <!-- Set SummaryError back On, CheckMultiRun -->
   <antcall target="execute.sql.statement">
    <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults;" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
@@ -462,11 +466,25 @@
   <echo message="##teamcity[progressMessage 'Validating Example']" />
   <antcall target="reset.parameter.variables" />
 
+  <!-- Set SummaryError Off, PrepMultiRun -->
+  <antcall target="execute.sql.statement">
+   <param name="execute.sql.database" value="tSQLt_Example" />
+   <param name="execute.sql.statement" value="EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;" />
+   <param name="execute.sql.outputfile" value="" />
+  </antcall>
+
   <antcall target="execute.sql.tests">
    <param name="execute.sql.database" value="tSQLt_Example" />
    <param name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
    <param name="execute.sql.testcasefilename" value="ExampleDB" />
    <param name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
+  </antcall>
+
+  <!-- Set SummaryError back On, CheckMultiRun -->
+  <antcall target="execute.sql.statement">
+   <param name="execute.sql.database" value="tSQLt_Example" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults;" />
+   <param name="execute.sql.outputfile" value="" />
   </antcall>
 
  </target>

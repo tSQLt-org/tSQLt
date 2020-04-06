@@ -1,8 +1,9 @@
 EXEC tSQLt.NewTestClass 'SetSummaryErrorTests';
 GO
-CREATE PROCEDURE SetSummaryErrorTests.CreateTestsSuiteWithFailingTest
+CREATE PROCEDURE SetSummaryErrorTests.CreateTestsSuiteWithFailingTestAndSetDefaultResultFormatter
 AS
 BEGIN
+  EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultFormatter';  
   EXEC tSQLt.NewTestClass 'SetSummaryErrorTestsTests';
   EXEC('CREATE PROCEDURE SetSummaryErrorTestsTests.TestPassing AS RETURN 0;');
   EXEC('CREATE PROCEDURE SetSummaryErrorTestsTests.TestFailing AS EXEC tSQLt.Fail;');
@@ -11,7 +12,7 @@ GO
 CREATE PROCEDURE SetSummaryErrorTests.[test suppresses the error in the summary if set to 0]
 AS
 BEGIN
-  EXEC SetSummaryErrorTests.CreateTestsSuiteWithFailingTest;
+  EXEC SetSummaryErrorTests.CreateTestsSuiteWithFailingTestAndSetDefaultResultFormatter;
   EXEC tSQLt.SetSummaryError @SummaryError=0;
   EXEC tSQLt.ExpectNoException;
   EXEC tSQLt.Run @TestName='SetSummaryErrorTestsTests';
@@ -20,7 +21,10 @@ GO
 CREATE PROCEDURE SetSummaryErrorTests.[test doesn't suppress the error in the summary if not set]
 AS
 BEGIN
-  EXEC SetSummaryErrorTests.CreateTestsSuiteWithFailingTest;
+  EXEC SetSummaryErrorTests.CreateTestsSuiteWithFailingTestAndSetDefaultResultFormatter;
+
+  DELETE FROM tSQLt.Private_Configurations WHERE Name = 'SummaryError';
+
   EXEC tSQLt.ExpectException @ExpectedMessagePattern='Test Case Summary:%';
   EXEC tSQLt.Run @TestName='SetSummaryErrorTestsTests';
 END;
@@ -28,7 +32,7 @@ GO
 CREATE PROCEDURE SetSummaryErrorTests.[test doesn't suppress the error in the summary if set to 1]
 AS
 BEGIN
-  EXEC SetSummaryErrorTests.CreateTestsSuiteWithFailingTest;
+  EXEC SetSummaryErrorTests.CreateTestsSuiteWithFailingTestAndSetDefaultResultFormatter;
   EXEC tSQLt.SetSummaryError @SummaryError=1;
   EXEC tSQLt.ExpectException @ExpectedMessagePattern='Test Case Summary:%';
   EXEC tSQLt.Run @TestName='SetSummaryErrorTestsTests';

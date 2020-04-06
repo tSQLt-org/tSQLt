@@ -277,4 +277,106 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END
 GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws error if a test error exists in the log]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+  INSERT INTO tSQLt_testutil.MultiRunLog(Error)VALUES(1);
 
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt execution with failures or errors detected.', @ExpectedSeverity = 16, @ExpectedState = 10;
+  
+  INSERT INTO #Actual
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+  
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws error if a test failure exists in the log]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+  INSERT INTO tSQLt_testutil.MultiRunLog(Failure)VALUES(1);
+
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt execution with failures or errors detected.', @ExpectedSeverity = 16, @ExpectedState = 10;
+  
+  INSERT INTO #Actual
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+  
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws no error if all tests in the log succeeded]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success)VALUES(1);
+
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  EXEC tSQLt.ExpectNoException;
+  
+  INSERT INTO #Actual
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+  
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults returns contents of Log as resultset]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Failure,Error,TestCaseSet)
+  VALUES
+    (1,17,0,0,'row 1'),(2,4,0,0,'row 2');
+
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  INSERT INTO #Actual
+  EXEC tSQLt.ResultSetFilter 1,'EXEC tSQLt_testutil.CheckMultiRunResults;'
+
+  EXEC tSQLt.AssertEqualsTable 'tSQLt_testutil.MultiRunLog','#Actual';  
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws error if the log is empty]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'MultiRunLog is empty.', @ExpectedSeverity = 16, @ExpectedState = 10;
+  
+  INSERT INTO #Actual
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+  
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws error if the log contains empty run]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Failure,Error,TestCaseSet)
+  VALUES(42,0,0,0,'some run');
+
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'MultiRunLog contains Run without tests.', @ExpectedSeverity = 16, @ExpectedState = 10;
+  
+  INSERT INTO #Actual
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+  
+END
+GO

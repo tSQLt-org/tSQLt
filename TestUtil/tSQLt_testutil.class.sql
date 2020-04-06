@@ -263,6 +263,54 @@ BEGIN
     END
 END;
 GO
+CREATE PROCEDURE tSQLt_testutil.PrepMultiRunLogTable
+AS
+BEGIN
+  IF OBJECT_ID('tSQLt_testutil.MultiRunLog') IS NOT NULL DROP TABLE tSQLt_testutil.MultiRunLog;
+  CREATE TABLE tSQLt_testutil.MultiRunLog
+  (
+    id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    Success INT,
+    Failure INT,
+    [Error] INT,
+    TestCaseSet NVARCHAR(MAX)
+  );
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.LogMultiRunResult
+  @TestCaseSet NVARCHAR(MAX)
+AS
+BEGIN
+  SELECT 
+      SUM(CASE WHEN Result = 'Success' THEN 1 ELSE 0 END) Success,
+      SUM(CASE WHEN Result = 'Failure' THEN 1 ELSE 0 END) Failure,
+      SUM(CASE WHEN Result = 'Error' THEN 1 ELSE 0 END) [Error],
+      @TestCaseSet TestCaseSet
+    INTO #MRL
+    FROM tSQLt.TestResult;
+  SELECT * FROM #MRL AS M;
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Failure,Error,TestCaseSet)
+  SELECT * FROM #MRL AS M;
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.CheckMultiRunResults
+AS
+BEGIN
+  SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
+  BEGIN
+    RAISERROR('tSQLt execution with failures or errors detected.',16,10);
+  END;
+  IF(NOT EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL))
+  BEGIN
+    RAISERROR('MultiRunLog is empty.',16,10);
+  END;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Failure = 0 AND MRL.Error = 0))
+  BEGIN
+    RAISERROR('MultiRunLog contains Run without tests.',16,10);
+  END;
+END;
+GO
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

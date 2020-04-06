@@ -35,28 +35,6 @@ BEGIN
 END;
 GO
 
-CREATE PROC Run_Methods_Tests.[test RunTestClass raises error if error in default print mode]
-AS
-BEGIN
-    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
-
-    EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultFormatter';
-    EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 1/0;');
-    
-    BEGIN TRY
-        EXEC tSQLt.RunTestClass MyTestClass;
-    END TRY
-    BEGIN CATCH
-        SET @ErrorRaised = 1;
-    END CATCH
-    IF(@ErrorRaised = 0)
-    BEGIN
-        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
-    END
-END;
-GO
-
 CREATE PROC Run_Methods_Tests.test_Run_handles_test_names_with_spaces
 AS
 BEGIN
