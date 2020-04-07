@@ -299,15 +299,15 @@ BEGIN
   SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL;
   IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
   BEGIN
-    RAISERROR('tSQLt execution with failures or errors detected.',16,10);
+    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = 16
   END;
   IF(NOT EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL))
   BEGIN
-    RAISERROR('MultiRunLog is empty.',16,10);
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = 16
   END;
   IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Failure = 0 AND MRL.Error = 0))
   BEGIN
-    RAISERROR('MultiRunLog contains Run without tests.',16,10);
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = 16
   END;
 END;
 GO

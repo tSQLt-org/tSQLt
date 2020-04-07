@@ -31,12 +31,13 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.EXTERNAL_ACCESS_KEY_E
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Build_Output", "Build_Output\Build_Output.ssmssqlproj", "{92395F13-BF15-4C42-A876-DC851DE88ACA}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TestUtilTests", "TestUtilTests\TestUtilTests.ssmssqlproj", "{29C01CDC-4748-4118-ACF3-FFFE56A8A989}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{165E1583-7B0D-4A8E-9A75-DFF4C0D9EE61}.Default|Default.ActiveCfg = Default
 		{E5760F57-8934-4790-8420-DA7032D58EB7}.Default|Default.ActiveCfg = Default
 		{5FFBD87D-F3CF-43CF-BD60-ED175F5B0E92}.Default|Default.ActiveCfg = Default
 		{161EC148-F99F-4D07-A8A0-FF7ECB9A1566}.Default|Default.ActiveCfg = Default
@@ -51,6 +52,8 @@ Global
 		{C3E63571-5B2C-4FF0-9FE4-96BB08BEDC7B}.Default|Default.ActiveCfg = Default
 		{7FC3A926-9834-455A-906E-330FFCF224E3}.Default|Default.ActiveCfg = Default
 		{92395F13-BF15-4C42-A876-DC851DE88ACA}.Default|Default.ActiveCfg = Default
+		{E28590E7-7A65-4834-B9DF-3D229BF329C1}.Default|Default.ActiveCfg = Default
+		{29C01CDC-4748-4118-ACF3-FFFE56A8A989}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

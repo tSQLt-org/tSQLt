@@ -208,6 +208,14 @@
    <arg value="temp/TestUtil.sql"/>
   </exec>
 
+  <echo message="Building TestUtilTests.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../TestUtilTests/*.class.sql"/>
+   <arg value="temp/TestUtilTests.sql"/>
+  </exec>
+
   <echo message="Building AllTests.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
@@ -285,6 +293,7 @@
   <zip zipfile="output/tSQLt.tests.zip">
    <fileset dir="temp">
     <include name="TestUtil.sql"/>
+    <include name="TestUtilTests.sql"/>
     <include name="AllTests.sql"/>
     <include name="AllTests.2008.sql"/>
     <include name="AllTests.2012.sql"/>

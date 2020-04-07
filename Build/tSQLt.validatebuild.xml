@@ -394,6 +394,13 @@
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
+  <!-- run TestUtil tests -->
+  <antcall target="deployandrun.tests">
+   <param name="deployandrun.tests.elevated" value="false" />
+   <param name="deployandrun.tests.filename" value="temp/TestUtilTests.sql" />
+   <param name="deployandrun.tests.outputfile" value="output/TestResults.xml" />
+  </antcall>
+
   <!-- run non-specific tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
