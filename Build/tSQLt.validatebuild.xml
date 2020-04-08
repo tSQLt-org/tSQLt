@@ -99,6 +99,7 @@
  <target name="init" description="prepare directories for tSQLt build">
   <delete dir="temp"/>
   <mkdir dir="temp"/>
+  <mkdir dir="output" />
 
   <unzip src="../Build_Artifact/tSQLt.zip" dest="temp" />
   <unzip src="../Build_Artifact/tSQLt.tests.zip" dest="temp" />
