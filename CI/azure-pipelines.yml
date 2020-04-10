@@ -26,6 +26,12 @@ jobs:
     clean: true
     path: source
 
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        cmd /c dir /s c:\sn.exe
+
   - task: MSBuild@1
     displayName: 'Build solution tSQLtCLR/tSQLtCLR.sln'
     inputs:
