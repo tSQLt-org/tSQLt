@@ -30,7 +30,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        cmd /c dir /s c:\sn.exe
+        cmd /c sn.exe /?
 
   - task: MSBuild@1
     displayName: 'Build solution tSQLtCLR/tSQLtCLR.sln'
