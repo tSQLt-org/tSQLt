@@ -3,18 +3,6 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_2014:WIN10A\meinse00">
-          <Created>2014-12-31T18:06:01.9272147-05:00</Created>
-          <Type>SQL</Type>
-          <Server>Dev_2014</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB />
-          <LoginTimeout>15</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
         <ConnectionNode Name="Dev_tSQLt:WIN10A\meinse00">
           <Created>2014-11-24T18:10:21.4587287-05:00</Created>
           <Type>SQL</Type>

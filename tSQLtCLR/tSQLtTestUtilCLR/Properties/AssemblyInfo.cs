@@ -36,3 +36,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 [assembly: System.Security.AllowPartiallyTrustedCallers]
+
+// Sign assembl with key in this container:
+[assembly: System.Reflection.AssemblyKeyNameAttribute("tSQLt_OfficialSigningKey")]

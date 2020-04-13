@@ -22,8 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AssemblyOriginatorKeyFile />
-    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,8 +30,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AssemblyOriginatorKeyFile>tSQLtOfficialSigningKey.pfx</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CruiseControl|AnyCPU'">
     <OutputPath>bin\CruiseControl\</OutputPath>
@@ -42,8 +38,6 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <AssemblyOriginatorKeyFile>tSQLtOfficialSigningKey.pfx</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NoSigningForCI|AnyCPU'">
     <OutputPath>bin\NoSigningForCI\</OutputPath>
@@ -53,11 +47,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <AssemblyOriginatorKeyFile />
-    <SignAssembly>false</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>tSQLtOfficialSigningKey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -82,7 +71,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="tSQLtOfficialSigningKey.pfx" />
   </ItemGroup>
   <!-- Was : <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" /> - - Why did we need to change this? -->
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
