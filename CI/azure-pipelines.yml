@@ -6,7 +6,7 @@
 # https://aka.ms/yaml
 
 trigger:
-- CITesting
+- CITestingxxx
 
 pool:
   vmImage: 'vs2017-win2016'
@@ -26,12 +26,19 @@ jobs:
     clean: true
     path: source
 
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        cmd /c dir /s c:\signtools.exe
+        cmd /c "c:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\x64\sn.exe" /?
+
   - task: MSBuild@1
     displayName: 'Build solution tSQLtCLR/tSQLtCLR.sln'
     inputs:
         solution: tSQLtCLR/tSQLtCLR.sln
         platform: 'Any CPU'
-        configuration: NoSigningForCI
+        configuration: CruiseControl
 
   - task: CopyFiles@2
     displayName: 'Copy all dll files to the ArtifactStagingDirectory'
