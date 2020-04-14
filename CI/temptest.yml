@@ -52,6 +52,20 @@ steps:
     SecretsFilter: '*'
 
 - task: PowerShell@2
+  name: WillThisWork
+  inputs:
+    targetType: 'inline'
+    script: |
+      $kvSecretBytes = [System.Convert]::FromBase64String($(PfxSecret))
+      $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+      $certCollection.Import($kvSecretBytes,$null,[System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+      $password = 'qTv3f9gduUFuc8BQqTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)EcFbY3(2H)'
+      $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12, $password)
+      $pfxPath = "$(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx"
+      [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
+      &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx 'qTv3f9gduUFuc8BQqTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)EcFbY3(2H)' tSQLt_OfficialSigningKey
+
+- task: PowerShell@2
   name: Generate_DevTest_Lab_Name
   inputs:
     targetType: 'inline'
