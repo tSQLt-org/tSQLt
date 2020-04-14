@@ -8,25 +8,25 @@ name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 trigger: none
 pr: none
 schedules:
-  - cron: 0 12 8 4 *
+  - cron: 0 12 14 4 *
     displayName: Scheduled once(ish)
     branches:
       include:
       - CITesting
     always: true
-  - cron: 15 12 8 4 *
+  - cron: 15 12 14 4 *
     displayName: Scheduled once(ish)
     branches:
       include:
       - CITesting
     always: true
-  - cron: 0 12 10 4 *
+  - cron: 0 12 15 4 *
     displayName: Scheduled once(ish)
     branches:
       include:
       - CITesting
     always: true
-  - cron: 15 12 10 4 *
+  - cron: 15 12 15 4 *
     displayName: Scheduled once(ish)
     branches:
       include:
