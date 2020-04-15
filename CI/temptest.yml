@@ -70,6 +70,8 @@ steps:
       $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12, $password)
       $pfxPath = "$(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx"
       [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
+      write-host 'got here'
+      write-host $protectedCertificateBytes
       &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx 'qTv3f9gduUFuc8BQqTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)EcFbY3(2H)' tSQLt_OfficialSigningKey
 
 
