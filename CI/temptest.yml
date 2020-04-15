@@ -56,13 +56,21 @@ steps:
   name: WillThisWorkInAzure
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
       $secretName = "tSQLtOfficialSigningKey"
       $vaultName = "tSQLtSigningKey"
       $kvKey = Get-AzKeyVaultKey -VaultName $vaultName -Name $secretName
       $kvKey | FT
-    azurePowerShellVersion: 'LatestVersion'
+      $kvSecretBytes = [System.Convert]::FromBase64String($kvKey.SecretValueText)
+      $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+      $certCollection.Import($kvSecretBytes,$null,[System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+      $password = 'qTv3f9gduUFuc8BQqTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)EcFbY3(2H)'
+      $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12, $password)
+      $pfxPath = "$(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx"
+      [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
+      &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx 'qTv3f9gduUFuc8BQqTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)EcFbY3(2H)' tSQLt_OfficialSigningKey
 
 
 - task: PowerShell@2
