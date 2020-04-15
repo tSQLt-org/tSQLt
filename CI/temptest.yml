@@ -60,7 +60,7 @@ steps:
     Inline: |
       $secretName = "tSQLtOfficialSigningKey"
       $vaultName = "tSQLtSigningKey"
-      $kvKey = Get-AzureKeyVaultKey -VaultName $vaultName -Name $secretName
+      $kvKey = Get-AzKeyVaultKey -VaultName $vaultName -Name $secretName
       $kvKey | FT
     azurePowerShellVersion: 'LatestVersion'
 
