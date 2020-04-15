@@ -58,8 +58,9 @@ steps:
     script: |
       $secretName = "tSQLtOfficialSigningKey"
       $vaultName = "tSQLtSigningKey"
-      $kvSecret = Get-AzureKeyVaultSecret -VaultName $vaultName -Name $secretName
-      $kvSecretBytes = [System.Convert]::FromBase64String($kvSecret.SecretValueText)
+      $kvKey = Get-AzureKeyVaultKey -VaultName $vaultName -Name $secretName
+      $kvKey | FT
+      $kvSecretBytes = [System.Convert]::FromBase64String($kvKey.SecretValueText)
       $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
       $certCollection.Import($kvSecretBytes,$null,[System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
       $password = 'qTv3f9gduUFuc8BQqTv3f9gduUFuc8BQTZUq4MEcFbY3(2H)EcFbY3(2H)'
