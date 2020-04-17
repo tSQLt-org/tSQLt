@@ -211,7 +211,7 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  SELECT @cmd = 'CREATE LOGIN tSQLtExternalAccessKey WITH PASSWORD = '''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
+  SELECT @cmd = 'CREATE LOGIN tSQLtExternalAccessKey WITH PASSWORD = '''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''',CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF;';
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.InstallExternalAccessKey;
