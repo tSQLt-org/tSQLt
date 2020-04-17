@@ -27,11 +27,14 @@ jobs:
     path: source
 
   - task: PowerShell@2
+    name: Install_tSQLt_OfficialSigningKey
     inputs:
       targetType: 'inline'
       script: |
-        cmd /c dir /s c:\signtools.exe
-        cmd /c "c:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\x64\sn.exe" /?
+        $pfxSecretBytes = [System.Convert]::FromBase64String('$(tSQLtOfficialSigningKey-Base64)')
+        $pfxPath = "$(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx"
+        [System.IO.File]::WriteAllBytes($pfxPath, $pfxSecretBytes)
+        &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx '$(tSQLtSigningKeyPassword)' tSQLt_OfficialSigningKey
 
   - task: MSBuild@1
     displayName: 'Build solution tSQLtCLR/tSQLtCLR.sln'
