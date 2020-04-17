@@ -58,13 +58,8 @@ jobs:
         flattenFolders: true
 
 
-  - task: AzureKeyVault@1
-    inputs:
-      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-      KeyVaultName: 'tSQLtSigningKey'
-      SecretsFilter: '*'
-
   - task: authenticode-sign@4
+    condition: false
     inputs:
         filePath: 'tSQLt*.dll'
         signRootPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
