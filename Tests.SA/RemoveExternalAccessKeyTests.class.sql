@@ -122,7 +122,7 @@ AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
     
-  SET @cmd = 'CREATE LOGIN RemoveExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
+  SET @cmd = 'CREATE LOGIN RemoveExternalAccessKeyTestsUser1 WITH PASSWORD='''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
   EXEC master.sys.sp_executesql @cmd;
 
   SET @cmd = 'CREATE USER RemoveExternalAccessKeyTestsUser1;ALTER ROLE db_owner ADD MEMBER RemoveExternalAccessKeyTestsUser1;';
@@ -150,7 +150,7 @@ BEGIN
 
     DECLARE @cmd NVARCHAR(MAX);
     
-    SET @cmd = 'CREATE LOGIN RemoveExternalAccessKeyTestsUser1 WITH PASSWORD=''(*&^#@($&^%(&@#^$%(!&@'';';
+    SET @cmd = 'CREATE LOGIN RemoveExternalAccessKeyTestsUser1 WITH PASSWORD='''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
     EXEC master.sys.sp_executesql @cmd;
 
     SET @cmd = 'GRANT CONTROL SERVER TO RemoveExternalAccessKeyTestsUser1;';
