@@ -51,17 +51,6 @@ steps:
     KeyVaultName: 'tSQLtSigningKey'
     SecretsFilter: '*'
 
-
-- task: PowerShell@2
-  name: WillThisWork
-  inputs:
-    targetType: 'inline'
-    script: |
-      $pfxSecretBytes = [System.Convert]::FromBase64String('$(tSQLtOfficialSigningKey-Base64)')
-      $pfxPath = "$(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx"
-      [System.IO.File]::WriteAllBytes($pfxPath, $pfxSecretBytes)
-      &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx '$(tSQLtSigningKeyPassword)' tSQLt_OfficialSigningKey
-
 - task: PowerShell@2
   name: Generate_DevTest_Lab_Name
   inputs:
