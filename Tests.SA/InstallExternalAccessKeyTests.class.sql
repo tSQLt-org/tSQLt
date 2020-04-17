@@ -141,7 +141,7 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  SELECT @cmd = 'CREATE ASYMMETRIC KEY tSQLtExternalAccessKey WITH ALGORITHM = RSA_2048 ENCRYPTION BY PASSWORD = '''+CAST(NEWID() AS NVARCHAR(MAX))+''';';
+  SELECT @cmd = 'CREATE ASYMMETRIC KEY tSQLtExternalAccessKey WITH ALGORITHM = RSA_2048 ENCRYPTION BY PASSWORD = '''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.InstallExternalAccessKey;
@@ -211,7 +211,7 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  SELECT @cmd = 'CREATE LOGIN tSQLtExternalAccessKey WITH PASSWORD = '''+CAST(NEWID() AS NVARCHAR(MAX))+''';';
+  SELECT @cmd = 'CREATE LOGIN tSQLtExternalAccessKey WITH PASSWORD = '''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.InstallExternalAccessKey;

@@ -185,6 +185,12 @@
           <AssociatedConnUserName />
           <FullPath>Setup.bat</FullPath>
         </FileNode>
+        <FileNode Name="SnInstallPfx.exe">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>SnInstallPfx.exe</FullPath>
+        </FileNode>
         <FileNode Name="SourceForgePrivateKey.ppk">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

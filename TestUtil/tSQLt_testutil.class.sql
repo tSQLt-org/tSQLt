@@ -311,6 +311,12 @@ BEGIN
   END;
 END;
 GO
+CREATE FUNCTION tSQLt_testutil.GenerateRandomPassword(@R UNIQUEIDENTIFIER)
+RETURNS TABLE
+AS
+RETURN
+SELECT CAST(@R AS NVARCHAR(MAX))+'[P0l1cyRe7u1r3mnt$]' PW;
+GO
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
