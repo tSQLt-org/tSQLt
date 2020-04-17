@@ -111,7 +111,11 @@ steps:
     testRunTitle: 'testtitle'
     javaHomeOption: 'JDKVersion'
 
-
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)/Build'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
 
 - task: CmdLine@2
   condition: false
