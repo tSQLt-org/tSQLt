@@ -111,6 +111,20 @@ steps:
     testRunTitle: 'testtitle'
     javaHomeOption: 'JDKVersion'
 
+- task: PowerShell@2
+  name: TestXMLOutput
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      &sqlcmd -S "$(labVMFqdn),$(SQL_Port)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
+
+
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.SourcesDirectory)/Build'
