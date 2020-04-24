@@ -122,7 +122,7 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      &sqlcmd -S "$(labVMFqdn),$(SQL_Port)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
+      &"${{ parameters.SQLCMDPath }}\sqlcmd" -S "$(labVMFqdn),$(SQL_Port)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
 
 
 
