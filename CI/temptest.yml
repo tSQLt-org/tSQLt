@@ -36,6 +36,13 @@ steps:
     script: |
       echo ##vso[task.prependpath]C:\Program Files\Microsoft SQL Server\110\Tools\Binn
 
+- task: CmdLine@2
+  name: AgentInfo
+  inputs:
+    script: |
+      systeminfo
+      SQLCMD -?
+
 - task: DownloadPipelineArtifact@2
   inputs:
     buildType: 'specific'
@@ -69,7 +76,6 @@ steps:
       Write-Host 'vmName: ' $vmName
       Write-Host "##vso[task.setvariable variable=vmName;]$vmName"
 
-
 - task: AzurePowerShell@4
   name: get_VM_parameters
   inputs:
@@ -78,14 +84,6 @@ steps:
     ScriptPath: 'CI/GetLabVMParams.ps1'
     ScriptArguments: '-ResourceGroupName "$(DevTestLabRGName)" -VMName "$(vmName)"' 
     azurePowerShellVersion: 'LatestVersion'
-
-
-- task: CmdLine@2
-  condition: false
-  name: PrepSQLServer
-  inputs:
-    script: |
-      SQLCMD -S "$(labVMFqdn),$(SQL_Port)" -U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password) -i $(Build.SourcesDirectory)\Build\PrepServer2014.sql
 
 - task: PowerShell@2
   name: PrintSQLVersionInfo
@@ -102,6 +100,7 @@ steps:
 
 
 - task: Ant@1
+  name: Run_tSQLt_validatebuild_xml
   inputs:
     buildFile: 'Build/tSQLt.validatebuild.xml'
     options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn), $(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)"'
