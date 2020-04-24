@@ -28,7 +28,7 @@ pool:
 parameters:
 - name: SQLCMDPath
   type: string
-  default: "C:\\Program Files\\Microsoft SQL Server\\110\\Tools\\Binn"
+  default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
 
 
 variables:
@@ -42,7 +42,7 @@ steps:
   inputs:
     script: |
       systeminfo
-      $(SQLCMDPath)\SQLCMD -?
+      %SQLCMDPath%\SQLCMD -?
 
 - task: DownloadPipelineArtifact@2
   inputs:
