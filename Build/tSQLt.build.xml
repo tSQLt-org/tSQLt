@@ -1,15 +1,14 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
  <description>Build tSQLt</description>
- <target name="clean" description="remove all generated files">
-  <echo message="${msbuild.path}" />
-  <echo message="${db.server}" />
-  <echo message="${db.name}" />
+
+ <target name="validate.parameters" description="">
+  <!-- no parameters at this point-->
  </target>
 
  <target
    name="all"
-   depends="package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests, teamcity"
+   depends="validate.parameters, package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests, teamcity"
    />
 
  <target
@@ -35,6 +34,18 @@
   <mkdir dir="output" />
   <delete dir="temp"/>
   <mkdir dir="temp"/>
+ </target>
+
+ <target name="validate.parameter">
+  <fail message="Parameter '${parameter.name}' is required">
+   <condition>
+    <not>
+     <and>
+      <isset property="${parameter.name}"/>
+     </and>
+    </not>
+   </condition>
+  </fail>
  </target>
 
  <target name="init.tSQLtCLR" description="open tSQLtCLR artifact">

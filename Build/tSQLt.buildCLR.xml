@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
  <description>Build tSQLt</description>
- <target name="clean" description="remove all generated files">
+
+ <target name="validate.parameters" description="">
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="msbuild.path" />
+  </antcall>
   <echo message="${msbuild.path}" />
-  <echo message="${db.server}" />
-  <echo message="${db.name}" />
  </target>
 
  <target
    name="all"
-   depends="init, clr.compile, tSQLtExternalAccessKey.compile, clr.testutil.compile, clr.UnsignedEmpty.compile, package.files"
+   depends="validate.parameters, init, clr.compile, tSQLtExternalAccessKey.compile, clr.testutil.compile, clr.UnsignedEmpty.compile, package.files"
    />
 
 
@@ -25,47 +27,59 @@
   <property name="build.configuration" value="CruiseControl" />
  </target>
 
+ <target name="validate.parameter">
+  <fail message="Parameter '${parameter.name}' is required">
+   <condition>
+    <not>
+     <and>
+      <isset property="${parameter.name}"/>
+     </and>
+    </not>
+   </condition>
+  </fail>
+ </target>
+
  <!--=======================================================================-->
  <!--========                 Build tSQLt CLRs                     =========-->
  <!--=======================================================================-->
 
  <target name="clr.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
   <delete dir="../tSQLtCLR/tSQLtCLR/bin/${build.configuration}" />
   <delete dir="../tSQLtCLR/tSQLtCLR/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
    <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+   <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
   </exec>
  </target>
 
  <target name="tSQLtExternalAccessKey.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
   <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/bin/${build.configuration}" />
   <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtExternalAccessKey/" failonerror="true">
    <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
+   <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
   </exec>
  </target>
 
  <target name="clr.testutil.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
   <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/bin/${build.configuration}" />
   <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtTestUtilCLR/" failonerror="true">
    <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
+   <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
   </exec>
  </target>
 
  <target name="clr.UnsignedEmpty.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
   <delete dir="../tSQLtCLR/UnsignedEmpty/bin/${build.configuration}" />
   <delete dir="../tSQLtCLR/UnsignedEmpty/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/UnsignedEmpty/" failonerror="true">
    <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
+   <arg value="&quot;${msbuild.path}\msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
   </exec>
  </target>
 
