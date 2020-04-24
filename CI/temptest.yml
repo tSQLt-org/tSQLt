@@ -24,6 +24,13 @@ schedules:
 pool:
   vmImage: 'vs2017-win2016'
 
+
+parameters:
+- name: SQLCMDPath
+  type: string
+  default: "C:\\Program Files\\Microsoft SQL Server\\110\\Tools\\Binn"
+
+
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
 
@@ -31,17 +38,11 @@ variables:
 steps:
 
 - task: CmdLine@2
-  name: AddSQLCMDToPath
-  inputs:
-    script: |
-      echo ##vso[task.prependpath]C:\Program Files\Microsoft SQL Server\110\Tools\Binn
-
-- task: CmdLine@2
   name: AgentInfo
   inputs:
     script: |
       systeminfo
-      SQLCMD -?
+      $(SQLCMDPath)\SQLCMD -?
 
 - task: DownloadPipelineArtifact@2
   inputs:
@@ -103,7 +104,7 @@ steps:
   name: Run_tSQLt_validatebuild_xml
   inputs:
     buildFile: 'Build/tSQLt.validatebuild.xml'
-    options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn), $(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="C:\Program Files\Microsoft SQL Server\110\Tools\Binn"'
+    options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn), $(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"$(SQLCMDPath)\""'
     targets: 'all'
     publishJUnitResults: true
     testResultsFiles: '**/TestResults*.xml'
