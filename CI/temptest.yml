@@ -41,6 +41,7 @@ steps:
   name: AgentInfo
   inputs:
     script: |
+      @ECHO ON
       systeminfo
       %SQLCMDPath%\SQLCMD -?
 
