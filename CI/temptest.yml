@@ -108,7 +108,7 @@ steps:
     options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn), $(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"${{ parameters.SQLCMDPath }}\""'
     targets: 'all'
     publishJUnitResults: true
-    testResultsFiles: '**/TestResults*.xml'
+    testResultsFiles: '**/?(Example)TestResults*.xml'
     testRunTitle: 'testtitle'
     javaHomeOption: 'JDKVersion'
 
