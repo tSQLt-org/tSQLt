@@ -43,7 +43,7 @@ steps:
     script: |
       @ECHO ON
       systeminfo
-      %SQLCMDPath%\SQLCMD -?
+      ${{ parameters.SQLCMDPath }}\SQLCMD -?
 
 - task: DownloadPipelineArtifact@2
   inputs:
