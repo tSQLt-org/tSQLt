@@ -20,13 +20,21 @@ pool:
 
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
+  Templates: 
+      2014:
+        Name: "sql2014sp3-ws2012r2"
+        Description: "Free SQL Server License: SQL Server 2014 SP3 Developer on Windows Server 2012 R2"
+        Publisher: "microsoftsqlserver"
+        SKU: "sqldev"
 
 steps:
 
 - task: CmdLine@2
-  condition: false
+  condition: true
   inputs:
     script: |
+      echo ${{variables.Templates.2014.Name}}
+      echo ${{variables.Templates.2014.Description}}
       echo end pipeline here      
       echx
 
