@@ -20,12 +20,14 @@ pool:
 
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
-  Templates: 
-      V2014:
-        Name: "sql2014sp3-ws2012r2"
-        Description: "Free SQL Server License: SQL Server 2014 SP3 Developer on Windows Server 2012 R2"
-        Publisher: "microsoftsqlserver"
-        SKU: "sqldev"
+  Templates: {
+    V2014:{
+      Name: "sql2014sp3-ws2012r2",
+      Description: "Free SQL Server License: SQL Server 2014 SP3 Developer on Windows Server 2012 R2",
+      Publisher: "microsoftsqlserver",
+      SKU: "sqldev"
+    }
+  }
 
 steps:
 
