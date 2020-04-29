@@ -32,6 +32,7 @@ schedules:
 variables:
   GetResourceGroupsStatement: 'Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"}'
 
+
 steps:
 
 - task: AzurePowerShell@4
