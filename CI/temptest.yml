@@ -1,0 +1,142 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
+
+trigger: none
+pr: none
+schedules:
+  - cron: 0 12 24 3 *
+    displayName: Scheduled once(ish)
+    branches:
+      include:
+      - CITesting
+    always: true
+  - cron: 15 12 24 3 *
+    displayName: Scheduled once(ish)
+    branches:
+      include:
+      - CITesting
+    always: true
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+
+parameters:
+- name: SQLCMDPath
+  type: string
+  default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+
+
+variables:
+  NamePreFix: 'tSQLtCI_DevTestLab_'
+
+
+steps:
+
+- task: CmdLine@2
+  name: AgentInfo
+  inputs:
+    script: |
+      @ECHO ON
+      systeminfo
+      "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+
+- task: DownloadPipelineArtifact@2
+  inputs:
+    buildType: 'specific'
+    project: '276a22c3-dbc9-4c7c-8e4e-18c70ef165d8'
+    definition: '1'
+    buildVersionToDownload: 'latest'
+    artifactName: 'tSQLtPreTests'
+    targetPath: '$(Build.SourcesDirectory)/Build_Artifact'
+
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    KeyVaultName: 'tSQLtSigningKey'
+    SecretsFilter: '*'
+
+- task: PowerShell@2
+  name: Generate_DevTest_Lab_Name
+  inputs:
+    targetType: 'inline'
+    script: |
+      $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
+      $DevTestLabRGName = $DevTestLabName+'_RG'
+      $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
+      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)'+(('$(template)').replace('-',''))+''+$DevTestLabName).substring(0,15)} else {($env:vmNameOverride)}
+      Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
+      Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
+      Write-Host 'DevTestLabName: ' $DevTestLabName
+      Write-Host "##vso[task.setvariable variable=DevTestLabName;]$DevTestLabName"
+      Write-Host 'DevTestLabVNetName: ' $DevTestLabVNetName
+      Write-Host "##vso[task.setvariable variable=DevTestLabVNetName;]$DevTestLabVNetName"
+      Write-Host 'vmName: ' $vmName
+      Write-Host "##vso[task.setvariable variable=vmName;]$vmName"
+
+- task: AzurePowerShell@4
+  name: get_VM_parameters
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'FilePath'
+    ScriptPath: 'CI/GetLabVMParams.ps1'
+    ScriptArguments: '-ResourceGroupName "$(DevTestLabRGName)" -VMName "$(vmName)"' 
+    azurePowerShellVersion: 'LatestVersion'
+
+- task: PowerShell@2
+  name: PrintSQLVersionInfo
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+      $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
+
+
+- task: Ant@1
+  name: Run_tSQLt_validatebuild_xml
+  inputs:
+    buildFile: 'Build/tSQLt.validatebuild.xml'
+    options: '-Ddb.version=2014 -Ddb.server="$(labVMFqdn), $(SQL_Port)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"${{ parameters.SQLCMDPath }}\""'
+    targets: 'all'
+    publishJUnitResults: true
+    testResultsFiles: '**/?(Example)TestResults*.xml'
+    testRunTitle: 'testtitle'
+    javaHomeOption: 'JDKVersion'
+
+- task: PowerShell@2
+  name: TestXMLOutput
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      &"${{ parameters.SQLCMDPath }}\sqlcmd" -S "$(labVMFqdn),$(SQL_Port)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
+
+
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)/Build'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+- task: CmdLine@2
+  condition: false
+  inputs:
+    script: |
+      echo end pipeline here      
+      echx
+
+
