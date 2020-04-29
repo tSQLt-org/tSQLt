@@ -145,7 +145,6 @@
       "name": "[variables('vmName')]",
       "location": "[resourceGroup().location]",
       "properties": {
-        "notes": "[parameters('templateDescription')]",
 		"labVirtualNetworkId":"[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), parameters('DevTestLabVirtualNetworkName'))]",
 		"labSubnetName":"[parameters('DevTestLabVirtualNetworkSubNetName')]",
         "galleryImageReference": {
