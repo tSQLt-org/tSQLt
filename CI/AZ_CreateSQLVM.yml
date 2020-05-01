@@ -18,6 +18,11 @@ schedules:
 pool:
   vmImage: 'vs2017-win2016'
 
+parameters:
+- name: SQLVersion
+  type: string
+  default: '2014'
+
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
 
