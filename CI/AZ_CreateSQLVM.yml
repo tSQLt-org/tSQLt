@@ -268,4 +268,4 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      $DS = Invoke-Sqlcmd -InputFile "$(Build.SourcesDirectory)\Build\PrepSQLServer.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD"
+      $DS = Invoke-Sqlcmd -InputFile "$(Build.SourcesDirectory)\CI\PrepSQLServer.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD"
