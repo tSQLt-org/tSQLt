@@ -22,22 +22,11 @@
       "type": "string",
       "defaultValue": "Standard_B2s"
     },
-    "template": {
-      "type": "string",
-      "defaultValue": "sql2014sp3-ws2012r2"
-    },
-    "templateDescription": {
-      "type": "string",
-      "defaultValue": "Free SQL Server License: SQL Server 2014 SP3 Developer on Windows Server 2012 R2 "
-    },
-    "templatePublisher": {
-      "type": "string",
-      "defaultValue": "microsoftsqlserver"
-    },
-    "templateSKU": {
-      "type": "string",
-      "defaultValue": "sqldev"
-    },
+	"SQLVersion":
+	{
+	  "type":"string",
+	  "defaultValue":"2014"
+	},
     "userName": {
       "type": "string",
       "defaultValue": "tSQLt"
@@ -136,7 +125,17 @@
     "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
 	"labNicName": "[concat(parameters('newVMName'), '-NetworkInterface-1')]",
 	"labSubnetPrefix": "10.0.0.0/24",
-	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1')]"
+	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1')]",
+	"templates":{
+	  "2008":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
+	  "2008R2":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
+	  "2010":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
+	  "2012":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
+	  "2014":{"offer":"sql2014sp3-ws2012r2","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
+	  "2016":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
+	  "2017":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
+	  "2019":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"}
+	}
   },
   "resources": [
     {
@@ -148,11 +147,11 @@
 		"labVirtualNetworkId":"[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), parameters('DevTestLabVirtualNetworkName'))]",
 		"labSubnetName":"[parameters('DevTestLabVirtualNetworkSubNetName')]",
         "galleryImageReference": {
-          "offer": "[parameters('template')]",
-          "publisher": "[parameters('templatePublisher')]",
-          "sku": "[parameters('templateSKU')]",
-          "osType": "Windows",
-          "version": "latest"
+          "offer": "[variables('templates')[parameters('SQLVersion')].offer]",
+          "publisher": "[variables('templates')[parameters('SQLVersion')].publisher]",
+          "sku": "[variables('templates')[parameters('SQLVersion')].sku]",
+          "osType": "[variables('templates')[parameters('SQLVersion')].osType]",
+          "version": "[variables('templates')[parameters('SQLVersion')].version]"
         },
         "size": "[parameters('size')]",
         "userName": "[parameters('userName')]",
