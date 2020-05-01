@@ -50,7 +50,7 @@ steps:
       $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
-      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)'+(('$(template)').replace('-',''))+''+$DevTestLabName).substring(0,15)} else {($env:vmNameOverride)}
+      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)-${{ parameters.SQLVersion }}').substring(0,15)} else {($env:vmNameOverride)}
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
       Write-Host 'DevTestLabName: ' $DevTestLabName
@@ -185,7 +185,7 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
       Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL"
+      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL" -SQLVersion "${{ parameters.SQLVersion }}"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
 
