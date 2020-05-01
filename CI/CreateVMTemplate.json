@@ -131,7 +131,6 @@
 	  "2008R2":{"offer":"SQL2008R2SP3-WS2008R2SP1","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
 	  "2008R2Ent":{"offer":"SQL2008R2SP3-WS2008R2SP1","publisher":"microsoftsqlserver","sku":"Enterprise","osType":"Windows","version":"latest"},
 	  "2008R2Std":{"offer":"SQL2008R2SP3-WS2008R2SP1","publisher":"microsoftsqlserver","sku":"Standard","osType":"Windows","version":"latest"},
-	  "2010":{"offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
 	  "2012":{"offer":"SQL2012SP4-WS2012R2","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
 	  "2012Ent":{"offer":"SQL2012SP4-WS2012R2","publisher":"microsoftsqlserver","sku":"Enterprise","osType":"Windows","version":"latest"},
 	  "2012Std":{"offer":"SQL2012SP4-WS2012R2","publisher":"microsoftsqlserver","sku":"Standard","osType":"Windows","version":"latest"},
