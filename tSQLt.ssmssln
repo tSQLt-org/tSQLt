@@ -33,6 +33,8 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Build_Output", "Build_Outpu
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TestUtilTests", "TestUtilTests\TestUtilTests.ssmssqlproj", "{29C01CDC-4748-4118-ACF3-FFFE56A8A989}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "CI", "CI\CI.ssmssqlproj", "{244CA5E2-1A9D-4569-A05D-5D0FE85C3F03}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -52,8 +54,9 @@ Global
 		{C3E63571-5B2C-4FF0-9FE4-96BB08BEDC7B}.Default|Default.ActiveCfg = Default
 		{7FC3A926-9834-455A-906E-330FFCF224E3}.Default|Default.ActiveCfg = Default
 		{92395F13-BF15-4C42-A876-DC851DE88ACA}.Default|Default.ActiveCfg = Default
-		{E28590E7-7A65-4834-B9DF-3D229BF329C1}.Default|Default.ActiveCfg = Default
 		{29C01CDC-4748-4118-ACF3-FFFE56A8A989}.Default|Default.ActiveCfg = Default
+		{244CA5E2-1A9D-4569-A05D-5D0FE85C3F03}.Default|Default.ActiveCfg = Default
+		{62FAF8C5-5093-4324-AE15-7453231D5C3F}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
