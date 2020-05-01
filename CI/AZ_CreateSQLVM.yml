@@ -21,6 +21,7 @@ pool:
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
 
+
 steps:
 
 - task: CmdLine@2
