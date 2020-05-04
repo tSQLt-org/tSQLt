@@ -38,7 +38,7 @@ parameters:
 
 
 variables:
-  FQDNAndPort: ${{parameters.FQDN}},${{parameters.Port}}
+  FQDNAndPort: ${{parameters.FQDN}}, ${{parameters.Port}}
 
 
 steps:
