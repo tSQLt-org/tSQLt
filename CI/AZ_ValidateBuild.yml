@@ -38,7 +38,7 @@ parameters:
 
 
 variables:
-  NamePreFix: 'tSQLtCI_DevTestLab_'
+  FQDNAndPort: ${{parameters.FQDN}},${{parameters.Port}}
 
 
 steps:
@@ -76,7 +76,7 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "${{parameters.FQDN}},${{parameters.Port}}" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(FQDNAndPort)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
       $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
 
 
@@ -84,7 +84,7 @@ steps:
   name: Run_tSQLt_validatebuild_xml
   inputs:
     buildFile: 'Build/tSQLt.validatebuild.xml'
-    options: '-Ddb.version=2014 "-Ddb.server=${{parameters.FQDN}},${{parameters.Port}}" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"${{ parameters.SQLCMDPath }}\""'
+    options: '-Ddb.version=2014 -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"${{ parameters.SQLCMDPath }}\""'
     targets: 'all'
     publishJUnitResults: true
     testResultsFiles: '**/?(Example)TestResults*.xml'
@@ -101,7 +101,7 @@ steps:
     script: |
       # Write your PowerShell commands here.
       
-      &"${{ parameters.SQLCMDPath }}\sqlcmd" -S "${{parameters.FQDN}},${{parameters.Port}}" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
+      &"${{ parameters.SQLCMDPath }}\sqlcmd" -S "$(FQDNAndPort)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
 
 - task: PublishBuildArtifacts@1
   inputs:
