@@ -44,3 +44,11 @@ steps:
       @ECHO ON
       systeminfo
       "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+
+- task: AzurePowerShell@5
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Az Pipelines Show
