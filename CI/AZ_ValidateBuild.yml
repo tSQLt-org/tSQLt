@@ -38,7 +38,11 @@ parameters:
 
 
 variables:
+  # IMPORTANT (and, you've got to be kidding me): 
+  # The space below is absolutely required to make the ANT Task work
   FQDNAndPort: ${{parameters.FQDN}}, ${{parameters.Port}}
+  #--------------------------------^^-------------------------------
+  #--------------------------------||-------------------------------
 
 
 steps:
