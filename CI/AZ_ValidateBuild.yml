@@ -84,7 +84,7 @@ steps:
   name: Run_tSQLt_validatebuild_xml
   inputs:
     buildFile: 'Build/tSQLt.validatebuild.xml'
-    options: '-Ddb.version=2014 -Ddb.server=${{parameters.FQDN}},${{parameters.Port}} -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"${{ parameters.SQLCMDPath }}\""'
+    options: '-Ddb.version=2014 -Ddb.server="${{parameters.FQDN}},${{parameters.Port}}" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"${{ parameters.SQLCMDPath }}\""'
     targets: 'all'
     publishJUnitResults: true
     testResultsFiles: '**/?(Example)TestResults*.xml'
