@@ -25,7 +25,7 @@
 	"SQLVersion":
 	{
 	  "type":"string",
-	  "defaultValue":"XXX"
+	  "defaultValue":"2019"
 	},
     "userName": {
       "type": "string",
