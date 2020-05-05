@@ -86,15 +86,23 @@ steps:
           Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
           if($_.ResourceGroupName -ne $null)
           {
-            Write-Host "Removing Locks"
-            Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{
-              Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
-                Write-Host $_.ResourceType "->" $_.ResourceName
-                $_ | Remove-AzResourceLock -Force 
+            Write-Host "Add Tag"
+            $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$_.ResourceGroupName" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+            if($MyRG -ne $null)
+            {
+              $MyRG|Set-AzResourceGroup -Tag @{"RemovalBy"="$(Build.BuildId)"}
+              Write-Host "Removing Locks"
+              Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{
+                Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
+                  Write-Host $_.ResourceType "->" $_.ResourceName
+                  $_ | Remove-AzResourceLock -Force 
+                }
               }
+              Write-Host "Removing RG";
+              $MyRG = $MyRG|Get-AzResourceGroup
+              $MyRG.Tags
+              $MyRG | Where-Object {$_.Tags.RemovalBy -eq "$(Build.BuildId)"} | Remove-AzResourceGroup -Force 
             }
-            Write-Host "Removing RG";
-            $_ | Remove-AzResourceGroup -Force 
           }else{
             Write-Host "Skipped..."
           }
