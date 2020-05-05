@@ -53,7 +53,7 @@ steps:
       }
       Write-Host '-----------------------------'
       Write-Host 'Sleeping for 15 seconds'
-      Start-Sleep -s 15
+      #Start-Sleep -s 15
       Write-Host '-----------------------------'
       Write-Host 'Setting Variable'
       $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGTBD -Compress)
@@ -72,7 +72,7 @@ steps:
       $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
       $RGTBD | FT
       Write-Host '-----> List of Running Cleanup Builds <-----'
-      az pipelines runs list |ft
+      az pipelines runs list --detect Ture |ft
 
 
 
