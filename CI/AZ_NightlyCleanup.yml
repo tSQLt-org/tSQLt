@@ -87,6 +87,7 @@ steps:
           if($_.ResourceGroupName -ne $null)
           {
             Write-Host "Add Tag"
+            $_
             $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$_.ResourceGroupName" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
             if($MyRG -ne $null)
             {
