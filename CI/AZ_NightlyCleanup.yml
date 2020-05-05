@@ -72,7 +72,7 @@ steps:
       $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
       $RGTBD | FT
       Write-Host '-----> List of Running Cleanup Builds <-----'
-      az pipelines runs list -org "https://sqlity.visualstudio.com/" |ft
+      az pipelines runs list --org "https://sqlity.visualstudio.com/" 
 
 
 
