@@ -71,6 +71,9 @@ steps:
       Write-Host '----->' $env:SerializedListOfRGs '<-----'
       $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
       $RGTBD | FT
+      Write-Host '-----> List of Running Cleanup Builds <-----'
+      az pipelines runs list |ft
+
 
 
 - task: AzurePowerShell@4
