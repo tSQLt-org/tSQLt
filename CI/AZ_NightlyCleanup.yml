@@ -85,32 +85,48 @@ steps:
     FailOnStandardError: true
     ScriptType: 'InlineScript'
     Inline: |
+      $RemoveResourceGroup = {
+            param($OrgRGN)
+            Write-Host "Add Tag to "$OrgRGN
+            $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$OrgRGN" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI" -and ([string]::isnullorempty($_.Tags.RemovalBy))} 
+            if($MyRG -ne $null)
+            {
+              $Tags = $MyRG.Tags
+              $Tags += @{"RemovalBy"="$(Build.BuildId)"}
+              $MyRG|Set-AzResourceGroup -Tags $Tags
+              Start-Sleep 10
+              $MyRG = $MyRG|Get-AZResourceGroup| Where-Object {$_.Tags.RemovalBy -eq "$(Build.BuildId)"}
+              $MyRG.Tags
+              if($MyRG -ne $null)
+              {
+                Write-Host "Removing Locks"
+                Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName |ForEach{
+                  Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
+                    Write-Host $_.ResourceType "->" $_.ResourceName
+                    $_ | Remove-AzResourceLock -Force 
+                  }
+                }
+                Write-Host "Removing RG";
+                $MyRG | Remove-AzResourceGroup -Force 
+              }
+            }        
+      }
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
           Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
           if($_.ResourceGroupName -ne $null)
           {
-            Write-Host "Add Tag"
-            $OrgRGN = $_.ResourceGroupName
-            $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$OrgRGN" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
-            if($MyRG -ne $null)
-            {
-              $MyRG|Set-AzResourceGroup -Tag @{"RemovalBy"="$(Build.BuildId)"}
-              Write-Host "Removing Locks"
-              Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName |ForEach{
-                Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
-                  Write-Host $_.ResourceType "->" $_.ResourceName
-                  $_ | Remove-AzResourceLock -Force 
-                }
-              }
-              Write-Host "Removing RG";
-              $MyRG = $MyRG|Get-AzResourceGroup ##Refresh Values
-              $MyRG.Tags
-              $MyRG | Where-Object {$_.Tags.RemovalBy -eq "$(Build.BuildId)"} | Remove-AzResourceGroup -Force 
-            }
+            Write-Host "BeginInvoke RemoveResourceGroup("$_.ResourceGroupName")";
+            $PSInstance = [powershell]::Create().AddScript($RemoveResourceGroup).AddArgument($_.ResourceGroupName);
+            $Handle = $PSInstance.BeginInvoke();
+
+            Write-Host "EndInvoke RemoveResourceGroup("$_.ResourceGroupName")";
+            $PSInstance.EndInvoke($Handle);
+            $PSInstance.Streams;
+            Write-Host "Done RemoveResourceGroup("$_.ResourceGroupName")";
           }else{
-            Write-Host "Skipped..."
+            Write-Host "Skipped...";
           }
-          Write-Host "Done" 
+          Write-Host "Done" ;
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
