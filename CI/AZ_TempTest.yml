@@ -51,5 +51,5 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
-      az devops configure --defaults organization="https://sqlity.visualstudio.com/"
+      az devops configure --defaults organization="https://sqlity.visualstudio.com/" project="tSQLtCI"
       Az Pipelines Show
