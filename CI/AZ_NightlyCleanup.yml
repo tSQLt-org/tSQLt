@@ -98,7 +98,7 @@ steps:
               Start-Sleep 10
               Write-Output "Confirming Tags are still in place for "$OrgRGN
               $MyRG = $MyRG|Get-AZResourceGroup| Where-Object {$_.Tags.RemovalBy -eq "$(Build.BuildId)"}
-              $MyRG.Tags
+              $MyRG.Tags|FT
               if($MyRG -ne $null)
               {
                 Write-Output "Removing Locks"
