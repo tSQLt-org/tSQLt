@@ -111,6 +111,7 @@ steps:
               }
             }        
       }
+      $ThreadHash = @{};
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
           Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
           if($_.ResourceGroupName -ne $null)
@@ -118,15 +119,18 @@ steps:
             Write-Host "BeginInvoke RemoveResourceGroup("$_.ResourceGroupName")";
             $PSInstance = [powershell]::Create().AddScript($RemoveResourceGroup).AddArgument($_.ResourceGroupName);
             $Handle = $PSInstance.BeginInvoke();
-
-            Write-Host "EndInvoke RemoveResourceGroup("$_.ResourceGroupName")";
-            $PSInstance.EndInvoke($Handle);
-            $PSInstance.Streams;
-            Write-Host "Done RemoveResourceGroup("$_.ResourceGroupName")";
+            $ThreadHash.Add($_.ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
           }else{
             Write-Host "Skipped...";
           }
-          Write-Host "Done" ;
+          Write-Host "Done BeginThreading";
+      }
+      $ThreadHash.GetEnumerator() | ForEach-Object{
+          Write-Host "EndInvoke RemoveResourceGroup("$_.Key")";
+          $PsInstance = $_.Value.PsInstance;
+          $PSInstance.EndInvoke($_.Value.Handle);
+          $PSInstance.Streams;
+          Write-Host "Done RemoveResourceGroup("$_.Key")";
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
