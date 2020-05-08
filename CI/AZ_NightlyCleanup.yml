@@ -87,33 +87,44 @@ steps:
     Inline: |
       $RemoveResourceGroup = {
             param($OrgRGN)
-            Write-Host "Add Tag to "$OrgRGN
+            Write-Output "Start processing delete for "$OrgRGN
             $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$OrgRGN" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI" -and ([string]::isnullorempty($_.Tags.RemovalBy))} 
             if($MyRG -ne $null)
             {
+              Write-Output "Add Tag to "$OrgRGN
               $Tags = $MyRG.Tags
               $Tags += @{"RemovalBy"="$(Build.BuildId)"}
               $MyRG|Set-AzResourceGroup -Tags $Tags
               Start-Sleep 10
+              Write-Output "Confirming Tags are still in place for "$OrgRGN
               $MyRG = $MyRG|Get-AZResourceGroup| Where-Object {$_.Tags.RemovalBy -eq "$(Build.BuildId)"}
               $MyRG.Tags
               if($MyRG -ne $null)
               {
-                Write-Host "Removing Locks"
+                Write-Output "Removing Locks"
                 Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName |ForEach{
                   Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
                     Write-Host $_.ResourceType "->" $_.ResourceName
                     $_ | Remove-AzResourceLock -Force 
                   }
                 }
-                Write-Host "Removing RG";
+                Write-Output "Removing RG "$OrgRGN;
                 $MyRG | Remove-AzResourceGroup -Force 
               }
+              else
+              {
+                Write-Output "Tags where changed by other thread"
+              }
             }        
+            else
+            {
+              Write-Output "processing skipped"
+            }
+            Write-Output "Done processing delete for "$OrgRGN;
       }
       $ThreadHash = @{};
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
-          Write-Host "Deleting ResourceGroup:" $_.ResourceGroupName 
+          Write-Output "Deleting ResourceGroup:" $_.ResourceGroupName 
           if($_.ResourceGroupName -ne $null)
           {
             Write-Host "BeginInvoke RemoveResourceGroup("$_.ResourceGroupName")";
@@ -121,16 +132,16 @@ steps:
             $Handle = $PSInstance.BeginInvoke();
             $ThreadHash.Add($_.ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
           }else{
-            Write-Host "Skipped...";
+            Write-Output "Skipped...";
           }
-          Write-Host "Done BeginThreading";
+          Write-Output "Done BeginThreading";
       }
       $ThreadHash.GetEnumerator() | ForEach-Object{
           Write-Host "EndInvoke RemoveResourceGroup("$_.Key")";
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
           $PSInstance.Streams;
-          Write-Host "Done RemoveResourceGroup("$_.Key")";
+          Write-Output "Done RemoveResourceGroup("$_.Key")";
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
