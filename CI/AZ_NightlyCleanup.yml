@@ -116,7 +116,7 @@ steps:
     Inline: |
       $RemoveResourceGroup = {
             param($OrgRGN)
-            Write-Output "Start processing delete for "$OrgRGN
+            Write-Output ("[{0}]Start processing delete for {1}" -f ((get-date).toString("O")), ($OrgRGN))
             $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$OrgRGN" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
             if("RemovalBy" -in $MyRG.Tags.Keys)
             {
@@ -141,7 +141,7 @@ steps:
                     $_ | Remove-AzResourceLock -Force 
                   }
                 }
-                Write-Output "Removing RG "$OrgRGN;
+                Write-Output ("Removing RG {0}" -f $OrgRGN);
                 $MyRG | Remove-AzResourceGroup -Force 
               }
               else
@@ -153,16 +153,16 @@ steps:
             {
               Write-Output "processing skipped"
             }
-            Write-Output "Done processing delete for "$OrgRGN;
+            Write-Output ("[{0}]Done processing delete for {1}" -f ((get-date).toString("O")), ($OrgRGN))
       }
       $ThreadHash = @{};
       $RunspacePool = [runspacefactory]::CreateRunspacePool(1,30)
       $RunspacePool.open()
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
-          Write-Output "Deleting ResourceGroup:" $_.ResourceGroupName 
+          Write-Output ("Deleting ResourceGroup {0}" -f $_.ResourceGroupName)
           if($_.ResourceGroupName -ne $null)
           {
-            Write-Host "BeginInvoke RemoveResourceGroup("$_.ResourceGroupName")";
+            Write-Host ("BeginInvoke RemoveResourceGroup({0})" -f $_.ResourceGroupName);
             $PSInstance = [powershell]::Create().AddScript($RemoveResourceGroup).AddArgument($_.ResourceGroupName);
             $PSinstance.RunspacePool = $RunspacePool;
             $Handle = $PSInstance.BeginInvoke();
@@ -173,11 +173,11 @@ steps:
           Write-Output "Done BeginThreading";
       }
       $ThreadHash.GetEnumerator() | ForEach-Object{
-          Write-Host "EndInvoke RemoveResourceGroup("$_.Key")";
+          Write-Host ("EndInvoke RemoveResourceGroup({0}" -f $_.Key);
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
           $PSInstance.Streams;
-          Write-Output "Done RemoveResourceGroup("$_.Key")";
+          Write-Output ("Done RemoveResourceGroup({0})" -f $_.Key);
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
