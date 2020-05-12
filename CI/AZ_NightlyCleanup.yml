@@ -35,6 +35,35 @@ variables:
 
 steps:
 
+- task: AzureCLI@2
+  condition: false
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host '-----------------------------'
+      Write-Host 'List RGs to be deleted'
+      Write-Host '-----------------------------'
+      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+      $RGTBD | ForEach-Object { 
+        ##add pipline status check here
+        Write-Host $_.ResourceGroupName 
+        Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
+        ##copy valid ones to new array
+        ##then publish that array below instead of $RGTBD
+        ##finally remove the following task and enable this one
+      }
+      Write-Host '-----------------------------'
+      Write-Host 'Sleeping for 15 seconds'
+      #Start-Sleep -s 15
+      Write-Host '-----------------------------'
+      Write-Host 'Setting Variable'
+      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGTBD -Compress)
+      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
+      Write-Host 'Setting Variable Done'
+
+
 - task: AzurePowerShell@4
   name: List_RGs_To_Be_Deleted
   inputs:
