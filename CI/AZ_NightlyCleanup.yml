@@ -88,7 +88,11 @@ steps:
       $RemoveResourceGroup = {
             param($OrgRGN)
             Write-Output "Start processing delete for "$OrgRGN
-            $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$OrgRGN" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI" -and ([string]::isnullorempty($_.Tags.RemovalBy))} 
+            $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$OrgRGN" -and $_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+            if("RemovalBy" -in $MyRG.Tags.Keys)
+            {
+              $MyRG = $null;
+            }
             if($MyRG -ne $null)
             {
               Write-Output "Add Tag to "$OrgRGN
