@@ -124,12 +124,13 @@ steps:
             }
             if($MyRG -ne $null)
             {
-              Write-Output "Add Tag to "$OrgRGN
+              $Tags = @{};
+              Write-Output ("Add Tag to {0}" -f $OrgRGN);
               $Tags = $MyRG.Tags
               $Tags += @{"RemovalBy"="$(Build.BuildId)"}
               $MyRG|Set-AzResourceGroup -Tags $Tags
               Start-Sleep 10
-              Write-Output "Confirming Tags are still in place for "$OrgRGN
+              Write-Output ("Confirming Tags are still in place for {0}" -f $OrgRGN)
               $MyRG = $MyRG|Get-AZResourceGroup| Where-Object {$_.Tags.RemovalBy -eq "$(Build.BuildId)"}
               $MyRG.Tags|FT
               if($MyRG -ne $null)
@@ -137,7 +138,7 @@ steps:
                 Write-Output "Removing Locks"
                 Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName |ForEach{
                   Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
-                    Write-Host $_.ResourceType "->" $_.ResourceName
+                    Write-Output ("{0} -> {1}" -f $_.ResourceType, $_.ResourceName);
                     $_ | Remove-AzResourceLock -Force 
                   }
                 }
