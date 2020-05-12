@@ -156,12 +156,15 @@ steps:
             Write-Output "Done processing delete for "$OrgRGN;
       }
       $ThreadHash = @{};
+      $RunspacePool = [runspacefactory]::CreateRunspacePool(1,30)
+      $RunspacePool.open()
       (ConvertFrom-JSON $env:SerializedListOfRGs) | ForEach-Object { 
           Write-Output "Deleting ResourceGroup:" $_.ResourceGroupName 
           if($_.ResourceGroupName -ne $null)
           {
             Write-Host "BeginInvoke RemoveResourceGroup("$_.ResourceGroupName")";
             $PSInstance = [powershell]::Create().AddScript($RemoveResourceGroup).AddArgument($_.ResourceGroupName);
+            $PSinstance.RunspacePool = $RunspacePool;
             $Handle = $PSInstance.BeginInvoke();
             $ThreadHash.Add($_.ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
           }else{
