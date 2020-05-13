@@ -160,6 +160,7 @@ steps:
       }
       $ThreadHash = @{};
       $RGs = (ConvertFrom-JSON $env:SerializedListOfRGs);
+      Write-Host ("Deleting {0} ResourceGroups" -f $RGs)
       $RunspacePool = [runspacefactory]::CreateRunspacePool(1,$RGs.count)
       $RunspacePool.open()
       $RGs | ForEach-Object { 
