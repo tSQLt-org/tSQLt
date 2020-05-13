@@ -137,23 +137,24 @@ steps:
       }
       $ThreadHash = @{};
       $RGs = (ConvertFrom-JSON $env:SerializedListOfRGs);
-      Write-Host ("Deleting {0} ResourceGroups" -f $RGs)
+      Write-Host ("Deleting {0} ResourceGroups" -f $RGs.count)
       $RunspacePool = [runspacefactory]::CreateRunspacePool(1,$RGs.count)
       $RunspacePool.open()
       $RGs | ForEach-Object { 
+          $ResourceGroupName = $_;
           Write-Host "===================================================================================================================";
-          Write-Host ("Deleting ResourceGroup {0}" -f $_.ResourceGroupName)
-          if($_.ResourceGroupName -ne $null)
+          Write-Host ("Deleting ResourceGroup {0}" -f $ResourceGroupName)
+          if($ResourceGroupName -ne $null)
           {
-            Write-Host ("BeginInvoke RemoveResourceGroup({0})" -f $_.ResourceGroupName);
-            $PSInstance = [powershell]::Create().AddScript($RemoveResourceGroup).AddArgument($_.ResourceGroupName);
+            Write-Host ("BeginInvoke RemoveResourceGroup({0})" -f $ResourceGroupName);
+            $PSInstance = [powershell]::Create().AddScript($RemoveResourceGroup).AddArgument($ResourceGroupName);
             $PSinstance.RunspacePool = $RunspacePool;
             $Handle = $PSInstance.BeginInvoke();
-            $ThreadHash.Add($_.ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
+            $ThreadHash.Add($ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
           }else{
             Write-Host "Skipped...";
           }
-          Write-Host ("Done BeginInvoke for ResourceGroup({0})" -f $_.ResourceGroupName);
+          Write-Host ("Done BeginInvoke for ResourceGroup({0})" -f $ResourceGroupName);
           Write-Host "===================================================================================================================";
       }
       $ThreadHash.GetEnumerator() | ForEach-Object{
