@@ -60,7 +60,7 @@ steps:
       #Start-Sleep -s 15
       Write-Host '-----------------------------'
       Write-Host 'Setting Variable'
-      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGTBD -Compress)
+      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGNs -Compress)
       Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
       Write-Host 'Setting Variable Done'
 
