@@ -36,7 +36,7 @@ variables:
 steps:
 
 - task: AzureCLI@2
-  condition: true
+  condition: false
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     scriptType: 'ps'
@@ -64,7 +64,7 @@ steps:
 
 
 - task: AzurePowerShell@4
-  condition: false
+  condition: true
   name: List_RGs_To_Be_Deleted
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
