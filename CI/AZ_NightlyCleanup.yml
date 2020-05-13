@@ -36,7 +36,7 @@ variables:
 steps:
 
 - task: AzureCLI@2
-  condition: false
+  condition: true
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     scriptType: 'ps'
@@ -45,12 +45,14 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'List RGs to be deleted'
       Write-Host '-----------------------------'
-      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+      $AGL = (az group list --tag "Department=tSQLtCI" --tag "Ephemeral=True") 
+      $AGLS="";$AGL|%{$AGLS+=$_};
+      $RGTBD = (ConvertFrom-JSON $AGLs);
       $RGNs = @();
       $RGTBD | ForEach-Object { 
         $RGNs += ($_.ResourceGroupName)
         Write-Host $_.ResourceGroupName 
-        Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
+        AZ -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
       }
       Write-Host '-----------------------------'
       Write-Host 'Sleeping for 15 seconds'
@@ -64,7 +66,7 @@ steps:
 
 
 - task: AzurePowerShell@4
-  condition: true
+  condition: false
   name: List_RGs_To_Be_Deleted
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
