@@ -45,14 +45,14 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'List RGs to be deleted'
       Write-Host '-----------------------------'
-      $AGL = (az group list --tag "Department=tSQLtCI" --tag "Ephemeral=True") 
-      $AGLS="";$AGL|%{$AGLS+=$_};
-      $RGTBD = (ConvertFrom-JSON $AGLs);
+      $RGTBD = ConvertFrom-JSON((az group list --tag "Department=tSQLtCI" --tag "Ephemeral=True")|out-string -NoNewLine);
+      ## black magic, because this^^^^^^^^^^^^ returns an array of strings that together make a json value -- go figure
+
       $RGNs = @();
       $RGTBD | ForEach-Object { 
         $RGNs += ($_.ResourceGroupName)
         Write-Host $_.ResourceGroupName 
-        AZ -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
+        ConvertFrom-JSON((az group lock list -g cloud-shell-storage-eastus)|out-string -noNewLine)|FT
       }
       Write-Host '-----------------------------'
       Write-Host 'Sleeping for 15 seconds'
