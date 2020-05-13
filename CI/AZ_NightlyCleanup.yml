@@ -46,6 +46,7 @@ steps:
       Write-Host 'List RGs to be deleted'
       Write-Host '-----------------------------'
       $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+      $RGNs = []
       $RGTBD | ForEach-Object { 
         ##add pipline status check here
         Write-Host $_.ResourceGroupName 
@@ -76,7 +77,9 @@ steps:
       Write-Host 'List RGs to be deleted'
       Write-Host '-----------------------------'
       $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
+      $RGNs = @();
       $RGTBD | ForEach-Object { 
+        $RGNs += ($_.ResourceGroupName)
         Write-Host $_.ResourceGroupName 
         Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
       }
@@ -100,13 +103,14 @@ steps:
       Write-Host '----->' $env:SerializedListOfRGs '<-----'
       $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
       $RGTBD | FT
+      $RGTBD.count;
       Write-Host '-----> List of Running Cleanup Builds <-----'
       #az pipelines runs list --org "https://sqlity.visualstudio.com/" --project "tSQLt CI"
 
 
 
 - task: AzurePowerShell@4
-  #condition: false
+  condition: false
   name: Delete_RGs
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
