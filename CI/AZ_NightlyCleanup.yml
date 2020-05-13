@@ -66,35 +66,6 @@ steps:
 
 
 - task: AzurePowerShell@4
-  condition: false
-  name: List_RGs_To_Be_Deleted
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    azurePowerShellVersion: 'LatestVersion'
-    failOnStandardError: True
-    ScriptType: 'InlineScript'
-    Inline: |
-      Write-Host '-----------------------------'
-      Write-Host 'List RGs to be deleted'
-      Write-Host '-----------------------------'
-      $RGTBD = @(Get-AzResourceGroup) | Where-Object {$_.Tags.Ephemeral -eq "True" -and $_.Tags.Department -eq "tSQLtCI"} 
-      $RGNs = @();
-      $RGTBD | ForEach-Object { 
-        $RGNs += ($_.ResourceGroupName)
-        Write-Host $_.ResourceGroupName 
-        Get-AzResource -ResourceGroup $_.ResourceGroupName |ForEach{(Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName)|ForEach-Object{Write-Host $_.ResourceId}}
-      }
-      Write-Host '-----------------------------'
-      Write-Host 'Sleeping for 15 seconds'
-      #Start-Sleep -s 15
-      Write-Host '-----------------------------'
-      Write-Host 'Setting Variable'
-      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGNs -Compress)
-      $SerializedListOfRGs
-      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
-      Write-Host 'Setting Variable Done'
-
-- task: AzurePowerShell@4
   name: print_stuff
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -112,7 +83,7 @@ steps:
 
 
 - task: AzurePowerShell@4
-  condition: false
+  condition: true
   name: Delete_RGs
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
