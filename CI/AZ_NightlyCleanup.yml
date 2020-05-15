@@ -56,7 +56,8 @@ steps:
         if(![string]::isnullorempty($RBTag))
         {
           $isDeletable = false;
-          ([powershell]::Create().AddScript("Write-Host (az pipelines runs sho --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
+          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
+          ## more black magic, because "az pipelines" does not produce capturable errors
           $NE="";
           $Output.Error|ForEach-Object{
             if($_ -match "'pipelines runs' is in preview")
@@ -73,6 +74,10 @@ steps:
           if(!($Output.Information[0] -match "^.?inProgress.?$"))
           {
             $isDeletable = true;
+          }
+          if($isDeletable)
+          {
+            ##remove tag
           }
         }
         if($isDeletable)
@@ -115,7 +120,7 @@ steps:
 
 
 - task: AzurePowerShell@4
-  condition: true
+  condition: succeeded()
   name: Delete_RGs
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
