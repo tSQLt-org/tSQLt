@@ -56,7 +56,7 @@ steps:
         if(![string]::isnullorempty($RBTag))
         {
           $isDeletable = false;
-          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
+          ([powershell]::Create().AddScript("Write-Host (az pipelines runs sho --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
           $NE="";
           $Output.Error|ForEach-Object{
             if($_ -match "'pipelines runs' is in preview")
@@ -69,10 +69,10 @@ steps:
             else
             {$NE+=[Environment]::NewLine+"-->"+$_}
           }
-          if($NE -ne ""){throw ("Error(s) encounters inquiring status for buid {0}{1}" -f $RBT,$NE)};
-          if(!($Output.Information[0] -match "^.?completed.?$"))
+          if($NE -ne ""){throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBT,$NE)};
+          if(!($Output.Information[0] -match "^.?inProgress.?$"))
           {
-
+            $isDeletable = true;
           }
         }
         if($isDeletable)
