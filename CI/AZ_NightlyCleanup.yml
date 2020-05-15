@@ -84,13 +84,13 @@ steps:
         
         if($isDeletable)
         {
-          $RGNs += ($_.name)
-          Write-Host "{0} added to queue" -f $_.name 
-          ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT
+          $RGNs += ($_.name);
+          Write-Host ("{0} added to queue" -f $_.name);
+          ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT;
         }
         else
         {
-          Write-Host "{0} skipped" -f $_.name 
+          Write-Host ("{0} skipped" -f $_.name);
         }
       }
       Write-Host '-----------------------------'
