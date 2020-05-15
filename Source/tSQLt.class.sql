@@ -541,6 +541,8 @@ GO
 CREATE PROCEDURE tSQLt.Uninstall
 AS
 BEGIN
+  EXEC tSQLt.DropAllClasses;
+
   DROP TYPE tSQLt.Private;
 
   EXEC tSQLt.DropClass 'tSQLt';  

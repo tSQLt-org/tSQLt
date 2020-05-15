@@ -1,5 +1,6 @@
 tSQLt._Header.sql
 tSQLt.DropClass.ssp.sql
+tSQLt.DropAllClasses.ssp.sql
 tSQLt.Private_Bin2Hex.sfn.sql
 tSQLt.Private_NewTestClassList.tbl.sql
 tSQLt.Private_ResetNewTestClassList.ssp.sql
