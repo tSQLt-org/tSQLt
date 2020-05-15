@@ -60,6 +60,7 @@ steps:
         ##          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
         ##          ## more black magic, because "az pipelines" does not produce capturable errors
         ##          $NE="";
+        ##          $Output.PSObject.Properties|%{$_.name; $_}
         ##          $Output.Error|ForEach-Object{
         ##            if($_ -match "'pipelines runs' is in preview")
         ##            {write-warning $_}
