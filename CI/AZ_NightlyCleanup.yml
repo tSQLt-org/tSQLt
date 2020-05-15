@@ -36,6 +36,7 @@ variables:
 steps:
 
 - task: AzureCLI@2
+  name: IdentifyDeletableRGs
   condition: true
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -50,9 +51,40 @@ steps:
 
       $RGNs = @();
       $RGTBD | ForEach-Object { 
-        $RGNs += ($_.name)
-        Write-Host $_.name 
-        ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT
+        $isDeletable = true;
+        $RBTag = $_.tags.RemovalBy;
+        if(![string]::isnullorempty($RBTag))
+        {
+          $isDeletable = false;
+          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
+          $NE="";
+          $Output.Error|ForEach-Object{
+            if($_ -match "'pipelines runs' is in preview")
+            {write-warning $_}
+            elseif($_ -match "The requested build $RBT could not be found.")
+            {
+              write-host $_;
+              $isDeletable = true;
+            }
+            else
+            {$NE+=[Environment]::NewLine+"-->"+$_}
+          }
+          if($NE -ne ""){throw ("Error(s) encounters inquiring status for buid {0}{1}" -f $RBT,$NE)};
+          if(!($Output.Information[0] -match "^.?completed.?$"))
+          {
+
+          }
+        }
+        if($isDeletable)
+        {
+          $RGNs += ($_.name)
+          Write-Host "{0} added to queue" -f $_.name 
+          ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT
+        }
+        else
+        {
+          Write-Host "{0} skipped" -f $_.name 
+        }
       }
       Write-Host '-----------------------------'
       Write-Host 'Sleeping for 15 seconds'
