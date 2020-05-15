@@ -53,33 +53,35 @@ steps:
       $RGTBD | ForEach-Object { 
         $isDeletable = true;
         $RBTag = $_.tags.RemovalBy;
-##        if(![string]::isnullorempty($RBTag))
-##        {
-##          $isDeletable = false;
-##          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
-##          ## more black magic, because "az pipelines" does not produce capturable errors
-##          $NE="";
-##          $Output.Error|ForEach-Object{
-##            if($_ -match "'pipelines runs' is in preview")
-##            {write-warning $_}
-##            elseif($_ -match "The requested build $RBT could not be found.")
-##            {
-##              write-host $_;
-##              $isDeletable = true;
-##            }
-##            else
-##            {$NE+=[Environment]::NewLine+"-->"+$_}
-##          }
-##          if($NE -ne ""){throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBT,$NE)};
-##          if(!($Output.Information[0] -match "^.?inProgress.?$"))
-##          {
-##            $isDeletable = true;
-##          }
-##          if($isDeletable)
-##          {
-##            ##remove tag
-##          }
-##        }
+        
+        ##        if(![string]::isnullorempty($RBTag))
+        ##        {
+        ##          $isDeletable = false;
+        ##          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
+        ##          ## more black magic, because "az pipelines" does not produce capturable errors
+        ##          $NE="";
+        ##          $Output.Error|ForEach-Object{
+        ##            if($_ -match "'pipelines runs' is in preview")
+        ##            {write-warning $_}
+        ##            elseif($_ -match "The requested build $RBT could not be found.")
+        ##            {
+        ##              write-host $_;
+        ##              $isDeletable = true;
+        ##            }
+        ##            else
+        ##            {$NE+=[Environment]::NewLine+"-->"+$_}
+        ##          }
+        ##          if($NE -ne ""){throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBT,$NE)};
+        ##          if(!($Output.Information[0] -match "^.?inProgress.?$"))
+        ##          {
+        ##            $isDeletable = true;
+        ##          }
+        ##          if($isDeletable)
+        ##          {
+        ##            ##remove tag
+        ##          }
+        ##        }
+        
         if($isDeletable)
         {
           $RGNs += ($_.name)
