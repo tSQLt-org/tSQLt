@@ -80,8 +80,8 @@ steps:
           {
             ##remove tag
           }
-## #>
         }
+## #>
         if($isDeletable)
         {
           $RGNs += ($_.name)
