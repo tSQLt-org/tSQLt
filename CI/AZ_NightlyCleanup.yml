@@ -84,7 +84,8 @@ steps:
         
         if($isDeletable)
         {
-          ##$RGNs += ($_.name);
+          ##.      $RGNs += ($_.name);
+          write-warning "This ^^^ line should not be commented!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
           Write-Host ("{0} added to queue" -f $_.name);
           ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT;
         }
