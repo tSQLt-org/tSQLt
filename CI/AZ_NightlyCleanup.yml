@@ -53,6 +53,7 @@ steps:
       $RGTBD | ForEach-Object { 
         $isDeletable = true;
         $RBTag = $_.tags.RemovalBy;
+<#
         if(![string]::isnullorempty($RBTag))
         {
           $isDeletable = false;
@@ -79,6 +80,7 @@ steps:
           {
             ##remove tag
           }
+## #>
         }
         if($isDeletable)
         {
