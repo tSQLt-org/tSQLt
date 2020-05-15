@@ -84,14 +84,15 @@ steps:
         
         if($isDeletable)
         {
-          $RGNs += ($_.name);
+          ##$RGNs += ($_.name);
           Write-Host ("{0} added to queue" -f $_.name);
           ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT;
         }
         else
         {
-          Write-Host ("{0} skipped" -f $_.name);
+          Write-Host ("{0} skipped (RemovalBy {1})" -f $_.name,$RBTag);
         }
+        $RGNs += ($_.name); write-warning "This line should not be here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
       }
       Write-Host '-----------------------------'
       Write-Host 'Sleeping for 15 seconds'
