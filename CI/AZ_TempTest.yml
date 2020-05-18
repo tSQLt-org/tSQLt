@@ -68,6 +68,7 @@ steps:
         if(![string]::isnullorempty($RBTag))
         {
           $isDeletable = false;
+          ## use env vars for --organization="" --project=""
           ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
           ## more black magic, because "az pipelines" does not produce capturable errors
           $ConcatenatedErrorMessages="";
