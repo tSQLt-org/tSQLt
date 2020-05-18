@@ -44,6 +44,7 @@ steps:
       @ECHO ON
       systeminfo
       "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+      SET
 
 - task: AzureCLI@2
   name: IdentifyDeletableRGs
