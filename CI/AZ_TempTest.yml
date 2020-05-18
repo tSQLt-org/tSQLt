@@ -45,11 +45,90 @@ steps:
       systeminfo
       "${{ parameters.SQLCMDPath }}\SQLCMD" -?
 
-- task: AzurePowerShell@5
+- task: AzureCLI@2
+  name: IdentifyDeletableRGs
+  condition: true
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host '-----------------------------'
+      Write-Host 'List RGs to be deleted'
+      Write-Host '-----------------------------'
+      $RGTBD = ConvertFrom-JSON((az group list --tag "Department=tSQLtCI" --tag "Ephemeral=True")|out-string);
+      ## black magic, because this^^^^^^^^^^^^ returns an array of strings that together make a json value -- go figure
+
+      $RGNs = @();
+      $RGTBD | ForEach-Object { 
+        $isDeletable = true;
+        $RBTag = $_.tags.RemovalBy;
+        
+        if(![string]::isnullorempty($RBTag))
+        {
+          $isDeletable = false;
+          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
+          ## more black magic, because "az pipelines" does not produce capturable errors
+          $ConcatenatedErrorMessages="";
+          $Output.PSObject.Properties|%{$_.name; $_}
+          $Output.Error|ForEach-Object{
+            if($_ -match "'pipelines runs' is in preview")
+            {write-warning $_}
+            elseif($_ -match "The requested build $RBTag could not be found.")
+            {
+              write-host $_;
+              $isDeletable = true;
+            }
+            else
+            {$ConcatenatedErrorMessages+=[Environment]::NewLine+"-->"+$_}
+          }
+          if($ConcatenatedErrorMessages -ne ""){throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBTag,$ConcatenatedErrorMessages)};
+          if(!($Output.Information[0] -match "^.?inProgress.?$"))
+          {
+            $isDeletable = true;
+          }
+          if($isDeletable)
+          {
+            ##remove tag
+          }
+        }
+        
+        if($isDeletable)
+        {
+          $RGNs += ($_.name);
+          ##write-warning "This ^^^ line should not be commented!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+          Write-Host ("{0} added to queue" -f $_.name);
+          ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT;
+        }
+        else
+        {
+          Write-Host ("{0} skipped (RemovalBy {1})" -f $_.name,$RBTag);
+        }
+        ##$RGNs += ($_.name); write-warning "This line should not be here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+      }
+      Write-Host '-----------------------------'
+      Write-Host 'Sleeping for 15 seconds'
+      #Start-Sleep -s 15
+      Write-Host '-----------------------------'
+      Write-Host 'Setting Variable'
+      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGNs -Compress)
+      $SerializedListOfRGs
+      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
+      Write-Host 'Setting Variable Done'
+
+
+- task: AzurePowerShell@4
+  name: print_stuff
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
+    failOnStandardError: True
     ScriptType: 'InlineScript'
     Inline: |
-      az devops configure --defaults organization="https://sqlity.visualstudio.com/" project="tSQLt CI"
-      Az Pipelines Show
+      Write-Host '----->' $env:SerializedListOfRGs '<-----'
+      $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
+      $RGTBD | FT
+      $RGTBD.count;
+      Write-Host '-----> List of Running Cleanup Builds <-----'
+      #az pipelines runs list --org "https://sqlity.visualstudio.com/" --project "tSQLt CI"
+
