@@ -49,6 +49,9 @@ steps:
 - task: AzureCLI@2
   name: IdentifyDeletableRGs
   condition: true
+  env:
+    SYSTEM_TEAMPROJECT: $(System.TeamProject)
+    SYSTEM_COLLECTIONURI: $(System.CollectionUri)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     scriptType: 'ps'
@@ -69,7 +72,9 @@ steps:
         {
           $isDeletable = false;
           ## use env vars for --organization="" --project=""
-          ([powershell]::Create().AddScript("Write-Host (az pipelines runs show --id $RBTag --query 'status')"))|%{$_.Invoke();$Output=$_.Streams;}
+          $Script = ("Write-Host (az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}')" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
+          Write-Host $Script
+          ([powershell]::Create().AddScript($Script))|%{$_.Invoke();$Output=$_.Streams;}
           ## more black magic, because "az pipelines" does not produce capturable errors
           $ConcatenatedErrorMessages="";
           $Output.PSObject.Properties|%{$_.name; $_}
