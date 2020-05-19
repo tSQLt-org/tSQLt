@@ -71,8 +71,8 @@ steps:
         if(![string]::isnullorempty($RBTag))
         {
           $isDeletable = false;
-          $Script = ("Write-Host (az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}')" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
-          Write-Host $Script
+          $stmt = ("Write-Host (az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}')" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
+          Write-Host $stmt
           $Output = ((Invoke-Expression $stmt) 2>&1 6>&1);
           ## more black magic, because "az pipelines" does not produce capturable errors
           if($Output -match "The requested build $RBTag could not be found.")
