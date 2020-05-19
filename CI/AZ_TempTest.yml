@@ -71,29 +71,29 @@ steps:
         if(![string]::isnullorempty($RBTag))
         {
           $isDeletable = false;
-          ## use env vars for --organization="" --project=""
           $Script = ("Write-Host (az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}')" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
           Write-Host $Script
-          ([powershell]::Create().AddScript($Script))|%{$_.Invoke();$Output=$_.Streams;}
+          $Output = ((Invoke-Expression $stmt) 2>&1 6>&1);
           ## more black magic, because "az pipelines" does not produce capturable errors
-          $ConcatenatedErrorMessages="";
-          $Output.PSObject.Properties|%{$_.name; $_}
-          $Output.Error|ForEach-Object{
-            if($_ -match "'pipelines runs' is in preview")
-            {write-warning $_}
-            elseif($_ -match "The requested build $RBTag could not be found.")
-            {
-              write-host $_;
-              $isDeletable = true;
-            }
-            else
-            {$ConcatenatedErrorMessages+=[Environment]::NewLine+"-->"+$_}
-          }
-          if($ConcatenatedErrorMessages -ne ""){throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBTag,$ConcatenatedErrorMessages)};
-          if(!($Output.Information[0] -match "^.?inProgress.?$"))
+          if($Output -match "The requested build $RBTag could not be found.")
           {
+            write-host $Output;
             $isDeletable = true;
           }
+          elseif($Output -match "^.?(cancelling|completed|notStarted|postponed).?$")
+          {
+            write-host $Output;
+            $isDeletable = true;
+          }
+          elseif($Output -match "^.?(inProgress).?$")
+          {
+            ##NoOp
+          }
+          else
+          {
+            throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBTag,$ConcatenatedErrorMessages)
+          }
+          
           if($isDeletable)
           {
             ##remove tag
