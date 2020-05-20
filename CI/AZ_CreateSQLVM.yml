@@ -184,7 +184,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Creating New VM'
-      Set-PSDebug -Trace 1;
+      ##Set-PSDebug -Trace 1;
       $VMResourceGroupDeployment = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -DevTestLabVirtualNetworkName "$(DevTestLabVNetName)" -DevTestLabVirtualNetworkSubNetName "$(DevTestLabVNetSubnetName)" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL" -SQLVersion "${{ parameters.SQLVersion }}"
       
       Write-Host "+AA++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -192,8 +192,9 @@ steps:
       Write-Host "------"
       $VMResourceGroupDeployment.Outputs
       Write-Host "------"
-      Write-Host ("--->VMResourceGroupDeployment.Outputs.vmId:{0}" -f $VMResourceGroupDeployment.Outputs.vmId)
-      $VmComputeId = (Get-AzResource -id $VMResourceGroupDeployment.Outputs.vmId).Properties.ComputeId;
+      $labVMId = $VMResourceGroupDeployment.Outputs.labVMId.Value;
+      Write-Host ("--->VMResourceGroupDeployment.Outputs.vmId:{0}" -f $labVMId)
+      $VmComputeId = (Get-AzResource -id $labVMId).Properties.ComputeId;
       Write-Host ("--->VmComputeId:{0}" -f $VmComputeId)
       Write-Host "+BB++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
       $ComputeRGN = (Get-AzResource -id $VmComputeId).ResourceGroupName
@@ -202,7 +203,7 @@ steps:
       Set-AzResourceGroup -Name $ComputeRGN -Tags @{"Department"="tSQLtCI";"ParentRGN"="$(DevTestLabRGName)"}
       Write-Host "+DD++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
-      Set-PSDebug -Trace 0;
+      ##Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
 
 
