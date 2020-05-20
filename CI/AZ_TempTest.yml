@@ -57,7 +57,8 @@ steps:
   env:
     SYSTEM_TEAMPROJECT: $(System.TeamProject)
     SYSTEM_COLLECTIONURI: $(System.CollectionUri)
-    AZURE_DEVOPS_EXT_PAT: $(tSQLtCIAzureCLIPatToken)
+    AZURE_DEVOPS_EXT_PAT: $(tSQLtCIAzureCLIPatToken) 
+    ## black magic: this token ^^^^ is required to make "az pipelines runs show" work below
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     scriptType: 'ps'
@@ -77,9 +78,9 @@ steps:
         if(![string]::isnullorempty($RBTag))
         {
           $isDeletable = false;
-          ##$stmt = ("az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}'  --only-show-errors" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
-          ##Write-Host ("Statement:{0}" -f "$stmt")
-          $Output = ((az pipelines runs show --id $RBTag --query 'status' --organization="$env:SYSTEM_COLLECTIONURI" --project="$env:SYSTEM_TEAMPROJECT"  --only-show-errors) 2>&1 6>&1);
+          $stmt = ("az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}'  --only-show-errors" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
+          Write-Host ("Statement:{0}" -f "$stmt")
+          $Output = ((Invoke-Expression $stmt) 2>&1 6>&1); ##<<-- this will fail 5/19/2021 due to expired PAT token
           ## more black magic, because "az pipelines" does not produce capturable errors
           if($Output -match "The requested build $RBTag could not be found.")
           {
