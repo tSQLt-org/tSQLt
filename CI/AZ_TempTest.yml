@@ -82,27 +82,32 @@ steps:
           Write-Host ("Statement:{0}" -f "$stmt")
           $Output = ((Invoke-Expression $stmt) 2>&1 6>&1); ##<<-- this will fail 5/19/2021 due to expired PAT token
           ## more black magic, because "az pipelines" does not produce capturable errors
+          write-host ("-->{0}<--" -f $Output);
           if($Output -match "The requested build $RBTag could not be found.")
           {
-            write-host $Output;
             $isDeletable = true;
+            write-host ("not found -->{0}<--" -f $isDeletable)
           }
           elseif($Output -match "^.?(cancelling|completed|notStarted|postponed).?$")
           {
-            write-host $Output;
             $isDeletable = true;
+            write-host ("not inProgress -->{0}<--" -f $isDeletable)
           }
           elseif($Output -match "^.?(inProgress).?$")
           {
             ##NoOp
+            write-host ("inProgress")
           }
           else
           {
+            write-host ("Error encountered")
             throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBTag,$ConcatenatedErrorMessages)
           }
           
+          write-host ("after all this, isDeletable is -->{0}<--" -f $isDeletable)
           if($isDeletable)
           {
+            write-host ("inside if statement")
             ##remove tag
           }
         }
