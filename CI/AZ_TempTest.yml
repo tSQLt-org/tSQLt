@@ -106,7 +106,7 @@ steps:
           }
         }
         
-        if($isDeletable)
+        if($isDeletable = true)
         {
           $RGNs += ($_.name);
           ##write-warning "This ^^^ line should not be commented!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
