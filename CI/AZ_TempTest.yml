@@ -36,6 +36,11 @@ variables:
 
 
 steps:
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    KeyVaultName: 'tSQLtSigningKey'
+    SecretsFilter: '*'
 
 - task: CmdLine@2
   name: AgentInfo
@@ -52,6 +57,7 @@ steps:
   env:
     SYSTEM_TEAMPROJECT: $(System.TeamProject)
     SYSTEM_COLLECTIONURI: $(System.CollectionUri)
+    AZURE_DEVOPS_EXT_PAT: $(tSQLtCIAzureCLIPatToken)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     scriptType: 'ps'
