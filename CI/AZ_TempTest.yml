@@ -72,12 +72,12 @@ steps:
 
       $RGNs = @();
       $RGTBD | ForEach-Object { 
-        $isDeletable = true;
+        $isDeletable = $TRUE;
         $RBTag = $_.tags.RemovalBy;
         
         if(![string]::isnullorempty($RBTag))
         {
-          $isDeletable = false;
+          $isDeletable = $FALSE;
           $stmt = ("az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}'  --only-show-errors" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
           Write-Host ("Statement:{0}" -f "$stmt")
           $Output = ((Invoke-Expression $stmt) 2>&1 6>&1); ##<<-- this will fail 5/19/2021 due to expired PAT token
@@ -85,12 +85,12 @@ steps:
           write-host ("-->{0}<--" -f $Output);
           if($Output -match "The requested build $RBTag could not be found.")
           {
-            $isDeletable = true;
+            $isDeletable = $TRUE;
             write-host ("not found -->{0}<--" -f $isDeletable)
           }
           elseif($Output -match "^.?(cancelling|completed|notStarted|postponed).?$")
           {
-            $isDeletable = true;
+            $isDeletable = $TRUE;
             write-host ("not inProgress -->{0}<--" -f $isDeletable)
           }
           elseif($Output -match "^.?(inProgress).?$")
@@ -112,7 +112,7 @@ steps:
           }
         }
         
-        if($isDeletable = true)
+        if($isDeletable)
         {
           $RGNs += ($_.name);
           ##write-warning "This ^^^ line should not be commented!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
