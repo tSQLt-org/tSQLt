@@ -86,12 +86,12 @@ steps:
           if($Output -match "The requested build $RBTag could not be found.")
           {
             $isDeletable = $TRUE;
-            write-host ("not found -->{0}<--" -f $isDeletable)
+            write-host ("not found")
           }
           elseif($Output -match "^.?(cancelling|completed|notStarted|postponed).?$")
           {
             $isDeletable = $TRUE;
-            write-host ("not inProgress -->{0}<--" -f $isDeletable)
+            write-host ("not inProgress")
           }
           elseif($Output -match "^.?(inProgress).?$")
           {
@@ -104,18 +104,17 @@ steps:
             throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBTag,$ConcatenatedErrorMessages)
           }
           
-          write-host ("after all this, isDeletable is -->{0}<--" -f $isDeletable)
           if($isDeletable)
           {
             write-host ("inside if statement")
-            ##remove tag
+            $MyRGN = $_.name;
+            az group update --name $MyRGN --set tags.RemovalBy;
           }
         }
         
         if($isDeletable)
         {
           $RGNs += ($_.name);
-          ##write-warning "This ^^^ line should not be commented!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
           Write-Host ("{0} added to queue" -f $_.name);
           ConvertFrom-JSON((az group lock list -g $_.name)|out-string)|FT;
         }
@@ -123,7 +122,6 @@ steps:
         {
           Write-Host ("{0} skipped (RemovalBy {1})" -f $_.name,$RBTag);
         }
-        ##$RGNs += ($_.name); write-warning "This line should not be here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
       }
       Write-Host '-----------------------------'
       Write-Host 'Sleeping for 15 seconds'
