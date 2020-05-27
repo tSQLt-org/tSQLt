@@ -158,7 +158,7 @@ steps:
               $Tags = @{};
               Write-Output ("Add Tag to {0}" -f $OrgRGN);
               $Tags = $MyRG.Tags;
-              $Tags.remove("RemovalBy");
+              ##$Tags.remove("RemovalBy");
               $Tags += @{"RemovalBy"="$(Build.BuildId)"};
               $MyRG|Set-AzResourceGroup -Tags $Tags;
               Start-Sleep 10;
@@ -211,14 +211,24 @@ steps:
           Write-Host ("Done BeginInvoke for ResourceGroup({0})" -f $ResourceGroupName);
           Write-Host "===================================================================================================================";
       }
+      $Errors = "";
       $ThreadHash.GetEnumerator() | ForEach-Object{
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
           Write-Host ("EndInvoke RemoveResourceGroup({0})" -f $_.Key);
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
-          $PSInstance.Streams;
+          $Streams = $PSInstance.Streams;
+          $Streams;
+          if($Streams.Error.Count != 0)
+          {
+            $Errors += ("Error while removing ResourceGroup {0}" -f $_.Key);
+          }
           Write-Host ("Done RemoveResourceGroup({0})" -f $_.Key);
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
+      }
+      if($Errors != "")
+      {
+        Write-Host "##vso[task.logissue type=error]$Errors";
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
