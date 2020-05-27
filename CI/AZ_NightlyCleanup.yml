@@ -223,7 +223,7 @@ steps:
           if($Streams.Error.Count -ne 0)
           {
             $Errors.add($Key);
-            $Streams.Error|%{Write-Host "##vso[task.logissue type=error]$Key: $_";}
+            $Streams.Error|%{Write-Host "##vso[task.logissue type=error]$Key -> $_";}
           }
           Write-Host ("Done RemoveResourceGroup({0})" -f $Key);
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
