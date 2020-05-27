@@ -211,25 +211,26 @@ steps:
           Write-Host ("Done BeginInvoke for ResourceGroup({0})" -f $ResourceGroupName);
           Write-Host "===================================================================================================================";
       }
-      $Errors = "";
+      $Errors = New-Object System.Collections.Generic.List[System.Object];
       $ThreadHash.GetEnumerator() | ForEach-Object{
+          $Key = $_.Key;
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
-          Write-Host ("EndInvoke RemoveResourceGroup({0})" -f $_.Key);
+          Write-Host ("EndInvoke RemoveResourceGroup({0})" -f $Key);
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
           $Streams = $PSInstance.Streams;
           $Streams;
           if($Streams.Error.Count -ne 0)
           {
-            $Errors += ("Error while removing ResourceGroup {0}{1}" -f $_.Key,[Environment]::NewLine);
-            $Streams.Error|%{Write-Host "##vso[task.logissue type=error]$_";}
+            $Errors.add($Key);
+            $Streams.Error|%{Write-Host "##vso[task.logissue type=error]$Key: $_";}
           }
-          Write-Host ("Done RemoveResourceGroup({0})" -f $_.Key);
+          Write-Host ("Done RemoveResourceGroup({0})" -f $Key);
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
       }
-      if($Errors -ne "")
+      if($Errors.count -ne 0)
       {
-        Write-Host "##vso[task.logissue type=error]$Errors";
+        $Errors|%{Write-Host ("##vso[task.logissue type=error]Error while removing ResourceGroup {0}" -f $_);}
         throw("Errors encounterd while deleting resource group(s). See prior error messages.");
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
