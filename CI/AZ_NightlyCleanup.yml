@@ -157,8 +157,8 @@ steps:
             {
               $Tags = @{};
               Write-Output ("Add Tag to {0}" -f $OrgRGN);
-              $Tags = $MyRG.Tags;
               ##$Tags.remove("RemovalBy");
+              $Tags = $MyRG.Tags;
               $Tags += @{"RemovalBy"="$(Build.BuildId)"};
               $MyRG|Set-AzResourceGroup -Tags $Tags;
               Start-Sleep 10;
