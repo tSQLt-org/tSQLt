@@ -221,7 +221,8 @@ steps:
           $Streams;
           if($Streams.Error.Count -ne 0)
           {
-            $Errors += ("Error while removing ResourceGroup {0}" -f $_.Key);
+            $Errors += ("Error while removing ResourceGroup {0}{1}" -f $_.Key,[Environment]::NewLine);
+            $Streams.Error|%{Write-Host "##vso[task.logissue type=error]$_";}
           }
           Write-Host ("Done RemoveResourceGroup({0})" -f $_.Key);
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
@@ -229,6 +230,7 @@ steps:
       if($Errors -ne "")
       {
         Write-Host "##vso[task.logissue type=error]$Errors";
+        throw("Errors encounterd while deleting resource group(s). See prior error messages.");
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
