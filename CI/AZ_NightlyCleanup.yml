@@ -219,14 +219,14 @@ steps:
           $PSInstance.EndInvoke($_.Value.Handle);
           $Streams = $PSInstance.Streams;
           $Streams;
-          if($Streams.Error.Count != 0)
+          if($Streams.Error.Count -ne 0)
           {
             $Errors += ("Error while removing ResourceGroup {0}" -f $_.Key);
           }
           Write-Host ("Done RemoveResourceGroup({0})" -f $_.Key);
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
       }
-      if($Errors != "")
+      if($Errors -ne "")
       {
         Write-Host "##vso[task.logissue type=error]$Errors";
       }
