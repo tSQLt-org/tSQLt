@@ -72,7 +72,7 @@ steps:
 
       $RGNs = @();
 
-      $AddToRGNs = {
+      $AddToRGNs_MethodWithSideEffect = {
         param([string]$name);
         $script:RGNs += ($name);
         Write-Host ("{0} added to queue" -f $name);
@@ -122,7 +122,7 @@ steps:
         
         if($isDeletable)
         {
-          $AddToRGNs.Invoke($_.name);
+          $AddToRGNs_MethodWithSideEffect.Invoke($_.name);
         }
         else
         {
@@ -133,21 +133,21 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'Finding Orphan RGs'
       Write-Host '-----------------------------'
+      $DoesRGExist = {
+        param([string]$name);
+        ($script:AllRGs|Where-Object{$_.name -eq $name}).count -eq 0
+      }
       $AllRGs = ((az group list --tag "Department=tSQLtCI")|Out-String|ConvertFrom-JSON)
       $ResourceGroupsWithParentRGNTag = $AllRGs|Where-Object{![string]::isnullorempty($_.tags.ParentRGN)}
       $ResourceGroupsWithParentRGNTag|ForEach-Object{
-        $ParentResourceGroupName = $_.tags.ParentRGN;
-        $ChildResourceGroupName = $_.name;
-        if(($AllRGs|Where-Object{$_.name -eq $ParentResourceGroupName}).count -eq 0){
-          $AddToRGNs.Invoke($ChildResourceGroupName);
+        if(!DoesRGExist($_.tags.ParentRGN)){
+          $AddToRGNs_MethodWithSideEffect.Invoke($_.name);
         }
       }
 
       Write-Host '-----------------------------'
-      Write-Host 'Sleeping for 15 seconds'
-      #Start-Sleep -s 15
+      Write-Host 'Storing in Global Variable'
       Write-Host '-----------------------------'
-      Write-Host 'Setting Variable'
       $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGNs -Compress)
       $SerializedListOfRGs
       Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
