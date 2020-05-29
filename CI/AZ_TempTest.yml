@@ -70,11 +70,11 @@ steps:
       $RGTBD = ConvertFrom-JSON((az group list --tag "Department=tSQLtCI" --tag "Ephemeral=True")|out-string);
       ## black magic, because this^^^^^^^^^^^^ returns an array of strings that together make a json value -- go figure
 
-      $global:RGNs = @();
+      $RGNs = @();
 
       $AddToRGNs = {
         param([string]$name);
-        $global:RGNs += ($name);
+        $script:RGNs += ($name);
         Write-Host ("{0} added to queue" -f $name);
         ConvertFrom-JSON((az group lock list -g $name)|out-string)|FT;
       }
@@ -148,7 +148,7 @@ steps:
       #Start-Sleep -s 15
       Write-Host '-----------------------------'
       Write-Host 'Setting Variable'
-      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $global:RGNs -Compress)
+      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGNs -Compress)
       $SerializedListOfRGs
       Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
       Write-Host 'Setting Variable Done'
