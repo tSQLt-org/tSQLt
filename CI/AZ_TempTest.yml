@@ -133,14 +133,14 @@ steps:
       Write-Host '-----------------------------'
       Write-Host 'Finding Orphan RGs'
       Write-Host '-----------------------------'
-      $DoesRGExist = {
-        param([string]$name);
-        ($script:AllRGs|Where-Object{$_.name -eq $name}).count -eq 0
+      $DoesRGNotExist = {
+        param([object]$RGArray,[string]$name);
+        ($RGArray|Where-Object{$_.name -eq $name}).count -eq 0
       }
       $AllRGs = ((az group list --tag "Department=tSQLtCI")|Out-String|ConvertFrom-JSON)
       $ResourceGroupsWithParentRGNTag = $AllRGs|Where-Object{![string]::isnullorempty($_.tags.ParentRGN)}
       $ResourceGroupsWithParentRGNTag|ForEach-Object{
-        if(!$DoesRGExist.Invoke($_.tags.ParentRGN)){
+        if($DoesRGNotExist.Invoke($AllRGs,$_.tags.ParentRGN)){
           $AddToRGNs_MethodWithSideEffect.Invoke($_.name);
         }
       }
