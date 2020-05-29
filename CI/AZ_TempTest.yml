@@ -140,7 +140,7 @@ steps:
       $AllRGs = ((az group list --tag "Department=tSQLtCI")|Out-String|ConvertFrom-JSON)
       $ResourceGroupsWithParentRGNTag = $AllRGs|Where-Object{![string]::isnullorempty($_.tags.ParentRGN)}
       $ResourceGroupsWithParentRGNTag|ForEach-Object{
-        if(!DoesRGExist($_.tags.ParentRGN)){
+        if(!$DoesRGExist.Invoke($_.tags.ParentRGN)){
           $AddToRGNs_MethodWithSideEffect.Invoke($_.name);
         }
       }
