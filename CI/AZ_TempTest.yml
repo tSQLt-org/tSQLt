@@ -57,6 +57,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       get-azsubscription
+      get-azcontext
     azurePowerShellVersion: 'LatestVersion'
 
 - task: AzureCLI@2
