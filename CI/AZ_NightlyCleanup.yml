@@ -171,7 +171,7 @@ steps:
             param($OrgRGN)
             Write-Output "---------------------------------------------------------------------------------------------------------------";
             Write-Output ("[{0}]Start processing delete for {1}" -f ((get-date).toString("O")), ($OrgRGN))
-            $MyRG = @(Get-AzResourceGroup) | Where-Object {$_.ResourceGroupName -eq "$OrgRGN"} 
+            $MyRG = (Get-AzResourceGroup -name "$OrgRGN")
             if(("RemovalBy" -in $myRG.tags.keys) -and (![string]::isnullorempty($myRG.tags.RemovalBy)))
             {
               $MyRG = $null;
