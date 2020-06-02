@@ -21,7 +21,7 @@ pool:
 parameters:
 - name: SQLVersion
   type: string
-  default: '2014'
+  default: '2016'
 
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
