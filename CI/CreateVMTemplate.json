@@ -127,7 +127,6 @@
 	"labSubnetPrefix": "10.0.0.0/24",
 	"labPublicIPAddressName": "[concat(parameters('newVMName'), 'publicIPAddress-1')]",
 	"templates":{
-	  "2008":{"sqlversion":"2008","offer":"","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
 	  "2008R2":{"sqlversion":"2008R2","offer":"SQL2008R2SP3-WS2008R2SP1","publisher":"microsoftsqlserver","sku":"sqldev","osType":"Windows","version":"latest"},
 	  "2008R2Ent":{"sqlversion":"2008R2","offer":"SQL2008R2SP3-WS2008R2SP1","publisher":"microsoftsqlserver","sku":"Enterprise","osType":"Windows","version":"latest"},
 	  "2008R2Std":{"sqlversion":"2008R2","offer":"SQL2008R2SP3-WS2008R2SP1","publisher":"microsoftsqlserver","sku":"Standard","osType":"Windows","version":"latest"},
@@ -146,7 +145,6 @@
       "type": "Microsoft.DevTestLab/labs/virtualmachines",
       "name": "[variables('vmName')]",
       "location": "[resourceGroup().location]",
-      "tags": {"sqlversion":"[variables('templates')[parameters('SQLVersion')].sqlversion]"},
       "properties": {
 		"labVirtualNetworkId":"[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), parameters('DevTestLabVirtualNetworkName'))]",
 		"labSubnetName":"[parameters('DevTestLabVirtualNetworkSubNetName')]",
