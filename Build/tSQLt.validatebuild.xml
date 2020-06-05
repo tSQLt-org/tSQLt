@@ -44,17 +44,26 @@
     <equals arg1="${db.version}" arg2="2008R2" />
     <equals arg1="${db.version}" arg2="2012" />
     <equals arg1="${db.version}" arg2="2014" />
+    <equals arg1="${db.version}" arg2="2016" />
+    <equals arg1="${db.version}" arg2="2017" />
+    <equals arg1="${db.version}" arg2="2019" />
    </or>
   </condition>
   <condition property="db.version.ge.2012">
    <or>
     <equals arg1="${db.version}" arg2="2012" />
     <equals arg1="${db.version}" arg2="2014" />
+    <equals arg1="${db.version}" arg2="2016" />
+    <equals arg1="${db.version}" arg2="2017" />
+    <equals arg1="${db.version}" arg2="2019" />
    </or>
   </condition>
   <condition property="db.version.ge.2014">
    <or>
     <equals arg1="${db.version}" arg2="2014" />
+    <equals arg1="${db.version}" arg2="2016" />
+    <equals arg1="${db.version}" arg2="2017" />
+    <equals arg1="${db.version}" arg2="2019" />
    </or>
   </condition>
   <echo message="db.version.ge.2008: ${db.version.ge.2008}" />
