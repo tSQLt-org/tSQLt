@@ -22,11 +22,14 @@ Write-Host "UserDomain:"   $env:UserDomain
 Write-Host "ComputerName:" $env:ComputerName
 Write-Host "<->3<-><-><-><-><-><-><-><-><-><-><-><-><->";
 
+$scriptpath = $MyInvocation.MyCommand.Path
+$dir = Split-Path $scriptpath
+Write-host "FileLocation: $dir"
 
 ##Set-Location $(Build.Repository.LocalPath)
 Write-Host 'Creating New VM'
 ##Set-PSDebug -Trace 1;
-$VMResourceGroupDeployment = New-AzResourceGroupDeployment -ResourceGroupName "$DTLRGName" -TemplateFile "CreateVMTemplate.json" -labName "$DTLName" -newVMName "$DTLVmName" -DevTestLabVirtualNetworkName "$DTLVNetName" -DevTestLabVirtualNetworkSubNetName "$DTLVNetSubnetName" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL" -SQLVersionEdition "$SQLVersionEdition"
+$VMResourceGroupDeployment = New-AzResourceGroupDeployment -ResourceGroupName "$DTLRGName" -TemplateFile "$dir\CreateVMTemplate.json" -labName "$DTLName" -newVMName "$DTLVmName" -DevTestLabVirtualNetworkName "$DTLVNetName" -DevTestLabVirtualNetworkSubNetName "$DTLVNetSubnetName" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL" -SQLVersionEdition "$SQLVersionEdition"
       
 Write-Host "+AA++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 $VMResourceGroupDeployment
