@@ -21,7 +21,10 @@ pool:
 parameters:
 - name: SQLVersion
   type: string
-  default: '2016'
+  default: '2012Ent'
+- name: RequestingBuildId
+  type: string
+  default: ''
 
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
@@ -41,6 +44,9 @@ steps:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     KeyVaultName: 'tSQLtSigningKey'
     SecretsFilter: '*'
+
+
+## step to decide if a new machine needs to be created
 
 - task: PowerShell@2
   name: Generate_DevTest_Lab_Name
@@ -172,7 +178,8 @@ steps:
 
 - task: AzurePowerShell@4
   name: CreateVM
-  condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
+  condition: false
+  ##condition: and(succeeded(), eq(variables['CreateNewVM'], '1'))
   env:
     USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
     PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
@@ -206,9 +213,30 @@ steps:
       ##Set-PSDebug -Trace 0;
       Write-Host 'Finished Creating New VM'
 
+##$(DevTestLabRGName)
+##$(DevTestLabName)
+##$(vmName)
+##$(DevTestLabVNetName)
+##$(DevTestLabVNetSubnetName)
+##${{ parameters.SQLVersion }}
+##Param( [string] $DTLRGName, [string] $DTLName, [string] $DTLVmName, [string] $DTLVNetName, [string] $DTLVNetSubnetName, [string] $SQLPort, [string] $SQLVersionEdition)
+- task: AzurePowerShell@4
+  name: CreateVMAndMore
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+    CONTACT_EMAIL: $(NotificationEmail)
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    ScriptType: 'FilePath'
+    ScriptPath: 'CI/CreateVM.ps1'
+    ScriptArguments: '-DTLRGName "$(DevTestLabRGName)" -DTLName "$(DevTestLabName)" -DTLVmName "$(vmName)" -DTLVNetName "$(DevTestLabVNetName)" -DTLVNetSubnetName "$(DevTestLabVNetSubnetName)" -SQLPort "$(SQL_Port)" -SQLVersionEdition "${{ parameters.SQLVersion }}"' 
+    azurePowerShellVersion: 'LatestVersion'
+
 
 - task: AzurePowerShell@4
   name: get_VM_parameters
+  condition: false
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'FilePath'
@@ -258,7 +286,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      Write-Host 'Creating New VM'
+      Write-Host 'Applying SqlVM Stuff'
       Set-PSDebug -Trace 1;
       $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(labVmRgName)" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$(SQL_Port)" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$(vmName)" -newVMRID "$(labVmComputeId)"
       Set-PSDebug -Trace 0;
