@@ -22,7 +22,7 @@
       "type": "string",
       "defaultValue": "Standard_B2s"
     },
-	"SQLVersion":
+	"SQLVersionEdition":
 	{
 	  "type":"string",
 	  "defaultValue":"2019"
@@ -149,11 +149,11 @@
 		"labVirtualNetworkId":"[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), parameters('DevTestLabVirtualNetworkName'))]",
 		"labSubnetName":"[parameters('DevTestLabVirtualNetworkSubNetName')]",
         "galleryImageReference": {
-          "offer": "[variables('templates')[parameters('SQLVersion')].offer]",
-          "publisher": "[variables('templates')[parameters('SQLVersion')].publisher]",
-          "sku": "[variables('templates')[parameters('SQLVersion')].sku]",
-          "osType": "[variables('templates')[parameters('SQLVersion')].osType]",
-          "version": "[variables('templates')[parameters('SQLVersion')].version]"
+          "offer": "[variables('templates')[parameters('SQLVersionEdition')].offer]",
+          "publisher": "[variables('templates')[parameters('SQLVersionEdition')].publisher]",
+          "sku": "[variables('templates')[parameters('SQLVersionEdition')].sku]",
+          "osType": "[variables('templates')[parameters('SQLVersionEdition')].osType]",
+          "version": "[variables('templates')[parameters('SQLVersionEdition')].version]"
         },
         "size": "[parameters('size')]",
         "userName": "[parameters('userName')]",
@@ -206,6 +206,10 @@
     "labVMId": {
       "type": "string",
       "value": "[variables('vmId')]"
+    },
+    "SQLVersion": {
+      "type": "string",
+      "value": "[variables('templates')[parameters('SQLVersionEdition')].version]"
     }
   }
 }
