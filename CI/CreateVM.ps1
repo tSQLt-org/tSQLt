@@ -6,6 +6,8 @@
 ##${{ parameters.SQLVersion }}
 Param( [string] $DTLRGName, [string] $DTLName, [string] $DTLVmName, [string] $DTLVNetName, [string] $DTLVNetSubnetName, [string] $SQLPort, [string] $SQLVersionEdition)
 
+.((Split-Path $MyInvocation.MyCommand.Path)+"/CommonFunctionsAndMethods.ps1")
+
 
 Write-Host "<->1<-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "Parameters:";
@@ -92,4 +94,4 @@ Write-Host "##vso[task.setvariable variable=labVMFqdn;]$labVMFqdn"
 
 Write-Host "Tagging Resource Group";
 
-Set-AzResourceGroup -Name $DTLRGName -Tags @{"SQLVmFQDN"="$labVMFqdn";"SQLVmPort"="$SQLPort";"SQLVersionEdition"="$SQLVersionEdition";"SQLVersion"="$SQLVersion";}
+$AddTagsToResourceGroup.Invoke($DTLRGName,@{"SQLVmFQDN"="$labVMFqdn";"SQLVmPort"="$SQLPort";"SQLVersionEdition"="$SQLVersionEdition";"SQLVersion"="$SQLVersion";});
