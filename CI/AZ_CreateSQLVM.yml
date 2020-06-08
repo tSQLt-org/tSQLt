@@ -21,7 +21,7 @@ pool:
 parameters:
 - name: SQLVersion
   type: string
-  default: '2012Ent'
+  default: '2008R2Ent'
 - name: RequestingBuildId
   type: string
   default: ''
