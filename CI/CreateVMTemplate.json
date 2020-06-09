@@ -206,7 +206,7 @@
       "type": "string",
       "value": "[variables('vmId')]"
     },
-    "SQLVersion": {
+    "sqlVersion": {
       "type": "string",
       "value": "[variables('sqlversion')]"
     }

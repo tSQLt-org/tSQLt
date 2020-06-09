@@ -38,8 +38,8 @@ $VMResourceGroupDeployment
 Write-Host "------"
 $VMResourceGroupDeployment.Outputs
 Write-Host "------"
-$SQLVersion = $VMResourceGroupDeployment.Outputs.SQLVersion.Value;
-Write-Host ("--->VMResourceGroupDeployment.Outputs.SQLVersion:{0}" -f $SQLVersion)
+$SQLVersion = $VMResourceGroupDeployment.Outputs.sqlVersion.Value;
+Write-Host ("--->VMResourceGroupDeployment.Outputs.sqlVersion:{0}" -f $SQLVersion)
 
 $labVMId = $VMResourceGroupDeployment.Outputs.labVMId.Value;
 Write-Host ("--->VMResourceGroupDeployment.Outputs.vmId:{0}" -f $labVMId)
