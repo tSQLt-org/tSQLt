@@ -31,13 +31,13 @@ parameters:
   default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
 - name: FQDN
   type: string
-  default: 'v1430-2014.eastus2.cloudapp.azure.com'
+  default: 'v1771-2016.eastus2.cloudapp.azure.com'
 - name: Port
   type: string
   default: '41433'
 - name: SQLVersion
   type: string
-  default: '2005'
+  default: '2016'
 
 
 variables:
