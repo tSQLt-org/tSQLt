@@ -62,36 +62,47 @@ Write-Host 'Finished Creating New VM'
 Write-Host "Getting VM Resource Parameters";
 
 ##(Get-AzResource -ResourceId (Get-AzResource -Name V1087sql2014sp3 -ResourceType Microsoft.DevTestLab/labs/virtualmachines -ResourceGroupName tSQLtCI_DevTestLab_20200323_1087_RG).ResourceId)
-$labAzResource = (Get-AzResource -ResourceId (Get-AzResource -Name $DTLVmName -ResourceType Microsoft.DevTestLab/labs/virtualmachines -ResourceGroupName $DTLRGName).ResourceId)
+$DTLVm = (Get-AzResource -Name $DTLVmName -ResourceType Microsoft.DevTestLab/labs/virtualmachines -ResourceGroupName $DTLRGName);
+$DTLVmWithProperties = (Get-AzResource -ResourceId $DTLVm.ResourceId);
 
-$labAzResource
+
+$DTLVmWithProperties;
 Write-Host "<->4<-><-><-><-><-><-><-><-><-><-><-><-><->";
 
-$labVmComputeId = $labAzResource.Properties.ComputeId
-Write-Host "setting variable: labVmComputeId:" $labVmComputeId
-Write-Host "##vso[task.setvariable variable=labVmComputeId;]$labVmComputeId"
+$DTLVmComputeId = $DTLVmWithProperties.Properties.ComputeId
+$HiddenVmResourceId = $DTLVmComputeId;
+Write-Host "setting variable: DTLVmComputeId:" $DTLVmComputeId
+Write-Host "##vso[task.setvariable variable=DTLVmComputeId;]$DTLVmComputeId"
+Write-Host "##vso[task.setvariable variable=labVmComputeId;]$DTLVmComputeId"  ##??REMOVE??
+Write-Host "##vso[task.setvariable variable=HiddenVmResourceId;]$HiddenVmResourceId"
 
-$labVmRgName = (Get-AzResource -Id $labVmComputeId).ResourceGroupName
-Write-Host "setting variable: labVmRgName:" $labVmRgName
-Write-Host "##vso[task.setvariable variable=labVmRgName;]$labVmRgName"
+$HiddenVm = (Get-AzResource -Id $HiddenVmResourceId);
+$HiddenVmRGName = $HiddenVm.ResourceGroupName
+Write-Host "setting variable: HiddenVmRGName:" $HiddenVmRGName
+Write-Host "##vso[task.setvariable variable=labVmRgName;]$HiddenVmRGName"  ##??REMOVE??
+Write-Host "##vso[task.setvariable variable=HiddenVmRGName;]$HiddenVmRGName"
 
-$labVmName = $labAzResource.Name
-Write-Host "setting variable: labVmName:" $labVmName
-Write-Host "##vso[task.setvariable variable=labVmName;]$labVmName"
+$HiddenVmName = $DTLVmWithProperties.Name
+Write-Host "setting variable: HiddenVmName:" $HiddenVmName
+Write-Host "##vso[task.setvariable variable=labVmName;]$HiddenVmName"  ##??REMOVE??
+Write-Host "##vso[task.setvariable variable=HiddenVmName;]$HiddenVmName"
 
-$labVMId = $labAzResource.ResourceId
+$labVMId = $DTLVmWithProperties.ResourceId
 Write-Host 'labVMId: ' $labVMId
 Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
 
-$PublicIpAddress= (Get-AzPublicIpAddress -ResourceGroupName $labVmRgName -Name $labVmName)
-$labVMIpAddress = $PublicIpAddress.IpAddress
-Write-Host "setting variable: labVMIpAddress:" $labVMIpAddress
-Write-Host "##vso[task.setvariable variable=labVMIpAddress;]$labVMIpAddress"
-
-$labVMFqdn = $PublicIpAddress.DnsSettings.Fqdn
-Write-Host "setting variable: labVMFqdn:" $labVMFqdn
-Write-Host "##vso[task.setvariable variable=labVMFqdn;]$labVMFqdn"
+$HiddenVmPublicIpAddress= (Get-AzPublicIpAddress -ResourceGroupName $HiddenVmRGName -Name $HiddenVmName) ##Is this making use of an undocumented convention?
+$HiddenVmFQDN = $HiddenVmPublicIpAddress.DnsSettings.Fqdn
+Write-Host "setting variable: HiddenVmFQDN:" $HiddenVmFQDN
+Write-Host "##vso[task.setvariable variable=labVMFqdn;]$HiddenVmFQDN"  ##??REMOVE??
+Write-Host "##vso[task.setvariable variable=HiddenVmFQDN;]$HiddenVmFQDN"
 
 Write-Host "Tagging Resource Group";
 
-$AddTagsToResourceGroup.Invoke($DTLRGName,@{"SQLVmFQDN"="$labVMFqdn";"SQLVmPort"="$SQLPort";"SQLVersionEdition"="$SQLVersionEdition";"SQLVersion"="$SQLVersion";});
+$AddTagsToResourceGroup.Invoke($DTLRGName,@{"SQLVmFQDN"="$HiddenVmFQDN";"SQLVmPort"="$SQLPort";"SQLVersionEdition"="$SQLVersionEdition";"SQLVersion"="$SQLVersion";});
+
+Write-Host 'Starting the New VM'
+
+##Set-PSDebug -Trace 1;
+Start-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName"
+Set-PSDebug -Trace 0;
