@@ -69,6 +69,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=SomeVariable;]Hello World";
 
 - task: PowerShell@2
+  name: $(SomeVariable)
   inputs:
     targetType: 'inline'
     script: |
