@@ -24,7 +24,7 @@ parameters:
   default: '2016'
 - name: RequestingBuildId
   type: string
-  default: ''
+  default: 'NULL'
 
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
