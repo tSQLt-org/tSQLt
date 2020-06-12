@@ -25,6 +25,12 @@
           <AssociatedConnUserName />
           <FullPath>Enable_tSQLt_SA_Login.sql</FullPath>
         </FileNode>
+        <FileNode Name="GetSQLServerVersion.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>GetSQLServerVersion.sql</FullPath>
+        </FileNode>
         <FileNode Name="PrepSQLServer.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
