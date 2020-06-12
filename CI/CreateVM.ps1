@@ -120,4 +120,5 @@ $DS = Invoke-Sqlcmd -InputFile "$(Build.SourcesDirectory)\CI\PrepSQLServer.sql" 
 $DS = Invoke-Sqlcmd -InputFile "$(Build.SourcesDirectory)\CI\GetSQLServerVersion.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
 $DS.Tables[0].Rows | %{ echo "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
 
-$ActualSQLVersion = 
+$ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
+Write-Host $ActualSQLVersion;
