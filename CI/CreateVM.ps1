@@ -106,3 +106,18 @@ Write-Host 'Starting the New VM'
 ##Set-PSDebug -Trace 1;
 Start-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName"
 Set-PSDebug -Trace 0;
+
+Write-Host 'Applying SqlVM Stuff'
+
+##Set-PSDebug -Trace 1;
+$VM = New-AzResourceGroupDeployment -ResourceGroupName "$HiddenVmRGName" -TemplateFile "CI/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQL_Port" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$HiddenVmName" -newVMRID "$DTLVmComputeId"
+Set-PSDebug -Trace 0;
+
+Write-Host 'Prep SQL Server for tSQLt Build'
+
+$DS = Invoke-Sqlcmd -InputFile "$(Build.SourcesDirectory)\CI\PrepSQLServer.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD"
+
+$DS = Invoke-Sqlcmd -InputFile "$(Build.SourcesDirectory)\CI\GetSQLServerVersion.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+$DS.Tables[0].Rows | %{ echo "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
+
+$ActualSQLVersion = 
