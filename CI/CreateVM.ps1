@@ -6,7 +6,11 @@
 ##${{ parameters.SQLVersion }}
 Param( [string] $DTLRGName, [string] $DTLName, [string] $DTLVmName, [string] $DTLVNetName, [string] $DTLVNetSubnetName, [string] $SQLPort, [string] $SQLVersionEdition)
 
-.((Split-Path $MyInvocation.MyCommand.Path)+"/CommonFunctionsAndMethods.ps1")
+$scriptpath = $MyInvocation.MyCommand.Path
+$dir = Split-Path $scriptpath
+Write-host "FileLocation: $dir"
+
+.($dir+"\CommonFunctionsAndMethods.ps1")
 
 
 Write-Host "<->1<-><-><-><-><-><-><-><-><-><-><-><-><->";
@@ -24,9 +28,7 @@ Write-Host "UserDomain:"   $env:UserDomain
 Write-Host "ComputerName:" $env:ComputerName
 Write-Host "<->3<-><-><-><-><-><-><-><-><-><-><-><-><->";
 
-$scriptpath = $MyInvocation.MyCommand.Path
-$dir = Split-Path $scriptpath
-Write-host "FileLocation: $dir"
+
 
 ##Set-Location $(Build.Repository.LocalPath)
 Write-Host 'Creating New VM'
@@ -106,3 +108,19 @@ Write-Host 'Starting the New VM'
 ##Set-PSDebug -Trace 1;
 Start-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName"
 Set-PSDebug -Trace 0;
+
+Write-Host 'Applying SqlVM Stuff'
+
+##Set-PSDebug -Trace 1;
+$VM = New-AzResourceGroupDeployment -ResourceGroupName "$HiddenVmRGName" -TemplateFile "$dir\CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQL_Port" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$HiddenVmName" -newVMRID "$DTLVmComputeId"
+Set-PSDebug -Trace 0;
+
+Write-Host 'Prep SQL Server for tSQLt Build'
+
+$DS = Invoke-Sqlcmd -InputFile "$dir\PrepSQLServer.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD"
+
+$DS = Invoke-Sqlcmd -InputFile "$dir\GetSQLServerVersion.sql" -ServerInstance "$(labVMFqdn),$(SQL_Port)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+$DS.Tables[0].Rows | %{ echo "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
+
+$ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
+Write-Host $ActualSQLVersion;
