@@ -27,7 +27,7 @@
     "resources": [
         {
             "type": "microsoft.devtestlab/labs",
-            "apiVersion": "2018-09-15",
+            "api-Version":"2018-10-15-preview",
             "name": "[parameters('newLabName')]",
             "location": "eastus2",
             "properties": {
@@ -47,7 +47,7 @@
         },
         {
             "type": "microsoft.devtestlab/labs/artifactsources",
-            "apiVersion": "2018-09-15",
+            "api-Version":"2018-10-15-preview",
             "name": "[concat(parameters('newLabName'), '/public environment repo')]",
             "dependsOn": [
                 "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
@@ -63,7 +63,7 @@
         },
         {
             "type": "microsoft.devtestlab/labs/artifactsources",
-            "apiVersion": "2018-09-15",
+            "apiVersion": "2018-10-15-preview",
             "name": "[concat(parameters('newLabName'), '/public repo')]",
             "dependsOn": [
                 "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
@@ -79,7 +79,7 @@
         },
         {
             "type": "microsoft.devtestlab/labs/schedules",
-            "apiVersion": "2018-09-15",
+            "apiVersion": "2018-10-15-preview",
             "name": "[concat(parameters('newLabName'), '/labvmsshutdown')]",
             "location": "eastus2",
             "dependsOn": [
@@ -119,7 +119,7 @@
         },
         {
             "type": "microsoft.devtestlab/labs/virtualnetworks",
-            "apiVersion": "2018-09-15",
+            "api-Version":"2018-10-15-preview",
             "name": "[concat(parameters('newLabName'), '/', parameters('VNetName'))]",
             "dependsOn": [
                 "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
