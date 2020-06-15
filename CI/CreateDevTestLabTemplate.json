@@ -48,7 +48,7 @@
                 {
                     "type": "schedules",
                     "apiVersion": "2018-10-15-preview",
-                    "name": "[concat(parameters('newLabName'), '_labvmsshutdown')]",
+                    "name": "LabVmsShutdown",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
@@ -68,7 +68,7 @@
                 },
                 {
                     "apiVersion": "2018-10-15-preview",
-                    "name": "[concat(parameters('newLabName'), '_ShutdownNotification')]",
+                    "name": "AutoShutdown",
                     "type": "notificationChannels",
                     "location": "[resourceGroup().location]",
                     "properties": {
