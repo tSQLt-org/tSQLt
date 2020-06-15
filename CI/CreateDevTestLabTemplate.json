@@ -48,7 +48,7 @@
                 {
                     "type": "schedules",
                     "apiVersion": "2018-10-15-preview",
-                    "name": "[concat(parameters('newLabName'), '/labvmsshutdown')]",
+                    "name": "[concat(parameters('newLabName'), '_labvmsshutdown')]",
                     "location": "eastus2",
                     "dependsOn": [
                         "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
@@ -68,7 +68,7 @@
                 },
                 {
                     "apiVersion": "2018-10-15-preview",
-                    "name": "AutoShutdown",
+                    "name": "[concat(parameters('newLabName'), '_ShutdownNotification')]",
                     "type": "notificationChannels",
                     "location": "[parameters('regionId')]",
                     "properties": {
