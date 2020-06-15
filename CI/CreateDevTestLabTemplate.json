@@ -57,9 +57,9 @@
                         "status": "Enabled",
                         "taskType": "LabVmsShutdownTask",
                         "dailyRecurrence": {
-                            "time": "0100"
+                            "time": "0600"
                         },
-                        "timeZoneId": "Eastern Standard Time",
+                        "timeZoneId": "UTC",
                         "notificationSettings": {
                             "status": "Enabled",
                             "timeInMinutes": 30
