@@ -75,7 +75,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
-      Set-PSDebug -Trace 1;
+      ##Set-PSDebug -Trace 1;
       New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
       Set-PSDebug -Trace 0;
       Write-Host 'Done.'
@@ -105,7 +105,7 @@ steps:
     resourceGroupName: '$(DevTestLabRGName)'
     location: 'East US 2'
     templateLocation: 'Linked artifact'
-    csmFile: 'CI/DevTestLabTemplate.json'
+    csmFile: 'CI/CreateDevTestLabTemplate.json'
     deploymentMode: 'Validation'
 
 - task: AzureResourceManagerTemplateDeployment@3
@@ -156,7 +156,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      Set-PSDebug -Trace 1;
+      ##Set-PSDebug -Trace 1;
       $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -SQL_Port "$(SQL_Port)"
       Set-PSDebug -Trace 0;
       $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
@@ -166,14 +166,17 @@ steps:
 - task: AzurePowerShell@4
   name: Create_DevTest_Lab_With_Other_Resources
   condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
+  env:
+    LABVMSHUTDOWNNOTIFICATIONEMAIL: $(NotificationEmail)
+    LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
   inputs:
     azurePowerShellVersion: 'LatestVersion'
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      Set-PSDebug -Trace 1;
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/DevTestLabTemplate.json" -newLabName "$(DevTestLabName)" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)"
+      ##Set-PSDebug -Trace 1;
+      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateDevTestLabTemplate.json" -newLabName "$(DevTestLabName)" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)" -labVmShutDownNotificationEmail "$env:LABVMSHUTDOWNNOTIFICATIONEMAIL" -labVmShutDownNotificationURL "$env:LABVMSHUTDOWNNOTIFICATIONURL"
       Set-PSDebug -Trace 0;
 
 - task: AzurePowerShell@4
@@ -193,6 +196,7 @@ steps:
   name: UpdateAutoShutdown
   env:
     CONTACT_EMAIL: $(NotificationEmail)
+    NOTIFICATION_URL: $(tSQLt-Slack-CI-Pipeline-WebHook)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
@@ -200,8 +204,8 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
       Write-Host 'Update VM AutoShutdown Schedule'
-      Write-Host "CONTACT_EMAIL:" "$env:CONTACT_EMAIL"
-      Set-PSDebug -Trace 1;
-      $VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVMScheduleTemplate.json" -labName "$(DevTestLabName)" -newVMName "$(vmName)" -ContactEmail "$env:CONTACT_EMAIL"
+      $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
+      ##Set-PSDebug -Trace 1;
+      ##$VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateDTLAutoShutdownTemplate.json" -labVmShutDownTime "$ShutDownTimeUTC" -DTLName "$(DevTestLabName)"  -labVmShutDownURL "$env:NOTIFICATION_URL"  -emailRecipient "$env:CONTACT_EMAIL"
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Updating VM AutoShutdown Schedule'

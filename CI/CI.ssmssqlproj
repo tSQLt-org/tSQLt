@@ -101,11 +101,11 @@
           <AssociatedConnUserName />
           <FullPath>CreateVNetTemplate.json</FullPath>
         </FileNode>
-        <FileNode Name="DevTestLabTemplate.json">
+        <FileNode Name="CreateDevTestLabTemplate.json">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>DevTestLabTemplate.json</FullPath>
+          <FullPath>CreateDevTestLabTemplate.json</FullPath>
         </FileNode>
         <FileNode Name="DSCTemplate.json">
           <AssociatedConnectionMoniker />
