@@ -61,7 +61,7 @@
                         },
                         "timeZoneId": "Eastern Standard Time",
                         "notificationSettings": {
-                            "status": "Disabled",
+                            "status": "Enabled",
                             "timeInMinutes": 30
                         }
                     }
