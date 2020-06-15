@@ -8,9 +8,10 @@ Param( [string] $DTLRGName, [string] $DTLName, [string] $DTLVmName, [string] $DT
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
-Write-host $GetUTCTimeStamp.Invoke()"FileLocation: $dir"
+Write-host "FileLocation: $dir"
 
 .($dir+"\CommonFunctionsAndMethods.ps1")
+Write-host $GetUTCTimeStamp.Invoke()"Common Functions Imported."
 
 
 Write-Host "<->1<-><-><-><-><-><-><-><-><-><-><-><-><->";
