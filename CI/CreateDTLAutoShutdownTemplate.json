@@ -1,0 +1,44 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "DTLName": {
+            "type": "string",
+            "value": "xx"
+        },
+        "labVmShutDownTime": {
+            "type": "string",
+            "value": "00:00"
+        },
+        "labVmShutDownURL": {
+            "type": "string",
+            "value": "xx"
+        },
+        "emailRecipient": {
+            "type": "string",
+            "value": "xx"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-09-15",
+            "name": "LabVmsShutdown",
+            "type": "Microsoft.DevTestLab/schedules",
+            "targetResourceId":"[resourceid('Microsoft.DevTestLab/labs',parameters('DTLName')]",
+            "properties": {
+                "status": "Enabled",
+                "timeZoneId": "UTC",
+                "dailyRecurrence": {
+                    "time": "[replace(parameters('labVmShutDownTime'),':','')]"
+                },
+                "taskType": "LabVmsShutdownTask",
+                "notificationSettings": {
+                    "status": "Enabled",
+                    "timeInMinutes": 15,
+                    "webHookUrl": "[parameters('labVmShutDownURL')]",
+                    "emailRecipient": "[parameters('emailRecipient')]"
+                    }
+            }
+        }
+    ]
+}
