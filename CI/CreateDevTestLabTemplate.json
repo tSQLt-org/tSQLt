@@ -29,7 +29,7 @@
             "type": "microsoft.devtestlab/labs",
             "apiVersion":"2018-10-15-preview",
             "name": "[parameters('newLabName')]",
-            "location": "eastus2",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "labStorageType": "Premium",
                 "mandatoryArtifactsResourceIdsLinux": [],
@@ -49,7 +49,7 @@
                     "type": "schedules",
                     "apiVersion": "2018-10-15-preview",
                     "name": "[concat(parameters('newLabName'), '_labvmsshutdown')]",
-                    "location": "eastus2",
+                    "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[resourceId('microsoft.devtestlab/labs', parameters('newLabName'))]"
                     ],
@@ -70,7 +70,7 @@
                     "apiVersion": "2018-10-15-preview",
                     "name": "[concat(parameters('newLabName'), '_ShutdownNotification')]",
                     "type": "notificationChannels",
-                    "location": "[parameters('regionId')]",
+                    "location": "[resourceGroup().location]",
                     "properties": {
                         "description": "This option will send notifications to the specified email address and/or webhook URL before auto-shutdown of virtual machines occurs.",
                         "events": [
