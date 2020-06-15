@@ -5,3 +5,4 @@ $AddTagsToResourceGroup =
   $RG = Get-AzResourceGroup -name $ResourceGroupName;
   $RG|Set-AzResourceGroup -Tags ($MergeHashTables.Invoke($RG.Tags,$newTags)[0]);
 }
+$GetUTCTimeStamp = {param();(Get-Date).ToUniversalTime().ToString('[yyyy-MM-ddTHH:mm:ss.fffffff UTC]');}
