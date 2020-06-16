@@ -21,11 +21,13 @@
 		"labVmShutDownNotificationEmail": {
 			"type": "string",
 			"defaultValue": "emailRecipient"
-		}
+		},
+        "ShutDownTimeUTC": {
+            "type": "string",
+            "defaultValue": "[dateTimeAdd(utcNow(),'PT45M','HHmm')]"
+        }
     },
-    "variables": {
-          "ShutDownTimeUTC": "[dateTimeAdd(utcNow(),'PT45M','HHmm')]"
-    },
+    "variables": {},
     "resources": [
         {
             "type": "microsoft.devtestlab/labs",
@@ -59,7 +61,7 @@
                         "status": "Enabled",
                         "taskType": "LabVmsShutdownTask",
                         "dailyRecurrence": {
-                            "time": "[variables('ShutDownTimeUTC')]"
+                            "time": "[parameters('ShutDownTimeUTC')]"
                         },
                         "timeZoneId": "UTC",
                         "notificationSettings": {
