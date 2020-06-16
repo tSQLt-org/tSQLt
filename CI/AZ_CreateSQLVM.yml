@@ -3,7 +3,7 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))(SQL ${{ parameters.SQLVersion }})
+name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))(SQL ${{ parameters.SQLVersionEdition }})
 
 trigger: none
 pr: none
@@ -19,7 +19,7 @@ pool:
   vmImage: 'vs2017-win2016'
 
 parameters:
-- name: SQLVersion
+- name: SQLVersionEdition
   type: string
   default: '2016'
 - name: RequestingBuildId
@@ -27,7 +27,7 @@ parameters:
   default: 'NULL'
 
 variables:
-  NamePreFix: 'tSQLtCI_DevTestLab_'
+  NamePreFix: 'tSQLtCI_${{ parameters.SQLVersionEdition }}_'
 
 
 steps:
@@ -56,7 +56,7 @@ steps:
       $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
-      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)-${{ parameters.SQLVersion }}###############').substring(0,15).replace('#','')} else {($env:vmNameOverride)}
+      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)-${{ parameters.SQLVersionEdition }}###############').substring(0,15).replace('#','')} else {($env:vmNameOverride)}
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
       Write-Host 'DevTestLabName: ' $DevTestLabName
@@ -189,7 +189,7 @@ steps:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'FilePath'
     ScriptPath: 'CI/CreateVM.ps1'
-    ScriptArguments: '-DTLRGName "$(DevTestLabRGName)" -DTLName "$(DevTestLabName)" -DTLVmName "$(vmName)" -DTLVNetName "$(DevTestLabVNetName)" -DTLVNetSubnetName "$(DevTestLabVNetSubnetName)" -SQLPort "$(SQL_Port)" -SQLVersionEdition "${{ parameters.SQLVersion }}"' 
+    ScriptArguments: '-DTLRGName "$(DevTestLabRGName)" -DTLName "$(DevTestLabName)" -DTLVmName "$(vmName)" -DTLVNetName "$(DevTestLabVNetName)" -DTLVNetSubnetName "$(DevTestLabVNetSubnetName)" -SQLPort "$(SQL_Port)" -SQLVersionEdition "${{ parameters.SQLVersionEdition }}"' 
     azurePowerShellVersion: 'LatestVersion'
 
 - task: AzurePowerShell@4
