@@ -23,7 +23,9 @@
 			"defaultValue": "emailRecipient"
 		}
     },
-    "variables": {},
+    "variables": {
+          "ShutDownTimeUTC": "[dateTimeAdd(utcNow(),'PT45M','HHmm')]"
+    },
     "resources": [
         {
             "type": "microsoft.devtestlab/labs",
@@ -57,7 +59,7 @@
                         "status": "Enabled",
                         "taskType": "LabVmsShutdownTask",
                         "dailyRecurrence": {
-                            "time": "0600"
+                            "time": "[variables('ShutDownTimeUTC')]"
                         },
                         "timeZoneId": "UTC",
                         "notificationSettings": {
