@@ -207,6 +207,6 @@ steps:
       $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
       ##Set-PSDebug -Trace 1;
       ##$VM = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateDTLAutoShutdownTemplate.json" -labVmShutDownTime "$ShutDownTimeUTC" -DTLName "$(DevTestLabName)"  -labVmShutDownURL "$env:NOTIFICATION_URL"  -emailRecipient "$env:CONTACT_EMAIL"
-      ##Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DevTestLabRGName)" -LabName "$(DevTestLabName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
+      Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DevTestLabRGName)" -LabName "$(DevTestLabName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
       Set-PSDebug -Trace 0;
       Write-Host 'Finished Updating VM AutoShutdown Schedule'
