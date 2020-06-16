@@ -10,10 +10,6 @@
 		"type": "int",
       "defaultValue": 41433
 	},
-	"sqlStorageDisksCount": {
-		"type": "int",
-      "defaultValue": 1
-	},
 	"sqlStorageWorkloadType": {
 		"type": "string",
       "defaultValue": "DW"
@@ -21,14 +17,6 @@
 	"sqlStorageDisksConfigurationType": {
 		"type": "string",
       "defaultValue": "NEW"
-	},
-	"sqlStorageStartingDeviceId": {
-		"type": "int",
-      "defaultValue": 2
-	},
-	"sqlStorageDeploymentToken": {
-		"type": "int",
-      "defaultValue": 50726
 	},
 	"sqlAutopatchingDayOfWeek": {
 		"type": "string",
@@ -50,30 +38,6 @@
 		"type": "string",
       "defaultValue": "sdlfksdlkfjlsdkjf39939^"
 	},
-	"dataPath": {
-		"type": "string",
-      "defaultValue": "C:\\sql\\data"
-	},
-	"dataDisksLUNs": {
-		"type": "array",
-      "defaultValue": [0]
-	},
-	"logPath": {
-		"type": "string",
-      "defaultValue": "C:\\sql\\log"
-	},
-	"logDisksLUNs": {
-		"type": "array",
-      "defaultValue": [0]
-	},
-	"tempDbPath": {
-		"type": "string",
-      "defaultValue": "C:\\sql\\tempDb"
-	},
-	"tempDisksLUNs": {
-		"type": "array",
-      "defaultValue": [0]
-	},
 	"rServicesEnabled": {
 		"type": "string",
       "defaultValue": "false"
@@ -82,15 +46,10 @@
 		"type": "string",
       "defaultValue": "V1052sql2014sp3"
 	},	
-	"labName": {
-		"type": "string",
-      "defaultValue": "tSQLtCI_DevTestLab_20200318_1052"
-	},	
 	"newVMRID": {
 		"type": "string",
       "defaultValue": "/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_20200318_1052-V1052sql2014sp3-155797/providers/Microsoft.Compute/virtualMachines/V1052sql2014sp3"
 	}	
-
   },
   "resources": [
 
