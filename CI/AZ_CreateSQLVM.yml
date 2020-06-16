@@ -27,7 +27,7 @@ parameters:
   default: 'NULL'
 
 variables:
-  NamePreFix: 'tSQLtCI_${{ parameters.SQLVersionEdition }}_'
+  NamePreFix: 'tSQLtCI_'
 
 
 steps:
@@ -53,7 +53,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
+      $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_${{parameters.SQLVersionEdition}}_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
       $DevTestLabRGName = $DevTestLabName+'_RG'
       $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
       $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)-${{ parameters.SQLVersionEdition }}###############').substring(0,15).replace('#','')} else {($env:vmNameOverride)}
