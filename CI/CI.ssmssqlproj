@@ -83,12 +83,6 @@
           <AssociatedConnUserName />
           <FullPath>CreateSqlVirtualMachineTemplate.json</FullPath>
         </FileNode>
-        <FileNode Name="CreateVMScheduleTemplate.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>CreateVMScheduleTemplate.json</FullPath>
-        </FileNode>
         <FileNode Name="CreateVMTemplate.json">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
