@@ -85,6 +85,7 @@ steps:
 
 - task: AzurePowerShell@4
   name: Remove_Resource_Group
+  condition: always()
   inputs:
     azurePowerShellVersion: 'LatestVersion'
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -92,7 +93,7 @@ steps:
     Inline: |
       Write-Host 'Removing Resource Group:' $(DevTestLabRGName)
       
-      Remove-AzResourceGroup -name "$(DevTestLabRGName)" -Force
+      Get-AzResourceGroup|Where-Object{$_.name -eq "$(DevTestLabRGName)"}|Remove-AzResourceGroup
       
       Write-Host 'Done.'
   
