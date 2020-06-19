@@ -21,9 +21,9 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       $DevTestLabRGName = "$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + $(Build.BuildId)+'_RG'
-      Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
+      Write-Host 'Creating Resource Group:' $DevTestLabRGName
 
-      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
+      New-AzResourceGroup -Name "$DevTestLabRGName" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
 
       Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
       Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
