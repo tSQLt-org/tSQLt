@@ -1,6 +1,9 @@
 name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 
-trigger: none
+trigger:
+  branches:
+    include:
+    - '*'
 pr: none
 
 pool:
