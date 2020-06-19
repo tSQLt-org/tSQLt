@@ -4,7 +4,16 @@
 ##$(DevTestLabVNetName)
 ##$(DevTestLabVNetSubnetName)
 ##${{ parameters.SQLVersion }}
-Param( [string] $DTLRGName, [string] $DTLName, [string] $DTLVmName, [string] $DTLVNetName, [string] $DTLVNetSubnetName, [string] $SQLPort, [string] $SQLVersionEdition)
+Param( 
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $NamePreFix,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $BuildId,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPort,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LabVmShutdown,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LabShutdownNotificationEmail,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LabShutdownNotificationURL,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLUserName,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPassword
+);
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
@@ -16,11 +25,8 @@ Write-host $GetUTCTimeStamp.Invoke()"Common Functions Imported."
 
 Write-Host "<->1<-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "Parameters:";
-Write-Host "DTLRGName:" $DTLRGName;
-Write-Host "DTLName:" $DTLName;
-Write-Host "DTLVmName:" $DTLVmName;
-Write-Host "DTLVNetName:" $DTLVNetName;
-Write-Host "DTLVNetSubnetName:" $DTLVNetSubnetName;
+Write-Host "NamePreFix:" $NamePreFix;
+Write-Host "BuildId:" $BuildId;
 Write-Host "SQLVersionEdition:" $SQLVersionEdition;
 Write-Host "<->2<-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host "Execution Environment"
@@ -30,11 +36,56 @@ Write-Host "ComputerName:" $env:ComputerName
 Write-Host "<->3<-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host $GetUTCTimeStamp.Invoke();
 
+#####################
+$DTLName = ("$NamePreFix" + (Get-Date).tostring(“yyyyMMdd”) + "$SQLVersionEdition" + $(Build.BuildId))
+$DTLRGName = $DTLName+'_RG'
+$DTLVNetName = $DTLName+'_VNet0001'
+$DTLVmName = ("V{0}-{1}###############" -f $BuildId,$SQLVersionEdition).substring(0,15).replace('#','')
+
+#[string] $DTLRGName, [string] $DTLName, [string] $DTLVmName, [string] $DTLVNetName, [string] $DTLVNetSubnetName
+Write-Host "<->4<-><-><-><-><-><-><-><-><-><-><-><-><->";
+Write-Host "Names:";
+Write-Host "DTLRGName:" $DTLRGName;
+Write-Host "DTLName:" $DTLName;
+Write-Host "DTLVmName:" $DTLVmName;
+Write-Host "DTLVNetName:" $DTLVNetName;
+Write-Host "<->5<-><-><-><-><-><-><-><-><-><-><-><-><->";
+
+
+Write-Host $GetUTCTimeStamp.Invoke()"Creating Resource Group $DTLRGName"
+New-AzResourceGroup -Name "$DTLRGName" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
+Write-Host $GetUTCTimeStamp.Invoke()"DONE: Creating Resource Group $DTLRGName"
+
+Write-Host $GetUTCTimeStamp.Invoke()"Creating VNet $DTLVNetName"
+$VNet = New-AzResourceGroupDeployment @{
+    ResourceGroupName ="$DTLRGName";
+    TemplateFile="$dir\CreateVNetTemplate.json";
+    VNet_name="$DTLVNetName";
+    SQL_Port="$SQLPort";
+}
+
+$DTLVNetSubnetName = $VNet.Outputs.subnetName.Value
+Write-Host "DTLVNetSubnetName:" $DTLVNetSubnetName;
+Write-Host $GetUTCTimeStamp.Invoke()"DONE: Creating VNet $DTLVNetName"
+
+Write-Host $GetUTCTimeStamp.Invoke()"Creating DTL $DTLName"
+New-AzResourceGroupDeployment @{
+    ResourceGroupName="$DTLRGName";
+    TemplateFile="$dir\CreateDevTestLabTemplate.json";
+    newLabName="$DTLName";
+    VNetName="$DTLVNetName";
+    SubNetName="$DTLVNetSubnetName";
+    labVmShutDownNotificationEmail="$LabShutdownNotificationEmail";
+    labVmShutDownNotificationURL="$LabShutdownNotificationURL";
+}
+Write-Host $GetUTCTimeStamp.Invoke()"DONE: Creating DTL $DTLName"
+
+#####################
 
 ##Set-Location $(Build.Repository.LocalPath)
 Write-Host $GetUTCTimeStamp.Invoke()'Creating New VM'
 ##Set-PSDebug -Trace 1;
-$VMResourceGroupDeployment = New-AzResourceGroupDeployment -ResourceGroupName "$DTLRGName" -TemplateFile "$dir\CreateVMTemplate.json" -labName "$DTLName" -newVMName "$DTLVmName" -DevTestLabVirtualNetworkName "$DTLVNetName" -DevTestLabVirtualNetworkSubNetName "$DTLVNetSubnetName" -userName "$env:USER_NAME" -password "$env:PASSWORD" -ContactEmail "$env:CONTACT_EMAIL" -SQLVersionEdition "$SQLVersionEdition"
+$VMResourceGroupDeployment = New-AzResourceGroupDeployment -ResourceGroupName "$DTLRGName" -TemplateFile "$dir\CreateVMTemplate.json" -labName "$DTLName" -newVMName "$DTLVmName" -DevTestLabVirtualNetworkName "$DTLVNetName" -DevTestLabVirtualNetworkSubNetName "$DTLVNetSubnetName" -userName "$SQLUserName" -password "$SQLPassword" -ContactEmail "$LabShutdownNotificationEmail" -SQLVersionEdition "$SQLVersionEdition"
 Write-Host $GetUTCTimeStamp.Invoke()'Done: Creating New VM'
 Write-Host "+AA++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 $VMResourceGroupDeployment
@@ -117,18 +168,21 @@ Write-Host $GetUTCTimeStamp.Invoke()'Done: Starting the New VM'
 Write-Host $GetUTCTimeStamp.Invoke()'Applying SqlVM Stuff'
 
 ##Set-PSDebug -Trace 1;
-$VM = New-AzResourceGroupDeployment -ResourceGroupName "$HiddenVmRGName" -TemplateFile "$dir\CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$env:USER_NAME" -sqlAuthenticationPassword "$env:PASSWORD" -newVMName "$HiddenVmName" -newVMRID "$DTLVmComputeId"
+$VM = New-AzResourceGroupDeployment -ResourceGroupName "$HiddenVmRGName" -TemplateFile "$dir\CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPassword" -newVMName "$HiddenVmName" -newVMRID "$DTLVmComputeId"
 Set-PSDebug -Trace 0;
 
 Write-Host $GetUTCTimeStamp.Invoke()'Done: Applying SqlVM Stuff'
 Write-Host $GetUTCTimeStamp.Invoke()'Prep SQL Server for tSQLt Build'
 
-$DS = Invoke-Sqlcmd -InputFile "$dir\PrepSQLServer.sql" -ServerInstance "$HiddenVmFQDN,$SQLPort" -Username "$env:USER_NAME" -Password "$env:PASSWORD"
+$DS = Invoke-Sqlcmd -InputFile "$dir\PrepSQLServer.sql" -ServerInstance "$HiddenVmFQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPassword"
 
-$DS = Invoke-Sqlcmd -InputFile "$dir\GetSQLServerVersion.sql" -ServerInstance "$HiddenVmFQDN,$SQLPort" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+$DS = Invoke-Sqlcmd -InputFile "$dir\GetSQLServerVersion.sql" -ServerInstance "$HiddenVmFQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPassword" -As DataSet
 $DS.Tables[0].Rows | %{ echo "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
 Write-Host $ActualSQLVersion;
 
 Write-Host $GetUTCTimeStamp.Invoke()'Done: Prep SQL Server for tSQLt Build'
+
+
+Return @{"DTLRGName":"$DTLRGName"}
