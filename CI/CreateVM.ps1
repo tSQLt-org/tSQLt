@@ -186,6 +186,6 @@ Write-Host $GetUTCTimeStamp.Invoke()'Done: Prep SQL Server for tSQLt Build';
 
 
 Return @{
-    "DTLRGName":"$DTLRGName";
-    "DTLName":"$DTLName";
+    "DTLRGName"="$DTLRGName";
+    "DTLName"="$DTLName";
 };
