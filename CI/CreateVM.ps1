@@ -37,7 +37,7 @@ Write-Host "<->3<-><-><-><-><-><-><-><-><-><-><-><-><->";
 Write-Host $GetUTCTimeStamp.Invoke();
 
 #####################
-$DTLName = ("$NamePreFix" + (Get-Date).tostring('yyyyMMdd') + "$SQLVersionEdition" + $(Build.BuildId))
+$DTLName = ("$NamePreFix" + (Get-Date).tostring('yyyyMMdd') + "$SQLVersionEdition" + $BuildId)
 $DTLRGName = $DTLName+'_RG'
 $DTLVNetName = $DTLName+'_VNet0001'
 $DTLVmName = ("V{0}-{1}###############" -f $BuildId,$SQLVersionEdition).substring(0,15).replace('#','')
