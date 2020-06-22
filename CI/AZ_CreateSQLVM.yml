@@ -64,7 +64,7 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
 
-      $DTLDetails = .'CI/CreateVM.ps1' @{
+      $Parameters = @{
         NamePreFix="$(NamePreFix)";
         BuildId="$(Build.BuildId)";
         SQLVersionEdition="${{parameters.SQLVersionEdition}}";
@@ -74,6 +74,11 @@ steps:
         SQLUserName="$env:USER_NAME";
         SQLPassword="$env:PASSWORD";
       }; 
+      $ParameterString =[string]::Concat(($P.GetEnumerator()|%{(' -{0} "{1}"' -F $_.Key,$_.Value);}))
+      $DTLDetails = Invoke-Expression(".'CI/CreateVM.ps1' $ParameterString");
+
+      $DtlDetails |FT
+
       Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLDetails.DTLRGName"
       Write-Host "##vso[task.setvariable variable=DTLName;]$DTLDetails.DTLName"
     azurePowerShellVersion: 'LatestVersion'
