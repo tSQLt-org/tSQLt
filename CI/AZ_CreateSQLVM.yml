@@ -22,6 +22,9 @@ parameters:
 - name: SQLVersionEdition
   type: string
   default: '2016'
+- name: SQLPort
+  type: string
+  default: '41433'
 - name: RequestingBuildId
   type: string
   default: 'NULL'
@@ -45,74 +48,7 @@ steps:
     KeyVaultName: 'tSQLtSigningKey'
     SecretsFilter: '*'
 
-
 ## step to decide if a new machine needs to be created
-
-- task: PowerShell@2
-  name: Generate_DevTest_Lab_Name
-  condition: false
-  inputs:
-    targetType: 'inline'
-    script: |
-      $DevTestLabName = If ([string]::IsNullOrEmpty($env:DevTestLabNameOverride)) {("$(NamePreFix)" + (Get-Date).tostring(“yyyyMMdd”) + '_${{parameters.SQLVersionEdition}}_' + $(Build.BuildId))} else {($env:DevTestLabNameOverride)}
-      $DevTestLabRGName = $DevTestLabName+'_RG'
-      $DevTestLabVNetName = $DevTestLabName+'_VNet0001'
-      $vmName = If ([string]::IsNullOrEmpty($env:vmNameOverride)) {('V$(Build.BuildId)-${{ parameters.SQLVersionEdition }}###############').substring(0,15).replace('#','')} else {($env:vmNameOverride)}
-      Write-Host 'DevTestLabRGName: ' $DevTestLabRGName
-      Write-Host "##vso[task.setvariable variable=DevTestLabRGName;]$DevTestLabRGName"
-      Write-Host 'DevTestLabName: ' $DevTestLabName
-      Write-Host "##vso[task.setvariable variable=DevTestLabName;]$DevTestLabName"
-      Write-Host 'DevTestLabVNetName: ' $DevTestLabVNetName
-      Write-Host "##vso[task.setvariable variable=DevTestLabVNetName;]$DevTestLabVNetName"
-      Write-Host 'vmName: ' $vmName
-      Write-Host "##vso[task.setvariable variable=vmName;]$vmName"
-
-- task: AzurePowerShell@4
-  name: Create_Resource_Group
-  condition: false
-  condition: and(succeeded(), eq(variables['CreateNewEnvironment'], '1'))
-  inputs:
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Write-Host 'Creating Resource Group:' $(DevTestLabRGName)
-      ##Set-PSDebug -Trace 1;
-      New-AzResourceGroup -Name "$(DevTestLabRGName)" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
-      Set-PSDebug -Trace 0;
-      Write-Host 'Done.'
-
-- task: AzurePowerShell@4
-  name: Create_VNet
-  condition: false
-  inputs:
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Set-Location $(Build.Repository.LocalPath)
-      ##Set-PSDebug -Trace 1;
-      $VNet = New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateVNetTemplate.json" -VNet_name "$(DevTestLabVNetName)" -SQL_Port "$(SQL_Port)"
-      Set-PSDebug -Trace 0;
-      $DevTestLabVNetSubnetName = $VNet.Outputs.subnetName.Value
-      Write-Host 'DevTestLabVNetSubnetName: ' $DevTestLabVNetSubnetName
-      Write-Host "##vso[task.setvariable variable=DevTestLabVNetSubnetName;]$DevTestLabVNetSubnetName"
-
-- task: AzurePowerShell@4
-  name: Create_DevTest_Lab_With_Other_Resources
-  condition: false
-  env:
-    LABVMSHUTDOWNNOTIFICATIONEMAIL: $(NotificationEmail)
-    LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
-  inputs:
-    azurePowerShellVersion: 'LatestVersion'
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Set-Location $(Build.Repository.LocalPath)
-      ##Set-PSDebug -Trace 1;
-      New-AzResourceGroupDeployment -ResourceGroupName "$(DevTestLabRGName)" -TemplateFile "CI/CreateDevTestLabTemplate.json" -newLabName "$(DevTestLabName)" -VNetName "$(DevTestLabVNetName)" -SubNetName "$(DevTestLabVNetSubnetName)" -labVmShutDownNotificationEmail "$env:LABVMSHUTDOWNNOTIFICATIONEMAIL" -labVmShutDownNotificationURL "$env:LABVMSHUTDOWNNOTIFICATIONURL"
-      Set-PSDebug -Trace 0;
 
 - task: AzurePowerShell@4
   name: CreateVMAndMore
@@ -120,31 +56,30 @@ steps:
     USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
     PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
     CONTACT_EMAIL: $(NotificationEmail)
+    LABVMSHUTDOWNNOTIFICATIONEMAIL: $(NotificationEmail)
+    LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      .'CI/CreateVM.ps1' @{
-        DTLRGName="$(DevTestLabRGName)";
-        SQLPort="$(SQL_Port)";
-        SQLVersionEdition="${{ parameters.SQLVersionEdition }}";
-        NamePreFix="";
-        BuildId="";
-        SQLPort="";
-        LabVmShutdown="";
-        LabShutdownNotificationEmail="";
-        LabShutdownNotificationURL="";
-        SQLUserName="";
-        SQLPassword="";
-    } 
+
+      $DTLDetails = .'CI/CreateVM.ps1' @{
+        NamePreFix="$(NamePreFix)";
+        BuildId="$(Build.BuildId)";
+        SQLVersionEdition="${{parameters.SQLVersionEdition}}";
+        SQLPort="${{parameters.SQLPort}}";
+        LabShutdownNotificationEmail="$env:LABVMSHUTDOWNNOTIFICATIONEMAIL";
+        LabShutdownNotificationURL="$env:LABVMSHUTDOWNNOTIFICATIONURL";
+        SQLUserName="$env:USER_NAME";
+        SQLPassword="$env:PASSWORD";
+      }; 
+      Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLDetails.DTLRGName"
+      Write-Host "##vso[task.setvariable variable=DTLName;]$DTLDetails.DTLName"
     azurePowerShellVersion: 'LatestVersion'
 
 - task: AzurePowerShell@4
   name: UpdateAutoShutdown
-  env:
-    CONTACT_EMAIL: $(NotificationEmail)
-    NOTIFICATION_URL: $(tSQLt-Slack-CI-Pipeline-WebHook)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
     azurePowerShellVersion: 'LatestVersion'
@@ -154,6 +89,7 @@ steps:
       Write-Host 'Update VM AutoShutdown Schedule'
       $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
 
-      Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DevTestLabRGName)" -LabName "$(DevTestLabName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
+      Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
+      $AddTagsToResourceGroup.Invoke($(DTLRGName),@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
 
       Write-Host 'Finished Updating VM AutoShutdown Schedule'

@@ -7,8 +7,8 @@
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $NamePreFix,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $BuildId,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLVersionEdition,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPort,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LabVmShutdown,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LabShutdownNotificationEmail,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LabShutdownNotificationURL,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLUserName,
@@ -182,7 +182,10 @@ $DS.Tables[0].Rows | %{ echo "{ $($_['LoginName']), $($_['TimeStamp']), $($_['Ve
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
 Write-Host $ActualSQLVersion;
 
-Write-Host $GetUTCTimeStamp.Invoke()'Done: Prep SQL Server for tSQLt Build'
+Write-Host $GetUTCTimeStamp.Invoke()'Done: Prep SQL Server for tSQLt Build';
 
 
-Return @{"DTLRGName":"$DTLRGName"}
+Return @{
+    "DTLRGName":"$DTLRGName";
+    "DTLName":"$DTLName";
+};
