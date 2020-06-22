@@ -74,7 +74,7 @@ steps:
         SQLUserName="$env:USER_NAME";
         SQLPassword="$env:PASSWORD";
       }; 
-      $ParameterString =[string]::Concat(($P.GetEnumerator()|%{(' -{0} "{1}"' -F $_.Key,$_.Value);}))
+      $ParameterString =[string]::Concat(($Parameters.GetEnumerator()|%{(' -{0} "{1}"' -F $_.Key,$_.Value);}))
       $DTLDetails = Invoke-Expression(".'CI/CreateVM.ps1' $ParameterString");
 
       $DtlDetails |FT
