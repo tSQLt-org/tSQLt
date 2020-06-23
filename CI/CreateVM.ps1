@@ -57,19 +57,20 @@ New-AzResourceGroup -Name "$DTLRGName" -Location "East US 2" -Tag @{Department="
 Write-Host $GetUTCTimeStamp.Invoke()"DONE: Creating Resource Group $DTLRGName"
 
 Write-Host $GetUTCTimeStamp.Invoke()"Creating VNet $DTLVNetName"
-$VNet = New-AzResourceGroupDeployment @{
+$params = @{
     ResourceGroupName ="$DTLRGName";
     TemplateFile="$dir\CreateVNetTemplate.json";
     VNet_name="$DTLVNetName";
     SQL_Port="$SQLPort";
-}
+};
+$VNet = New-AzResourceGroupDeployment @params;
 
 $DTLVNetSubnetName = $VNet.Outputs.subnetName.Value
 Write-Host "DTLVNetSubnetName:" $DTLVNetSubnetName;
 Write-Host $GetUTCTimeStamp.Invoke()"DONE: Creating VNet $DTLVNetName"
 
 Write-Host $GetUTCTimeStamp.Invoke()"Creating DTL $DTLName"
-New-AzResourceGroupDeployment @{
+$params = @{
     ResourceGroupName="$DTLRGName";
     TemplateFile="$dir\CreateDevTestLabTemplate.json";
     newLabName="$DTLName";
@@ -77,7 +78,9 @@ New-AzResourceGroupDeployment @{
     SubNetName="$DTLVNetSubnetName";
     labVmShutDownNotificationEmail="$LabShutdownNotificationEmail";
     labVmShutDownNotificationURL="$LabShutdownNotificationURL";
-}
+};
+New-AzResourceGroupDeployment @params;
+
 Write-Host $GetUTCTimeStamp.Invoke()"DONE: Creating DTL $DTLName"
 
 #####################
