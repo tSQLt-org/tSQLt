@@ -93,7 +93,7 @@ steps:
       Write-Host 'Update VM AutoShutdown Schedule'
       $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
 
-      Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
-      ##$AddTagsToResourceGroup.Invoke("$(DTLRGName)",@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
+      ##Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
+      $AddTagsToResourceGroup.Invoke("$(DTLRGName)",@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
 
       Write-Host 'Finished Updating VM AutoShutdown Schedule'
