@@ -90,6 +90,8 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
+      .("CI/CommonFunctionsAndMethods.ps1")
+
       Write-Host 'Update VM AutoShutdown Schedule'
       $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
 
