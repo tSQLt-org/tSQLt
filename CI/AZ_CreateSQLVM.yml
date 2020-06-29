@@ -92,10 +92,13 @@ steps:
       Set-Location $(Build.Repository.LocalPath)
       .("CI/CommonFunctionsAndMethods.ps1")
 
-      Write-Host 'Update VM AutoShutdown Schedule'
       $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
 
-      ##Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
-      $AddTagsToResourceGroup.Invoke("$(DTLRGName)",@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
-
+      Write-Host 'Update VM AutoShutdown Schedule'
+      Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
       Write-Host 'Finished Updating VM AutoShutdown Schedule'
+
+      Write-Host 'Tag RG with RequestingBuildId'
+      $AddTagsToResourceGroup.Invoke("$(DTLRGName)",@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
+      Write-Host 'Done: Tag RG with RequestingBuildId'
+
