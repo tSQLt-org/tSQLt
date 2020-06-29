@@ -60,6 +60,7 @@ steps:
     LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
   inputs:
     azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
@@ -80,7 +81,6 @@ steps:
 
       Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLDetails.DTLRGName"
       Write-Host "##vso[task.setvariable variable=DTLName;]$DTLDetails.DTLName"
-    azurePowerShellVersion: 'LatestVersion'
 
 - task: AzurePowerShell@4
   name: UpdateAutoShutdown
