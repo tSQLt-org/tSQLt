@@ -7,4 +7,4 @@ $AddTagsToResourceGroup =
 }
 $GetUTCTimeStamp = {param();(Get-Date).ToUniversalTime().ToString('[yyyy-MM-ddTHH:mm:ss.fffffff UTC]');}
 
-Write-Host ("Common Functions and Methods loaded @{0}" -f $GetUTCTimeStamp.invoke());
+Write-Host $GetUTCTimeStamp.Invoke()"Done: Loading CommonFunctionsAndMethods"
