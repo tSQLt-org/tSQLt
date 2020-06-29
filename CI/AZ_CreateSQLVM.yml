@@ -89,22 +89,15 @@ steps:
       Write-Host '==========================================================';
       Write-Host '==========================================================';
 
-      $DtlDetails |FT
+      $DTLRGName = $DTLDetails.DTLRGName;
+      $DTLName = $DTLDetails.DTLName;
+      Write-Host ("DTLRGName: {0}" -f $DTLRGName)
+      Write-Host ("DTLName: {0}" -f $DTLName)
 
       Write-Host '==========================================================';
 
-      Write-Host ("DTLRGName: {0}" -f $DTLDetails.DTLRGName)
-      Write-Host ("DTLName: {0}" -f $DTLDetails.DTLName)
-
-      Write-Host '==========================================================';
-
-      Write-Host "DTLRGName: $DTLDetails.DTLRGName"
-      Write-Host "DTLName: $DTLDetails.DTLName"
-
-      Write-Host '==========================================================';
-
-      Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLDetails.DTLRGName"
-      Write-Host "##vso[task.setvariable variable=DTLName;]$DTLDetails.DTLName"
+      Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLRGName"
+      Write-Host "##vso[task.setvariable variable=DTLName;]$DTLName"
 
 - task: AzurePowerShell@4
   name: UpdateAutoShutdown
