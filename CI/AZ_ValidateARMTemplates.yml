@@ -96,7 +96,7 @@ steps:
     Inline: |
       Write-Host 'Removing Resource Group:' $(DevTestLabRGName)
       
-      Get-AzResourceGroup|Where-Object{$_.name -eq "$(DevTestLabRGName)"}|Remove-AzResourceGroup
+      Get-AzResourceGroup|Where-Object{$_.ResourceGroupName -eq "$(DevTestLabRGName)"}|Remove-AzResourceGroup -Force
       
       Write-Host 'Done.'
   
