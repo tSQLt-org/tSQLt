@@ -29,6 +29,9 @@ parameters:
 - name: SQLCMDPath
   type: string
   default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+- name: RequestingBuildId
+  type: string
+  default: 'NULL'
 
 
 variables:
@@ -66,11 +69,24 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      Write-Host "##vso[task.setvariable variable=SomeVariable;]Hello World";
+    Write-Host "##vso[task.setvariable variable=DTLRGName;]tSQLtCI_20200629_2016_1986_RG";
+    Write-Host "##vso[task.setvariable variable=DTLName;]tSQLtCI_20200629_2016_1986";
 
-- task: PowerShell@2
-  name: $(SomeVariable)
+- task: AzurePowerShell@4
+  name: UpdateAutoShutdown
   inputs:
-    targetType: 'inline'
-    script: |
-      Write-Host $(SomeVariable)
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Set-Location $(Build.Repository.LocalPath)
+      .("CI/CommonFunctionsAndMethods.ps1")
+
+      Write-Host 'Update VM AutoShutdown Schedule'
+      $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
+
+      ##Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
+      $AddTagsToResourceGroup.Invoke("$(DTLRGName)",@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
+
+      Write-Host 'Finished Updating VM AutoShutdown Schedule'
+    
