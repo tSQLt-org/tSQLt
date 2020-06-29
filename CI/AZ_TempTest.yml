@@ -69,13 +69,8 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-<<<<<<< HEAD
       Write-Host "##vso[task.setvariable variable=DTLRGName;]tSQLtCI_20200629_2016_1986_RG";
       Write-Host "##vso[task.setvariable variable=DTLName;]tSQLtCI_20200629_2016_1986";
-=======
-    Write-Host "##vso[task.setvariable variable=DTLRGName;]tSQLtCI_20200629_2016_1986_RG";
-    Write-Host "##vso[task.setvariable variable=DTLName;]tSQLtCI_20200629_2016_1986";
->>>>>>> 1f83fe852bb576b3837bf9ec5800f531ebd149bc
 
 - task: AzurePowerShell@4
   name: UpdateAutoShutdown
