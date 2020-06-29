@@ -65,6 +65,12 @@ steps:
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
 
+
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+      Write-Host $GetUTCTimeStamp.Invoke()'Executing CreateVM.ps1';
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
       $Parameters = @{
         NamePreFix="$(NamePreFix)";
         BuildId="$(Build.BuildId)";
@@ -77,7 +83,25 @@ steps:
       }; 
       $DTLDetails = .'CI/CreateVM.ps1' @Parameters
 
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+      Write-Host $GetUTCTimeStamp.Invoke()'Done: Executing CreateVM.ps1';
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+
       $DtlDetails |FT
+
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+
+      Write-Host ("DTLRGName: {0}" -f $DTLDetails.DTLRGName)
+      Write-Host ("DTLName: {0}" -f $DTLDetails.DTLName)
+
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
+
+      Write-Host "DTLRGName: $DTLDetails.DTLRGName"
+      Write-Host "DTLName: $DTLDetails.DTLName"
+
+      Write-Host $GetUTCTimeStamp.Invoke()'==========================================================';
 
       Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLDetails.DTLRGName"
       Write-Host "##vso[task.setvariable variable=DTLName;]$DTLDetails.DTLName"
