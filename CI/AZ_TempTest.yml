@@ -72,6 +72,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=DTLRGName;]tSQLtCI_20200629_2016_1986_RG";
       Write-Host "##vso[task.setvariable variable=DTLName;]tSQLtCI_20200629_2016_1986";
 
+
 - task: AzurePowerShell@4
   name: UpdateAutoShutdown
   inputs:
