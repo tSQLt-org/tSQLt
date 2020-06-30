@@ -101,7 +101,7 @@ steps:
       $DTLDetails.GetType();
       $DTLDetails.count;
       Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
-      $DTLDetails|%{Write-Host"|||||||||||||";Write-Host"vvvvvvvvvvvvv";$_;Write-Host"-------------";$_.GetType();Write-Host"^^^^^^^^^^^^^";Write-Host"|||||||||||||";}
+      $DTLDetails|%{Write-Host "";Write-Host "vvvvvvvvvvvvv";$_;Write-Host "-------------";$_.GetType();Write-Host "^^^^^^^^^^^^^";}
       Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
       Write-Host '==========================================================';
 
