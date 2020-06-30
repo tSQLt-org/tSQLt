@@ -24,6 +24,14 @@ schedules:
 pool:
   vmImage: 'vs2017-win2016'
 
+strategy:
+  matrix:
+    Run1:
+      myvar: 12
+    Run2:
+      myvar: 14
+    Run3:
+      myvar: 16
 
 parameters:
 - name: SQLCMDPath
@@ -69,27 +77,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      Write-Host "##vso[task.setvariable variable=DTLRGName;]tSQLtCI_20200629_2016_1986_RG";
-      Write-Host "##vso[task.setvariable variable=DTLName;]tSQLtCI_20200629_2016_1986";
+      Write-Host $[ variables['myvar'] ]
 
 
-- task: AzurePowerShell@4
-  name: UpdateAutoShutdown
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    azurePowerShellVersion: 'LatestVersion'
-    ScriptType: 'InlineScript'
-    Inline: |
-      Set-Location $(Build.Repository.LocalPath)
-      .("CI/CommonFunctionsAndMethods.ps1")
-
-      $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
-
-      Write-Host 'Update VM AutoShutdown Schedule'
-      Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
-      Write-Host 'Finished Updating VM AutoShutdown Schedule'
-
-      Write-Host 'Tag RG with RequestingBuildId'
-      $AddTagsToResourceGroup.Invoke("$(DTLRGName)",@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
-      Write-Host 'Done: Tag RG with RequestingBuildId'
 
