@@ -95,6 +95,15 @@ steps:
       Write-Host ("DTLName: {0}" -f $DTLName)
 
       Write-Host '==========================================================';
+      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      $DTLDetails|FT;
+      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      $DTLDetails.GetType();
+      $DTLDetails.count;
+      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      $DTLDetails|%{Write-Host"|||||||||||||";Write-Host"vvvvvvvvvvvvv";$_;$Write-Host"-------------";$_.GetType();Write-Host"^^^^^^^^^^^^^";Write-Host"|||||||||||||";}
+      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      Write-Host '==========================================================';
 
       Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLRGName"
       Write-Host "##vso[task.setvariable variable=DTLName;]$DTLName"
