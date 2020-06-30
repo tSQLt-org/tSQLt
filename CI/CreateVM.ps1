@@ -131,30 +131,20 @@ Write-Host "<->4<-><-><-><-><-><-><-><-><-><-><-><-><->";
 $DTLVmComputeId = $DTLVmWithProperties.Properties.ComputeId
 $HiddenVmResourceId = $DTLVmComputeId;
 Write-Host "setting variable: DTLVmComputeId:" $DTLVmComputeId
-Write-Host "##vso[task.setvariable variable=DTLVmComputeId;]$DTLVmComputeId"
-Write-Host "##vso[task.setvariable variable=labVmComputeId;]$DTLVmComputeId"  ##??REMOVE??
-Write-Host "##vso[task.setvariable variable=HiddenVmResourceId;]$HiddenVmResourceId"
 
 $HiddenVm = (Get-AzResource -Id $HiddenVmResourceId);
 $HiddenVmRGName = $HiddenVm.ResourceGroupName
 Write-Host "setting variable: HiddenVmRGName:" $HiddenVmRGName
-Write-Host "##vso[task.setvariable variable=labVmRgName;]$HiddenVmRGName"  ##??REMOVE??
-Write-Host "##vso[task.setvariable variable=HiddenVmRGName;]$HiddenVmRGName"
 
 $HiddenVmName = $DTLVmWithProperties.Name
 Write-Host "setting variable: HiddenVmName:" $HiddenVmName
-Write-Host "##vso[task.setvariable variable=labVmName;]$HiddenVmName"  ##??REMOVE??
-Write-Host "##vso[task.setvariable variable=HiddenVmName;]$HiddenVmName"
 
 $labVMId = $DTLVmWithProperties.ResourceId
 Write-Host 'labVMId: ' $labVMId
-Write-Host "##vso[task.setvariable variable=labVMId;]$labVMId"
 
 $HiddenVmPublicIpAddress= (Get-AzPublicIpAddress -ResourceGroupName $HiddenVmRGName -Name $HiddenVmName) ##Is this making use of an undocumented convention?
 $HiddenVmFQDN = $HiddenVmPublicIpAddress.DnsSettings.Fqdn
 Write-Host "setting variable: HiddenVmFQDN:" $HiddenVmFQDN
-Write-Host "##vso[task.setvariable variable=labVMFqdn;]$HiddenVmFQDN"  ##??REMOVE??
-Write-Host "##vso[task.setvariable variable=HiddenVmFQDN;]$HiddenVmFQDN"
 
 Write-Host $GetUTCTimeStamp.Invoke()"Adding more Tags on ResourceGroup"
 
@@ -180,7 +170,7 @@ Write-Host $GetUTCTimeStamp.Invoke()'Prep SQL Server for tSQLt Build'
 $DS = Invoke-Sqlcmd -InputFile "$dir\PrepSQLServer.sql" -ServerInstance "$HiddenVmFQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPassword"
 
 $DS = Invoke-Sqlcmd -InputFile "$dir\GetSQLServerVersion.sql" -ServerInstance "$HiddenVmFQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPassword" -As DataSet
-$DS.Tables[0].Rows | %{ echo "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
+$DS.Tables[0].Rows | %{ Write-Host "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
 Write-Host $ActualSQLVersion;
