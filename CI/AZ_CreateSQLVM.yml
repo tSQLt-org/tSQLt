@@ -64,13 +64,13 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
+      .("CI/CommonFunctionsAndMethods.ps1")
 
-
-      Write-Host '==========================================================';
-      Write-Host '==========================================================';
-      Write-Host 'Executing CreateVM.ps1';
-      Write-Host '==========================================================';
-      Write-Host '==========================================================';
+      Log-Output '==========================================================';
+      Log-Output '==========================================================';
+      Log-Output 'Executing CreateVM.ps1';
+      Log-Output '==========================================================';
+      Log-Output '==========================================================';
       $Parameters = @{
         NamePreFix="$(NamePreFix)";
         BuildId="$(Build.BuildId)";
@@ -83,27 +83,27 @@ steps:
       }; 
       $DTLDetails = .'CI/CreateVM.ps1' @Parameters
 
-      Write-Host '==========================================================';
-      Write-Host '==========================================================';
-      Write-Host 'Done: Executing CreateVM.ps1';
-      Write-Host '==========================================================';
-      Write-Host '==========================================================';
+      Log-Output '==========================================================';
+      Log-Output '==========================================================';
+      Log-Output 'Done: Executing CreateVM.ps1';
+      Log-Output '==========================================================';
+      Log-Output '==========================================================';
 
       $DTLRGName = $DTLDetails.DTLRGName;
       $DTLName = $DTLDetails.DTLName;
-      Write-Host ("DTLRGName: {0}" -f $DTLRGName)
-      Write-Host ("DTLName: {0}" -f $DTLName)
+      Log-Output ("DTLRGName: {0}" -f $DTLRGName)
+      Log-Output ("DTLName: {0}" -f $DTLName)
 
-      Write-Host '==========================================================';
-      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      Log-Output '==========================================================';
+      Log-Output '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
       $DTLDetails|FT;
-      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      Log-Output '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
       $DTLDetails.GetType();
       $DTLDetails.count;
-      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
-      $DTLDetails|%{Write-Host "";Write-Host "vvvvvvvvvvvvv";$_;Write-Host "-------------";$_.GetType();Write-Host "^^^^^^^^^^^^^";}
-      Write-Host '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
-      Write-Host '==========================================================';
+      Log-Output '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      $DTLDetails|%{Log-Output "";Log-Output "vvvvvvvvvvvvv";$_;Log-Output "-------------";$_.GetType();Log-Output "^^^^^^^^^^^^^";}
+      Log-Output '--🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔--';
+      Log-Output '==========================================================';
 
       Write-Host "##vso[task.setvariable variable=DTLRGName;]$DTLRGName"
       Write-Host "##vso[task.setvariable variable=DTLName;]$DTLName"
@@ -115,16 +115,18 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     ScriptType: 'InlineScript'
     Inline: |
+      $VerbosePreference = "Continue";
+
       Set-Location $(Build.Repository.LocalPath)
       .("CI/CommonFunctionsAndMethods.ps1")
 
       $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
 
-      Write-Host 'Update VM AutoShutdown Schedule'
+      Log-Output 'Update VM AutoShutdown Schedule'
       Set-AZDTLAutoShutdownPolicy -ResourceGroupName "$(DTLRGName)" -LabName "$(DTLName)" -Time ((Get-Date).toUniversalTime().AddMinutes(120)) -Enable
-      Write-Host 'Finished Updating VM AutoShutdown Schedule'
+      Log-Output 'Finished Updating VM AutoShutdown Schedule'
 
-      Write-Host 'Tag RG with RequestingBuildId'
+      Log-Output 'Tag RG with RequestingBuildId'
       $AddTagsToResourceGroup.Invoke("$(DTLRGName)",@{"LastRequestingBuildId"="${{parameters.RequestingBuildId}}";});
-      Write-Host 'Done: Tag RG with RequestingBuildId'
+      Log-Output 'Done: Tag RG with RequestingBuildId'
 
