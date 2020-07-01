@@ -51,7 +51,7 @@ Log-Output "<->5<-><-><-><-><-><-><-><-><-><-><-><-><->";
 
 
 Log-Output "Creating Resource Group $DTLRGName"
-New-AzResourceGroup -Name "$DTLRGName" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force
+New-AzResourceGroup -Name "$DTLRGName" -Location "East US 2" -Tag @{Department="tSQLtCI"; Ephemeral="True"} -Force|Out-String|Log-Output;
 Log-Output "DONE: Creating Resource Group $DTLRGName"
 
 Log-Output "Creating VNet $DTLVNetName"
@@ -62,6 +62,7 @@ $params = @{
     SQL_Port="$SQLPort";
 };
 $VNet = New-AzResourceGroupDeployment @params;
+$VNet|Out-String|Log-Output;
 
 $DTLVNetSubnetName = $VNet.Outputs.subnetName.Value
 Log-Output "DTLVNetSubnetName:", $DTLVNetSubnetName;
@@ -77,7 +78,7 @@ $params = @{
     labVmShutDownNotificationEmail="$LabShutdownNotificationEmail";
     labVmShutDownNotificationURL="$LabShutdownNotificationURL";
 };
-New-AzResourceGroupDeployment @params;
+New-AzResourceGroupDeployment @params|Out-String|Log-Output;
 
 Log-Output "DONE: Creating DTL $DTLName"
 
@@ -89,9 +90,9 @@ Log-Output 'Creating New VM'
 $VMResourceGroupDeployment = New-AzResourceGroupDeployment -ResourceGroupName "$DTLRGName" -TemplateFile "$dir\CreateVMTemplate.json" -labName "$DTLName" -newVMName "$DTLVmName" -DevTestLabVirtualNetworkName "$DTLVNetName" -DevTestLabVirtualNetworkSubNetName "$DTLVNetSubnetName" -userName "$SQLUserName" -password "$SQLPassword" -ContactEmail "$LabShutdownNotificationEmail" -SQLVersionEdition "$SQLVersionEdition"
 Log-Output 'Done: Creating New VM'
 Log-Output "+AA++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-$VMResourceGroupDeployment
+$VMResourceGroupDeployment|Out-String|Log-Output;
 Log-Output "------"
-$VMResourceGroupDeployment.Outputs
+$VMResourceGroupDeployment.Outputs|Out-String|Log-Output;
 Log-Output "------"
 $SQLVersion = $VMResourceGroupDeployment.Outputs.sqlVersion.Value;
 Log-Output ("--->VMResourceGroupDeployment.Outputs.sqlVersion:{0}" -f $SQLVersion)
@@ -106,7 +107,7 @@ $ComputeRGN = (Get-AzResource -id $VmComputeId).ResourceGroupName
 Log-Output ("--->ComputeRGN:{0}" -f $ComputeRGN)
 Log-Output "+CC++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 Log-Output "Set Tags on ResourceGroup"
-Set-AzResourceGroup -Name $ComputeRGN -Tags @{"Department"="tSQLtCI";"ParentRGN"="$DTLRGName"}
+Set-AzResourceGroup -Name $ComputeRGN -Tags @{"Department"="tSQLtCI";"ParentRGN"="$DTLRGName"}|Out-String|Log-Output;
 Log-Output "Done: Set Tags on ResourceGroup"
 Log-Output "+DD++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
@@ -123,7 +124,7 @@ $DTLVm = (Get-AzResource -Name $DTLVmName -ResourceType Microsoft.DevTestLab/lab
 $DTLVmWithProperties = (Get-AzResource -ResourceId $DTLVm.ResourceId);
 
 
-$DTLVmWithProperties;
+$DTLVmWithProperties|Out-String|Log-Output;
 Log-Output "<->4<-><-><-><-><-><-><-><-><-><-><-><-><->";
 
 $DTLVmComputeId = $DTLVmWithProperties.Properties.ComputeId
@@ -146,21 +147,21 @@ Log-Output "setting variable: HiddenVmFQDN:", $HiddenVmFQDN
 
 Log-Output "Adding more Tags on ResourceGroup"
 
-$AddTagsToResourceGroup.Invoke($DTLRGName,@{"SQLVmFQDN"="$HiddenVmFQDN";"SQLVmPort"="$SQLPort";"SQLVersionEdition"="$SQLVersionEdition";"SQLVersion"="$SQLVersion";});
+$Tags = $AddTagsToResourceGroup.Invoke($DTLRGName,@{"SQLVmFQDN"="$HiddenVmFQDN";"SQLVmPort"="$SQLPort";"SQLVersionEdition"="$SQLVersionEdition";"SQLVersion"="$SQLVersion";});
+$Tags|Out-String|Log-Output;
 
 Log-Output "Done: Adding more Tags on ResourceGroup"
 Log-Output 'Starting the New VM'
 
 ##Set-PSDebug -Trace 1;
-Start-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName"
-Set-PSDebug -Trace 0;
+Start-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName"|Out-String|Log-Output;
 
 Log-Output 'Done: Starting the New VM'
 Log-Output 'Applying SqlVM Stuff'
 
 ##Set-PSDebug -Trace 1;
-$VM = New-AzResourceGroupDeployment -ResourceGroupName "$HiddenVmRGName" -TemplateFile "$dir\CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPassword" -newVMName "$HiddenVmName" -newVMRID "$DTLVmComputeId"
-Set-PSDebug -Trace 0;
+$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$HiddenVmRGName" -TemplateFile "$dir\CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPassword" -newVMName "$HiddenVmName" -newVMRID "$DTLVmComputeId"
+$SQLVM|Out-String|Log-Output;
 
 Log-Output 'Done: Applying SqlVM Stuff'
 Log-Output 'Prep SQL Server for tSQLt Build'
@@ -171,7 +172,7 @@ $DS = Invoke-Sqlcmd -InputFile "$dir\GetSQLServerVersion.sql" -ServerInstance "$
 $DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
-Log-Output $ActualSQLVersion;
+Log-Output "Actual SQL Version:",$ActualSQLVersion;
 
 Log-Output 'Done: Prep SQL Server for tSQLt Build';
 
