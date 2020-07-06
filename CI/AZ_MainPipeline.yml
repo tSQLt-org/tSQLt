@@ -11,7 +11,7 @@ trigger:
     
     stages:
     
-    -stage: Build_tSQLt
+    - stage: Build_tSQLt
 
       jobs:
     
