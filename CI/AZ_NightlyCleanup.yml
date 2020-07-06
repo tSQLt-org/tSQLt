@@ -10,7 +10,7 @@ pool:
   vmImage: 'vs2017-win2016'
 
 schedules:
-  - cron: 0 16 * * *
+  - cron: 1 16 * * *
     displayName: Scheduled NOON cleanup #Remove When Finished#
     branches:
       include:
