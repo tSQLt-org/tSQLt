@@ -3,15 +3,16 @@
 trigger:
     - CITestingxxx
     
-    pool:
-      vmImage: 'vs2017-win2016'
-    
-    variables:
-      CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
     
     stages:
     
     - stage: Build_tSQLt
+
+      pool:
+        vmImage: 'vs2017-win2016'
+      
+      variables:
+        CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
 
       jobs:
     
