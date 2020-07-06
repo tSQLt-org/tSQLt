@@ -8,17 +8,20 @@ trigger:
     
     - stage: Build_tSQLt
 
-      pool:
-        vmImage: 'vs2017-win2016'
-      
-      variables:
-        CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
-
       jobs:
-    
+
+        pool:
+            vmImage: 'vs2017-win2016'
+          
+        
       - job: CompileCLR
         timeoutInMinutes: 10
         cancelTimeoutInMinutes: 2
+
+        variables:
+          CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
+
+
         
         steps:
         
