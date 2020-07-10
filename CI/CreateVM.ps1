@@ -178,6 +178,10 @@ Log-Output 'Done: Prep SQL Server for tSQLt Build';
 
 
 Return @{
-    "DTLRGName"="$DTLRGName";
-    "DTLName"="$DTLName";
+    "DTLRGName"="$DTLRGName";                 ##tSQLtCI_20200709_2012_2096_RG
+    "DTLName"="$DTLName";                     ##tSQLtCI_20200709_2012_2096
+    "SQLVmFQDN"="$HiddenVmFQDN";              ##[vmname].[region].cloudapp.azure.com
+    "SQLVmPort"="$SQLPort";                   ##1433
+    "SQLVersionEdition"="$SQLVersionEdition"; ##2012Ent
+    "SQLVersion"="$SQLVersion";               ##2012
 };
