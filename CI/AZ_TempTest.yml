@@ -69,7 +69,7 @@ jobs:
         Write-Host "1---"
         Write-Host $env:setVar.myvar
         Write-Host "2---"
-        Write-Host $(setVar.myvar)
+        ##Write-Host $(setVar.myvar)
         Write-Host "3---"
 
 
