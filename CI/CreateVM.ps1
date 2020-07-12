@@ -87,7 +87,22 @@ Log-Output "DONE: Creating DTL $DTLName"
 ##Set-Location $(Build.Repository.LocalPath)
 Log-Output 'Creating New VM'
 ##Set-PSDebug -Trace 1;
-$VMResourceGroupDeployment = New-AzResourceGroupDeployment -ResourceGroupName "$DTLRGName" -TemplateFile "$dir\CreateVMTemplate.json" -labName "$DTLName" -newVMName "$DTLVmName" -DevTestLabVirtualNetworkName "$DTLVNetName" -DevTestLabVirtualNetworkSubNetName "$DTLVNetSubnetName" -userName "$SQLUserName" -password "$SQLPassword" -ContactEmail "$LabShutdownNotificationEmail" -SQLVersionEdition "$SQLVersionEdition"
+
+$params = @{
+    ResourceGroupName = "$DTLRGName";
+    TemplateFile = "$dir\CreateVMTemplate.json";
+    labName = "$DTLName";
+    newVMName = "$DTLVmName";
+    DevTestLabVirtualNetworkName = "$DTLVNetName";
+    DevTestLabVirtualNetworkSubNetName = "$DTLVNetSubnetName";
+    userName = "$SQLUserName";
+    password = "$SQLPassword";
+    ContactEmail = "$LabShutdownNotificationEmail";
+    SQLVersionEdition = "$SQLVersionEdition";
+    sqlPortNumber = "$SQLPort"; 
+}
+$VMResourceGroupDeployment = New-AzResourceGroupDeployment @params;
+
 Log-Output 'Done: Creating New VM'
 Log-Output "+AA++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 $VMResourceGroupDeployment|Out-String|Log-Output;
