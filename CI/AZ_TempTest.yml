@@ -39,7 +39,10 @@ variables:
 
 jobs:
 - job: joba
+  
   steps:
+
+  - checkout: none
 
   - task: CmdLine@2
     name: AgentInfo
@@ -64,6 +67,8 @@ jobs:
   variables: 
     myvar: $[ dependencies.joba.outputs['setVar.myvar'] ]
   steps:
+
+  - checkout: none
 
   - task: CmdLine@2
     name: AgentInfo
