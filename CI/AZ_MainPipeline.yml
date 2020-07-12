@@ -203,7 +203,7 @@ stages:
           Set-Location $(Build.Repository.LocalPath)
           .("CI/CommonFunctionsAndMethods.ps1")
     
-          $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
+          $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
           $DTLDetails
 
 ############################################################################################################################################################          
@@ -220,6 +220,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+          $(SerializedDTLDetails);
           $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
           $FQDNAndPort = $DTLDetails.SQLVmFQDN+","+$DTLDetails.SQLVmPort;
           $SQLVersion = $DTLDetails.SQLVersion;
