@@ -221,7 +221,7 @@ stages:
           
           $(SerializedDTLDetails);
 
-          $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
+          $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
           $FQDNAndPort = $DTLDetails.SQLVmFQDN+","+$DTLDetails.SQLVmPort;
           $SQLVersion = $DTLDetails.SQLVersion;
           Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
@@ -303,7 +303,7 @@ stages:
 
           $(SerializedDTLDetails);
 
-          $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
+          $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
           $HiddenVmName = $DTLDetails.HiddenVmName;
           $HiddenVmRGName = $DTLDetails.HiddenVmRGName;
     
