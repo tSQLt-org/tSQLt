@@ -178,6 +178,8 @@ Log-Output 'Done: Prep SQL Server for tSQLt Build';
 
 
 Return @{
+    "HiddenVmName"="$HiddenVmName";
+    "HiddenVmRGName"="$HiddenVmRGName";
     "DTLRGName"="$DTLRGName";                 ##tSQLtCI_20200709_2012_2096_RG
     "DTLName"="$DTLName";                     ##tSQLtCI_20200709_2012_2096
     "SQLVmFQDN"="$HiddenVmFQDN";              ##[vmname].[region].cloudapp.azure.com

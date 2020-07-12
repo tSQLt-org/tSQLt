@@ -276,16 +276,34 @@ stages:
           &"$(SQLCMDPath)\sqlcmd" -S "$(FQDNAndPort)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
     
 ############################################################################################################################################################          
-  - job: TagRepository
-    dependsOn: Run_Tests
-    condition: Always
-
-    steps:
+#  - job: TagRepository
+#    dependsOn: Run_Tests
+#    condition: Always
+#
+#    steps:
 
 ############################################################################################################################################################          
   - job: CleanUp
-    dependsOn: Run_Tests
+    dependsOn: Run_Tests, Setup_VM
+    variables:
+      SerializedDTLDetails: $[ dependencies.Setup_VM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
     condition: Always
 
     steps:
+    - task: AzurePowerShell@4
+      name: ShutdownVM
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azurePowerShellVersion: 'LatestVersion'
+        ScriptType: 'InlineScript'
+        Inline: |
+          $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
+          $HiddenVmName = $DTLDetails.HiddenVmName;
+          $HiddenVmRGName = $DTLDetails.HiddenVmRGName;
     
+          Set-Location $(Build.Repository.LocalPath)
+          .("CI/CommonFunctionsAndMethods.ps1")
+    
+          $DTLDetails|Out-String|Log-Output;
+          
+          Stop-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName"|Out-String|Log-Output;
