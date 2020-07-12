@@ -191,21 +191,6 @@ stages:
           $SerializedDTLDetails
           Write-Host "##vso[task.setvariable variable=SerializedDTLDetails;isOutput=true]$SerializedDTLDetails"
     
-    - task: AzurePowerShell@4
-      name: Delete_me_later
-      inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-        azurePowerShellVersion: 'LatestVersion'
-        ScriptType: 'InlineScript'
-        Inline: |
-          $VerbosePreference = "Continue";
-    
-          Set-Location $(Build.Repository.LocalPath)
-          .("CI/CommonFunctionsAndMethods.ps1")
-    
-          $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
-          $DTLDetails
-
 ############################################################################################################################################################          
   - job: Run_Tests
     dependsOn: Setup_VM
@@ -220,7 +205,9 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+          
           $(SerializedDTLDetails);
+
           $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
           $FQDNAndPort = $DTLDetails.SQLVmFQDN+","+$DTLDetails.SQLVmPort;
           $SQLVersion = $DTLDetails.SQLVersion;
