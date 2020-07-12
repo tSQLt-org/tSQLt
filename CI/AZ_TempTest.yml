@@ -99,7 +99,8 @@ jobs:
       targetType: 'inline'
       script: |
         Write-Host "1---"
-        Write-Host "${{ variables['myvar'] }}"
+        $DTLDetails = (ConvertFrom-JSON $env:myvar);
+        $DTLDetails;
 
   - task: PowerShell@2
     name: readVar2
