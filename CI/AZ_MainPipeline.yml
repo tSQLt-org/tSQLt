@@ -187,7 +187,8 @@ stages:
           Log-Output '==========================================================';
           Log-Output '==========================================================';
               
-          $SerializedDTLDetails=(ConvertTo-JSON -InputObject $RGNs -Compress);
+          $SerializedDTLDetails=(ConvertTo-JSON -InputObject $DTLDetails -Compress);
+          
           $SerializedDTLDetails
           Write-Host "##vso[task.setvariable variable=SerializedDTLDetails;isOutput=true]$SerializedDTLDetails"
     
@@ -287,6 +288,9 @@ stages:
         azurePowerShellVersion: 'LatestVersion'
         ScriptType: 'InlineScript'
         Inline: |
+
+          $(SerializedDTLDetails);
+
           $DTLDetails = (ConvertFrom-JSON $(SerializedDTLDetails));
           $HiddenVmName = $DTLDetails.HiddenVmName;
           $HiddenVmRGName = $DTLDetails.HiddenVmRGName;
