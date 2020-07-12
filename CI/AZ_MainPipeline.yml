@@ -219,7 +219,7 @@ stages:
         targetType: 'inline'
         script: |
           
-          $(SerializedDTLDetails);
+          $env:SerializedDTLDetails;
 
           $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
           $FQDNAndPort = $DTLDetails.SQLVmFQDN+","+$DTLDetails.SQLVmPort;
@@ -301,7 +301,7 @@ stages:
         ScriptType: 'InlineScript'
         Inline: |
 
-          $(SerializedDTLDetails);
+          $env:SerializedDTLDetails;
 
           $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
           $HiddenVmName = $DTLDetails.HiddenVmName;
