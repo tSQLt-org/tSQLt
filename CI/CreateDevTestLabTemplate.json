@@ -24,7 +24,7 @@
 		},
         "ShutDownTimeUTC": {
             "type": "string",
-            "defaultValue": "[dateTimeAdd(utcNow('yyyy-MM-ddTHH:mm:ss.fffffffK'),'PT60M','HHmm')]"
+            "defaultValue": "[dateTimeAdd(utcNow('yyyy-MM-ddTHH:mm:ss.fffffffK'),'PT160M','HHmm')]"
         }
     },
     "variables": {},
