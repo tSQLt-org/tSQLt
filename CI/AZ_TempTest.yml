@@ -84,6 +84,7 @@ jobs:
 
   - task: CmdLine@2
     name: AgentInfo
+    condition: always()
     inputs:
       script: |
         @ECHO ON
@@ -93,6 +94,7 @@ jobs:
 
   - task: PowerShell@2
     name: readVar1
+    condition: always()
     inputs:
       targetType: 'inline'
       script: |
@@ -101,6 +103,7 @@ jobs:
 
   - task: PowerShell@2
     name: readVar2
+    condition: always()
     inputs:
       targetType: 'inline'
       script: |
@@ -109,6 +112,7 @@ jobs:
 
   - task: PowerShell@2
     name: readVar3
+    condition: always()
     inputs:
       targetType: 'inline'
       script: |
@@ -117,6 +121,7 @@ jobs:
 
   - task: PowerShell@2
     name: readVar4
+    condition: always()
     inputs:
       targetType: 'inline'
       script: |
