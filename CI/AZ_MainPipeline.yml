@@ -287,7 +287,7 @@ stages:
     dependsOn: Run_Tests, Setup_VM
     variables:
       SerializedDTLDetails: $[ dependencies.Setup_VM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
-    condition: Always
+    condition: Always()
 
     steps:
     - task: AzurePowerShell@4
