@@ -116,12 +116,24 @@ stages:
         targets: all
         publishJUnitResults: false
 
+    - task: CmdLine@2
+      name: CreateArtifact
+      inputs:
+        script: |
+          @ECHO OFF
+          MKDIR Build\output\Artifact
+          XCOPY Build\output\tSQLt.zip Build\output\Artifact\
+          XCOPY Build\output\tSQLt.tests.zip Build\output\Artifact\
+          XCOPY Build\output\Version.txt Build\output\Artifact\
+
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/Build/output/'
-        artifact: 'tSQLtPreTests'
+        targetPath: '$(Build.SourcesDirectory)/Build/output/Artifact'
+        artifact: 'tSQLtAndTests'
         publishLocation: 'pipeline'
 
+  ##- job: publishArtifactToRepo
+    
 ############################################################################################################################################################          
 ############################################################################################################################################################          
 ############################################################################################################################################################          
@@ -222,7 +234,7 @@ stages:
         project: '276a22c3-dbc9-4c7c-8e4e-18c70ef165d8'
         definition: '1'
         buildVersionToDownload: 'latest'
-        artifactName: 'tSQLtPreTests'
+        artifactName: 'tSQLtAndTests'
         targetPath: '$(Build.SourcesDirectory)/Build_Artifact'
               
     - task: PowerShell@2
