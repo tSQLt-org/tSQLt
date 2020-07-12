@@ -96,6 +96,42 @@ jobs:
 
 
 
+- job: jobc
+  dependsOn: 
+  - jobb
+  - joba
+  variables: 
+    myvar: $[ dependencies.joba.outputs['setVar.myvar'] ]
+  steps:
+
+  - checkout: none
+
+  - task: CmdLine@2
+    name: AgentInfo
+    inputs:
+      script: |
+        @ECHO ON
+        systeminfo
+        "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+        SET
+
+  - task: PowerShell@2
+    name: readVar
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "1---"
+        Write-Host "${{ variables['myvar'] }}"
+        Write-Host "2---"
+        Write-Host $env:myvar
+        Write-Host "3---"
+        Write-Host $(myvar)
+        Write-Host "4---"
+        Write-Host "${{ variables.myvar }}"
+        Write-Host "5---"
+
+
+
 
 
 
