@@ -92,19 +92,36 @@ jobs:
         SET
 
   - task: PowerShell@2
-    name: readVar
+    name: readVar1
     inputs:
       targetType: 'inline'
       script: |
         Write-Host "1---"
         Write-Host "${{ variables['myvar'] }}"
+
+  - task: PowerShell@2
+    name: readVar2
+    inputs:
+      targetType: 'inline'
+      script: |
         Write-Host "2---"
         Write-Host $env:myvar
+
+  - task: PowerShell@2
+    name: readVar3
+    inputs:
+      targetType: 'inline'
+      script: |
         Write-Host "3---"
         Write-Host $(myvar)
+
+  - task: PowerShell@2
+    name: readVar4
+    inputs:
+      targetType: 'inline'
+      script: |
         Write-Host "4---"
         Write-Host "${{ variables.myvar }}"
-        Write-Host "5---"
 
 
 
