@@ -275,3 +275,17 @@ stages:
           
           &"$(SQLCMDPath)\sqlcmd" -S "$(FQDNAndPort)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
     
+############################################################################################################################################################          
+  - job: TagRepository
+    dependsOn: Run_Tests
+    condition: Always
+
+    steps:
+
+############################################################################################################################################################          
+  - job: CleanUp
+    dependsOn: Run_Tests
+    condition: Always
+
+    steps:
+    
