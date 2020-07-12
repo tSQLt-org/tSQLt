@@ -24,14 +24,6 @@ schedules:
 pool:
   vmImage: 'vs2017-win2016'
 
-strategy:
-  matrix:
-    Run1:
-      myvar: 12
-    Run2:
-      myvar: 14
-    Run3:
-      myvar: 16
 
 parameters:
 - name: SQLCMDPath
@@ -45,40 +37,52 @@ parameters:
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
 
+jobs:
+- job: joba
+  steps:
 
-steps:
-- task: AzureKeyVault@1
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    KeyVaultName: 'tSQLtSigningKey'
-    SecretsFilter: '*'
+  - task: CmdLine@2
+    name: AgentInfo
+    inputs:
+      script: |
+        @ECHO ON
+        systeminfo
+        "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+        SET
 
-- task: CmdLine@2
-  name: AgentInfo
-  inputs:
-    script: |
-      @ECHO ON
-      systeminfo
-      "${{ parameters.SQLCMDPath }}\SQLCMD" -?
-      SET
-
-- task: AzurePowerShell@4
-  inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      get-azsubscription
-      get-azcontext
-    azurePowerShellVersion: 'LatestVersion'
+  - task: PowerShell@2
+    name: setVar
+    inputs:
+      targetType: 'inline'
+      script: |
+        $myvar = "foundyou"
+        Write-Host "##vso[task.setvariable variable=myvar;isOutput=true]$myvar"
 
 
-- task: PowerShell@2
-  name: setVar
-  inputs:
-    targetType: 'inline'
-    script: |
-      Write-Host "${{ variables['myvar'] }}"
-      Write-Host $env:myvar
+- job: jobb
+  dependsOn: joba
+  variables: 
+    myvar: $[ dependencies.joba.outputs['setVar.myvar'] ]
+  steps:
+
+  - task: CmdLine@2
+    name: AgentInfo
+    inputs:
+      script: |
+        @ECHO ON
+        systeminfo
+        "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+        SET
+
+  - task: PowerShell@2
+    name: setVar
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "${{ variables['myvar'] }}"
+        Write-Host $env:myvar
+
+
 
 
 
