@@ -61,6 +61,22 @@ jobs:
         $myvar = "foundyou"
         Write-Host "##vso[task.setvariable variable=myvar;isOutput=true]$myvar"
 
+  - task: PowerShell@2
+    name: readVar
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "1---"
+        Write-Host "${{ variables['myvar'] }}"
+        Write-Host "2---"
+        Write-Host $env:myvar
+        Write-Host "3---"
+        Write-Host $(myvar)
+        Write-Host "4---"
+        Write-Host "${{ variables.myvar }}"
+        Write-Host "5---"
+
+
 
 - job: jobb
   dependsOn: joba
