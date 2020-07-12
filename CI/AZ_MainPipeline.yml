@@ -189,7 +189,7 @@ stages:
               
           $SerializedDTLDetails=(ConvertTo-JSON -InputObject $RGNs -Compress);
           $SerializedDTLDetails
-          Write-Host "##vso[task.setvariable variable=SerializedDTLDetails]$SerializedDTLDetails"
+          Write-Host "##vso[task.setvariable variable=SerializedDTLDetails;isOutput=true]$SerializedDTLDetails"
     
     - task: AzurePowerShell@4
       name: Delete_me_later
