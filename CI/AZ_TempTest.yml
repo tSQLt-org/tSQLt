@@ -58,7 +58,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $myvar = "foundyou"
+        $myvar = '{"DTLName":"tSQLtCI_20200712_2016_2159","SQLVersionEdition":"2016","SQLVmPort":"52137","SQLVmFQDN":"v2159-2016.eastus2.cloudapp.azure.com","DTLRGName":"tSQLtCI_20200712_2016_2159_RG","HiddenVmRGName":"tSQLtCI_20200712_2016_2159-V2159-2016-026004","SQLVersion":"2016","HiddenVmName":"V2159-2016"}'
         Write-Host "##vso[task.setvariable variable=myvar;isOutput=true]$myvar"
 
   - task: PowerShell@2
@@ -67,14 +67,10 @@ jobs:
       targetType: 'inline'
       script: |
         Write-Host "1---"
-        Write-Host "${{ variables['myvar'] }}"
+        Write-Host $env:setVar.myvar
         Write-Host "2---"
-        Write-Host $env:myvar
+        Write-Host $(setVar.myvar)
         Write-Host "3---"
-        Write-Host $(myvar)
-        Write-Host "4---"
-        Write-Host "${{ variables.myvar }}"
-        Write-Host "5---"
 
 
 
