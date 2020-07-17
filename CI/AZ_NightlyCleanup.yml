@@ -191,11 +191,15 @@ steps:
               if($MyRG -ne $null)
               {
                 Write-Output "Removing Locks"
-                Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName |ForEach{
-                  Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName|ForEach{
+                Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName | ForEach-Object{
+                  Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName | ForEach-Object{
                     Write-Output ("{0} -> {1}" -f $_.ResourceType, $_.ResourceName);
                     $_ | Remove-AzResourceLock -Force 
                   }
+                }
+                Get-AzResource -ResourceGroupName "tSQLtCI_20200717_2016_2205_RG" -ResourceType  "microsoft.devtestlab/labs" | ForEach-Object{
+                  Write-Output ("Removing DTL {0}" -f $_.Name);
+                  $_ | Remove-AzResource;
                 }
                 Write-Output ("Removing RG {0}" -f $OrgRGN);
                 $MyRG | Remove-AzResourceGroup -Force 
