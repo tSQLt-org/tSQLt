@@ -227,16 +227,13 @@ stages:
           Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
           Write-Host "##vso[task.setvariable variable=SQLVersion]$SQLVersion"
 
-
     - task: DownloadPipelineArtifact@2
+      name: DownloadPipelineArtifact
       inputs:
-        buildType: 'specific'
-        project: '276a22c3-dbc9-4c7c-8e4e-18c70ef165d8'
-        definition: '1'
-        buildVersionToDownload: 'latest'
+        buildType: 'current'
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Build.SourcesDirectory)/Build_Artifact'
-              
+
     - task: PowerShell@2
       name: PrintSQLVersionInfo
       env:
