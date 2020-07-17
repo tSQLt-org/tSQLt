@@ -247,11 +247,11 @@ steps:
           $PSInstance.EndInvoke($_.Value.Handle);
           $Streams = $PSInstance.Streams;
           $Streams.PSObject.Properties|ForEach-Object{
-            Write-Host "---------------------------------";
+            Write-Host "⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩";
             Write-Host $_.name;
-            Write-Host "---------------------------------";
+            Write-Host "⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒";
             $_.value|ForEach-Object{Write-Host $_;};
-            Write-Host "---------------------------------";
+            Write-Host "⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧";
           }
           if($Streams.Error.Count -ne 0)
           {
