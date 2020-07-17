@@ -197,12 +197,12 @@ steps:
                     $_ | Remove-AzResourceLock -Force 
                   }
                 }
-                Get-AzResource -ResourceGroupName "tSQLtCI_20200717_2016_2205_RG" -ResourceType  "microsoft.devtestlab/labs" | ForEach-Object{
+                Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName -ResourceType  "microsoft.devtestlab/labs" | ForEach-Object{
                   Write-Output ("Removing DTL {0}" -f $_.Name);
-                  $_ | Remove-AzResource;
+                  $_ | Remove-AzResource -Force;
                 }
                 Write-Output ("Removing RG {0}" -f $OrgRGN);
-                $MyRG | Remove-AzResourceGroup -Force 
+                $MyRG | Remove-AzResourceGroup -Force;
               }
               else
               {
@@ -246,7 +246,13 @@ steps:
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
           $Streams = $PSInstance.Streams;
-          $Streams;
+          $Streams.PSObject.Properties|ForEach-Object{
+            Write-Host "---------------------------------";
+            Write-Host $_.name;
+            Write-Host "---------------------------------";
+            $_.value|ForEach-Object{Write-Host $_;};
+            Write-Host "---------------------------------";
+          }
           if($Streams.Error.Count -ne 0)
           {
             $Errors.add($Key);
