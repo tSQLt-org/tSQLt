@@ -8,7 +8,7 @@ name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))(SQL ${{ parameters.SQLVersionE
 trigger: none
 pr: none
 schedules:
-  - cron: 0,1,2,3,4,6 12 * * mon,tue,wed
+  - cron: 0,1,2,3,4,6 12 * * sat,sun,mon,tue,wed
     displayName: Scheduled once(ish)
     branches:
       include:
