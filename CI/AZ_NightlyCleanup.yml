@@ -268,3 +268,28 @@ steps:
       }
       #Start-Job -InputObject $_ -ScriptBlock { } 
       #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
+
+- task: AzurePowerShell@4
+  name: AssertDeleteSuccessful
+  condition: always()
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    failOnStandardError: True
+    ScriptType: 'InlineScript'
+    Inline: |
+      Write-Host '----->' $env:SerializedListOfRGs '<-----'
+      $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
+      $NDC = 0;
+      $RGTBD | ForEach-Object{
+        $RG = (Get-AzResourceGroup -name "$_" -ErrorVariable notPresent -ErrorAction SilentlyContinue);
+        if(-NOT ($notPresent)){
+          $NDC++;
+          Write-Host ("##vso[task.logissue type=error]ResourceGroup {0} still exists!" -f $_);
+        }
+      };
+      if($NDC -ne 0){
+        Write-Host ("##vso[task.logissue type=error]{0} ResourceGroup(s) were not deleted!" -f $NDC);
+        throw("Not all resource groups were deleted sucessfully. See prior error messages.");
+      };
+
