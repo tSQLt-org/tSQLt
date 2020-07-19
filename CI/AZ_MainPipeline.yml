@@ -227,7 +227,13 @@ stages:
           $env:SerializedDTLDetails;
 
           $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
-          $FQDNAndPort = $DTLDetails.SQLVmFQDN+","+$DTLDetails.SQLVmPort;
+          #-----------------------------------------------------------------------#
+          # IMPORTANT (and, you've got to be kidding me):                         #
+          # The space below is absolutely required to make the ANT Task work.     #
+          #--------------------------------------|--------------------------------#
+          $FQDNAndPort = $DTLDetails.SQLVmFQDN+", "+$DTLDetails.SQLVmPort;
+          #--------------------------------------|--------------------------------#
+          #-----------------------------------------------------------------------#
           $SQLVersion = $DTLDetails.SQLVersion;
           Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
           Write-Host "##vso[task.setvariable variable=SQLVersion]$SQLVersion"
@@ -247,11 +253,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          # Write your PowerShell commands here.
-          $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
-          $FQDNAndPort = $DTLDetails.SQLVmFQDN+","+$DTLDetails.SQLVmPort;
-
-          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$FQDNAndPort" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(FQDNAndPort)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
     
     
