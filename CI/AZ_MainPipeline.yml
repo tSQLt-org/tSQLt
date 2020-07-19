@@ -212,6 +212,11 @@ stages:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
         
     steps:
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
+        SecretsFilter: '*'
 
     - task: PowerShell@2
       name: GetVariablesInPlace
@@ -309,4 +314,4 @@ stages:
     
           $DTLDetails|Out-String|Log-Output;
           
-          Stop-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName"|Out-String|Log-Output;
+          Stop-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName" -Force|Out-String|Log-Output;
