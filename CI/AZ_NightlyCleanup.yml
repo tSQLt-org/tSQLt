@@ -246,6 +246,7 @@ steps:
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
           $Streams = $PSInstance.Streams;
+          Write-Host "(Set [$VerbosePreference = "Continue"] and/or [$DebugPreference = "Continue"] to see the corresponding output below.)";
           $Streams.PSObject.Properties|ForEach-Object{
             Write-Host "⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩";
             Write-Host $_.name;
