@@ -132,7 +132,19 @@ stages:
         artifact: 'tSQLtAndTests'
         publishLocation: 'pipeline'
 
-  ##- job: publishArtifactToRepo
+  - job: publishArtifactToRepo
+    dependsOn: 
+    - CompileCLR
+    - BuildSQLScripts
+
+    steps:
+    - task: PowerShell@2
+      name: StoreInArtifactRepo
+      inputs:
+        targetType: 'inline'
+        script: |
+          
+          #
     
 ############################################################################################################################################################          
 ############################################################################################################################################################          
