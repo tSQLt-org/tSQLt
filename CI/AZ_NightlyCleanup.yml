@@ -286,6 +286,8 @@ steps:
         if(-NOT ($notPresent)){
           $NDC++;
           Write-Host ("##vso[task.logissue type=error]ResourceGroup {0} still exists!" -f $_);
+        }else{
+          Write-Host ("ResourceGroup {0} deleted." -f $_);
         }
       };
       if($NDC -ne 0){
