@@ -69,5 +69,5 @@ jobs:
         SET
         ECHO $(Pipeline.Workspace)
         ECHO $(Agent.BuildDirectory)
-        dir -S $(Pipeline.Workspace)
+        dir $(Pipeline.Workspace) /s
 
