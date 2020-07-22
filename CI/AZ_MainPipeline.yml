@@ -168,7 +168,6 @@ stages:
         script: |
           @ECHO ON
           systeminfo
-          "${{ parameters.SQLCMDPath }}\SQLCMD" -?
           SET
           ECHO $(Pipeline.Workspace)
           ECHO $(Agent.BuildDirectory)
