@@ -37,107 +37,22 @@ parameters:
 variables:
   NamePreFix: 'tSQLtCI_DevTestLab_'
 
+resources:
+  repositories:
+  - repository: tSQLtArtifacts
+    type: github
+    name: Contoso/CommonTools
+    endpoint: MyContosoServiceConnection
+
 jobs:
 - job: joba
   
   steps:
 
-  - checkout: none
-
-  - task: CmdLine@2
-    name: AgentInfo
-    inputs:
-      script: |
-        @ECHO ON
-        systeminfo
-        "${{ parameters.SQLCMDPath }}\SQLCMD" -?
-        SET
-
-  - task: PowerShell@2
-    name: setVar
-    inputs:
-      targetType: 'inline'
-      script: |
-        $myvar = '{"DTLName":"tSQLtCI_20200712_2016_2159","SQLVersionEdition":"2016","SQLVmPort":"52137","SQLVmFQDN":"v2159-2016.eastus2.cloudapp.azure.com","DTLRGName":"tSQLtCI_20200712_2016_2159_RG","HiddenVmRGName":"tSQLtCI_20200712_2016_2159-V2159-2016-026004","SQLVersion":"2016","HiddenVmName":"V2159-2016"}'
-        Write-Host "##vso[task.setvariable variable=myvar;isOutput=true]$myvar"
-
-  - task: PowerShell@2
-    name: readVar
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "1---"
-        Write-Host $env:setVar.myvar
-        Write-Host "2---"
-        ##Write-Host $(setVar.myvar)
-        Write-Host "3---"
-
-
-
-- job: jobb
-  dependsOn: joba
-  variables: 
-    myvar: $[ dependencies.joba.outputs['setVar.myvar'] ]
-  steps:
-
-  - checkout: none
-
-  - task: CmdLine@2
-    name: AgentInfo
-    condition: always()
-    inputs:
-      script: |
-        @ECHO ON
-        systeminfo
-        "${{ parameters.SQLCMDPath }}\SQLCMD" -?
-        SET
-
-  - task: PowerShell@2
-    name: readVar1
-    condition: always()
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "1---"
-        $DTLDetails = (ConvertFrom-JSON $env:myvar);
-        $DTLDetails;
-
-  - task: PowerShell@2
-    name: readVar2
-    condition: always()
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "2---"
-        Write-Host $env:myvar
-
-  - task: PowerShell@2
-    name: readVar3
-    condition: always()
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "3---"
-        Write-Host $(myvar)
-
-  - task: PowerShell@2
-    name: readVar4
-    condition: always()
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "4---"
-        Write-Host "${{ variables.myvar }}"
-
-
-
-- job: jobc
-  dependsOn: 
-  - jobb
-  - joba
-  variables: 
-    myvar: $[ dependencies.joba.outputs['setVar.myvar'] ]
-  steps:
+  - checkout: self
+    clean: true
+    fetchDepth: 1
+    lfs: false
 
   - checkout: none
 
@@ -149,24 +64,7 @@ jobs:
         systeminfo
         "${{ parameters.SQLCMDPath }}\SQLCMD" -?
         SET
-
-  - task: PowerShell@2
-    name: readVar
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "1---"
-        Write-Host "${{ variables['myvar'] }}"
-        Write-Host "2---"
-        Write-Host $env:myvar
-        Write-Host "3---"
-        Write-Host $(myvar)
-        Write-Host "4---"
-        Write-Host "${{ variables.myvar }}"
-        Write-Host "5---"
-
-
-
-
-
+        ECHO $(Pipeline.Workspace)
+        ECHO $(Agent.BuildDirectory)
+        dir -S $(Pipeline.Workspace)
 
