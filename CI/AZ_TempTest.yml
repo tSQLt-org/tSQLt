@@ -41,8 +41,8 @@ resources:
   repositories:
   - repository: tSQLtArtifacts
     type: github
-    name: Contoso/CommonTools
-    endpoint: MyContosoServiceConnection
+    name: tSQLt/tmp6
+    endpoint: GitHub-tSQLt-Robot
 
 jobs:
 - job: joba
@@ -54,7 +54,10 @@ jobs:
     fetchDepth: 1
     lfs: false
 
-  - checkout: none
+  - checkout: tSQLtArtifacts
+    clean: true
+    fetchDepth: 1
+    lfs: false
 
   - task: CmdLine@2
     name: AgentInfo
