@@ -5,7 +5,15 @@ pr: none
 
 pool:
   vmImage: 'vs2017-win2016'
-      
+
+resources:
+  repositories:
+  - repository: tSQLtArtifacts
+    type: github
+    name: tSQLt/tmp6
+    endpoint: GitHub-tSQLt-Robot
+  
+  
 stages:
     
 - stage: Build_tSQLt
@@ -23,7 +31,6 @@ stages:
 
     - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
       clean: true
-      path: xxx
 
     - task: AzureKeyVault@1
       inputs:
@@ -96,9 +103,8 @@ stages:
 
     steps:
 
-    - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+    - checkout: self
       clean: true
-      path: source
 
     - script: 'MKDIR Build\output'
       displayName: 'create Build/output'
@@ -144,16 +150,36 @@ stages:
 
     steps:
 
-    - checkout: self
+    - checkout: tSQLtArtifacts
       clean: true
-      path: source
+      fetchDepth: 1
+      lfs: false
+
+    - task: DownloadPipelineArtifact@2
+      name: DownloadPipelineArtifact
+      inputs:
+        buildType: 'current'
+        artifactName: 'tSQLtAndTests'
+        targetPath: '$(Build.SourcesDirectory)/Build_Artifact'
+        
+    - task: CmdLine@2
+      name: AgentInfo
+      inputs:
+        script: |
+          @ECHO ON
+          systeminfo
+          "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+          SET
+          ECHO $(Pipeline.Workspace)
+          ECHO $(Agent.BuildDirectory)
+          dir $(Pipeline.Workspace) /s
 
     - task: PowerShell@2
       name: StoreInArtifactRepo
       inputs:
         targetType: 'inline'
         script: |
-          
+                    
           #
     
 ###############################################################################
@@ -171,6 +197,9 @@ stages:
   - job: Setup_VM
 
     steps:
+    - checkout: self
+      clean: true
+
     - task: AzureKeyVault@1
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -236,6 +265,9 @@ stages:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
         
     steps:
+    - checkout: self
+      clean: true
+
     - task: AzureKeyVault@1
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -293,7 +325,8 @@ stages:
         javaHomeOption: 'JDKVersion'
     
     - task: PowerShell@2
-      name: TestXMLOutput
+      name: TestXMLOutput  ####<<---------Is this needed????
+      condition: false
       env:
         USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
         PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
@@ -326,6 +359,8 @@ stages:
     condition: Always()
 
     steps:
+    - checkout: none
+      
     - task: AzurePowerShell@4
       name: ShutdownVM
       inputs:
