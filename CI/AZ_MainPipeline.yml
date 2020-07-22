@@ -23,7 +23,7 @@ stages:
 
     - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
       clean: true
-      path: source
+      path: xxx
 
     - task: AzureKeyVault@1
       inputs:
@@ -99,7 +99,7 @@ stages:
     - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
       clean: true
       path: source
-      
+
     - script: 'MKDIR Build\output'
       displayName: 'create Build/output'
 
@@ -143,6 +143,11 @@ stages:
     - BuildSQLScripts
 
     steps:
+
+    - checkout: self
+      clean: true
+      path: source
+
     - task: PowerShell@2
       name: StoreInArtifactRepo
       inputs:
