@@ -53,11 +53,13 @@ jobs:
     clean: true
     fetchDepth: 1
     lfs: false
+    path: tSQLt
 
   - checkout: tmp6
     clean: true
     fetchDepth: 1
     lfs: false
+    path: tmp6
 
   - task: CmdLine@2
     name: AgentInfo
