@@ -80,7 +80,11 @@ jobs:
       script: |
         @ECHO ON
         cd $(Pipeline.Workspace)\tmp6
-        ECHO %CD%
+        @ECHO %CD%
+        @ECHO -------------------------------
+        @ECHO -------------------------------
+        git config --global user.email "tSQLt-robot.noreply@tSQLt.org"
+        git config --global user.name "tSQLt-robot"
         @ECHO -------------------------------
         @ECHO -------------------------------
         git show
