@@ -86,10 +86,27 @@ jobs:
       script: |
         @ECHO ON
         ECHO %BUILD_SOURCEVERSION% >CommitId.txt
+        MKDIR $(Pipeline.Workspace)\tmp1
+        XCOPY CommitId.txt $(Pipeline.Workspace)\tmp1\CommitId.txt
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Pipeline.Workspace)\tmp1\'
+      artifact: 'tempArtifact'
+      publishLocation: 'pipeline'
+
+  - task: DownloadPipelineArtifact@2
+    name: DownloadPipelineArtifact
+    inputs:
+      buildType: 'current'
+      artifactName: 'tempArtifact'
+      targetPath: '$(Pipeline.Workspace)\tmp2'
+
 
 
   - task: CmdLine@2
     name: StoreInArtifactRepo
+    condition: false
     env:
       GITHUB_USERNAME: $(GitHubUserName)
       GITHUB_EMAIL: $(GitHubEmail)
