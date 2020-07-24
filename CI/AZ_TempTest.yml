@@ -39,7 +39,7 @@ variables:
 
 resources:
   repositories:
-  - repository: tSQLtArtifacts
+  - repository: tmp6
     type: github
     name: tSQLt/tmp6
     endpoint: GitHub-tSQLt-Robot
@@ -54,7 +54,7 @@ jobs:
     fetchDepth: 1
     lfs: false
 
-  - checkout: tSQLtArtifacts
+  - checkout: tmp6
     clean: true
     fetchDepth: 1
     lfs: false
@@ -72,8 +72,10 @@ jobs:
         dir $(Pipeline.Workspace) /s
 
   - task: CmdLine@2
-    name: git
+    name: StoreInArtifactRepo
     inputs:
       script: |
-        @ECHO ON
-        git
+        cd $(Pipeline.Workspace)\tmp6
+        git show
+        git log
+        #
