@@ -84,7 +84,7 @@ jobs:
     name: StoreInArtifactRepo
     env:
       GITHUB_USERNAME: $(GitHubUserName)
-      GITHUB_EMAIL: $(GitHubEmail)
+      GITHUB_EMAIL: $(gittemptest)
     inputs:
       script: |
         @ECHO ON
@@ -92,7 +92,7 @@ jobs:
         @ECHO %CD%
         @ECHO -------------------------------
         @ECHO -------------------------------
-        git config --global user.email "%GITHUB_EMAIL%"
+        git config --global user.email "%GITTEMPTEST%"
         git config --global user.name "%GITHUB_USERNAME%"
         @ECHO -------------------------------
         @ECHO -------------------------------
