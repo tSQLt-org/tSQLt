@@ -159,6 +159,7 @@ stages:
       clean: true
       fetchDepth: 1
       lfs: false
+      persistCredentials: true
 
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
