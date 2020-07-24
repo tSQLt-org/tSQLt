@@ -92,8 +92,8 @@ jobs:
         @ECHO %CD%
         @ECHO -------------------------------
         @ECHO -------------------------------
-        git config --global user.email "%ENV:GITHUB_EMAIL%"
-        git config --global user.name "%ENV:GITHUB_USERNAME%"
+        git config --global user.email "%GITHUB_EMAIL%"
+        git config --global user.name "%GITHUB_USERNAME%"
         @ECHO -------------------------------
         @ECHO -------------------------------
         git show
@@ -108,7 +108,7 @@ jobs:
         git remote show origin
         @ECHO -------------------------------
         @ECHO -------------------------------
-        git switch -c test202007241423556
+        git switch -c test20200724220221
         @ECHO -------------------------------
         @ECHO -------------------------------
         git show >git_show.txt
@@ -116,9 +116,9 @@ jobs:
         @ECHO -------------------------------
         git add git_show.txt
         @ECHO -------------------------------
-        git commit -m test202007241423556
+        git commit -m test20200724220221
         @ECHO -------------------------------
-        git push origin test202007241423556
+        git push origin test20200724220221
         @ECHO -------------------------------
         @ECHO -------------------------------
         git log
