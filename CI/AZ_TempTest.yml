@@ -98,7 +98,7 @@ jobs:
         @ECHO ON
         @ECHO -------------------------------
         @ECHO -------------------------------
-        SET /p BuildSourceVersion <CommitId.txt
+        SET /p BuildSourceVersion=<CommitId.txt
         @ECHO -------------------------------
         @ECHO -------------------------------
         cd $(Pipeline.Workspace)\tmp6
