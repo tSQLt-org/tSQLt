@@ -167,13 +167,6 @@ stages:
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Pipeline.Workspace)\tmp'
 
-    - task: ExtractFiles@1
-      name: ExtractFiles
-      inputs:
-        archiveFilePatterns: '$(Pipeline.Workspace)\tmp\*.zip' 
-        destinationFolder: '$(Pipeline.Workspace)\tmp2\'
-        cleanDestinationFolder: true 
-
     - task: CmdLine@2
       name: StoreInArtifactRepo
       env:
@@ -182,7 +175,7 @@ stages:
       inputs:
         script: |
           @ECHO OFF
-          SET /p BuildSourceVersion=<%PIPELINE_WORKSPACE%\tmp2\CommitId.txt
+          SET /p BuildSourceVersion=<%PIPELINE_WORKSPACE%\tmp\CommitId.txt
           git config --global user.email "%GITHUB_EMAIL%"
           git config --global user.name "%GITHUB_USERNAME%"
           @ECHO -------------------------------
@@ -193,8 +186,8 @@ stages:
           @ECHO -------------------------------
           @ECHO -------------------------------
           git switch -c %BuildSourceVersion%
-          XCOPY /Y /F $(Pipeline.Workspace)\tmp\*.zip 
-          git add *.zip
+          XCOPY /Y /F $(Pipeline.Workspace)\tmp\*.* 
+          git add *.*
           @ECHO -------------------------------
           git commit -m %BuildSourceVersion%
           git push origin %BuildSourceVersion%
