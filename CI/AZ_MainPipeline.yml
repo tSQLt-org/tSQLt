@@ -177,12 +177,11 @@ stages:
           ECHO $(Agent.BuildDirectory)
           dir $(Pipeline.Workspace) /s
 
-    - task: PowerShell@2
+    - task: CmdLine@2
       name: StoreInArtifactRepo
       inputs:
-        targetType: 'inline'
         script: |
-                    
+          git           
           #
     
 ###############################################################################
@@ -191,6 +190,7 @@ stages:
 
 - stage: Validate_tSQLt_2016
   dependsOn: Build_tSQLt
+  condition: false  ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<REMEMBER>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   variables:
     SQLVersionEdition: 2016
     NamePreFix: 'tSQLtCI_'

@@ -71,3 +71,9 @@ jobs:
         ECHO $(Agent.BuildDirectory)
         dir $(Pipeline.Workspace) /s
 
+  - task: CmdLine@2
+    name: git
+    inputs:
+      script: |
+        @ECHO ON
+        git
