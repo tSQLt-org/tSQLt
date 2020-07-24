@@ -7,19 +7,19 @@ name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))(SQL ${{parameters.SQLVersion}}
 
 trigger: none
 pr: none
-schedules:
-  - cron: 0 12 24 3 *
-    displayName: Scheduled once(ish)
-    branches:
-      include:
-      - CITesting
-    always: true
-  - cron: 15 12 24 3 *
-    displayName: Scheduled once(ish)
-    branches:
-      include:
-      - CITesting
-    always: true
+#schedules:
+#  - cron: 0 12 24 3 *
+#    displayName: Scheduled once(ish)
+#    branches:
+#      include:
+#      - CITesting
+#    always: true
+#  - cron: 15 12 24 3 *
+#    displayName: Scheduled once(ish)
+#    branches:
+#      include:
+#      - CITesting
+#    always: true
 
 pool:
   vmImage: 'vs2017-win2016'
