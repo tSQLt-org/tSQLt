@@ -87,7 +87,7 @@ jobs:
         @ECHO ON
         ECHO %BUILD_SOURCEVERSION% >CommitId.txt
         MKDIR $(Pipeline.Workspace)\tmp1
-        XCOPY CommitId.txt $(Pipeline.Workspace)\tmp1\CommitId.txt
+        XCOPY CommitId.txt $(Pipeline.Workspace)\tmp1\
 
   - task: PublishPipelineArtifact@1
     inputs:
