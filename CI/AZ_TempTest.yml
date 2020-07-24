@@ -60,6 +60,7 @@ jobs:
     fetchDepth: 1
     lfs: false
     path: tmp6
+    persistCredentials: true
 
   - task: CmdLine@2
     name: AgentInfo
