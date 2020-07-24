@@ -77,6 +77,7 @@ jobs:
     name: StoreInArtifactRepo
     inputs:
       script: |
+        @ECHO ON
         cd $(Pipeline.Workspace)\tmp6
         ECHO %CD%
         ECHO -------------------------------
@@ -96,7 +97,14 @@ jobs:
         git checkout -b test202007241423556
         ECHO -------------------------------
         ECHO -------------------------------
-        git show
+        git show >git_show.txt
+        ECHO -------------------------------
+        ECHO -------------------------------
+        git add git_show.txt
+        ECHO -------------------------------
+        git commit -m test202007241423556
+        ECHO -------------------------------
+        git push origin test202007241423556
         ECHO -------------------------------
         ECHO -------------------------------
         git log
