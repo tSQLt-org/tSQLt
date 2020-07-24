@@ -96,11 +96,13 @@ jobs:
     inputs:
       script: |
         @ECHO ON
-        cd $(Pipeline.Workspace)\tmp6
-        @ECHO %CD%
         @ECHO -------------------------------
         @ECHO -------------------------------
         SET /p BuildSourceVersion <CommitId.txt
+        @ECHO -------------------------------
+        @ECHO -------------------------------
+        cd $(Pipeline.Workspace)\tmp6
+        @ECHO %CD%
         @ECHO -------------------------------
         @ECHO -------------------------------
         git config --global user.email "%GITHUB_EMAIL%"
