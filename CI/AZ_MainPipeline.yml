@@ -176,7 +176,6 @@ stages:
 
     - task: CmdLine@2
       name: StoreInArtifactRepo
-      condition: false
       env:
         GITHUB_USERNAME: $(GitHubUserName)
         GITHUB_EMAIL: $(GitHubEmail)
