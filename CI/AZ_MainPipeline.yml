@@ -31,6 +31,8 @@ stages:
 
     - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
       clean: true
+      fetchDepth: 1
+      lfs: false
 
     - task: AzureKeyVault@1
       inputs:
@@ -105,6 +107,8 @@ stages:
 
     - checkout: self
       clean: true
+      fetchDepth: 1
+      lfs: false
 
     - script: 'MKDIR Build\output'
       displayName: 'create Build/output'
@@ -198,6 +202,8 @@ stages:
     steps:
     - checkout: self
       clean: true
+      fetchDepth: 1
+      lfs: false
 
     - task: AzureKeyVault@1
       inputs:
@@ -266,6 +272,8 @@ stages:
     steps:
     - checkout: self
       clean: true
+      fetchDepth: 1
+      lfs: false
 
     - task: AzureKeyVault@1
       inputs:
@@ -358,7 +366,10 @@ stages:
     condition: Always()
 
     steps:
-    - checkout: none
+    - checkout: self
+      clean: true
+      fetchDepth: 1
+      lfs: false
       
     - task: AzurePowerShell@4
       name: ShutdownVM
