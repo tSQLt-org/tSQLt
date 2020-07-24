@@ -85,7 +85,7 @@ jobs:
     inputs:
       script: |
         @ECHO ON
-        ECHO %BUILD_SOURCEVERSION% >Build\output\Artifact\CommitId.txt
+        ECHO %BUILD_SOURCEVERSION% >CommitId.txt
 
 
   - task: CmdLine@2
@@ -100,7 +100,7 @@ jobs:
         @ECHO %CD%
         @ECHO -------------------------------
         @ECHO -------------------------------
-        SET /p BuildSourceVersion <Build\output\Artifact\CommitId.txt
+        SET /p BuildSourceVersion <CommitId.txt
         @ECHO -------------------------------
         @ECHO -------------------------------
         git config --global user.email "%GITHUB_EMAIL%"
