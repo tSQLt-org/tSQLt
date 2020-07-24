@@ -137,6 +137,7 @@ stages:
           XCOPY Build\output\tSQLt.zip Build\output\Artifact\
           XCOPY Build\output\tSQLt.tests.zip Build\output\Artifact\
           XCOPY Build\output\Version.txt Build\output\Artifact\
+          ECHO %BUILD_SOURCEVERSION% >Build\output\Artifact\CommitId.txt
 
     - task: PublishPipelineArtifact@1
       inputs:

@@ -81,10 +81,18 @@ jobs:
         dir $(Pipeline.Workspace) /s
 
   - task: CmdLine@2
+    name: GetCommitId
+    inputs:
+      script: |
+        @ECHO ON
+        ECHO %BUILD_SOURCEVERSION% >Build\output\Artifact\CommitId.txt
+
+
+  - task: CmdLine@2
     name: StoreInArtifactRepo
     env:
       GITHUB_USERNAME: $(GitHubUserName)
-      GITHUB_EMAIL: $(gittemptest)
+      GITHUB_EMAIL: $(GitHubEmail)
     inputs:
       script: |
         @ECHO ON
@@ -92,7 +100,10 @@ jobs:
         @ECHO %CD%
         @ECHO -------------------------------
         @ECHO -------------------------------
-        git config --global user.email "%GITTEMPTEST%"
+        SET /p BuildSourceVersion <Build\output\Artifact\CommitId.txt
+        @ECHO -------------------------------
+        @ECHO -------------------------------
+        git config --global user.email "%GITHUB_EMAIL%"
         git config --global user.name "%GITHUB_USERNAME%"
         @ECHO -------------------------------
         @ECHO -------------------------------
@@ -108,7 +119,7 @@ jobs:
         git remote show origin
         @ECHO -------------------------------
         @ECHO -------------------------------
-        git switch -c test20200724221247
+        git switch -c %BuildSourceVersion%
         @ECHO -------------------------------
         @ECHO -------------------------------
         git show >git_show.txt
@@ -116,9 +127,9 @@ jobs:
         @ECHO -------------------------------
         git add git_show.txt
         @ECHO -------------------------------
-        git commit -m test20200724221247
+        git commit -m %BuildSourceVersion%
         @ECHO -------------------------------
-        git push origin test20200724221247
+        git push origin %BuildSourceVersion%
         @ECHO -------------------------------
         @ECHO -------------------------------
         git log
