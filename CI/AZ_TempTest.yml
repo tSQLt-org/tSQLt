@@ -62,6 +62,12 @@ jobs:
     path: tmp6
     persistCredentials: true
 
+  - task: AzureKeyVault@1
+    inputs:
+      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+      KeyVaultName: 'tSQLtSigningKey'
+      SecretsFilter: '*'
+
   - task: CmdLine@2
     name: AgentInfo
     inputs:
@@ -76,6 +82,9 @@ jobs:
 
   - task: CmdLine@2
     name: StoreInArtifactRepo
+    env:
+      GITHUB_USERNAME: $(GitHubUserName)
+      GITHUB_EMAIL: $(GitHubEmail)
     inputs:
       script: |
         @ECHO ON
@@ -83,8 +92,8 @@ jobs:
         @ECHO %CD%
         @ECHO -------------------------------
         @ECHO -------------------------------
-        git config --global user.email "tSQLt-robot.noreply@tSQLt.org"
-        git config --global user.name "tSQLt-robot"
+        git config --global user.email "%ENV:GITHUB_EMAIL%"
+        git config --global user.name "%ENV:GITHUB_USERNAME%"
         @ECHO -------------------------------
         @ECHO -------------------------------
         git show
