@@ -181,7 +181,9 @@ stages:
       name: StoreInArtifactRepo
       inputs:
         script: |
-          git           
+          cd $(Pipeline.Workspace)/s
+          git show
+          git log
           #
     
 ###############################################################################
