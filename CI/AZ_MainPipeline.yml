@@ -160,44 +160,49 @@ stages:
       fetchDepth: 1
       lfs: false
 
-
-      
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
       inputs:
         buildType: 'current'
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Pipeline.Workspace)\tmp'
-        
-    - task: CmdLine@2
-      name: Create
+
+    - task: ExtractFiles@1
+      name: ExtractFiles
       inputs:
-        script: |
-          @ECHO ON
-          systeminfo
-          SET
-          ECHO $(Pipeline.Workspace)
-          ECHO $(Agent.BuildDirectory)
-          dir $(Pipeline.Workspace) /s
-    - task: CmdLine@2
-      name: AgentInfo
-      inputs:
-        script: |
-          @ECHO ON
-          systeminfo
-          SET
-          ECHO $(Pipeline.Workspace)
-          ECHO $(Agent.BuildDirectory)
-          dir $(Pipeline.Workspace) /s
+        archiveFilePatterns: '$(Pipeline.Workspace)\tmp\*.zip' 
+        destinationFolder: '$(Pipeline.Workspace)\tmp2\'
+        cleanDestinationFolder: true 
 
     - task: CmdLine@2
       name: StoreInArtifactRepo
+      condition: false
+      env:
+        GITHUB_USERNAME: $(GitHubUserName)
+        GITHUB_EMAIL: $(GitHubEmail)
       inputs:
         script: |
-          cd $(Pipeline.Workspace)/s
-          git show
-          git log
-          #
+          @ECHO OFF
+          SET /p BuildSourceVersion=<%PIPELINE_WORKSPACE%\tmp2\CommitId.txt
+          git config --global user.email "%GITHUB_EMAIL%"
+          git config --global user.name "%GITHUB_USERNAME%"
+          @ECHO -------------------------------
+          @ECHO -------------------------------
+          git status
+          @ECHO -------------------------------
+          git remote show origin
+          @ECHO -------------------------------
+          @ECHO -------------------------------
+          git switch -c %BuildSourceVersion%
+          XCOPY /Y /F $(Pipeline.Workspace)\tmp\*.zip 
+          git add *.zip
+          @ECHO -------------------------------
+          git commit -m %BuildSourceVersion%
+          git push origin %BuildSourceVersion%
+          @ECHO -------------------------------
+          git status
+          @ECHO -------------------------------
+    
     
 ###############################################################################
 ###############################################################################
