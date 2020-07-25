@@ -181,7 +181,7 @@ stages:
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
           Get-Location;
           $BuildSourceVersion = (Get-Content -Path "$(Pipeline.Workspace)\tmp\CommitId.txt" -totalcount 1);
-          $BranchName = $BuildSourceVersion ## add "tSQLt" + back in
+          $BranchName = "tSQLt" + $BuildSourceVersion
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           Write-Host ("BranchName: {0}" -f $BranchName) -ForegroundColor DarkGreen -BackgroundColor White; 
           try{
