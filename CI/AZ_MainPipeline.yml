@@ -184,18 +184,28 @@ stages:
           $BranchName = $BuildSourceVersion ## add "tSQLt" + back in
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           Write-Host ("BranchName: {0}" -f $BranchName) -ForegroundColor DarkGreen -BackgroundColor White; 
-          git config --global user.email "$env:GITHUB_EMAIL"
-          git config --global user.name "$env:GITHUB_USERNAME"
-          git status
-          git remote show origin
-          git switch -c "$BranchName"
-          Copy-Item -Path "$(Pipeline.Workspace)\tmp\*"
-          git add *.*
-          $CheckIfGitOk.invoke($?);
-          git commit -m "$BranchName"
-          $CheckIfGitOk.invoke($?);
-          git push origin "$BranchName"
-          $CheckIfGitOk.invoke($?);
+          try{
+            git config --global user.email "$env:GITHUB_EMAIL"
+            git config --global user.name "$env:GITHUB_USERNAME"
+            git status
+            git remote show origin
+
+            git switch -c "$BranchName"
+            $CheckIfGitOk.invoke($?);
+
+            Copy-Item -Path "$(Pipeline.Workspace)\tmp\*"
+
+            git add *.*
+            $CheckIfGitOk.invoke($?);
+
+            git commit -m "$BranchName"
+            $CheckIfGitOk.invoke($?);
+
+            git push origin "$BranchName"
+            $CheckIfGitOk.invoke($?);
+          }catch{
+            throw "Git Failed. See prior errors.";
+          } 
           git status
     
     
