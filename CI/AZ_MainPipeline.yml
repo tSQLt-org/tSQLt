@@ -179,9 +179,9 @@ stages:
         script: |
           Get-Location;
           $BuildSourceVersion = (Get-Content -Path $(Pipeline.Workspace)+"\tmp\CommitId.txt")[0];
-          $BranchName = "tSQLt" + $BuildSourceVersion
+          $BranchName = $BuildSourceVersion ## add "tSQLt" + back in
           Set-Location $(Pipeline.Workspace)\tSQLtArtifacts\;
-          Write-Host ("BranchName: {0}" -f $BranchName);
+          Write-Host ("BranchName: {0}" -f $BranchName) -ForegroundColor DarkGreen -BackgroundColor White; 
           git config --global user.email "$env:GITHUB_EMAIL"
           git config --global user.name "$env:GITHUB_USERNAME"
           git status
