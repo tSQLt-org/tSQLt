@@ -176,9 +176,11 @@ stages:
         GITHUB_EMAIL: $(GitHubEmail)
       inputs:
         targetType: 'inline'
+        failOnStderr: true
         script: |
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
           Get-Location;
-          $BuildSourceVersion = (Get-Content -Path "$(Pipeline.Workspace)\tmp\CommitId.txt")[0];
+          $BuildSourceVersion = (Get-Content -Path "$(Pipeline.Workspace)\tmp\CommitId.txt" -totalcount 1);
           $BranchName = $BuildSourceVersion ## add "tSQLt" + back in
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           Write-Host ("BranchName: {0}" -f $BranchName) -ForegroundColor DarkGreen -BackgroundColor White; 
@@ -189,8 +191,11 @@ stages:
           git switch -c "$BranchName"
           Copy-Item -Path "$(Pipeline.Workspace)\tmp\*"
           git add *.*
+          $CheckIfGitOk.invoke($?);
           git commit -m "$BranchName"
+          $CheckIfGitOk.invoke($?);
           git push origin "$BranchName"
+          $CheckIfGitOk.invoke($?);
           git status
     
     
