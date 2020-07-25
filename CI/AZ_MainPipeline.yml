@@ -160,6 +160,7 @@ stages:
       fetchDepth: 1
       lfs: false
       persistCredentials: true
+      path: tSQLtArtifacts
 
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
@@ -168,33 +169,29 @@ stages:
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Pipeline.Workspace)\tmp'
 
-    - task: CmdLine@2
+    - task: PowerShell@2
       name: StoreInArtifactRepo
       env:
         GITHUB_USERNAME: $(GitHubUserName)
         GITHUB_EMAIL: $(GitHubEmail)
       inputs:
+        targetType: 'inline'
         script: |
-          @ECHO OFF
-          SET /p BuildSourceVersion=<%PIPELINE_WORKSPACE%\tmp\CommitId.txt
-          git config --global user.email "%GITHUB_EMAIL%"
-          git config --global user.name "%GITHUB_USERNAME%"
-          @ECHO -------------------------------
-          @ECHO -------------------------------
+          Get-Location;
+          $BuildSourceVersion = (Get-Content -Path $(Pipeline.Workspace)+"\tmp\CommitId.txt")[0];
+          $BranchName = "tSQLt" + $BuildSourceVersion
+          Set-Location $(Pipeline.Workspace)\tSQLtArtifacts\;
+          Write-Host ("BranchName: {0}" -f $BranchName);
+          git config --global user.email "$env:GITHUB_EMAIL"
+          git config --global user.name "$env:GITHUB_USERNAME"
           git status
-          @ECHO -------------------------------
           git remote show origin
-          @ECHO -------------------------------
-          @ECHO -------------------------------
-          git switch -c %BuildSourceVersion%
-          XCOPY /Y /F $(Pipeline.Workspace)\tmp\*.* 
+          git switch -c "$BranchName"
+          Copy-Item -Path "$(Pipeline.Workspace)\tmp\*"
           git add *.*
-          @ECHO -------------------------------
-          git commit -m %BuildSourceVersion%
-          git push origin %BuildSourceVersion%
-          @ECHO -------------------------------
+          git commit -m "$BranchName"
+          git push origin "$BranchName"
           git status
-          @ECHO -------------------------------
     
     
 ###############################################################################
