@@ -110,8 +110,8 @@ stages:
       fetchDepth: 1
       lfs: false
 
-    - script: 'MKDIR Build/output'
-      displayName: 'create Build/output'
+#    - script: 'MKDIR Build/output'
+#      displayName: 'create Build/output'
 
     - task: DownloadPipelineArtifact@2
       inputs:
