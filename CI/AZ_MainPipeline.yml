@@ -128,16 +128,15 @@ stages:
         targets: all
         publishJUnitResults: false
 
-    - task: CmdLine@2
+    - task: PowerShell@2
       name: CreateArtifact
       inputs:
+        targetType: 'inline'
+        failOnStderr: true
         script: |
-          @ECHO OFF
-          MKDIR Build\output\Artifact
-          XCOPY Build\output\tSQLt.zip Build\output\Artifact\
-          XCOPY Build\output\tSQLt.tests.zip Build\output\Artifact\
-          XCOPY Build\output\Version.txt Build\output\Artifact\
-          ECHO %BUILD_SOURCEVERSION% >Build\output\Artifact\CommitId.txt
+          $ArtifactFiles = @("Build\output\tSQLt.zip","Build\output\tSQLt.tests.zip","Build\output\Version.txt");
+          Copy-Item -Path $ArtifactFiles -Destination "Build\output\Artifact\"
+          Set-Content -Path "Build\output\Artifact\CommitId.txt" -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
       inputs:
