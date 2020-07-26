@@ -135,7 +135,7 @@ stages:
         failOnStderr: true
         script: |
           $ArtifactFiles = @("Build\output\tSQLt.zip","Build\output\tSQLt.tests.zip","Build\output\Version.txt");
-          Copy-Item -Path $ArtifactFiles -Destination "Build\output\Artifact\"
+          $ArtifactFiles|Copy-Item -Destination "Build\output\Artifact\"
           Set-Content -Path "Build\output\Artifact\CommitId.txt" -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
