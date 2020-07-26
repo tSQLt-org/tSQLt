@@ -110,15 +110,12 @@ stages:
       fetchDepth: 1
       lfs: false
 
-#    - script: 'MKDIR Build/output'
-#      displayName: 'create Build/output'
-
     - task: DownloadPipelineArtifact@2
       inputs:
         buildType: 'current'
         artifactName: 'tSQLtClrDlls'
         itemPattern: '*.zip'
-        targetPath: '$(Build.SourcesDirectory)/Build/output'
+        targetPath: '$(Build.SourcesDirectory)\Build\output'
 
     - task: Ant@1
       displayName: 'Ant -debug Build/tSQLt.build.xml'
@@ -134,10 +131,12 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $ArtifactFiles = (@("tSQLt.zip","tSQLt.tests.zip","Version.txt")|%{"$(Build.SourcesDirectory)/Build/output/$_"});
+          $BasePath = "$(Build.SourcesDirectory)\Build\output\";
+          $ArtifactPath = ($BasePath+"Artifact\");
+          $ArtifactFiles = (@("tSQLt.zip","tSQLt.tests.zip","Version.txt")|%{$BasePath+$_});
 
-          $ArtifactFiles|Copy-Item -Destination "$(Build.SourcesDirectory)/Build/output/Artifact/"
-          Set-Content -Path "Build/output/Artifact/CommitId.txt" -Value "$(Build.SourceVersion)"
+          $ArtifactFiles|Copy-Item -Destination $ArtifactPath;
+          Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
       inputs:
