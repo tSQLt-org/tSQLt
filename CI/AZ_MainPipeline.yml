@@ -133,8 +133,10 @@ stages:
         script: |
           $BasePath = "$(Build.SourcesDirectory)\Build\output\";
           $ArtifactPath = ($BasePath+"Artifact\");
+          Write-Host ("BasePath: {0}" -f $BasePath);
+          Write-Host ("ArtifactPath: {0}" -f $ArtifactPath);
           $ArtifactFiles = (@("tSQLt.zip","tSQLt.tests.zip","Version.txt")|%{$BasePath+$_});
-
+          $ArtifactFiles;
           $ArtifactFiles|Copy-Item -Destination $ArtifactPath;
           Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
