@@ -31,7 +31,7 @@ stages:
 
     - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
       clean: true
-      fetchDepth: 1
+      fetchDepth: 10
       lfs: false
 
     - task: AzureKeyVault@1
@@ -107,7 +107,7 @@ stages:
 
     - checkout: self
       clean: true
-      fetchDepth: 1
+      fetchDepth: 10
       lfs: false
 
     - task: DownloadPipelineArtifact@2
@@ -167,7 +167,7 @@ stages:
 
     - checkout: tSQLtArtifacts
       clean: true
-      fetchDepth: 1
+      fetchDepth: 10
       lfs: false
       persistCredentials: true
       path: tSQLtArtifacts
@@ -237,7 +237,7 @@ stages:
     steps:
     - checkout: self
       clean: true
-      fetchDepth: 1
+      fetchDepth: 10
       lfs: false
 
     - task: AzureKeyVault@1
@@ -307,7 +307,7 @@ stages:
     steps:
     - checkout: self
       clean: true
-      fetchDepth: 1
+      fetchDepth: 10
       lfs: false
 
     - task: AzureKeyVault@1
@@ -403,7 +403,7 @@ stages:
     steps:
     - checkout: self
       clean: true
-      fetchDepth: 1
+      fetchDepth: 10
       lfs: false
       
     - task: AzurePowerShell@4
