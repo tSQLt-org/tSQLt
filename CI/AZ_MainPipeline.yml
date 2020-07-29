@@ -133,28 +133,9 @@ stages:
         script: |
           $BasePath = "$(Build.SourcesDirectory)\Build\output\";
           $ArtifactPath = ($BasePath+"Artifact\");
-          Write-Host ("BasePath: >>{0}<<" -f $BasePath);
-          Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
-          "xxx1"
-          $ArtifactPath
-          "xxx2"
-          Get-ChildItem -Path $BasePath
-          "xxx3"
           New-Item -Path $ArtifactPath  -ItemType directory -Force
-          "xxx4"
-          Get-ChildItem -Path $ArtifactPath
-          "xxx5"
           $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip")|%{$BasePath+$_});
-          $ArtifactFiles;
-          Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
-          try{
-            Copy-Item "$(Build.SourcesDirectory)\Build\output\Version.txt" -Verbose -Destination "$(Build.SourcesDirectory)\Build\output\Artifact\";
-            "yyy"
-            ($ArtifactFiles|Copy-Item -Verbose -Destination "$(Build.SourcesDirectory)\Build\output\Artifact\");
-          }catch{
-            Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
-            throw;
-          }
+          $ArtifactFiles|Copy-Item -Verbose -Destination $ArtifactPath;
           Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
