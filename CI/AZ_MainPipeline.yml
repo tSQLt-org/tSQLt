@@ -135,11 +135,14 @@ stages:
           $ArtifactPath = ($BasePath+"Artifact\");
           Write-Host ("BasePath: >>{0}<<" -f $BasePath);
           Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
+          "xxx"
+          $ArtifactPath
+          "xxx"
           $ArtifactFiles = (@("tSQLt.zip","tSQLt.tests.zip","Version.txt")|%{$BasePath+$_});
           $ArtifactFiles;
           Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
           try{
-            $ArtifactFiles|Copy-Item -Destination "$ArtifactPath" -Verbose;
+            ($ArtifactFiles|Copy-Item -Destination $ArtifactPath -Verbose);
           }catch{
             Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
             throw;
