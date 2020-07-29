@@ -138,7 +138,7 @@ stages:
           "xxx"
           $ArtifactPath
           "xxx"
-          $ArtifactFiles = (@("tSQLt.zip","tSQLt.tests.zip","Version.txt")|%{$BasePath+$_});
+          $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip")|%{$BasePath+$_});
           $ArtifactFiles;
           Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
           try{
