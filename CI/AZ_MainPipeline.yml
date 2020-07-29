@@ -142,7 +142,7 @@ stages:
           $ArtifactFiles;
           Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
           try{
-            ($ArtifactFiles|Copy-Item -Destination $ArtifactPath -Verbose);
+            ($ArtifactFiles|Copy-Item -Destination ($ArtifactPath) -Verbose);
           }catch{
             Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
             throw;
