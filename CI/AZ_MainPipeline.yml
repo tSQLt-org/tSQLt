@@ -183,7 +183,7 @@ stages:
           $BranchName = "tSQLt" + $BuildSourceVersion
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           Write-Host ("BranchName: {0}" -f $BranchName) -ForegroundColor DarkGreen -BackgroundColor White; 
-          try{
+          #try{
             git config --global user.email "$env:GITHUB_EMAIL"
             git config --global user.name "$env:GITHUB_USERNAME"
             git status
@@ -202,9 +202,9 @@ stages:
 
             git push origin "$BranchName"
             $CheckIfGitOk.invoke($?);
-          }catch{
-            throw "Git Failed. See prior errors.";
-          } 
+          #}catch{
+          #  throw "Git Failed. See prior errors.";
+          #} 
           git status
     
     
