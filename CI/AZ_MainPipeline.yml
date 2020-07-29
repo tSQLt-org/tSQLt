@@ -140,8 +140,10 @@ stages:
           "xxx2"
           Get-ChildItem -Path $BasePath
           "xxx3"
-          Get-ChildItem -Path $ArtifactPath
+          New-Item -Path $ArtifactPath  -ItemType directory -Force
           "xxx4"
+          Get-ChildItem -Path $ArtifactPath
+          "xxx5"
           $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip")|%{$BasePath+$_});
           $ArtifactFiles;
           Write-Host ("ArtifactPath: >>{0}<<" -f $ArtifactPath);
