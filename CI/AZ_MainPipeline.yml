@@ -137,7 +137,13 @@ stages:
           Write-Host ("ArtifactPath: {0}" -f $ArtifactPath);
           $ArtifactFiles = (@("tSQLt.zip","tSQLt.tests.zip","Version.txt")|%{$BasePath+$_});
           $ArtifactFiles;
-          $ArtifactFiles|Copy-Item -Destination "$ArtifactPath" -Verbose;
+          Write-Host ("ArtifactPath: {0}" -f $ArtifactPath);
+          try{
+            $ArtifactFiles|Copy-Item -Destination "$ArtifactPath" -Verbose;
+          }catch{
+            Write-Host ("ArtifactPath: {0}" -f $ArtifactPath);
+            throw;
+          }
           Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
