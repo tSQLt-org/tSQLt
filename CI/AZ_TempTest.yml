@@ -35,7 +35,10 @@ parameters:
 
 
 variables:
-  NamePreFix: 'tSQLtCI_DevTestLab_'
+  - name: NamePreFix
+    value: 'tSQLtCI_DevTestLab_'
+  - name: ArtifactBranchName
+    value: tSQLt$(Branch.SourceVersion)
 
 resources:
   repositories:
@@ -43,6 +46,7 @@ resources:
     type: github
     name: tSQLt/tmp6
     endpoint: GitHub-tSQLt-Robot
+    ref: $(ArtifactBranchName)
 
 jobs:
 - job: joba
@@ -113,11 +117,6 @@ jobs:
     inputs:
       script: |
         @ECHO ON
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        SET /p BuildSourceVersion=<CommitId.txt
-        @ECHO -------------------------------
-        @ECHO -------------------------------
         cd $(Pipeline.Workspace)\tmp6
         @ECHO %CD%
         @ECHO -------------------------------
@@ -133,28 +132,4 @@ jobs:
         @ECHO -------------------------------
         @ECHO -------------------------------
         git status
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git remote show origin
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git switch -c %BuildSourceVersion%
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git show >git_show.txt
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git add git_show.txt
-        @ECHO -------------------------------
-        git commit -m %BuildSourceVersion%
-        @ECHO -------------------------------
-        git push origin %BuildSourceVersion%
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git log
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git status
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-    
+        
