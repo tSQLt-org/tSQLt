@@ -298,6 +298,7 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
   - job: RunTests
+    condition: true
     ##dependsOn: SetupVM
     variables:
       ##SerializedDTLDetails: $[ dependencies.SetupVM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
