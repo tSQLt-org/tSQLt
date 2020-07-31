@@ -353,7 +353,7 @@ stages:
             throw "Git Failed. See prior errors.";
           } 
           write-host "5---------------------------------"
-          writehost 'dir -r "$(Build.SourcesDirectory)"';
+          write-host 'dir -r "$(Build.SourcesDirectory)"';
           dir -r "$(Build.SourcesDirectory)";
           write-host "6---------------------------------"
 
