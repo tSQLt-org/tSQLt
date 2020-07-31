@@ -224,7 +224,6 @@ stages:
 
 - stage: Validate_tSQLt_2016
   dependsOn: Build_tSQLt
-  condition: success()
   variables:
     SQLVersionEdition: 2016
     NamePreFix: 'tSQLtCI_'
