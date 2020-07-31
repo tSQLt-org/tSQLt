@@ -6,6 +6,13 @@ pr: none
 pool:
   vmImage: 'vs2017-win2016'
 
+variables:
+  - name: ArtifactBranchName
+    value: tSQLt$(Build.SourceVersion)
+  - name: GitFetchDepth
+    value: 11
+
+
 resources:
   repositories:
   - repository: tSQLtArtifacts
@@ -31,7 +38,7 @@ stages:
 
     - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
       clean: true
-      fetchDepth: 10
+      fetchDepth: $(GitFetchDepth)
       lfs: false
 
     - task: AzureKeyVault@1
@@ -107,7 +114,7 @@ stages:
 
     - checkout: self
       clean: true
-      fetchDepth: 10
+      fetchDepth: $(GitFetchDepth)
       lfs: false
 
     - task: DownloadPipelineArtifact@2
@@ -147,7 +154,7 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
-  - job: publishArtifactToRepo
+  - job: PublishArtifactToRepo
     dependsOn: 
     - CompileCLR
     - BuildSQLScripts
@@ -156,7 +163,7 @@ stages:
 
     - checkout: tSQLtArtifacts
       clean: true
-      fetchDepth: 10
+      fetchDepth: $(GitFetchDepth)
       lfs: false
       persistCredentials: true
       path: tSQLtArtifacts
@@ -179,18 +186,17 @@ stages:
         ## git seems to print progress to stderror
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
+
           Get-Location;
-          $BuildSourceVersion = (Get-Content -Path "$(Pipeline.Workspace)\tmp\CommitId.txt" -totalcount 1);
-          $BranchName = "tSQLt" + $BuildSourceVersion
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
-          Write-Host ("BranchName: {0}" -f $BranchName); 
+          Write-Host ("ArtifactBranchName: {0}" -f $(ArtifactBranchName)); 
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
             git config --global user.name "$env:GITHUB_USERNAME"
             git status
             git remote show origin
 
-            git switch -c "$BranchName"
+            git switch -c "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
             git rm -r *.*
@@ -201,10 +207,10 @@ stages:
             git add *.*
             $CheckIfGitOk.invoke($?);
 
-            git commit -m "$BranchName"
+            git commit -m "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
-            git push origin "$BranchName"
+            git push origin "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
           }catch{
             throw "Git Failed. See prior errors.";
@@ -218,19 +224,19 @@ stages:
 
 - stage: Validate_tSQLt_2016
   dependsOn: Build_tSQLt
-  condition: false  ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<REMEMBER>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  condition: success()
   variables:
     SQLVersionEdition: 2016
     NamePreFix: 'tSQLtCI_'
 
   jobs:
 
-  - job: Setup_VM
-
+  - job: SetupVM
+    condition: false;
     steps:
     - checkout: self
       clean: true
-      fetchDepth: 10
+      fetchDepth: $(GitFetchDepth)
       lfs: false
 
     - task: AzureKeyVault@1
@@ -291,17 +297,25 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
-  - job: Run_Tests
-    dependsOn: Setup_VM
+  - job: RunTests
+    dependsOn: SetupVM
     variables:
-      SerializedDTLDetails: $[ dependencies.Setup_VM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
+      SerializedDTLDetails: $[ dependencies.SetupVM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
+      ArtifactBranchName: $[ dependencies.SetupVM.outputs['PublishArtifactToRepo.ArtifactBranchName'] ]
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
         
     steps:
     - checkout: self
       clean: true
-      fetchDepth: 10
+      fetchDepth: $(GitFetchDepth)
       lfs: false
+
+    - checkout: tSQLtArtifacts
+      clean: true
+      fetchDepth: $(GitFetchDepth)
+      lfs: false
+      persistCredentials: true
+      path: tSQLtArtifacts
 
     - task: AzureKeyVault@1
       inputs:
@@ -329,12 +343,33 @@ stages:
           Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
           Write-Host "##vso[task.setvariable variable=SQLVersion]$SQLVersion"
 
-    - task: DownloadPipelineArtifact@2
-      name: DownloadPipelineArtifact
+    - task: PowerShell@2
+      name: GetArtifact
       inputs:
-        buildType: 'current'
-        artifactName: 'tSQLtAndTests'
-        targetPath: '$(Build.SourcesDirectory)/Build_Artifact'
+        targetType: 'inline'
+        script: |
+          $ArtifactTargetPath= '$(Build.SourcesDirectory)/Build_Artifact'
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
+
+          Get-Location;
+          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          Write-Host ("ArtifactBranchName: {0}" -f $(ArtifactBranchName)); 
+          try{
+            git status
+            git remote show origin
+
+            git switch -c "$(ArtifactBranchName)"
+            $CheckIfGitOk.invoke($?);
+
+            git status
+          }catch{
+            throw "Git Failed. See prior errors.";
+          } 
+
+          New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
+
+          Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
+
 
     - task: PowerShell@2
       name: PrintSQLVersionInfo
@@ -376,7 +411,7 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
 #  - job: TagRepository
-#    dependsOn: Run_Tests
+#    dependsOn: RunTests
 #    condition: Always
 #
 #    steps:
@@ -387,16 +422,16 @@ stages:
 
   - job: CleanUp
     dependsOn: 
-    - Run_Tests
-    - Setup_VM
+    - RunTests
+    - SetupVM
     variables:
-      SerializedDTLDetails: $[ dependencies.Setup_VM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
+      SerializedDTLDetails: $[ dependencies.SetupVM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
     condition: Always()
 
     steps:
     - checkout: self
       clean: true
-      fetchDepth: 10
+      fetchDepth: $(GitFetchDepth)
       lfs: false
       
     - task: AzurePowerShell@4
