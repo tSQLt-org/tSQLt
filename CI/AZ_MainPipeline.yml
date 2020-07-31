@@ -175,18 +175,18 @@ stages:
         GITHUB_EMAIL: $(GitHubEmail)
       inputs:
         targetType: 'inline'
-        failOnStderr: true
+        failOnStderr: false
+        ## git seems to print progress to stderror
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
           Get-Location;
           $BuildSourceVersion = (Get-Content -Path "$(Pipeline.Workspace)\tmp\CommitId.txt" -totalcount 1);
           $BranchName = "tSQLt" + $BuildSourceVersion
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
-          Write-Host ("BranchName: {0}" -f $BranchName) -ForegroundColor DarkGreen -BackgroundColor White; 
+          Write-Host ("BranchName: {0}" -f $BranchName); 
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
             git config --global user.name "$env:GITHUB_USERNAME"
-            git config --system core.longpaths true
             git status
             git remote show origin
 
