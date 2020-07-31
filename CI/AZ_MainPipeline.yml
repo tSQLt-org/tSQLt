@@ -231,7 +231,7 @@ stages:
   jobs:
 
   - job: SetupVM
-    condition: false;
+    condition: false
     steps:
     - checkout: self
       clean: true
