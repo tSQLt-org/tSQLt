@@ -331,7 +331,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $ArtifactTargetPath= '$(Build.SourcesDirectory)/Build_Artifact'
+          $ArtifactTargetPath= '$(Pipeline.Workspace)/Build_Artifact'
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
           write-host "1---------------------------------"
 
@@ -353,8 +353,8 @@ stages:
             throw "Git Failed. See prior errors.";
           } 
           write-host "5---------------------------------"
-          write-host 'dir -r "$(Build.SourcesDirectory)"';
-          dir -r "$(Build.SourcesDirectory)";
+          write-host 'dir -r "$(Pipeline.Workspace)"';
+          dir -r "$(Pipeline.Workspace)";
           write-host "6---------------------------------"
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
