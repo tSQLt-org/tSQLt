@@ -189,7 +189,7 @@ stages:
 
           Get-Location;
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
-          Write-Host ("ArtifactBranchName: {0}" -f $(ArtifactBranchName)); 
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
             git config --global user.name "$env:GITHUB_USERNAME"
