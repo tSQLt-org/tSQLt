@@ -311,6 +311,7 @@ stages:
       clean: true
       fetchDepth: $(GitFetchDepth)
       lfs: false
+      path: tSQLt
 
     - checkout: tSQLtArtifacts
       clean: true
@@ -347,6 +348,7 @@ stages:
           }catch{
             throw "Git Failed. See prior errors.";
           } 
+          dir -r $(Build.SourcesDirectory)/
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
 
