@@ -193,6 +193,9 @@ stages:
             git switch -c "$BranchName"
             $CheckIfGitOk.invoke($?);
 
+            git rm -r *.*
+            $CheckIfGitOk.invoke($?);
+
             Copy-Item -Path "$(Pipeline.Workspace)\tmp\*" -Verbose
 
             git add *.*
