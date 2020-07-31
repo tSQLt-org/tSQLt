@@ -8,7 +8,8 @@ pool:
 
 variables:
   - name: ArtifactBranchName
-    value: tSQLt$(Build.SourceVersion)
+    value: tSQLt283e3edd80aa118653db373736bd961f7a359895
+    ##tSQLt$(Build.SourceVersion)
   - name: GitFetchDepth
     value: 11
 
@@ -24,7 +25,7 @@ resources:
 stages:
     
 - stage: Build_tSQLt
-
+  condition: false
   jobs:
 
   - job: CompileCLR
@@ -223,7 +224,7 @@ stages:
 ###############################################################################
 
 - stage: Validate_tSQLt_2016
-  dependsOn: Build_tSQLt
+  ##dependsOn: Build_tSQLt
   variables:
     SQLVersionEdition: 2016
     NamePreFix: 'tSQLtCI_'
@@ -332,7 +333,7 @@ stages:
 
           Get-Location;
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
-          Write-Host ("ArtifactBranchName: {0}" -f $(ArtifactBranchName)); 
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
             git status
             git remote show origin
