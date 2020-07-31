@@ -224,7 +224,8 @@ stages:
 ###############################################################################
 
 - stage: Validate_tSQLt_2016
-  ##dependsOn: Build_tSQLt
+  condition: true
+##dependsOn: Build_tSQLt
   variables:
     SQLVersionEdition: 2016
     NamePreFix: 'tSQLtCI_'
@@ -299,7 +300,7 @@ stages:
 
   - job: RunTests
     condition: true
-    ##dependsOn: SetupVM
+  ##dependsOn: SetupVM
     variables:
       ##SerializedDTLDetails: $[ dependencies.SetupVM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
       ##ArtifactBranchName: $[ dependencies.SetupVM.outputs['PublishArtifactToRepo.ArtifactBranchName'] ]
