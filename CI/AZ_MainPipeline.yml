@@ -333,10 +333,14 @@ stages:
         script: |
           $ArtifactTargetPath= '$(Build.SourcesDirectory)/Build_Artifact'
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
+          write-host "1---------------------------------"
 
           Get-Location;
+          write-host "2---------------------------------"
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          write-host "3---------------------------------"
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          write-host "4---------------------------------"
           try{
             git status
             git remote show origin
@@ -348,11 +352,15 @@ stages:
           }catch{
             throw "Git Failed. See prior errors.";
           } 
+          write-host "5---------------------------------"
           dir -r $(Build.SourcesDirectory)/
+          write-host "6---------------------------------"
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
+          write-host "7---------------------------------"
 
           Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
+          write-host "8---------------------------------"
 
     - task: PowerShell@2
       name: GetVariablesInPlace
