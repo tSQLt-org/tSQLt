@@ -38,7 +38,7 @@ variables:
   - name: NamePreFix
     value: 'tSQLtCI_DevTestLab_'
   - name: ArtifactBranchName
-    value: tSQLt$(Branch.SourceVersion)
+    value: tSQLt$(Build.SourceVersion)
 
 resources:
   repositories:
