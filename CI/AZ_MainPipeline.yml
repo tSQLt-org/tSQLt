@@ -353,7 +353,8 @@ stages:
             throw "Git Failed. See prior errors.";
           } 
           write-host "5---------------------------------"
-          dir -r $(Build.SourcesDirectory)/
+          writehost 'dir -r "$(Build.SourcesDirectory)"';
+          dir -r "$(Build.SourcesDirectory)";
           write-host "6---------------------------------"
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
