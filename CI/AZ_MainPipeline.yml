@@ -300,7 +300,6 @@ stages:
     dependsOn: SetupVM
     variables:
       SerializedDTLDetails: $[ dependencies.SetupVM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
-      ArtifactBranchName: $[ dependencies.SetupVM.outputs['PublishArtifactToRepo.ArtifactBranchName'] ]
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
         
     steps:
