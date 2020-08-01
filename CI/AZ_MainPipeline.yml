@@ -354,7 +354,7 @@ stages:
           } 
           write-host "5---------------------------------"
           write-host 'dir -r "$(Pipeline.Workspace)"';
-          dir -r "$(Pipeline.Workspace)";
+          ls -laR "$(Pipeline.Workspace)";
           write-host "6---------------------------------"
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
