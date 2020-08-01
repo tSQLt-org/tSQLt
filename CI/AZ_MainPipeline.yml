@@ -345,7 +345,7 @@ stages:
             git status
             git remote show origin
 
-            git switch -c "$(ArtifactBranchName)"
+            git switch "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
             git status
@@ -354,7 +354,7 @@ stages:
           } 
           write-host "5---------------------------------"
           write-host 'dir -r "$(Pipeline.Workspace)"';
-          ls -l -a -R "$(Pipeline.Workspace)";
+          ls "$(Pipeline.Workspace)" -R;
           write-host "6---------------------------------"
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
