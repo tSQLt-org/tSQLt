@@ -1,4 +1,5 @@
 #tSQLt CI
+name: tSQLt_CI_$(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 
 trigger: none
 pr: none
@@ -222,6 +223,7 @@ stages:
 ###############################################################################
 
 - stage: Validate_tSQLt_2016
+  displayName: "Validate on $(SqlVersionEdition)"
   dependsOn: Build_tSQLt
   variables:
     SQLVersionEdition: 2016
@@ -405,11 +407,52 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
-#  - job: TagRepository
-#    dependsOn: RunTests
-#    condition: Always
-#
-#    steps:
+  - job: TagRepository
+    dependsOn: RunTests
+
+    steps:
+    - checkout: tSQLtArtifacts
+      clean: true
+      fetchDepth: $(GitFetchDepth)
+      lfs: false
+      persistCredentials: true
+      path: tSQLtArtifacts
+
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
+        SecretsFilter: '*'
+
+    - task: PowerShell@2
+      name: TagArtifact
+      inputs:
+        targetType: 'inline'
+        script: |
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};    
+          
+          $TagName = "$(SQLVersionEdition)$(Build.BuildId)"
+
+          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          try{
+            git status
+            git remote show origin
+
+            git switch "$(ArtifactBranchName)"
+            $CheckIfGitOk.invoke($?);
+
+            git tag $TagName;
+            $CheckIfGitOk.invoke($?);
+
+            git push --tags
+            $CheckIfGitOk.invoke($?);
+
+            git status
+          }catch{
+            throw "Git Failed. See prior errors.";
+          } 
 
 
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
