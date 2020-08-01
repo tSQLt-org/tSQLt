@@ -8,8 +8,7 @@ pool:
 
 variables:
   - name: ArtifactBranchName
-    value: tSQLt283e3edd80aa118653db373736bd961f7a359895
-    ##tSQLt$(Build.SourceVersion)
+    value: tSQLt$(Build.SourceVersion)
   - name: GitFetchDepth
     value: 11
 
