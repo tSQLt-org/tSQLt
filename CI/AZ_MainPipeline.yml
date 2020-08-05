@@ -382,7 +382,7 @@ stages:
     - task: Ant@1
       name: Run_tSQLt_validatebuild_xml
       inputs:
-        buildFile: 'Build/tSQLt.validatebuild.xml'
+        buildFile: 'tSQLt/Build/tSQLt.validatebuild.xml'
         options: '-Ddb.version="$(SQLVersion)" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"$(SQLCMDPath)\""'
         targets: 'all'
         publishJUnitResults: true
@@ -401,7 +401,7 @@ stages:
         script: |
           # Write your PowerShell commands here.
           
-          &"$(SQLCMDPath)\sqlcmd" -S "$(FQDNAndPort)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
+          &"$(SQLCMDPath)\sqlcmd" -S "$(FQDNAndPort)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Pipeline.Workspace)/tSQLt/Build/GetTestResults.sql" -o "$(Pipeline.Workspace)/tSQLt/Build/test20200420093015.txt"
     
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
