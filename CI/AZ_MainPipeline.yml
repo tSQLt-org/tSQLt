@@ -382,7 +382,7 @@ stages:
     - task: Ant@1
       name: Run_tSQLt_validatebuild_xml
       inputs:
-        buildFile: 'tSQLt/Build/tSQLt.validatebuild.xml'
+        buildFile: '../tSQLt/Build/tSQLt.validatebuild.xml'
         options: '-Ddb.version="$(SQLVersion)" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"$(SQLCMDPath)\""'
         targets: 'all'
         publishJUnitResults: true
