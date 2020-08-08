@@ -32,6 +32,7 @@ tSQLt.RemoveObject.ssp.sql
 tSQLt.RemoveObjectIfExists.ssp.sql
 tSQLt.Private_CleanTestResult.ssp.sql
 tSQLt.Private_Init.ssp.sql
+tSQLt.Private_ProcessTestAnnotations.ssp.sql
 Run_Methods.sql
 tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql

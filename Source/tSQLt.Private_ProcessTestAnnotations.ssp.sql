@@ -12,7 +12,7 @@ BEGIN
     SELECT 1 
       FROM sys.sql_modules AS SM 
      WHERE SM.object_id = @TestObjectId 
-       AND SM.definition LIKE '%--_@tSQLt:MyTestAnnotation_()%'
+       AND SM.definition LIKE '%--[[]@tSQLt:'
     )
   )
   BEGIN
