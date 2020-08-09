@@ -35,6 +35,7 @@ BEGIN
                             WHEN 'IF' THEN 'FUNCTION'
                             WHEN 'TF' THEN 'FUNCTION'
                             WHEN 'FN' THEN 'FUNCTION'
+                            WHEN 'FT' THEN 'FUNCTION'
                             WHEN 'V' THEN 'VIEW'
                    END +
                    ' ' + 

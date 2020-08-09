@@ -74,6 +74,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Annotations.cs" />
     <Compile Include="AssemblyCopyright.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
