@@ -8,15 +8,13 @@ CREATE PROCEDURE tSQLt.Private_ProcessTestAnnotations
 AS
 BEGIN
   SET @RunTest = 1;
-  IF(EXISTS(
-    SELECT 1 
-      FROM sys.sql_modules AS SM 
-     WHERE SM.object_id = @TestObjectId 
-       AND SM.definition LIKE '%--[[]@tSQLt:'
-    )
-  )
+  DECLARE @Cmd NVARCHAR(MAX);
+  SELECT @Cmd = Annotation FROM tSQLt.Private_ListTestAnnotations(@TestObjectId)
+  IF(@Cmd IS NOT NULL)
   BEGIN
-    EXEC sp_executesql N'SET @RunTest = tSQLt.[@tSQLt:MyTestAnnotation]();',N'@RunTest Bit OUTPUT',@RunTest OUT;
+    SET @Cmd = N'SET @RunTest = '+@Cmd+';'
+    PRINT @Cmd;
+    EXEC sp_executesql @Cmd,N'@RunTest BIT OUTPUT',@RunTest OUT;
   END;
 END;
 GO

@@ -151,11 +151,11 @@
           <AssociatedConnUserName />
           <FullPath>NewTestClassTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_ListTestAnnotationsTests.class.sql">
+        <FileNode Name="Private_GetAnnotationListTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>Private_ListTestAnnotationsTests.class.sql</FullPath>
+          <FullPath>Private_GetAnnotationListTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_NullCellTableTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

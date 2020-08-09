@@ -25,12 +25,13 @@ namespace tSQLtCLR
             int annotationNo = 0;
             var reader = new System.IO.StringReader(procedureText.Value);
             string line;
-            Regex rgx = new Regex(@"--\[@tSQLt:");
+            Regex rgx = new Regex(@"^\s*--\[@tSQLt:");
             while ((line = reader.ReadLine()) != null)
             {
                 if (rgx.IsMatch(line))
                 {
-                    annotations.Add(annotationNo, line.Substring(2));
+                    annotationNo++;
+                    annotations.Add(annotationNo, line.Trim().Substring(2));
                 }
             }
             return annotations;

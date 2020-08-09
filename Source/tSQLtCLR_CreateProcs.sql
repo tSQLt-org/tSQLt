@@ -45,8 +45,7 @@ AS
 EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].SuppressOutput;
 GO
 
-
-CREATE FUNCTION tSQLt.Private_ListTestAnnotations(@ProcedureDefinition NVARCHAR(MAX))
+CREATE FUNCTION tSQLt.Private_GetAnnotationList(@ProcedureDefinition NVARCHAR(MAX))
    RETURNS TABLE(AnnotationNo INT, Annotation NVARCHAR(MAX))
    AS EXTERNAL NAME tSQLtCLR.[tSQLtCLR.Annotations].GetAnnotationList;
 
