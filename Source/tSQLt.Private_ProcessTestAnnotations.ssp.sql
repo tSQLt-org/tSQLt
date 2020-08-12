@@ -2,6 +2,9 @@ IF OBJECT_ID('tSQLt.Private_ProcessTestAnnotations') IS NOT NULL DROP PROCEDURE 
 GO
 ---Build+
 GO
+--[@tSQLt:MyTestAnnotation] @SomeParameter=1
+--[@tSQLt:MinSQLServerVersion](2016)
+--[@tSQLt:SQLServerVersion] @MinVersion=2016, @MaxVersion=2019
 CREATE PROCEDURE tSQLt.Private_ProcessTestAnnotations
   @TestObjectId INT,
   @RunTest BIT OUTPUT

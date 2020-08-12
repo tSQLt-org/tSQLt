@@ -1,21 +1,9 @@
 <?xml version="1.0"?>
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Source">
   <Items>
-    <LogicalFolder Name="Connections" Type="2" Sorted="true">
+    <LogicalFolder Name="Connections" Type="2" Sorted="false">
       <Items>
-        <ConnectionNode Name="Dev_2005:WIN10A\meinse00">
-          <Created>2015-07-26T23:07:57.2567069-04:00</Created>
-          <Type>SQL</Type>
-          <Server>Dev_2005</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB>tempdb</InitialDB>
-          <LoginTimeout>15</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="Dev_tSQLt:WIN10A\meinse00">
+        <ConnectionNode Name="Dev_tSQLt:Windows\Authentication">
           <Created>2014-07-30T13:44:05.3611369-04:00</Created>
           <Type>SQL</Type>
           <Server>Dev_tSQLt</Server>
@@ -25,11 +13,11 @@
           <LoginTimeout>15</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+          <ApplicationName>tSQLt Project - Query</ApplicationName>
         </ConnectionNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Queries" Type="0" Sorted="true">
+    <LogicalFolder Name="Queries" Type="0" Sorted="false">
       <Items>
         <FileNode Name="ApplyConstraint_Methods.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
@@ -555,7 +543,7 @@
         </FileNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
+    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="false">
       <Items>
         <FileNode Name="BuildOrder.txt">
           <AssociatedConnectionMoniker />

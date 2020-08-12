@@ -193,20 +193,18 @@ CREATE...'
     FROM tSQLt.Private_GetAnnotationList(@proc);
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('[@tSQLt:MyAnnotation](''some string'',123,''string with ()'',''string with []'',''@'',''-'+'-[@tSQLt:MyAnnotation]'') --this is still invalidx');
+  VALUES('[@tSQLt:MyAnnotation](''some string'',123,''string with ()'',''string with []'',''@'',''-'+'-[@tSQLt:MyAnnotation]'') --this is still invalid');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE Private_GetAnnotationListTests.[test returns empty result if @ProcedureDefinition IS NULL]
+AS
+BEGIN
+  SELECT Annotation 
+    INTO #Actual
+    FROM tSQLt.Private_GetAnnotationList(NULL);
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+END;
+GO
 
--- returns everything up to the end of the line
--- 
--- allow for parameters in ()
--- can handle () or [] within parameter strings
--- brackets within annotation names are valid
--- spaces between ] and ( 
--- [InvalidAnnotation] invalid function name
--- [InvalidAnnotation] valid name that is not an annotation
--- [InvalidAnnotation] missing () at end
--- [InvalidAnnotation] missing ]
--- [InvalidAnnotation] mismatching parameter count
--- [InvalidAnnotation] additional characters (non-WS) after ")"
+
