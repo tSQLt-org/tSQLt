@@ -21,9 +21,10 @@ namespace tSQLtCLR
         [SqlFunction(DataAccess = DataAccessKind.None, IsDeterministic = true, IsPrecise = true, TableDefinition = "AnnotationNo INT, Annotation NVARCHAR(MAX)", FillRowMethodName = "ProcessRowForGetAnnotationList")]
         public static IEnumerable GetAnnotationList([SqlFacet(MaxSize = -1)] SqlString procedureText)
         {
-            Dictionary<int, SqlString> annotations = new Dictionary<int, SqlString> {};
+            Dictionary<int, SqlString> annotations = new Dictionary<int, SqlString> { };
+
             int annotationNo = 0;
-            var reader = new System.IO.StringReader(procedureText.Value);
+            var reader = new System.IO.StringReader(GetProcedureTextAsString(procedureText));
             string line;
             Regex rgx = new Regex(@"^\s*--\[@tSQLt:");
             while ((line = reader.ReadLine()) != null)
@@ -34,7 +35,13 @@ namespace tSQLtCLR
                     annotations.Add(annotationNo, line.Trim().Substring(2));
                 }
             }
+
             return annotations;
+        }
+
+        private static string GetProcedureTextAsString(SqlString procedureText)
+        {
+            return (procedureText.IsNull) ? "" : procedureText.Value;
         }
 
         private static void ProcessRowForGetAnnotationList(object row, out SqlInt32 AnnotationNo, out SqlString Annotation)

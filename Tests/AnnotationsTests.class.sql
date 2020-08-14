@@ -22,7 +22,7 @@ CREATE PROCEDURE MyInnerTests.[test will execute] AS EXEC tSQLt.Fail ''test exec
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test a test is skipped if annotation returns 0]
+CREATE PROCEDURE AnnotationsTests.[skip test a test is skipped if annotation returns 0]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'

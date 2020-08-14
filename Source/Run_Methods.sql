@@ -90,8 +90,8 @@ BEGIN
     
     TRUNCATE TABLE tSQLt.TestMessage;
 
-    EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId, @RunTest = @RunTest OUT;
-
+    EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
+    SET @RunTest = 1;
     IF(@RunTest = 1)
     BEGIN
       DECLARE @TmpMsg NVARCHAR(MAX);

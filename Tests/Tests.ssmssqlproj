@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Tests">
   <Items>
-    <LogicalFolder Name="Connections" Type="2" Sorted="false">
+    <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
         <ConnectionNode Name="Dev_tSQLt:WIN10A\meinse00">
           <Created>2014-11-24T18:15:21.0565881-05:00</Created>
@@ -17,7 +17,7 @@
         </ConnectionNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Queries" Type="0" Sorted="false">
+    <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="AnnotationsTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
@@ -157,29 +157,29 @@
           <AssociatedConnUserName />
           <FullPath>Private_GetAnnotationListTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_GetFullTypeNameTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Private_GetFullTypeNameTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_NullCellTableTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Private_NullCellTableTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_ProcessTestAnnotationsTests.ssp.sql">
+        <FileNode Name="Private_ProcessTestAnnotationsTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>Private_ProcessTestAnnotationsTests.ssp.sql</FullPath>
+          <FullPath>Private_ProcessTestAnnotationsTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_RenameObjectToUniqueNameTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Private_RenameObjectToUniqueNameTests.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Private_GetFullTypeNameTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Private_GetFullTypeNameTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_ResetNewTestClassListTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
@@ -235,29 +235,29 @@
           <AssociatedConnUserName />
           <FullPath>SetSummaryErrorTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="StubRecordTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>StubRecordTests.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="SpyProcedureTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SpyProcedureTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="StubRecordTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>StubRecordTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt_test.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt_test.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt_test_AssertResultSetsHaveSameMetaData.class.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt_test_ResultSetFilter.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
@@ -279,7 +279,7 @@
         </FileNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="false">
+    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
       <Items />
     </LogicalFolder>
   </Items>
