@@ -40,6 +40,7 @@ CREATE PROCEDURE tSQLt.Private_RunTest
    @SetUp NVARCHAR(MAX) = NULL
 AS
 BEGIN
+RAISERROR('-----------------------tSQLt.Private_RunTest------------------------------',0,1)WITH NOWAIT;
     DECLARE @Msg NVARCHAR(MAX); SET @Msg = '';
     DECLARE @Msg2 NVARCHAR(MAX); SET @Msg2 = '';
     DECLARE @Cmd NVARCHAR(MAX); SET @Cmd = '';
@@ -50,7 +51,6 @@ BEGIN
     DECLARE @TestResultId INT;
     DECLARE @PreExecTrancount INT;
     DECLARE @TestObjectId INT;
-    DECLARE @RunTest BIT;
 
     DECLARE @VerboseMsg NVARCHAR(MAX);
     DECLARE @Verbose BIT;
@@ -58,6 +58,7 @@ BEGIN
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
+    --CREATE TABLE #SkipTest(SkipTest INT DEFAULT 1 CHECK(SkipTest=1));
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -90,9 +91,9 @@ BEGIN
     
     TRUNCATE TABLE tSQLt.TestMessage;
 
+    SELECT 'GH',* FROM tempdb.sys.tables;
     EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
-    SET @RunTest = 1;
-    IF(@RunTest = 1)
+    IF(1=1)--NOT EXISTS(SELECT 1 FROM #SkipTest))
     BEGIN
       DECLARE @TmpMsg NVARCHAR(MAX);
       DECLARE @TestEndTime DATETIME; SET @TestEndTime = NULL;

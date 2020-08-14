@@ -32,14 +32,15 @@ BEGIN
 END
 GO
 CREATE PROCEDURE Private_ProcessTestAnnotationsTests.Create3DifferentTestAnnotations
+  @CommandToExecute NVARCHAR(MAX) = NULL
 AS
 BEGIN
     EXEC('CREATE PROC tSQLt.[@tSQLt:MyTestAnnotation1] AS RETURN 0;'); 
-    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.[@tSQLt:MyTestAnnotation1]';
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.[@tSQLt:MyTestAnnotation1]', @CommandToExecute = @CommandToExecute;
     EXEC('CREATE PROC tSQLt.[@tSQLt:MyTestAnnotation2] AS RETURN 0;'); 
-    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.[@tSQLt:MyTestAnnotation2]';
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.[@tSQLt:MyTestAnnotation2]', @CommandToExecute = @CommandToExecute;
     EXEC('CREATE PROC tSQLt.[@tSQLt:MyTestAnnotation3] AS RETURN 0;'); 
-    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.[@tSQLt:MyTestAnnotation3]';
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.[@tSQLt:MyTestAnnotation3]', @CommandToExecute = @CommandToExecute;
 END
 GO
 CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test calls annotation procedure]
@@ -99,14 +100,30 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test calls all annotation procedures in order]
+AS
+BEGIN
+  EXEC Private_ProcessTestAnnotationsTests.Create3DifferentTestAnnotations 'INSERT INTO #Actual VALUES(OBJECT_NAME(@@PROCID));';
+  EXEC tSQLt.FakeFunction 
+         @FunctionName = 'tSQLt.Private_ListTestAnnotations', 
+         @FakeFunctionName = 'Private_ProcessTestAnnotationsTests.[return 3 Test Annotations]';
+  
+  CREATE TABLE #Actual(CallOrder INT IDENTITY(1,1),Annotation NVARCHAR(MAX));
 
+  EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId = NULL;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'@tSQLt:MyTestAnnotation1'),(2,'@tSQLt:MyTestAnnotation2'),(3,'@tSQLt:MyTestAnnotation3');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
 
 
 -- allow for parameters in ()
 -- can handle () or [] within parameter strings
 -- brackets within annotation names are valid
 -- spaces between ] and ( 
--- [InvalidAnnotation] invalid function name
+-- [InvalidAnnotation] invalid procedure name
 -- [InvalidAnnotation] valid name that is not an annotation
 -- [InvalidAnnotation] missing () at end
 -- [InvalidAnnotation] missing ]

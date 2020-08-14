@@ -7,7 +7,13 @@ CREATE PROCEDURE tSQLt.Private_ProcessTestAnnotations
 AS
 BEGIN
   DECLARE @Cmd NVARCHAR(MAX);
-  SELECT @Cmd = Annotation FROM tSQLt.Private_ListTestAnnotations(@TestObjectId)
+  SELECT @Cmd = 
+  (
+    SELECT 'EXEC '+Annotation+';' 
+      FROM tSQLt.Private_ListTestAnnotations(@TestObjectId)
+     ORDER BY AnnotationNo
+       FOR XML PATH,TYPE
+  ).value('.','NVARCHAR(MAX)');
 
   IF(@Cmd IS NOT NULL)
   BEGIN
