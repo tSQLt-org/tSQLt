@@ -30,7 +30,7 @@ BEGIN
 --[@'+'tSQLt:MyTestAnnotation]
 CREATE PROCEDURE MyInnerTests.[test will not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotation] AS BEGIN return; END;');
+  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotation] AS BEGIN INSERT INTO #SkipTest DEFAULT VALUES; END;');
   BEGIN TRY 
     EXEC tSQLt.Run 'MyInnerTests';
   END TRY
@@ -45,7 +45,7 @@ CREATE PROCEDURE MyInnerTests.[test will not execute] AS EXEC tSQLt.Fail ''test 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[XXtest a test is skipped if another single annotation indicates not to run]
+CREATE PROCEDURE AnnotationsTests.[test a test is skipped if another single annotation indicates not to run]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -55,7 +55,7 @@ BEGIN
 */
 CREATE PROCEDURE MyInnerTests.[test will not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:ADifferentAnnotation] AS BEGIN RETURN 0; END;');
+  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:ADifferentAnnotation] AS BEGIN INSERT INTO #SkipTest DEFAULT VALUES; END;');
   BEGIN TRY 
     EXEC tSQLt.Run 'MyInnerTests';
   END TRY
@@ -70,7 +70,7 @@ CREATE PROCEDURE MyInnerTests.[test will not execute] AS EXEC tSQLt.Fail ''test 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[xxtest errors test with appropriate message if it encounters an invalid annotation  ]
+CREATE PROCEDURE AnnotationsTests.[test errors test with appropriate message if it encounters a nonexistent annotation]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -85,10 +85,15 @@ CREATE PROCEDURE MyInnerTests.[test will error] AS EXEC tSQLt.Fail ''test execut
   BEGIN CATCH
     -- intentionally empty
   END CATCH;
-  SELECT TestCase,Result,Msg INTO #Actual FROM tSQLt.TestResult;
+  SELECT TestCase,Result,
+  CASE WHEN Msg LIKE 'Could not find stored procedure ''tSQLt.@tSQLt:ANonexistentAnnotation''%' 
+    THEN 'Correct Message'
+    ELSE 'Wrong Message: '+Msg
+  END MsgOutcome
+  INTO #Actual FROM tSQLt.TestResult;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES('test will error','error','annotation');
+  INSERT INTO #Expected VALUES('test will error','error','Correct Messagex');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
