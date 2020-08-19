@@ -153,7 +153,7 @@ BEGIN
 --[@'+'tSQLt:AnErroringAnnotation]
 CREATE PROCEDURE MyInnerTests.[test will error] AS EXEC tSQLt.Fail ''test executed'';
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:AnErroringAnnotation] @P1 INT AS RAISERROR(''SpecificErrorMessage'',16,10);');
+  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:AnErroringAnnotation] AS RAISERROR(''SpecificErrorMessageInsideAnnotation'',16,10);');
 
   BEGIN TRY 
     EXEC tSQLt.Run 'MyInnerTests';
@@ -161,13 +161,89 @@ CREATE PROCEDURE MyInnerTests.[test will error] AS EXEC tSQLt.Fail ''test execut
   BEGIN CATCH
     -- intentionally empty
   END CATCH;
-  SELECT TestCase,Result,Msg
-  INTO #Actual FROM tSQLt.TestResult;
+  DECLARE @ActualMsg NVARCHAR(MAX);
+  SELECT @ActualMsg = Msg
+    FROM tSQLt.TestResult;
+
+  DECLARE @ExpectedMsgPattern NVARCHAR(MAX) = '%'+CHAR(13)+CHAR(10)+'%SpecificErrorMessageInsideAnnotation'
+  EXEC tSQLt.AssertLike @ExpectedPattern = @ExpectedMsgPattern, @Actual = @ActualMsg;
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test includes procedure, severity, and state]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:AnErroringAnnotation]
+CREATE PROCEDURE MyInnerTests.[test will error] AS EXEC tSQLt.Fail ''test executed'';
+  ');
+  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:AnErroringAnnotation] AS RAISERROR(''SpecificErrorMessageInsideAnnotation'',15,9);');
+
+  BEGIN TRY 
+    EXEC tSQLt.Run 'MyInnerTests';
+  END TRY
+  BEGIN CATCH
+    -- intentionally empty
+  END CATCH;
+  DECLARE @ActualMsg NVARCHAR(MAX);
+  SELECT @ActualMsg = Msg
+    FROM tSQLt.TestResult;
+
+  DECLARE @ExpectedMsgPattern NVARCHAR(MAX) = '%{15,9;[[]@'+'tSQLt:AnErroringAnnotation]}%'
+  EXEC tSQLt.AssertLike @ExpectedPattern = @ExpectedMsgPattern, @Actual = @ActualMsg;
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test can handle string as parameter]
+AS
+BEGIN
+  DECLARE @AnnotationName NVARCHAR(MAX) = '[@tSQLt:AStringParameterAnnotation]';
+  DECLARE @FullAnnotationName NVARCHAR(MAX) = 'tSQLt.'+@AnnotationName;
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--'+@AnnotationName+' @P1 = ''SomeRandomString''
+CREATE PROCEDURE MyInnerTests.[test nothing] AS RETURN;
+  ');
+  EXEC('CREATE PROCEDURE '+@FullAnnotationName+' @P1 NVARCHAR(MAX) AS RETURN;');
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = @FullAnnotationName;
+
+  EXEC tSQLt.Run 'MyInnerTests';
+ 
+  SELECT *
+    INTO #Actual FROM tSQLt.[@tSQLt:AStringParameterAnnotation_SpyProcedureLog];
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES('test will error','Error','There is a problem with this annotation: [@tSQLt:AnErroringAnnotation]'+CHAR(13)+CHAR(10)+'SpecificErrorMessage');
+  INSERT INTO #Expected VALUES(1,'SomeRandomString');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
+GO
+CREATE PROCEDURE AnnotationsTests.[XXXtest shoud we do something about injection?]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation]; RAISERROR(''Something Nefarious'',16,10)
+CREATE PROCEDURE MyInnerTests.[test will not execute] AS EXEC tSQLt.Fail ''test executed'';
+  ');
+  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotation] AS RETURN;');
+
+  BEGIN TRY 
+    EXEC tSQLt.Run 'MyInnerTests';
+  END TRY
+  BEGIN CATCH
+    -- intentionally empty
+  END CATCH;
+
+  DECLARE @ActualMsg NVARCHAR(MAX);
+  SELECT @ActualMsg = Msg
+    FROM tSQLt.TestResult;
+
+  DECLARE @ExpectedMsgPattern NVARCHAR(MAX) = '%Something Nefarious%'
+  EXEC tSQLt.AssertLike @ExpectedPattern = @ExpectedMsgPattern, @Actual = @ActualMsg;
+
+END;
+GO
+
 
 
 -- Future Tests Log:
@@ -178,7 +254,15 @@ END;
 -- different type of inner errors
 --- cast
 --- /0
---- includes severity adn state in error message
+--
+-- -------------------+
+--                    |
+--                    V
+--
+-- test summary to include skipped in sorting and in total
+-- test execution times to include annotations
+-- skipped tests to report duration
+
 
 ---------------------------------------------------------------------------
 GO

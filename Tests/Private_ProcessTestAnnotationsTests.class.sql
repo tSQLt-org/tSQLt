@@ -117,17 +117,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-
-
--- allow for parameters in ()
--- can handle () or [] within parameter strings
--- brackets within annotation names are valid
--- spaces between ] and ( 
--- [InvalidAnnotation] invalid procedure name
--- [InvalidAnnotation] valid name that is not an annotation
--- [InvalidAnnotation] missing () at end
 -- [InvalidAnnotation] missing ]
--- [InvalidAnnotation] mismatching parameter count
 -- [InvalidAnnotation] additional characters (non-WS) after ")"
 /*
  * --[@tSQLt:MyTestAnnotation] @SomeParameter=1
