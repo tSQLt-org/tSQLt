@@ -170,6 +170,8 @@ GO
 --- cast
 --- /0
 --
+-- does annotation that causes problem get identified correctly when there are multiple annotations
+--
 -- -------------------+
 --                    |
 --                    V
