@@ -263,6 +263,27 @@ BEGIN
     END
 END;
 GO
+CREATE PROCEDURE tSQLt_testutil.AssertTestSkipped
+  @TestName NVARCHAR(MAX),
+  @ExpectedMessage NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    DECLARE @Result NVARCHAR(MAX);
+    DECLARE @Msg NVARCHAR(MAX);
+    
+    EXEC tSQLt_testutil.CaptureTestResult @TestName, @Result OUTPUT, @Msg OUTPUT;
+    
+    IF(@Result <> 'Skipped')
+    BEGIN
+      EXEC tSQLt.Fail 'Expected test to be skipped. Instead it resulted in ',@Result,'. The Message is: "',@Msg,'"';
+    END
+    
+    IF(@ExpectedMessage IS NOT NULL)
+    BEGIN
+      EXEC tSQLt.AssertLike @ExpectedMessage,@Msg,'Incorrect Skip Message:';
+    END
+END;
+GO
 CREATE PROCEDURE tSQLt_testutil.PrepMultiRunLogTable
 AS
 BEGIN

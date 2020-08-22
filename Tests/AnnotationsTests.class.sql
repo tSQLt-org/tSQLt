@@ -5,10 +5,10 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:MyTestAnnotation]
+--[@'+'tSQLt:MyTestAnnotation]()
 CREATE PROCEDURE MyInnerTests.[test will execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotation] AS BEGIN RETURN; END;');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT NULL [AnnotationCmd];');
   BEGIN TRY 
     EXEC tSQLt.Run 'MyInnerTests';
   END TRY
@@ -25,25 +25,16 @@ GO
 CREATE PROCEDURE AnnotationsTests.[test a test is skipped if single annotation indicates not to run]
 AS
 BEGIN
-EXEC tSQLt.Fail 'should write testutil.assertskipped -- also see if there can be a reason message';
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:MyTestAnnotation]
-CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
+--[@'+'tSQLt:MyTestAnnotation]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotation] AS BEGIN INSERT INTO #SkipTest DEFAULT VALUES; END;');
-  BEGIN TRY 
-    EXEC tSQLt.Run 'MyInnerTests';
-  END TRY
-  BEGIN CATCH
-    -- intentionally empty
-  END CATCH;
-  SELECT TestCase,Result INTO #Actual FROM tSQLt.TestResult;
+  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotationProc] AS INSERT INTO #SkipTest DEFAULT VALUES;');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt.[@'+'tSQLt:MyTestAnnotationProc]'' [AnnotationCmd];');
 
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES('test should not execute','Skipped');
- 
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
+  EXEC tSQLt_testutil.AssertTestSkipped 
+       @TestName = 'MyInnerTests.[test should not execute]';
 END;
 GO
 CREATE PROCEDURE AnnotationsTests.[test a test is skipped if another single annotation indicates not to run]
@@ -52,77 +43,55 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
   /*
---[@'+'tSQLt:ADifferentAnnotation]
+--[@'+'tSQLt:ADifferentAnnotation]()
 */
-CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:ADifferentAnnotation] AS BEGIN INSERT INTO #SkipTest DEFAULT VALUES; END;');
-  BEGIN TRY 
-    EXEC tSQLt.Run 'MyInnerTests';
-  END TRY
-  BEGIN CATCH
-    -- intentionally empty
-  END CATCH;
-  SELECT TestCase,Result INTO #Actual FROM tSQLt.TestResult;
+  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotationProc] AS INSERT INTO #SkipTest DEFAULT VALUES;');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:ADifferentAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt.[@'+'tSQLt:MyTestAnnotationProc]'' [AnnotationCmd];');
 
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES('test should not execute','Skipped');
- 
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
+  EXEC tSQLt_testutil.AssertTestSkipped 
+       @TestName = 'MyInnerTests.[test should not execute]';
 END;
 GO
 CREATE PROCEDURE AnnotationsTests.[test errors test with appropriate message if it encounters a nonexistent annotation]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'This should be two tests (or tSQLt_testutil.AssertTestErrors should assert error status)';
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:ANonexistentAnnotation]
+--[@'+'tSQLt:ANonexistentAnnotation]()
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
 
-  BEGIN TRY 
-    EXEC tSQLt.Run 'MyInnerTests';
-  END TRY
-  BEGIN CATCH
-    -- intentionally empty
-  END CATCH;
-  SELECT TestCase,Result,
-  CASE WHEN Msg LIKE 'There is a problem with this annotation: [[]@tSQLt:ANonexistentAnnotation]%' 
-    THEN 'Correct Message'
-    ELSE 'Wrong Message: '+Msg
-  END MsgOutcome
-  INTO #Actual FROM tSQLt.TestResult;
-
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES('test will error','Error','Correct Message');
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
+  EXEC tSQLt_testutil.AssertTestErrors 
+       @TestName = 'MyInnerTests.[test should not execute]', 
+       @ExpectedMessage='There is a problem with this annotation: [[]@tSQLt:ANonexistentAnnotation]%';
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test errors test with appropriate message if a parameter is missing]
+CREATE PROCEDURE AnnotationsTests.[XXtest errors test with appropriate message if a parameter is missing]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:A1ParameterAnnotation]
+--[@'+'tSQLt:A1ParameterAnnotation]()
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:A1ParameterAnnotation] @P1 INT AS RETURN;');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:A1ParameterAnnotation]() RETURNS TABLE AS RETURN SELECT NULL [AnnotationCmd];');
 
   EXEC tSQLt_testutil.AssertTestErrors 
        @TestName = 'MyInnerTests.[test should not execute]', 
        @ExpectedMessage='%@tSQLt:A1ParameterAnnotation%';
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test errors test with appropriate message if a parameter is superfluous]
+CREATE PROCEDURE AnnotationsTests.[XXtest errors test with appropriate message if a parameter is superfluous]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:A1ParameterAnnotation] @P1 = 3, @P2 = 42;
+--[@'+'tSQLt:A1ParameterAnnotation](3,42);
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:A1ParameterAnnotation] @P1 INT AS RETURN;');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:A1ParameterAnnotation]() RETURNS TABLE AS RETURN SELECT NULL [AnnotationCmd];');
 
   EXEC tSQLt_testutil.AssertTestErrors 
        @TestName = 'MyInnerTests.[test should not execute]', 
@@ -130,15 +99,15 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''tes
 
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test concats actual error message to Msg in new line]
+CREATE PROCEDURE AnnotationsTests.[XXtest concats actual error message to Msg in new line]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:AnErroringAnnotation]
+--[@'+'tSQLt:AnErroringAnnotation]()
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:AnErroringAnnotation] AS RAISERROR(''SpecificErrorMessageInsideAnnotation'',16,10);');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnErroringAnnotation]() RETURNS TABLE AS RETURN SELECT CAST(CAST(''SpecificErrorMessageInsideAnnotation'' AS INT) AS NVARCHAR(MAX) [AnnotationCmd];');
 
   EXEC tSQLt_testutil.AssertTestErrors 
          @TestName = 'MyInnerTests.[test should not execute]', 
@@ -146,12 +115,12 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''tes
 
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test includes procedure, severity, and state]
+CREATE PROCEDURE AnnotationsTests.[XXtest includes procedure, severity, and state]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:AnErroringAnnotation]
+--[@'+'tSQLt:AnErroringAnnotation]()
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
   EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:AnErroringAnnotation] AS RAISERROR(''SpecificErrorMessageInsideAnnotation'',15,9);');
@@ -161,14 +130,14 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''tes
          @ExpectedMessage='%{15,9;[[]@tSQLt:AnErroringAnnotation]}%';
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test can handle string as parameter]
+CREATE PROCEDURE AnnotationsTests.[XXtest can handle string as parameter]
 AS
 BEGIN
   DECLARE @AnnotationName NVARCHAR(MAX) = '[@tSQLt:AStringParameterAnnotation]';
   DECLARE @FullAnnotationName NVARCHAR(MAX) = 'tSQLt.'+@AnnotationName;
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---'+@AnnotationName+' @P1 = ''SomeRandomString''
+--'+@AnnotationName+'(''SomeRandomString'')
 CREATE PROCEDURE MyInnerTests.[test nothing] AS RETURN;
   ');
   EXEC('CREATE PROCEDURE '+@FullAnnotationName+' @P1 NVARCHAR(MAX) AS RAISERROR(''[%s]'',16,10,@P1);');
@@ -176,12 +145,12 @@ CREATE PROCEDURE MyInnerTests.[test nothing] AS RETURN;
   EXEC tSQLt_testutil.AssertTestErrors @TestName = 'MyInnerTests.[test nothing]', @ExpectedMessage='%[[]SomeRandomString]%';
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test should we do something about injection?]
+CREATE PROCEDURE AnnotationsTests.[XXtest should we do something about injection?]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:MyTestAnnotation]; RAISERROR(''Something Nefarious'',16,10)
+--[@'+'tSQLt:MyTestAnnotation](); RAISERROR(''Something Nefarious'',16,10)
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''test executed'';
   ');
   EXEC('CREATE PROCEDURE tSQLt.[@'+'tSQLt:MyTestAnnotation] AS RETURN;');
@@ -208,6 +177,27 @@ GO
 -- test summary to include skipped in sorting and in total
 -- test execution times to include annotations
 -- skipped tests to report duration
+-- skipped tests can have reason message
+-- 
+/*
+SSPs
+  Benefits
+    more flexible
+
+  Malefits
+    allow for simple out-of-compliance code
+
+
+Functions
+  Benefits
+    hard to break out of compliance
+
+  Malefits
+    no named parameters
+    no optional parameters --> less flexible annotations
+    somewhat more complex code
+
+*/
 
 
 ---------------------------------------------------------------------------
