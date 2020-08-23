@@ -131,7 +131,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''tes
          @ExpectedMessage='%{15,9}%';
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[XXtest can handle string as parameter]
+CREATE PROCEDURE AnnotationsTests.[test can handle string as parameter]
 AS
 BEGIN
   DECLARE @AnnotationName NVARCHAR(MAX) = '[@tSQLt:AStringParameterAnnotation]';
@@ -146,12 +146,53 @@ CREATE PROCEDURE MyInnerTests.[test nothing] AS RETURN;
   EXEC tSQLt_testutil.AssertTestErrors @TestName = 'MyInnerTests.[test nothing]', @ExpectedMessage='%[[]SomeRandomString]%';
 END;
 GO
+CREATE PROCEDURE AnnotationsTests.[test AnnotationCommand is executed]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''RAISERROR(''''AnnotationCommand executed.'''',16,10);'' [AnnotationCmd];');
+
+  EXEC tSQLt_testutil.AssertTestErrors 
+         @TestName = 'MyInnerTests.[test should not execute]', 
+         @ExpectedMessage='%AnnotationCommand executed.%';
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test erroring AnnotationCommand produces helpful error message]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+  EXEC('CREATE PROCEDURE tSQLt.[@tSQLt:MyAnnotationHelper] AS RAISERROR(''AnnotationCommand executed.'',15,9);');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt.[@tSQLt:MyAnnotationHelper];'' [AnnotationCmd];');
+
+  DECLARE @ExpectedMessage NVARCHAR(MAX) = 
+    'There is a problem with this annotation: [[]@tSQLt:MyTestAnnotation]()'+CHAR(13)+CHAR(10)+
+    'Original Error: {15,9;[[]@tSQLt:MyAnnotationHelper]} AnnotationCommand executed.'
+
+  EXEC tSQLt_testutil.AssertTestErrors 
+         @TestName = 'MyInnerTests.[test should not execute]', 
+         @ExpectedMessage=@ExpectedMessage;
+END;
+GO
 
 
 
 -- Future Tests Log:
 ---------------------------------------------------------------------------
+--
 -- well-formed Annotation within multiline comment should still count
+-- test performance
+-- 
+-- -------------------+
+--                    | (process Annotations)
+--                    V
 --
 -- wrong data type parameter
 -- different type of inner errors
@@ -160,12 +201,16 @@ GO
 --- accessing objects or columns that aren't there
 --- syntax
 --
+-- -------------------+
+--                    | (process annotations)
+--                    V
+--
 -- does annotation that causes problem get identified correctly when there are multiple annotations
 -- error message when annotation is followed by other characters
--- .
---
+-- 
+-- 
 -- -------------------+
---                    |
+--                    | (Skipped Tests)
 --                    V
 --
 -- test summary to include skipped in sorting and in total
