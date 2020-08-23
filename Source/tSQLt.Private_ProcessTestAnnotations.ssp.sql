@@ -17,12 +17,11 @@ BEGIN
          ';END TRY BEGIN CATCH;'+
          'SELECT @EM=REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
                 '@ES=ERROR_SEVERITY(),'+
-                '@ET=ERROR_STATE(),'+
-                '@EP=QUOTENAME(ERROR_PROCEDURE());'+
-         'RAISERROR(''There is a problem with this annotation: %s'+CHAR(13)+CHAR(10)+
-                    'Original Error: {%i,%i;%s} %s'',16,10,'''+
+                '@ET=ERROR_STATE();'+
+         'RAISERROR(''There is an internal error for annotation: %s'+CHAR(13)+CHAR(10)+
+                    '  caused by {%i,%i} %s'',16,10,'''+
                     REPLACE(SUBSTRING(Annotation,7,LEN(Annotation)),'''','''''')+
-                    ''',@ES,@ET,@EP,@EM);'+
+                    ''',@ES,@ET,@EM);'+
          'END CATCH;' 
         FROM tSQLt.Private_ListTestAnnotations(@TestObjectId)
        ORDER BY AnnotationNo
@@ -34,7 +33,20 @@ BEGIN
   --PRINT '--------------------------------';
   --PRINT @Cmd
   --PRINT '--------------------------------';
+  BEGIN TRY
     EXEC(@Cmd);
+  END TRY
+  BEGIN CATCH
+    DECLARE @EM NVARCHAR(MAX),@ES INT,@ET INT,@EP NVARCHAR(MAX);
+    SELECT @EM=REPLACE(ERROR_MESSAGE(),'''',''''''),
+           @ES=ERROR_SEVERITY(),
+           @ET=ERROR_STATE();
+    DECLARE @NewErrorMessage NVARCHAR(MAX)=
+              'There is a problem with the annotations:'+CHAR(13)+CHAR(10)+
+              'Original Error: {%i,%i} %s'
+    RAISERROR(@NewErrorMessage,16,10,@ES,@ET,@EM);
+  END CATCH;
+  --PRINT '--------------------------------';
 
 
     SELECT @Cmd = 
