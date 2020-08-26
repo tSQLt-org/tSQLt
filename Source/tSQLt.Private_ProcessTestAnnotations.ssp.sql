@@ -19,7 +19,7 @@ BEGIN
                  ',A.AnnotationCmd FROM '+
          Annotation+' AS A;'+
          ';END TRY BEGIN CATCH;'+
-         'SELECT @EM=REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
+         'SELECT @EM=ERROR_MESSAGE(),'+--REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
                 '@ES=ERROR_SEVERITY(),'+
                 '@ET=ERROR_STATE();'+
          'RAISERROR(''There is an internal error for annotation: %s'+CHAR(13)+CHAR(10)+
@@ -60,7 +60,7 @@ BEGIN
          'BEGIN TRY;'+
          AnnotationCmd+
          ';END TRY BEGIN CATCH;'+
-         'SELECT @EM=REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
+         'SELECT @EM=ERROR_MESSAGE(),'+--REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
                 '@ES=ERROR_SEVERITY(),'+
                 '@ET=ERROR_STATE(),'+
                 '@EP=QUOTENAME(ERROR_PROCEDURE());'+

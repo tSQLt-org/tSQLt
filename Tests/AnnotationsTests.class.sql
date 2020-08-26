@@ -141,7 +141,7 @@ BEGIN
 --'+@AnnotationName+'(''SomeRandomString'')
 CREATE PROCEDURE MyInnerTests.[test nothing] AS RETURN;
   ');
-  EXEC('CREATE PROCEDURE '+@FullAnnotationName+' @P1 NVARCHAR(MAX) AS RAISERROR(''[%s]'',16,10,@P1);');
+  EXEC('CREATE FUNCTION '+@FullAnnotationName+' (@P1 NVARCHAR(MAX))RETURNS TABLE AS RETURN SELECT ''RAISERROR(''''[%s]'''',16,10,''''''+@P1+'''''');'' AnnotationCmd;');
 
   EXEC tSQLt_testutil.AssertTestErrors @TestName = 'MyInnerTests.[test nothing]', @ExpectedMessage='%[[]SomeRandomString]%';
 END;
@@ -181,6 +181,58 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
          @ExpectedMessage=@ExpectedMessage;
 END;
 GO
+CREATE PROCEDURE AnnotationsTests.[test Syntax Error produces helpful error message]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+  EXEC('CREATE PROCEDURE tSQLt.[@tSQLt:MyAnnotationHelper] AS EXEC(''Very Intentional Syntax_Error'');');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt.[@tSQLt:MyAnnotationHelper];'' [AnnotationCmd];');
+
+  DECLARE @ExpectedMessage NVARCHAR(MAX) = 
+    '%Incorrect syntax near ''Syntax_Error''.'
+
+  EXEC tSQLt_testutil.AssertTestErrors 
+         @TestName = 'MyInnerTests.[test should not execute]', 
+         @ExpectedMessage=@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test Syntax Error produces helpful error message 2]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+  EXEC('CREATE PROCEDURE tSQLt.[@tSQLt:MyAnnotationHelper] AS SELECT CAST(''A'' AS INT) X;');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt.[@tSQLt:MyAnnotationHelper];'' [AnnotationCmd];');
+
+  DECLARE @ExpectedMessage NVARCHAR(MAX) = 
+    '%Incorrect syntax near ''Syntax_Error''.'
+
+  BEGIN TRY
+    EXEC tSQLt.Run 'MyInnerTests.[test should not execute]';
+  END TRY
+  BEGIN CATCH
+    SELECT ERROR_MESSAGE(),ERROR_SEVERITY(),ERROR_STATE(),ERROR_PROCEDURE(),ERROR_LINE()
+  END CATCH;
+
+  SELECT * FROM tSQLt.TestResult AS TR
+
+  EXEC tSQLt.Fail 'needs more work';
+  --I think we need to review the entire handling of transactions in tSQLt.
+  -- - Why do we use safepoints?
+  -- - Can we get away without them? Using tablevariables and temptables where appropriate?
+
+  --EXEC tSQLt_testutil.AssertTestErrors 
+  --       @TestName = 'MyInnerTests.[test should not execute]', 
+  --       @ExpectedMessage=@ExpectedMessage;
+END;
+GO
 
 
 
@@ -199,7 +251,7 @@ GO
 --- cast  (& figure out if a batch-ending error can be caught better)
 --- /0
 --- accessing objects or columns that aren't there
---- syntax
+--- quotes in error messages on all levels
 --
 -- -------------------+
 --                    | (process annotations)
