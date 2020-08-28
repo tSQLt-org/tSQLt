@@ -1,17 +1,17 @@
-EXEC tSQLt.NewTestClass 'AnnotationSQLServerVersionTests';
+EXEC tSQLt.NewTestClass 'AnnotationSqlServerVersionTests';
 GO
-CREATE FUNCTION AnnotationSQLServerVersionTests.[42.17.1986.57]()
+CREATE FUNCTION AnnotationSqlServerVersionTests.[42.17.1986.57]()
 RETURNS TABLE
 AS
 RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition;
 GO
 
-CREATE PROCEDURE AnnotationSQLServerVersionTests.[test TODO]
+CREATE PROCEDURE AnnotationSqlServerVersionTests.[test TODO]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:MinSQLServerVersion](''13.0'')
+--[@'+'tSQLt:MinSqlServerVersion](''13.0'')
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
   
@@ -19,13 +19,13 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
 END;
 GO
 
--- we need the MinSQLServerVersion annotation
+-- we need the MinSqlServerVersion annotation
 -- we need a test that runs on all versions testing conclusively without using the logic it is testing.
 -- put version info into tSQLt.info
 -- write three tests 
 -- add readableSqlVersion to tSQLt.info and write tests for it
--- write two pass-through tests for tSQLt.Private_SQLVersion
--- is there a CLR library that can get us the readable SQL Version?
+-- write two pass-through tests for tSQLt.Private_SqlVersion
+-- is there a CLR library that can get us the readable Sql Version?
 -- require major.minor
 -- reject %.%.%
 

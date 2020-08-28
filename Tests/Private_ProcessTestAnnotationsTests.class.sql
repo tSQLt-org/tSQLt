@@ -125,6 +125,4 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-/*
- * --[@tSQLt:SQLServerVersion] @MinVersion=2016, @MaxVersion=2019
- */
+
