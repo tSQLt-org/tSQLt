@@ -77,3 +77,5 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 
+--TODO:
+-- include minimum supported version

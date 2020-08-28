@@ -57,7 +57,7 @@ BEGIN
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
-    CREATE TABLE #SkipTest(SkipTest INT DEFAULT 1 CHECK(SkipTest=1));
+    CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -111,7 +111,7 @@ BEGIN
         END;
         ELSE
         BEGIN
-          SET @Result = 'Skipped';
+          SELECT @Result = 'Skipped', @Msg = ST.SkipTestMessage FROM #SkipTest AS ST;
         END;
       END TRY
       BEGIN CATCH
