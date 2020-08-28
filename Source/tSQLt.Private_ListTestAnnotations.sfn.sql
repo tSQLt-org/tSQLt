@@ -10,7 +10,7 @@ AS
 RETURN
   SELECT 
       GAL.AnnotationNo,
-      REPLACE(GAL.Annotation,'''','''''') AS QuotedAnnotationString,
+      REPLACE(GAL.Annotation,'''','''''') AS EscapedAnnotationString,
       'tSQLt.'+GAL.Annotation AS Annotation
     FROM tSQLt.Private_GetAnnotationList(OBJECT_DEFINITION(@TestObjectId))AS GAL;
 GO

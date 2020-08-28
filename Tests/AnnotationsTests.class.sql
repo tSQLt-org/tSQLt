@@ -248,12 +248,28 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
   ');
   EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''RAISERROR(''''got''''''''here'''',16,10);'' [AnnotationCmd];');
 
-  DECLARE @ExpectedMessage NVARCHAR(MAX) = 
-    '%Invalid column name ''nonexistingcolumn''.'
+  EXEC tSQLt_testutil.AssertTestErrors 
+         @TestName = 'MyInnerTests.[test should not execute]', 
+         @ExpectedMessage='%got''here%';
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test identifies the annotation that causes the error]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation1]()
+--[@'+'tSQLt:MyTestAnnotation2]()
+--[@'+'tSQLt:MyTestAnnotation3]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation1]() RETURNS TABLE AS RETURN SELECT ''DECLARE @i1 INT;'' [AnnotationCmd];');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation2]() RETURNS TABLE AS RETURN SELECT ''DECLARE @i2 INT = 1/0;'' [AnnotationCmd];');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation3]() RETURNS TABLE AS RETURN SELECT ''DECLARE @i3 INT;'' [AnnotationCmd];');
 
   EXEC tSQLt_testutil.AssertTestErrors 
          @TestName = 'MyInnerTests.[test should not execute]', 
-         @ExpectedMessage=@ExpectedMessage;
+         @ExpectedMessage='%[[]@tSQLt:MyTestAnnotation2]()%';
 END;
 GO
 
@@ -262,7 +278,6 @@ GO
 -- Future Tests Log:
 ---------------------------------------------------------------------------
 --
--- well-formed Annotation within multiline comment should still count
 -- test performance
 -- 
 -- -------------------+
@@ -283,26 +298,6 @@ GO
 -- skipped tests to report duration
 -- skipped tests can have reason message
 -- 
-/*
-SSPs
-  Benefits
-    more flexible
-
-  Malefits
-    allow for simple out-of-compliance code
-
-
-Functions
-  Benefits
-    hard to break out of compliance
-
-  Malefits
-    no named parameters
-    no optional parameters --> less flexible annotations
-    somewhat more complex code
-
-*/
-
 
 ---------------------------------------------------------------------------
 GO

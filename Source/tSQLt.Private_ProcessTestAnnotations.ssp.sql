@@ -15,7 +15,7 @@ BEGIN
          'BEGIN TRY;INSERT INTO #AnnotationCommands '+
                 'SELECT '+
                  CAST(AnnotationNo AS NVARCHAR(MAX))+','+
-                 ''''+QuotedAnnotationString+''''+
+                 ''''+EscapedAnnotationString+''''+
                  ',A.AnnotationCmd FROM '+
          Annotation+' AS A;'+
          ';END TRY BEGIN CATCH;'+
@@ -24,7 +24,7 @@ BEGIN
                 '@ET=ERROR_STATE();'+
          'RAISERROR(''There is an internal error for annotation: %s'+CHAR(13)+CHAR(10)+
                     '  caused by {%i,%i} %s'',16,10,'''+
-                    QuotedAnnotationString+
+                    EscapedAnnotationString+
                     ''',@ES,@ET,@EM);'+
          'END CATCH;' 
         FROM tSQLt.Private_ListTestAnnotations(@TestObjectId)
