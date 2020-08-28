@@ -1,6 +1,6 @@
 EXEC tSQLt.NewTestClass 'Private_GetAnnotationListTests';
 GO
-CREATE PROCEDURE Private_GetAnnotationListTests.[test returns empty result if there's no annotaion]
+CREATE PROCEDURE Private_GetAnnotationListTests.[test returns empty result if there's no annotation]
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
@@ -16,14 +16,14 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test finds a simple annotation 
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'-'+'-[@tSQLt:MyAnnotation]
+'-'+'-[@tSQLt:MyAnnotation]()
 CREATE...'
   SELECT Annotation 
     INTO #Actual
     FROM tSQLt.Private_GetAnnotationList(@proc);
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('[@tSQLt:MyAnnotation]');
+  VALUES('[@tSQLt:MyAnnotation]()');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -31,7 +31,7 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test annotation is ignored if t
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'X-'+'-[@tSQLt:MyAnnotation]
+'X-'+'-[@tSQLt:MyAnnotation]()
 CREATE...'
   SELECT Annotation 
     INTO #Actual
@@ -45,7 +45,7 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test annotation is valid if the
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'  -'+'-[@tSQLt:MyAnnotation]
+'  -'+'-[@tSQLt:MyAnnotation]()
 CREATE...'
   SELECT Annotation 
     INTO #Actual
@@ -53,7 +53,7 @@ CREATE...'
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
 
   INSERT INTO #Expected
-  VALUES('[@tSQLt:MyAnnotation]');
+  VALUES('[@tSQLt:MyAnnotation]()');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -61,7 +61,7 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test annotation is valid if the
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-NCHAR(9)+'-'+'-[@tSQLt:MyAnnotation]
+NCHAR(9)+'-'+'-[@tSQLt:MyAnnotation]()
 CREATE...'
   SELECT Annotation 
     INTO #Actual
@@ -69,7 +69,7 @@ CREATE...'
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
 
   INSERT INTO #Expected
-  VALUES('[@tSQLt:MyAnnotation]');
+  VALUES('[@tSQLt:MyAnnotation]()');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -77,7 +77,7 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test removes trailing spaces]
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'-'+'-[@tSQLt:MyAnnotation]  '+'
+'-'+'-[@tSQLt:MyAnnotation]()  '+'
 CREATE...'
   SELECT '>>>'+Annotation+'<<<' AS BracketedAnnotation, LEN(Annotation) AnnotationLength 
     INTO #Actual
@@ -85,7 +85,7 @@ CREATE...'
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
 
   INSERT INTO #Expected
-  VALUES('>>>[@tSQLt:MyAnnotation]<<<',21);
+  VALUES('>>>[@tSQLt:MyAnnotation]()<<<',23);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -93,7 +93,7 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test removes trailing tabs]
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'-'+'-[@tSQLt:MyAnnotation]'+NCHAR(9)+'
+'-'+'-[@tSQLt:MyAnnotation]()'+NCHAR(9)+'
 CREATE...'
   SELECT '>>>'+Annotation+'<<<' AS BracketedAnnotation, LEN(Annotation) AnnotationLength  
     INTO #Actual
@@ -101,7 +101,7 @@ CREATE...'
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
 
   INSERT INTO #Expected
-  VALUES('>>>[@tSQLt:MyAnnotation]<<<',21);
+  VALUES('>>>[@tSQLt:MyAnnotation]()<<<',23);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -109,9 +109,9 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test returns all annotations]
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'-'+'-[@tSQLt:MyAnnotation1]
--'+'-[@tSQLt:MyAnnotation2]
--'+'-[@tSQLt:MyAnnotation3]
+'-'+'-[@tSQLt:MyAnnotation1]()
+-'+'-[@tSQLt:MyAnnotation2]()
+-'+'-[@tSQLt:MyAnnotation3]()
 CREATE...'
   SELECT Annotation
     INTO #Actual
@@ -120,9 +120,9 @@ CREATE...'
 
   INSERT INTO #Expected
   VALUES
-    ('[@tSQLt:MyAnnotation1]'),
-    ('[@tSQLt:MyAnnotation2]'),
-    ('[@tSQLt:MyAnnotation3]');
+    ('[@tSQLt:MyAnnotation1]()'),
+    ('[@tSQLt:MyAnnotation2]()'),
+    ('[@tSQLt:MyAnnotation3]()');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -130,9 +130,9 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test returns annotations with o
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'-'+'-[@tSQLt:MyAnnotation1]
--'+'-[@tSQLt:MyAnnotation3]
--'+'-[@tSQLt:MyAnnotation2]
+'-'+'-[@tSQLt:MyAnnotation1]()
+-'+'-[@tSQLt:MyAnnotation3]()
+-'+'-[@tSQLt:MyAnnotation2]()
 CREATE...'
   SELECT AnnotationNo,Annotation
     INTO #Actual
@@ -141,9 +141,9 @@ CREATE...'
 
   INSERT INTO #Expected
   VALUES
-    (1,'[@tSQLt:MyAnnotation1]'),
-    (2,'[@tSQLt:MyAnnotation3]'),
-    (3,'[@tSQLt:MyAnnotation2]');
+    (1,'[@tSQLt:MyAnnotation1]()'),
+    (2,'[@tSQLt:MyAnnotation3]()'),
+    (3,'[@tSQLt:MyAnnotation2]()');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -152,19 +152,21 @@ AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
 'CREATE PROCEDURE dbo.something
--'+'-[@tSQLt:MyAnnotation1]
+-'+'-[@tSQLt:MyAnnotation1]()
 AS
 BEGIN
 SELECT Something
--'+'-[@tSQLt:MyAnnotation2]
+/*
+-'+'-[@tSQLt:MyAnnotation2]()
+*/
 FROM dbo.sometable
--'+'-[@tSQLt:MyAnnotation3]
+-'+'-[@tSQLt:MyAnnotation3]()
 WHERE 0=1;
--'+'-[@tSQLt:MyAnnotation4]
+-'+'-[@tSQLt:MyAnnotation4]()
 RETURN 0;
--'+'-[@tSQLt:MyAnnotation5]
+-'+'-[@tSQLt:MyAnnotation5]()
 END;
--'+'-[@tSQLt:MyAnnotation6]';
+-'+'-[@tSQLt:MyAnnotation6]()';
 
   SELECT Annotation
     INTO #Actual
@@ -173,12 +175,12 @@ END;
 
   INSERT INTO #Expected
   VALUES
-    ('[@tSQLt:MyAnnotation1]'),
-    ('[@tSQLt:MyAnnotation2]'),
-    ('[@tSQLt:MyAnnotation3]'),
-    ('[@tSQLt:MyAnnotation4]'),
-    ('[@tSQLt:MyAnnotation5]'),
-    ('[@tSQLt:MyAnnotation6]');
+    ('[@tSQLt:MyAnnotation1]()'),
+    ('[@tSQLt:MyAnnotation2]()'),
+    ('[@tSQLt:MyAnnotation3]()'),
+    ('[@tSQLt:MyAnnotation4]()'),
+    ('[@tSQLt:MyAnnotation5]()'),
+    ('[@tSQLt:MyAnnotation6]()');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -186,14 +188,14 @@ CREATE PROCEDURE Private_GetAnnotationListTests.[test return full line with all 
 AS
 BEGIN
   DECLARE @proc NVARCHAR(MAX) =
-'-'+'-[@tSQLt:MyAnnotation] ''some string'',123,''string with ()'',''string with []'',''@'',''-'+'-[@tSQLt:MyAnnotation]'' --this is still invalid
+'-'+'-[@tSQLt:MyAnnotation]() ''some string'',123,''string with ()'',''string with []'',''@'',''-'+'-[@tSQLt:MyAnnotation]()'' --this is still invalid
 CREATE...'
   SELECT Annotation 
     INTO #Actual
     FROM tSQLt.Private_GetAnnotationList(@proc);
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('[@tSQLt:MyAnnotation] ''some string'',123,''string with ()'',''string with []'',''@'',''-'+'-[@tSQLt:MyAnnotation]'' --this is still invalid');
+  VALUES('[@tSQLt:MyAnnotation]() ''some string'',123,''string with ()'',''string with []'',''@'',''-'+'-[@tSQLt:MyAnnotation]()'' --this is still invalid');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO

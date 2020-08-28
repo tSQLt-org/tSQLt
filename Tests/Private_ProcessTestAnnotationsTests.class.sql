@@ -124,3 +124,10 @@ GO
  * --[@tSQLt:ATestAnnotationWithoutParameters]
  * --[@tSQLt:SQLServerVersion] @MinVersion=2016, @MaxVersion=2019
  */
+-- -------------------+
+--                    | (ProcessTestAnnotations)
+--                    V
+--
+-- does annotation that causes problem get identified correctly when there are multiple annotations
+-- error message when annotation is followed by other characters
+-- 

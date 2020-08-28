@@ -200,7 +200,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
          @ExpectedMessage=@ExpectedMessage;
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test Syntax Error produces helpful error message 2]
+CREATE PROCEDURE AnnotationsTests.[test 1/0 produces helpful error message]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -208,29 +208,52 @@ BEGIN
 --[@'+'tSQLt:MyTestAnnotation]()
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
-  EXEC('CREATE PROCEDURE tSQLt.[@tSQLt:MyAnnotationHelper] AS SELECT CAST(''A'' AS INT) X;');
+  EXEC('CREATE PROCEDURE tSQLt.[@tSQLt:MyAnnotationHelper] AS PRINT 1/0;');
   EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt.[@tSQLt:MyAnnotationHelper];'' [AnnotationCmd];');
 
   DECLARE @ExpectedMessage NVARCHAR(MAX) = 
-    '%Incorrect syntax near ''Syntax_Error''.'
+    '%Divide by zero error encountered.'
 
-  BEGIN TRY
-    EXEC tSQLt.Run 'MyInnerTests.[test should not execute]';
-  END TRY
-  BEGIN CATCH
-    SELECT ERROR_MESSAGE(),ERROR_SEVERITY(),ERROR_STATE(),ERROR_PROCEDURE(),ERROR_LINE()
-  END CATCH;
+  EXEC tSQLt_testutil.AssertTestErrors 
+         @TestName = 'MyInnerTests.[test should not execute]', 
+         @ExpectedMessage=@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test nonexistingcolumn produces helpful error message]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+  EXEC('CREATE PROCEDURE tSQLt.[@tSQLt:MyAnnotationHelper] AS EXEC(''SELECT nonexistingcolumn FROM (VALUES(NULL))A(A);'');');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt.[@tSQLt:MyAnnotationHelper];'' [AnnotationCmd];');
 
-  SELECT * FROM tSQLt.TestResult AS TR
+  DECLARE @ExpectedMessage NVARCHAR(MAX) = 
+    '%Invalid column name ''nonexistingcolumn''.'
 
-  EXEC tSQLt.Fail 'needs more work';
-  --I think we need to review the entire handling of transactions in tSQLt.
-  -- - Why do we use safepoints?
-  -- - Can we get away without them? Using tablevariables and temptables where appropriate?
+  EXEC tSQLt_testutil.AssertTestErrors 
+         @TestName = 'MyInnerTests.[test should not execute]', 
+         @ExpectedMessage=@ExpectedMessage;
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test can handle quotes in AnnotationCmd]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation]()
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation]() RETURNS TABLE AS RETURN SELECT ''RAISERROR(''''got''''''''here'''',16,10);'' [AnnotationCmd];');
 
-  --EXEC tSQLt_testutil.AssertTestErrors 
-  --       @TestName = 'MyInnerTests.[test should not execute]', 
-  --       @ExpectedMessage=@ExpectedMessage;
+  DECLARE @ExpectedMessage NVARCHAR(MAX) = 
+    '%Invalid column name ''nonexistingcolumn''.'
+
+  EXEC tSQLt_testutil.AssertTestErrors 
+         @TestName = 'MyInnerTests.[test should not execute]', 
+         @ExpectedMessage=@ExpectedMessage;
 END;
 GO
 
@@ -243,23 +266,13 @@ GO
 -- test performance
 -- 
 -- -------------------+
---                    | (process Annotations)
+--                    | (AnnotationTests)
 --                    V
 --
--- wrong data type parameter
--- different type of inner errors
---- cast  (& figure out if a batch-ending error can be caught better)
---- /0
---- accessing objects or columns that aren't there
---- quotes in error messages on all levels
+-- TODO (requires no-transaction tests)
+--- cast error (& figure out if a batch-ending error can be caught better)
+--- quotes in error messages caused by annotation function
 --
--- -------------------+
---                    | (process annotations)
---                    V
---
--- does annotation that causes problem get identified correctly when there are multiple annotations
--- error message when annotation is followed by other characters
--- 
 -- 
 -- -------------------+
 --                    | (Skipped Tests)
