@@ -81,6 +81,6 @@ tSQLt.AssertStringTable.udt.sql
 tSQLt.AssertStringIn.ssp.sql
 tSQLt.SetSummaryError.ssp.sql
 tSQLt.Reset.ssp.sql
-tSQLt.SkipTestAnnotationHelper.ssp.sql
+tSQLt.Private_SkipTestAnnotationHelper.ssp.sql
 tSQLt.(at)tSQLt_SkipTest.sfn.sql
 tSQLt._Footer.sql

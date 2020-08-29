@@ -35,7 +35,7 @@ GO
 CREATE FUNCTION InfoTests.[42.17.1986.57]()
 RETURNS TABLE
 AS
-RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition;
+RETURN SELECT N'42' Major, N'17' Minor, N'1986' Build, N'57' Revision, CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition;
 GO
 CREATE PROCEDURE InfoTests.[test returns SqlVersion and SqlBuild]
 AS
@@ -60,6 +60,7 @@ GO
 CREATE PROCEDURE InfoTests.[test returns SqlEdition]
 AS
 BEGIN
+EXEC tSQLt.Fail 'This is not testing the version-split logic. Either need separate test for that, or pull it out into different function.';
 
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'InfoTests.[42.17.1986.57]';
 

@@ -41,6 +41,34 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @ExpectedMessage = 'M''essag''e';
 END;
 GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test skips when @SkipReason = '']
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:SkipTest]('''')
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+
+  EXEC tSQLt_testutil.AssertTestSkipped 
+       @TestName = 'MyInnerTests.[test should not execute]',
+       @ExpectedMessage = 'x';
+END;
+GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test when @SkipReason IS NULL]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:SkipTest](NULL)
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+
+  EXEC tSQLt_testutil.AssertTestSkipped 
+       @TestName = 'MyInnerTests.[test should not execute]',
+       @ExpectedMessage = '<no reason provided>';
+END;
+GO
 --TODO:
 -- quotes in message
 -- SkipTestIf

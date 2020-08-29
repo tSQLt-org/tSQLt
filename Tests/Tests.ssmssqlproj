@@ -19,11 +19,17 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="AnnotationSQLServerVersionTests.sql">
+        <FileNode Name="AnnotationSkipTestTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>AnnotationSQLServerVersionTests.sql</FullPath>
+          <FullPath>AnnotationSkipTestTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="AnnotationSqlServerVersionTests.class.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AnnotationSqlServerVersionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationsTests.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
