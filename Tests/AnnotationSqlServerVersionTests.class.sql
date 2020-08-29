@@ -38,6 +38,39 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @TestName = 'MyInnerTests.[test should not execute]'
 END;
 GO
+CREATE PROCEDURE AnnotationSqlServerVersionTests.[test doesn't allow test to execute if actual version is way smaller]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MinSqlMajorVersion](93)
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationSqlServerVersionTests.[42.17.1986.57]';
+
+  
+  EXEC tSQLt_testutil.AssertTestSkipped
+       @TestName = 'MyInnerTests.[test should not execute]'
+END;
+GO
+CREATE PROCEDURE AnnotationSqlServerVersionTests.[test allows test to execute if actual version is equal]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MinSqlMajorVersion](42)
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationSqlServerVersionTests.[42.17.1986.57]';
+
+  
+  EXEC tSQLt_testutil.AssertTestErrors
+       @TestName = 'MyInnerTests.[test should not execute]',
+       @ExpectedMessage = 'test executed%';
+END;
+GO
 
 -- we need the MinSqlServerVersion annotation
 -- we need a test that runs on all versions testing conclusively without using the logic it is testing.

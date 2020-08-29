@@ -8,7 +8,7 @@ AS
 RETURN
   SELECT *
     FROM tSQLt.[@tSQLt:SkipTest]('')
-   WHERE @Version = 43;
+   WHERE @Version > (SELECT PSSV.Major FROM tSQLt.Private_SqlVersion() AS PSV CROSS APPLY tSQLt.Private_SplitSqlVersion(PSV.ProductVersion) AS PSSV)
 GO
 ---Build-
 GO

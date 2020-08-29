@@ -37,7 +37,8 @@ tSQLt.Private_ProcessTestAnnotations.ssp.sql
 Run_Methods.sql
 tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql
-tSQLt.private_SqlVersion.sfn.sql
+tSQLt.Private_SqlVersion.sfn.sql
+tSQLt.Private_SplitSqlVersion.sfn.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_SysIndexes.svw.sql
 tSQLt.Private_ScriptIndex.sfn.sql
@@ -83,4 +84,5 @@ tSQLt.SetSummaryError.ssp.sql
 tSQLt.Reset.ssp.sql
 tSQLt.Private_SkipTestAnnotationHelper.ssp.sql
 tSQLt.(at)tSQLt_SkipTest.sfn.sql
+tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql
 tSQLt._Footer.sql
