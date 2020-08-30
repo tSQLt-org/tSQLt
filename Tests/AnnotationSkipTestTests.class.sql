@@ -83,6 +83,49 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @ExpectedMessage = '<no reason provided>';
 END;
 GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test tSQLt.TestCaseSummary() includes single skipped test in count]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  INSERT tSQLt.TestResult(Result) VALUES('Skipped');
+  DECLARE @ActualMsg NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestCaseSummary());
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%, 1 skipped,%', @Actual = @ActualMsg;
+END;
+GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test tSQLt.TestCaseSummary() includes several skipped tests in count]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  INSERT tSQLt.TestResult(Result) VALUES('Skipped'),('Skipped'),('Skipped');
+  DECLARE @ActualMsg NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestCaseSummary());
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%, 3 skipped,%', @Actual = @ActualMsg;
+END;
+GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test tSQLt.TestCaseSummary() correctly reports 0 skipped tests in count]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  INSERT tSQLt.TestResult(Result) VALUES('Success'),('Error'),('Failure');
+  DECLARE @ActualMsg NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestCaseSummary());
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%, 0 skipped,%', @Actual = @ActualMsg;
+END;
+GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test tSQLt.TestCaseSummary() returns skipped count]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  INSERT tSQLt.TestResult(Result) VALUES('Success'),('Error'),('Failure');
+  INSERT tSQLt.TestResult(Result) VALUES('Skipped'),('Skipped'),('Skipped');
+  SELECT SkippedCnt, Cnt INTO #Actual FROM tSQLt.TestCaseSummary();
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(3,7);
+END;
+GO
 --TODO:
--- quotes in message
 -- SkipTestIf
+-- test list order
+-- build summary total (in build)
+-- other resultsetformatters
+-- duration
+-- does not throw error if skipped tests
+

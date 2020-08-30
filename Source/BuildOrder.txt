@@ -85,4 +85,5 @@ tSQLt.Reset.ssp.sql
 tSQLt.Private_SkipTestAnnotationHelper.ssp.sql
 tSQLt.(at)tSQLt_SkipTest.sfn.sql
 tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql
+tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql
 tSQLt._Footer.sql
