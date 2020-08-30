@@ -164,6 +164,7 @@ GO
 CREATE PROCEDURE AnnotationsTests.[test erroring AnnotationCommand produces helpful error message]
 AS
 BEGIN
+EXEC tSQLt.Fail 'split in two version dependent tests (ERROR_PROCEDURE Sucks in 2017)';
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:MyTestAnnotation]()
@@ -174,7 +175,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
 
   DECLARE @ExpectedMessage NVARCHAR(MAX) = 
     'There is a problem with this annotation: [[]@tSQLt:MyTestAnnotation]()'+CHAR(13)+CHAR(10)+
-    'Original Error: {15,9;[[]@tSQLt:MyAnnotationHelper]} AnnotationCommand executed.'
+    'Original Error: {15,9;@tSQLt:MyAnnotationHelper} AnnotationCommand executed.'
 
   EXEC tSQLt_testutil.AssertTestErrors 
          @TestName = 'MyInnerTests.[test should not execute]', 

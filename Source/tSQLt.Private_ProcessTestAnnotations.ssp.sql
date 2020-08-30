@@ -63,7 +63,7 @@ BEGIN
          'SELECT @EM=ERROR_MESSAGE(),'+--REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
                 '@ES=ERROR_SEVERITY(),'+
                 '@ET=ERROR_STATE(),'+
-                '@EP=QUOTENAME(ERROR_PROCEDURE());'+
+                '@EP=ERROR_PROCEDURE();'+
          'RAISERROR(''There is a problem with this annotation: %s'+CHAR(13)+CHAR(10)+
                     'Original Error: {%i,%i;%s} %s'',16,10,'''+
                     REPLACE(AnnotationString,'''','''''')+
