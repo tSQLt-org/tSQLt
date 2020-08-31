@@ -1416,38 +1416,6 @@ BEGIN
     END;
 END;
 GO
-CREATE PROC Run_Methods_Tests.[test DefaultResultFormatter outputs test execution duration]
-AS
-BEGIN
-  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
-  DECLARE @ttt_object_id INT;SET @ttt_object_id = OBJECT_ID('tSQLt.TableToText');
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.TableToText', @CommandToExecute = 'EXEC(''SELECT * INTO Run_Methods_Tests.Actual FROM ''+@TableName);';
-                                 
-  EXEC('                                                                                    
-  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
-  VALUES(''[a test class].[test 1]'',''success'',''2015-07-18T00:00:01.000'',''2015-07-18T00:10:10.555'');
-  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
-  VALUES(''[a test class].[test 2]'',''failure'',''2015-07-18T00:00:02.000'',''2015-07-18T00:22:03.444'');
-  ');
-
-  EXEC tSQLt.DefaultResultFormatter;
-
-  DROP PROCEDURE tSQLt.TableToText;
-  DECLARE @new_ttt_name NVARCHAR(MAX); SET @new_ttt_name = 'tSQLt.'+QUOTENAME(OBJECT_NAME(@ttt_object_id));
-  EXEC sys.sp_rename @new_ttt_name,'TableToText','OBJECT';
-
-  SELECT TOP(0) *
-  INTO Run_Methods_Tests.Expected
-  FROM Run_Methods_Tests.Actual;
-  
-  INSERT INTO Run_Methods_Tests.Expected
-  VALUES(1,'[a test class].[test 1]',' 609556','success');
-  INSERT INTO Run_Methods_Tests.Expected
-  VALUES(2,'[a test class].[test 2]','1321443','failure');
-
-  EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.Expected','Run_Methods_Tests.Actual';
-END;
-GO
 CREATE PROC Run_Methods_Tests.[test Privat_GetCursorForRunNew returns all test classes created after(!) tSQLt.Reset was called]
 AS
 BEGIN
@@ -1681,5 +1649,141 @@ BEGIN
   INSERT INTO #Expected (RunMethod, TestResultFormatter, TestName)VALUES('tSQLt.Private_Run', 'some special formatter', 'some test');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+--[@tSQLt:SkipTest]('anachronistic')
+CREATE PROC Run_Methods_Tests.[test DefaultResultFormatter orders tests correctly]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  DECLARE @ttt_object_id INT;SET @ttt_object_id = OBJECT_ID('tSQLt.TableToText');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.TableToText', @CommandToExecute = 'EXEC(''SELECT * INTO Run_Methods_Tests.Actual FROM ''+@TableName);';
+                                 
+  EXEC('                                                                                    
+  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 1]'',''success'',''2015-07-18T00:00:01.000'',''2015-07-18T00:10:10.555'');
+  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 2]'',''failure'',''2015-07-18T00:00:02.000'',''2015-07-18T00:22:03.444'');
+  ');
+
+  EXEC tSQLt.DefaultResultFormatter;
+
+  DROP PROCEDURE tSQLt.TableToText;
+  DECLARE @new_ttt_name NVARCHAR(MAX); SET @new_ttt_name = 'tSQLt.'+QUOTENAME(OBJECT_NAME(@ttt_object_id));
+  EXEC sys.sp_rename @new_ttt_name,'TableToText','OBJECT';
+
+  SELECT TOP(0) *
+  INTO Run_Methods_Tests.Expected
+  FROM Run_Methods_Tests.Actual;
+  
+  INSERT INTO Run_Methods_Tests.Expected
+  VALUES(1,'[a test class].[test 1]',' 609556','success');
+  INSERT INTO Run_Methods_Tests.Expected
+  VALUES(2,'[a test class].[test 2]','1321443','failure');
+
+  EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.Expected','Run_Methods_Tests.Actual';
+END;
+GO
+--[@tSQLt:SkipTest]('anachronistic')
+CREATE PROC Run_Methods_Tests.[test DefaultResultFormatter outputs test execution duration]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  DECLARE @ttt_object_id INT;SET @ttt_object_id = OBJECT_ID('tSQLt.TableToText');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.TableToText', @CommandToExecute = 'EXEC(''SELECT * INTO Run_Methods_Tests.Actual FROM ''+@TableName);';
+                                 
+  EXEC('                                                                                    
+  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 1]'',''success'',''2015-07-18T00:00:01.000'',''2015-07-18T00:10:10.555'');
+  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 2]'',''failure'',''2015-07-18T00:00:02.000'',''2015-07-18T00:22:03.444'');
+  ');
+
+  EXEC tSQLt.DefaultResultFormatter;
+
+  DROP PROCEDURE tSQLt.TableToText;
+  DECLARE @new_ttt_name NVARCHAR(MAX); SET @new_ttt_name = 'tSQLt.'+QUOTENAME(OBJECT_NAME(@ttt_object_id));
+  EXEC sys.sp_rename @new_ttt_name,'TableToText','OBJECT';
+
+  SELECT TOP(0) *
+  INTO Run_Methods_Tests.Expected
+  FROM tSQLt.TestResult AS TR--Run_Methods_Tests.Actual;
+  
+  INSERT INTO Run_Methods_Tests.Expected
+  VALUES('[a test class].[test 1]',' 609556','success');
+  INSERT INTO Run_Methods_Tests.Expected
+  VALUES('[a test class].[test 2]','1321443','failure');
+
+  EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.Expected','Run_Methods_Tests.Actual';
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test PrepareTestResultForOutput calculates test duration]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+                                 
+  EXEC('                                                                                    
+  INSERT INTO tSQLt.TestResult(Name,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 1]'',''2015-07-18T00:00:01.000'',''2015-07-18T00:10:10.555'');
+  INSERT INTO tSQLt.TestResult(Name,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 2]'',''2015-07-18T00:00:02.000'',''2015-07-18T00:22:03.444'');
+  ');
+
+  SELECT PTRFO.[Test Case Name],
+         PTRFO.[Dur(ms)]
+    INTO #Actual
+    FROM tSQLt.PrepareTestResultForOutput() AS PTRFO
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('[a test class].[test 1]',' 609556'),
+        ('[a test class].[test 2]','1321443');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test PrepareTestResultForOutput orders tests appropriately]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 7]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 9]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 5]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 6]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 8]'',''Skipped'');
+  ');
+
+  SELECT 
+      PTRFO.No,
+      PTRFO.[Test Case Name],
+      PTRFO.Result
+    INTO #Actual
+    FROM tSQLt.PrepareTestResultForOutput() AS PTRFO
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES(1,'[a test class].[test 1]','Success'),
+        (2,'[a test class].[test 3]','Success'),
+        (3,'[a test class].[test 7]','Success'),
+        (4,'[a test class].[test 5]','Skipped'),
+        (5,'[a test class].[test 8]','Skipped'),
+        (6,'[a test class].[test 4]','Failure'),
+        (7,'[a test class].[test 9]','Failure'),
+        (8,'[a test class].[test 2]','Error'),
+        (9,'[a test class].[test 6]','Error');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test DefaultResultFormatter is using PrepareTestResultForOutput]
+AS
+BEGIN
+ EXEC tSQLt.Fail 'todo';
 END;
 GO

@@ -20,6 +20,7 @@ IF OBJECT_ID('tSQLt.DefaultResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.De
 IF OBJECT_ID('tSQLt.XmlResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.XmlResultFormatter;
 IF OBJECT_ID('tSQLt.NullTestResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.NullTestResultFormatter;
 IF OBJECT_ID('tSQLt.RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.RunTestClass;
+IF OBJECT_ID('tSQLt.PrepareTestResultForOutput') IS NOT NULL DROP FUNCTION tSQLt.PrepareTestResultForOutput;
 GO
 ---Build+
 
@@ -504,6 +505,14 @@ BEGIN
 END;
 GO
 
+CREATE FUNCTION tSQLt.PrepareTestResultForOutput()
+RETURNS TABLE
+AS
+RETURN
+  SELECT ROW_NUMBER() OVER(ORDER BY Result DESC, Name ASC) No,Name [Test Case Name],
+         RIGHT(SPACE(7)+CAST(DATEDIFF(MILLISECOND,TestStartTime,TestEndTime) AS VARCHAR(7)),7) AS [Dur(ms)], Result
+    FROM tSQLt.TestResult;
+GO
 CREATE PROCEDURE tSQLt.DefaultResultFormatter
 AS
 BEGIN
@@ -516,10 +525,9 @@ BEGIN
     DECLARE @Severity INT;
     DECLARE @SummaryError INT;
     
-    SELECT ROW_NUMBER() OVER(ORDER BY Result ASC, Name ASC) No,Name [Test Case Name],
-           RIGHT(SPACE(7)+CAST(DATEDIFF(MILLISECOND,TestStartTime,TestEndTime) AS VARCHAR(7)),7) AS [Dur(ms)], Result
+    SELECT *
       INTO #TestResultOutput
-      FROM tSQLt.TestResult;
+      FROM tSQLt.PrepareTestResultForOutput() AS PTRFO;
     
     EXEC tSQLt.TableToText @TestList OUTPUT, '#TestResultOutput', 'No';
 

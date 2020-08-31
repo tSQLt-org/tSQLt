@@ -121,11 +121,16 @@ BEGIN
   INSERT INTO #Expected VALUES(3,7);
 END;
 GO
---TODO:
+CREATE PROCEDURE AnnotationSkipTestTests.[test TODO]
+AS
+BEGIN
+EXEC tSQLt.Fail 'TODO';
 -- SkipTestIf
 -- test list order
 -- build summary total (in build)
 -- other resultsetformatters
 -- duration
 -- does not throw error if skipped tests
+END;
+GO
 
