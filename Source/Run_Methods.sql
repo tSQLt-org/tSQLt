@@ -20,7 +20,7 @@ IF OBJECT_ID('tSQLt.DefaultResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.De
 IF OBJECT_ID('tSQLt.XmlResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.XmlResultFormatter;
 IF OBJECT_ID('tSQLt.NullTestResultFormatter') IS NOT NULL DROP PROCEDURE tSQLt.NullTestResultFormatter;
 IF OBJECT_ID('tSQLt.RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.RunTestClass;
-IF OBJECT_ID('tSQLt.PrepareTestResultForOutput') IS NOT NULL DROP FUNCTION tSQLt.PrepareTestResultForOutput;
+IF OBJECT_ID('tSQLt.Private_PrepareTestResultForOutput') IS NOT NULL DROP FUNCTION tSQLt.Private_PrepareTestResultForOutput;
 GO
 ---Build+
 
@@ -504,8 +504,7 @@ BEGIN
   EXEC tSQLt.Run @TestName = @TestName, @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 END;
 GO
-
-CREATE FUNCTION tSQLt.PrepareTestResultForOutput()
+CREATE FUNCTION tSQLt.Private_PrepareTestResultForOutput()
 RETURNS TABLE
 AS
 RETURN
@@ -527,7 +526,7 @@ BEGIN
     
     SELECT *
       INTO #TestResultOutput
-      FROM tSQLt.PrepareTestResultForOutput() AS PTRFO;
+      FROM tSQLt.Private_PrepareTestResultForOutput() AS PTRFO;
     
     EXEC tSQLt.TableToText @TestList OUTPUT, '#TestResultOutput', 'No';
 

@@ -126,10 +126,10 @@ AS
 BEGIN
 EXEC tSQLt.Fail 'TODO';
 -- SkipTestIf
--- test list order
+-- print test name and skip message (when skipping)
 -- build summary total (in build)
 -- other resultsetformatters
--- duration
+-- duration (?)
 -- does not throw error if skipped tests
 END;
 GO

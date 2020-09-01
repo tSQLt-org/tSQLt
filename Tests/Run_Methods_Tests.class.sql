@@ -1781,9 +1781,71 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE FUNCTION Run_Methods_Tests.[Returns 7,SomeSpecificName,42,Failure]()
+RETURNS TABLE
+AS
+RETURN
+  SELECT 7 No,'SomeSpecificName' [Test Case Name],42 [Dur(ms)], 'Failure' Result;
+GO
 CREATE PROC Run_Methods_Tests.[test DefaultResultFormatter is using PrepareTestResultForOutput]
 AS
 BEGIN
- EXEC tSQLt.Fail 'todo';
+ EXEC tSQLt.FakeFunction 
+   @FunctionName = 'tSQLt.Private_PrepareTestResultForOutput', 
+   @FakeFunctionName = 'Run_Methods_Tests.[Returns 7,SomeSpecificName,42,Failure]';
+
+ EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+
+ EXEC tSQLt.DefaultResultFormatter;
+  
+ IF NOT EXISTS(SELECT 1 FROM tSQLt.Private_Print_SpyProcedureLog WHERE Message LIKE '%7%SomeSpecificName%42%Failure%')
+ BEGIN
+   EXEC tSQLt.AssertEmptyTable -- roundabout way to get the table content printed
+     @TableName = 'tSQLt.Private_Print_SpyProcedureLog', 
+     @Message = 'Expected to find ''%7%SomeSpecificName%42%Failure%'' in output but didn''t. (Not actually expecting the table to be empty.)';
+   EXEC tSQLt.Fail 'tSQLt.Private_Print was not called';
+ END;
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test XMLResultFormatter]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+  --also check XSD:https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd (Is this "official"?)
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with multiple test elements some skipped]
+AS
+BEGIN
+    EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
+    DECLARE @XML XML;
+
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testA', 'XYZ', 'Skipped', 'testA intentionally skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testB', 'XYZ', 'Success', NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testC', 'XYZ', 'Skipped', 'testC intentionally skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testD', 'XYZ', 'Success', NULL);
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT TestCase.value('@name','NVARCHAR(MAX)') AS TestCase, TestCase.value('failure[1]/@message','NVARCHAR(MAX)') AS Msg
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
+    
+    
+    SELECT TestCase,Msg
+    INTO #expected
+    FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
 GO
