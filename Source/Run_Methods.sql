@@ -516,7 +516,7 @@ CREATE PROCEDURE tSQLt.DefaultResultFormatter
 AS
 BEGIN
     DECLARE @TestList NVARCHAR(MAX);
-    DECLARE @CountSummaryLine NVARCHAR(MAX);
+    DECLARE @Dashes NVARCHAR(MAX);
     DECLARE @CountSummaryMsg NVARCHAR(MAX);
     DECLARE @NewLine NVARCHAR(MAX);
     DECLARE @IsSuccess INT;
@@ -545,7 +545,7 @@ BEGIN
       SET @Severity = 0;
     END;
     
-    SELECT @CountSummaryLine = REPLICATE('-',LEN(@CountSummaryMsg)),
+    SELECT @Dashes = REPLICATE('-',LEN(@CountSummaryMsg)),
            @NewLine = CHAR(13)+CHAR(10);
     
     
@@ -555,9 +555,9 @@ BEGIN
     EXEC tSQLt.Private_Print '+----------------------+',0;
     EXEC tSQLt.Private_Print @NewLine,0;
     EXEC tSQLt.Private_Print @TestList,0;
-    EXEC tSQLt.Private_Print @CountSummaryLine,0;
+    EXEC tSQLt.Private_Print @Dashes,0;
     EXEC tSQLt.Private_Print @CountSummaryMsg, @Severity;
-    EXEC tSQLt.Private_Print @CountSummaryLine,0;
+    EXEC tSQLt.Private_Print @Dashes,0;
 END;
 GO
 
