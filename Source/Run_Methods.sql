@@ -577,6 +577,7 @@ BEGIN
                  NULL AS [testsuite!2!tests],
                  NULL AS [testsuite!2!errors],
                  NULL AS [testsuite!2!failures],
+                 NULL AS [testsuite!2!skipped],
                  NULL AS [testsuite!2!timestamp],
                  NULL AS [testsuite!2!time],
                  NULL AS [testsuite!2!hostname],
@@ -589,8 +590,10 @@ BEGIN
                  NULL AS [failure!5!type],
                  NULL AS [error!6!message],
                  NULL AS [error!6!type],
-                 NULL AS [system-out!7!hide],
-                 NULL AS [system-err!8!hide]
+                 NULL AS [skipped!7!message],
+                 NULL AS [skipped!7!type],
+                 NULL AS [system-out!8!hide],
+                 NULL AS [system-err!9!hide]
           UNION ALL
           SELECT 2 AS Tag, 
                  1 AS Parent,
@@ -600,10 +603,13 @@ BEGIN
                  COUNT(1),
                  SUM(CASE Result WHEN 'Error' THEN 1 ELSE 0 END),
                  SUM(CASE Result WHEN 'Failure' THEN 1 ELSE 0 END),
+                 SUM(CASE Result WHEN 'Skipped' THEN 1 ELSE 0 END),
                  CONVERT(VARCHAR(19),MIN(TestResult.TestStartTime),126),
                  CAST(CAST(DATEDIFF(MILLISECOND,MIN(TestResult.TestStartTime),MAX(TestResult.TestEndTime))/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
                  CAST(SERVERPROPERTY('ServerName') AS NVARCHAR(MAX)),
                  'tSQLt',
+                 NULL,
+                 NULL,
                  NULL,
                  NULL,
                  NULL,
@@ -630,7 +636,10 @@ BEGIN
                  NULL,
                  NULL,
                  NULL,
+                 NULL,
                  Class,
+                 NULL,
+                 NULL,
                  NULL,
                  NULL,
                  NULL,
@@ -655,9 +664,12 @@ BEGIN
                  NULL,
                  NULL,
                  NULL,
+                 NULL,
                  Class,
                  TestCase,
                  CAST(CAST(DATEDIFF(MILLISECOND,TestResult.TestStartTime,TestResult.TestEndTime)/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
+                 NULL,
+                 NULL,
                  NULL,
                  NULL,
                  NULL,
@@ -679,11 +691,14 @@ BEGIN
                  NULL,
                  NULL,
                  NULL,
+                 NULL,
                  Class,
                  TestCase,
                  CAST(CAST(DATEDIFF(MILLISECOND,TestResult.TestStartTime,TestResult.TestEndTime)/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
                  Msg,
                  'tSQLt.Fail',
+                 NULL,
+                 NULL,
                  NULL,
                  NULL,
                  NULL,
@@ -704,6 +719,7 @@ BEGIN
                  NULL,
                  NULL,
                  NULL,
+                 NULL,
                  Class,
                  TestCase,
                  CAST(CAST(DATEDIFF(MILLISECOND,TestResult.TestStartTime,TestResult.TestEndTime)/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
@@ -712,12 +728,14 @@ BEGIN
                  Msg,
                  'SQL Error',
                  NULL,
+                 NULL,
+                 NULL,
                  NULL
             FROM tSQLt.TestResult
            WHERE Result IN ( 'Error')
           UNION ALL
           SELECT 7 AS Tag,
-                 2 AS Parent,
+                 4 AS Parent,
                  'root',
                  NULL,
                  Class,
@@ -729,17 +747,20 @@ BEGIN
                  NULL,
                  NULL,
                  NULL,
+                 NULL,
                  Class,
+                 TestCase,
+                 CAST(CAST(DATEDIFF(MILLISECOND,TestResult.TestStartTime,TestResult.TestEndTime)/1000.0 AS NUMERIC(20,3))AS VARCHAR(MAX)),
                  NULL,
                  NULL,
                  NULL,
                  NULL,
-                 NULL,
+                 Msg,
                  NULL,
                  NULL,
                  NULL
             FROM tSQLt.TestResult
-           GROUP BY Class
+           WHERE Result IN ( 'Skipped')
           UNION ALL
           SELECT 8 AS Tag,
                  2 AS Parent,
@@ -754,7 +775,38 @@ BEGIN
                  NULL,
                  NULL,
                  NULL,
+                 NULL,
                  Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL
+            FROM tSQLt.TestResult
+           GROUP BY Class
+          UNION ALL
+          SELECT 9 AS Tag,
+                 2 AS Parent,
+                 'root',
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 NULL,
+                 Class,
+                 NULL,
+                 NULL,
                  NULL,
                  NULL,
                  NULL,
@@ -766,7 +818,7 @@ BEGIN
             FROM tSQLt.TestResult
            GROUP BY Class
         ) AS X
-       ORDER BY [testsuite!2!name],CASE WHEN Tag IN (7,8) THEN 1 ELSE 0 END, [testcase!4!name], Tag
+       ORDER BY [testsuite!2!name],CASE WHEN Tag IN (8,9) THEN 1 ELSE 0 END, [testcase!4!name], Tag
        FOR XML EXPLICIT
        );
 

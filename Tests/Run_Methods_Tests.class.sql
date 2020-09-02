@@ -1732,7 +1732,7 @@ BEGIN
   SELECT PTRFO.[Test Case Name],
          PTRFO.[Dur(ms)]
     INTO #Actual
-    FROM tSQLt.PrepareTestResultForOutput() AS PTRFO
+    FROM tSQLt.Private_PrepareTestResultForOutput() AS PTRFO
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
@@ -1764,7 +1764,7 @@ BEGIN
       PTRFO.[Test Case Name],
       PTRFO.Result
     INTO #Actual
-    FROM tSQLt.PrepareTestResultForOutput() AS PTRFO
+    FROM tSQLt.Private_PrepareTestResultForOutput() AS PTRFO
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
@@ -1807,13 +1807,6 @@ BEGIN
  END;
 END;
 GO
-CREATE PROC Run_Methods_Tests.[test XMLResultFormatter]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
-  --also check XSD:https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd (Is this "official"?)
-END;
-GO
 CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with multiple test elements some skipped]
 AS
 BEGIN
@@ -1837,7 +1830,7 @@ BEGIN
     
     SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
 
-    SELECT TestCase.value('@name','NVARCHAR(MAX)') AS TestCase, TestCase.value('failure[1]/@message','NVARCHAR(MAX)') AS Msg
+    SELECT TestCase.value('@name','NVARCHAR(MAX)') AS TestCase, TestCase.value('skipped[1]/@message','NVARCHAR(MAX)') AS Msg
     INTO #actual
     FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
     
@@ -1848,4 +1841,60 @@ BEGIN
     
     EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
+GO
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter sets correct counts for skipped tests]
+AS
+BEGIN
+    EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
+    DECLARE @XML XML;
+
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass1', 'testA', 'XYZ', 'Failure');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass1', 'testB', 'XYZ', 'Success');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass2', 'testC', 'XYZ', 'Skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass2', 'testD', 'XYZ', 'Error');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass2', 'testE', 'XYZ', 'Failure');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testF', 'XYZ', 'Skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testG', 'XYZ', 'Error');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testH', 'XYZ', 'Skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testI', 'XYZ', 'Skipped');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT 
+      TestCase.value('@name','NVARCHAR(MAX)') AS Class,
+      TestCase.value('@tests','NVARCHAR(MAX)') AS Tests,
+      TestCase.value('@skipped','NVARCHAR(MAX)') AS Skipped
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
+    
+--    SELECT * FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    
+    SELECT *
+    INTO #expected
+    FROM (
+      SELECT N'MyTestClass1' AS Class, 2 Tests, 0 Skipped
+      UNION ALL
+      SELECT N'MyTestClass2' AS Class, 3 Tests, 1 Skipped
+      UNION ALL
+      SELECT N'MyTestClass3' AS Class, 4 Tests, 3 Skipped
+    ) AS x;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+--also check XSD:https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd (Is this "official"?)
 GO

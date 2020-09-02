@@ -2,10 +2,11 @@ EXEC tSQLt.NewTestClass 'Run_Methods_Tests_2008';
 GO
 --Valid JUnit XML Schema
 --Source:https://raw.githubusercontent.com/windyroad/JUnit-Schema/master/JUnit.xsd
+--Source with commit-id: https://raw.githubusercontent.com/windyroad/JUnit-Schema/d6daa414c448da22b810c8562f9d6fca086983ba/JUnit.xsd
 DECLARE @cmd NVARCHAR(MAX);SET @cmd = 
 '<?xml version="1.0" encoding="UTF-8"?>
-
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<xs:schema
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	 elementFormDefault="qualified"
 	 attributeFormDefault="unqualified">
 	<xs:annotation>
@@ -76,10 +77,11 @@ Permission to waive conditions of this license may be requested from Windy Road 
 			<xs:element name="testcase" minOccurs="0" maxOccurs="unbounded">
 				<xs:complexType>
 					<xs:choice minOccurs="0">
-						<xs:element name="error">
-			<xs:annotation>
-				<xs:documentation xml:lang="en">Indicates that the test errored.  An errored test is one that had an unanticipated problem. e.g., an unchecked throwable; or a problem with the implementation of the test. Contains as a text node relevant data for the error, e.g., a stack trace</xs:documentation>
-			</xs:annotation>
+						<xs:element name="skipped" />
+						<xs:element name="error" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation xml:lang="en">Indicates that the test errored.  An errored test is one that had an unanticipated problem. e.g., an unchecked throwable; or a problem with the implementation of the test. Contains as a text node relevant data for the error, e.g., a stack trace</xs:documentation>
+							</xs:annotation>
 							<xs:complexType>
 								<xs:simpleContent>
 									<xs:extension base="pre-string">
@@ -98,9 +100,9 @@ Permission to waive conditions of this license may be requested from Windy Road 
 							</xs:complexType>
 						</xs:element>
 						<xs:element name="failure">
-			<xs:annotation>
-				<xs:documentation xml:lang="en">Indicates that the test failed. A failure is a test which the code has explicitly failed by using the mechanisms for that purpose. e.g., via an assertEquals. Contains as a text node relevant data for the failure, e.g., a stack trace</xs:documentation>
-			</xs:annotation>
+							<xs:annotation>
+								<xs:documentation xml:lang="en">Indicates that the test failed. A failure is a test which the code has explicitly failed by using the mechanisms for that purpose. e.g., via an assertEquals. Contains as a text node relevant data for the failure, e.g., a stack trace</xs:documentation>
+							</xs:annotation>
 							<xs:complexType>
 								<xs:simpleContent>
 									<xs:extension base="pre-string">
@@ -194,7 +196,12 @@ Permission to waive conditions of this license may be requested from Windy Road 
 		</xs:attribute>
 		<xs:attribute name="errors" type="xs:int" use="required">
 			<xs:annotation>
-				<xs:documentation xml:lang="en">The total number of tests in the suite that errorrd. An errored test is one that had an unanticipated problem. e.g., an unchecked throwable; or a problem with the implementation of the test.</xs:documentation>
+				<xs:documentation xml:lang="en">The total number of tests in the suite that errored. An errored test is one that had an unanticipated problem. e.g., an unchecked throwable; or a problem with the implementation of the test.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="skipped" type="xs:int" use="optional">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">The total number of ignored or skipped tests in the suite.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="time" type="xs:decimal" use="required">
@@ -220,14 +227,18 @@ BEGIN
     EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
 
     DELETE FROM tSQLt.TestResult;
-    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime)
-    VALUES ('MyTestClass1', 'testA', 'Failure', '2015-07-24T00:00:01.000', '2015-07-24T00:00:01.138');
-    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime)
-    VALUES ('MyTestClass1', 'testB', 'Success', '2015-07-24T00:00:02.000', '2015-07-24T00:00:02.633');
-    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime)
-    VALUES ('MyTestClass2', 'testC', 'Failure', '2015-07-24T00:00:01.111', '2015-07-24T20:31:24.758');
-    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime)
-    VALUES ('MyTestClass2', 'testD', 'Error', '2015-07-24T00:00:00.667', '2015-07-24T00:00:01.055');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass1', 'testA', 'Failure', '2015-07-24T00:00:01.000', '2015-07-24T00:00:01.138','failed intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass1', 'testB', 'Success', '2015-07-24T00:00:02.000', '2015-07-24T00:00:02.633',NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testC', 'Failure', '2015-07-24T00:00:01.111', '2015-07-24T20:31:24.758','failed intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testD', 'Error', '2015-07-24T00:00:00.667', '2015-07-24T00:00:01.055','errored intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testE', 'Skipped', '2015-07-24T00:00:01.111', '2015-07-24T20:31:24.758','skipped intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testF', 'Skipped', '2015-07-24T00:00:00.667', '2015-07-24T00:00:01.055','skipped intentionally');
     
     EXEC tSQLt.XmlResultFormatter;
 
