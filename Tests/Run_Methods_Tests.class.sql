@@ -1898,3 +1898,11 @@ BEGIN
 END;
 --also check XSD:https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd (Is this "official"?)
 GO
+CREATE PROCEDURE Run_Methods_Tests.[test TODO]
+AS
+BEGIN
+  -- unskip the skippers
+  -- try to pull the xsd into the test
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
