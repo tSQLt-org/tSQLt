@@ -1732,6 +1732,8 @@ BEGIN
 
  EXEC tSQLt.DefaultResultFormatter;
   
+EXEC tSQLt.Fail 'TODO: use tSQLt_testutil.AssertTableContainsString';
+
  IF NOT EXISTS(SELECT 1 FROM tSQLt.Private_Print_SpyProcedureLog WHERE Message LIKE '%7%SomeSpecificName%42%Failure%')
  BEGIN
    EXEC tSQLt.AssertEmptyTable -- roundabout way to get the table content printed
@@ -2099,39 +2101,102 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = NULL, @Actual = @Actual;
 END;
 GO
-CREATE PROCEDURE Run_Methods_Tests.[test the summary line is "printed" as error if there is one error result]
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is "printed" as error if there is one error result]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
+  EXEC tSQLt.DefaultResultFormatter;
+
 END
 GO
-CREATE PROCEDURE Run_Methods_Tests.[test the summary line is "printed" as error if there is one failure result]
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is "printed" as error if there is one failure result]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
+  EXEC tSQLt.DefaultResultFormatter;
+
 END
 GO
-CREATE PROCEDURE Run_Methods_Tests.[test the summary line is "printed" as error if there are multiple failure and error results]
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is "printed" as error if there are multiple failure and error results]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 5]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 6]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 7]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 8]'',''Success'');
+  ');
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
+  EXEC tSQLt.DefaultResultFormatter;
+
 END
 GO
-CREATE PROCEDURE Run_Methods_Tests.[test the summary line is not "printed" as error if there are only success results]
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is not "printed" as error if there are only success results]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+  ');
+
+  EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.DefaultResultFormatter;
+
 END
 GO
-CREATE PROCEDURE Run_Methods_Tests.[test the summary line is not "printed" as error if there are only skipped results]
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is not "printed" as error if there are only skipped results]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.DefaultResultFormatter;
+
 END
 GO
-CREATE PROCEDURE Run_Methods_Tests.[test the summary line is not "printed" as error if there are only success and skipped results]
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is not "printed" as error if there are only success and skipped results]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 5]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.DefaultResultFormatter;
+
 END
 GO

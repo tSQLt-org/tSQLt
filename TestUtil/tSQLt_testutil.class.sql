@@ -338,6 +338,20 @@ AS
 RETURN
 SELECT CAST(@R AS NVARCHAR(MAX))+'[P0l1cyRe7u1r3mnt$]' PW;
 GO
+CREATE PROCEDURE tSQLt_testutil.AssertTableContainsString
+  @Table NVARCHAR(MAX),
+  @Column NVARCHAR(MAX),
+  @Pattern NVARCHAR(MAX)
+AS
+BEGIN
+ --IF NOT EXISTS(SELECT 1 FROM @Table WHERE @Column LIKE @Pattern)
+ BEGIN
+   EXEC tSQLt.AssertEmptyTable -- roundabout way to get the table content printed
+     @TableName = 'tSQLt.Private_Print_SpyProcedureLog', 
+     @Message = 'Expected to find ''%7%SomeSpecificName%42%Failure%'' in output but didn''t. (Not actually expecting the table to be empty.)';
+   EXEC tSQLt.Fail 'tSQLt.Private_Print was not called';
+ END;
+END;
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

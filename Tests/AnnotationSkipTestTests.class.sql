@@ -13,7 +13,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @TestName = 'MyInnerTests.[test should not execute]';
 END;
 GO
-CREATE PROCEDURE AnnotationSkipTestTests.[test inserts message into tSQLt.TestResult]
+CREATE PROCEDURE AnnotationSkipTestTests.[test inserts @SkipReason message into tSQLt.TestResult]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -27,7 +27,27 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @ExpectedMessage = 'AnImportantMessage';
 END;
 GO
-CREATE PROCEDURE AnnotationSkipTestTests.[test can handle ' in message]
+CREATE PROCEDURE AnnotationSkipTestTests.[test prints skipped test name and @SkipReason message]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:SkipTest](''AnImportantMessage'')
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+  ');
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print', @CommandToExecute = NULL;
+
+  EXEC tSQLt.Run 'MyInnerTests.[test should not execute]';
+
+  SELECT * FROM tSQLt.Private_Print_SpyProcedureLog
+
+EXEC tSQLt.Fail 'TODO: use tSQLt_testutil.AssertTableContainsString';
+
+
+END;
+GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test can handle ' in @SkipReason]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
