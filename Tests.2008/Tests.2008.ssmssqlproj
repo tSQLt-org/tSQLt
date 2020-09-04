@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="Dev_tSQLt:MacWin7A\meinse00">
+        <ConnectionNode Name="Dev_tSQLt:WIN10A\meinse00">
           <Created>2014-11-24T18:17:50.1825875-05:00</Created>
           <Type>SQL</Type>
           <Server>Dev_tSQLt</Server>
@@ -66,12 +66,6 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Private_SqlVariantFormatterTests_2008.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Run_Methods_Tests_2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Run_Methods_Tests_2008.class.sql</FullPath>
         </FileNode>
         <FileNode Name="SpyProcedureTests_2008.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

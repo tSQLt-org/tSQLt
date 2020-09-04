@@ -121,18 +121,14 @@ BEGIN
   INSERT INTO #Expected VALUES(3,7);
 END;
 GO
+--[@tSQLt:TODO]()
 CREATE PROCEDURE AnnotationSkipTestTests.[test TODO]
 AS
 BEGIN
 EXEC tSQLt.Fail 'TODO';
--- SkipTestIf
 -- print test name and skip message (when skipping)
 -- build summary total (in build)
--- duration (?)
--- does not throw error if skipped tests  <-- start here
-     --[exec] |738|[SetSummaryErrorTests].[test doesn't suppress the error in the summary if not set]                                                                     |     26|Failure|
-     --[exec] |739|[SetSummaryErrorTests].[test doesn't suppress the error in the summary if set to 1]                                                                    |     20|Failure|
-
+-- duration
 END;
 GO
 

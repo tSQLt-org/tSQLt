@@ -113,6 +113,7 @@ BEGIN
         ELSE
         BEGIN
           SELECT @Result = 'Skipped', @Msg = ST.SkipTestMessage FROM #SkipTest AS ST;
+          -->PRINT
         END;
       END TRY
       BEGIN CATCH
