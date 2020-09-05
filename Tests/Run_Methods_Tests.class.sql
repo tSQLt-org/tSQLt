@@ -2112,6 +2112,8 @@ BEGIN
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
   ');
 
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
   EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
   EXEC tSQLt.DefaultResultFormatter;
 
@@ -2127,6 +2129,8 @@ BEGIN
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
   ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
 
   EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
   EXEC tSQLt.DefaultResultFormatter;
@@ -2148,6 +2152,8 @@ BEGIN
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 8]'',''Success'');
   ');
 
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
   EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
   EXEC tSQLt.DefaultResultFormatter;
 
@@ -2163,6 +2169,8 @@ BEGIN
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
   ');
 
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
   EXEC tSQLt.ExpectNoException;
   EXEC tSQLt.DefaultResultFormatter;
 
@@ -2177,6 +2185,8 @@ BEGIN
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Skipped'');
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Skipped'');
   ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
 
   EXEC tSQLt.ExpectNoException;
   EXEC tSQLt.DefaultResultFormatter;
@@ -2194,6 +2204,8 @@ BEGIN
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
     INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 5]'',''Skipped'');
   ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
 
   EXEC tSQLt.ExpectNoException;
   EXEC tSQLt.DefaultResultFormatter;
