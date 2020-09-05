@@ -340,9 +340,9 @@ AS
 BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
   EXEC tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
-  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Failure,Error,TestCaseSet)
+  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Skipped,Failure,Error,TestCaseSet)
   VALUES
-    (1,17,1,3,'row 1'),(2,4,7,5,'row 2');
+    (1,17,9,1,3,'row 1'),(2,4,6,7,5,'row 2');
 
   SELECT TOP(0)*
   INTO #Actual
@@ -374,8 +374,8 @@ CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws error if 
 AS
 BEGIN
   EXEC tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
-  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Failure,Error,TestCaseSet)
-  VALUES(42,0,0,0,'some run');
+  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Skipped,Failure,Error,TestCaseSet)
+  VALUES(42,0,0,0,0,'some run');
 
   SELECT TOP(0)*
   INTO #Actual
@@ -394,7 +394,10 @@ BEGIN
   EXEC tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
   INSERT INTO tSQLt.TestResult(Result)
-  VALUES('Success'),('Success'),('Success'),('Failure'),('Failure'),('Error');
+  VALUES('Success'),('Success'),('Success'),('Success'),
+        ('Skipped'),('Skipped'),('Skipped'),
+        ('Failure'),('Failure'),
+        ('Error');
 
   EXEC tSQLt.SuppressOutput @command = 'EXEC tSQLt_testutil.LogMultiRunResult @TestCaseSet=''MyTestingSet'';';
 
@@ -404,13 +407,14 @@ BEGIN
 
   SELECT TOP(0) 
       A.Success,
+      A.Skipped,
       A.Failure,
       A.Error,
       A.TestCaseSet 
     INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   
   INSERT INTO #Expected
-  VALUES(3,2,1,'MyTestingSet');
+  VALUES(4,3,2,1,'MyTestingSet');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;

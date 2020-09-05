@@ -125,4 +125,10 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test reports meaninfull error if annotation line has single quote]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
 

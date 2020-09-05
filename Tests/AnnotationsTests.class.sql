@@ -116,7 +116,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS EXEC tSQLt.Fail ''tes
 
 END;
 GO
-CREATE PROCEDURE AnnotationsTests.[test includes severity, and state]
+CREATE PROCEDURE AnnotationsTests.[test annotation error includes severity, and state]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -292,6 +292,88 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
   EXEC tSQLt_testutil.AssertTestErrors 
          @TestName = 'MyInnerTests.[test should not execute]', 
          @ExpectedMessage='%[[]@tSQLt:MyTestAnnotation2]()%';
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test TestStartTime is captured before annotations are processed]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'InnerTests';
+    EXEC(
+     '--[@'+'tSQLt:AnAnnotation]()
+      CREATE PROC InnerTests.[test Me] AS RETURN;'
+    );
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''WAITFOR DELAY ''''00:00:00.111'''';'' [AnnotationCmd];');
+
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Private_RunTest ''InnerTests.[test Me]'', ''tSQLt.NullTestResultFormatter'';';
+    EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
+
+    DECLARE @actual DATETIME;
+    DECLARE @after DATETIME;
+    DECLARE @before DATETIME;
+    
+    SET @before = GETDATE();  
+    
+    EXEC(@RunTestCmd);
+    
+    SET @after = GETDATE();  
+    
+    SELECT  @actual = TestStartTime
+    FROM tSQLt.TestResult AS TR   
+    
+    DECLARE @msg NVARCHAR(MAX);
+    IF(@actual < @before OR @actual > DATEADD(MILLISECOND,-100,@after) OR @actual IS NULL)
+    BEGIN
+      SET @msg = 
+        'Expected:'+
+        CONVERT(NVARCHAR(MAX),@before,121)+
+        ' <= '+
+        ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
+        ' <= '+
+        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-100,@after),121);
+        EXEC tSQLt.Fail @msg;
+    END;
+END;
+GO
+CREATE PROCEDURE AnnotationsTests.[test TestEndTime is captured after annotations are processed]
+AS
+BEGIN
+
+    EXEC tSQLt.NewTestClass 'InnerTests';
+    EXEC(
+     '--[@'+'tSQLt:AnAnnotation]()
+      CREATE PROC InnerTests.[test Me] AS RETURN;'
+    );
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''WAITFOR DELAY ''''00:00:00.111'''';'' [AnnotationCmd];');
+
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Private_RunTest ''InnerTests.[test Me]'', ''tSQLt.NullTestResultFormatter'';';
+    EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
+
+    DECLARE @actualEndTime DATETIME;
+    DECLARE @after DATETIME;
+    DECLARE @before DATETIME;
+    
+    SET @before = GETDATE();  
+    
+    EXEC(@RunTestCmd);
+    
+    SET @after = GETDATE();  
+    
+    SELECT  @actualEndTime = TestEndTime
+    FROM tSQLt.TestResult AS TR   
+    
+    DECLARE @msg NVARCHAR(MAX);
+    IF(@actualEndTime < DATEADD(MILLISECOND,100,@before) OR @actualEndTime > @after OR @actualEndTime IS NULL)
+    BEGIN
+      SET @msg = 
+        'Expected:'+
+        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,100,@before),121)+
+        ' <= '+
+        ISNULL(CONVERT(NVARCHAR(MAX),@actualEndTime,121),'!NULL!')+
+        ' <= '+
+        CONVERT(NVARCHAR(MAX),@after,121);
+        EXEC tSQLt.Fail @msg;
+    END;
 END;
 GO
 

@@ -292,6 +292,7 @@ BEGIN
   (
     id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
     Success INT,
+    Skipped INT,
     Failure INT,
     [Error] INT,
     TestCaseSet NVARCHAR(MAX)
@@ -304,13 +305,14 @@ AS
 BEGIN
   SELECT 
       SUM(CASE WHEN Result = 'Success' THEN 1 ELSE 0 END) Success,
+      SUM(CASE WHEN Result = 'Skipped' THEN 1 ELSE 0 END) Skipped,
       SUM(CASE WHEN Result = 'Failure' THEN 1 ELSE 0 END) Failure,
       SUM(CASE WHEN Result = 'Error' THEN 1 ELSE 0 END) [Error],
       @TestCaseSet TestCaseSet
     INTO #MRL
     FROM tSQLt.TestResult;
   SELECT * FROM #MRL AS M;
-  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Failure,Error,TestCaseSet)
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error,TestCaseSet)
   SELECT * FROM #MRL AS M;
 END;
 GO

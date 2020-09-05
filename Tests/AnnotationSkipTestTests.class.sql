@@ -27,26 +27,6 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @ExpectedMessage = 'AnImportantMessage';
 END;
 GO
-CREATE PROCEDURE AnnotationSkipTestTests.[test prints skipped test name and @SkipReason message]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'MyInnerTests'
-  EXEC('
---[@'+'tSQLt:SkipTest](''AnImportantMessage'')
-CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
-  ');
-
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
-
-  EXEC tSQLt.Run 'MyInnerTests.[test should not execute]';
-  
-  EXEC tSQLt_testutil.AssertTableContainsString 
-         @Table = 'tSQLt.Private_Print_SpyProcedureLog',
-         @Column = 'Message',
-         @Pattern = '%AnImportantMessage%';
-
-END;
-GO
 CREATE PROCEDURE AnnotationSkipTestTests.[test can handle ' in @SkipReason]
 AS
 BEGIN
@@ -141,14 +121,28 @@ BEGIN
   INSERT INTO #Expected VALUES(3,7);
 END;
 GO
---[@tSQLt:TODO]()
-CREATE PROCEDURE AnnotationSkipTestTests.[test TODO]
+CREATE PROCEDURE AnnotationSkipTestTests.[test TestEndTime IS NOT NULL if the test is skipped]
 AS
 BEGIN
-EXEC tSQLt.Fail 'TODO';
--- print test name and skip message (when skipping)
--- build summary total (in build)
--- duration
+    EXEC tSQLt.NewTestClass 'InnerTests';
+    EXEC(
+     '--[@'+'tSQLt:SkipTest]('''')
+      CREATE PROC InnerTests.[test Me] AS RAISERROR(''Test should not execute'',16,10);'
+    );
+
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Private_RunTest ''InnerTests.[test Me]'', ''tSQLt.NullTestResultFormatter'';';
+    
+    EXEC(@RunTestCmd);
+
+    DECLARE @ActualTestEndTime DATETIME2 = (SELECT TR.TestEndTime FROM tSQLt.TestResult AS TR WHERE TR.Name = '[InnerTests].[test Me]');
+
+    EXEC tSQLt.AssertNotEquals @Expected = NULL, @Actual = @ActualTestEndTime;
+END;
+GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test following annotations are processed(?) after skip]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
 END;
 GO
 
