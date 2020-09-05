@@ -36,14 +36,14 @@ BEGIN
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
 
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print', @CommandToExecute = NULL;
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
 
   EXEC tSQLt.Run 'MyInnerTests.[test should not execute]';
-
-  SELECT * FROM tSQLt.Private_Print_SpyProcedureLog
-
-EXEC tSQLt.Fail 'TODO: use tSQLt_testutil.AssertTableContainsString';
-
+  
+  EXEC tSQLt_testutil.AssertTableContainsString 
+         @Table = 'tSQLt.Private_Print_SpyProcedureLog',
+         @Column = 'Message',
+         @Pattern = '%AnImportantMessage%';
 
 END;
 GO

@@ -344,12 +344,17 @@ CREATE PROCEDURE tSQLt_testutil.AssertTableContainsString
   @Pattern NVARCHAR(MAX)
 AS
 BEGIN
- --IF NOT EXISTS(SELECT 1 FROM @Table WHERE @Column LIKE @Pattern)
+ CREATE TABLE #TheRowExists(Yes INT);
+ DECLARE @cmd NVARCHAR(MAX) =  N'INSERT INTO #TheRowExists SELECT 1 FROM '+@Table+' WHERE '+@Column+' LIKE @Pattern';
+ EXEC sp_executesql @cmd,N'@Pattern NVARCHAR(MAX)',@Pattern;
+
+ IF NOT EXISTS(SELECT 1 FROM #TheRowExists)
  BEGIN
+   DECLARE @Msg NVARCHAR(MAX) = 'Expected to find '+@Pattern+' in '+@Table+' but didn''t.';
    EXEC tSQLt.AssertEmptyTable -- roundabout way to get the table content printed
-     @TableName = 'tSQLt.Private_Print_SpyProcedureLog', 
-     @Message = 'Expected to find ''%7%SomeSpecificName%42%Failure%'' in output but didn''t. (Not actually expecting the table to be empty.)';
-   EXEC tSQLt.Fail 'tSQLt.Private_Print was not called';
+     @TableName = @Table, 
+     @Message = @Msg;
+   EXEC tSQLt.Fail 'Expected to find ',@Pattern,' in ',@Table,' but didn''t. Table was empty.';
  END;
 END;
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

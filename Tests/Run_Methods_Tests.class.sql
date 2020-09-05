@@ -1732,15 +1732,11 @@ BEGIN
 
  EXEC tSQLt.DefaultResultFormatter;
   
-EXEC tSQLt.Fail 'TODO: use tSQLt_testutil.AssertTableContainsString';
+ EXEC tSQLt_testutil.AssertTableContainsString 
+         @Table = 'tSQLt.Private_Print_SpyProcedureLog',
+         @Column = 'Message',
+         @Pattern = '%7%SomeSpecificName%42%Failure%';
 
- IF NOT EXISTS(SELECT 1 FROM tSQLt.Private_Print_SpyProcedureLog WHERE Message LIKE '%7%SomeSpecificName%42%Failure%')
- BEGIN
-   EXEC tSQLt.AssertEmptyTable -- roundabout way to get the table content printed
-     @TableName = 'tSQLt.Private_Print_SpyProcedureLog', 
-     @Message = 'Expected to find ''%7%SomeSpecificName%42%Failure%'' in output but didn''t. (Not actually expecting the table to be empty.)';
-   EXEC tSQLt.Fail 'tSQLt.Private_Print was not called';
- END;
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with multiple test elements some skipped]

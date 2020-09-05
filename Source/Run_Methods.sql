@@ -113,7 +113,9 @@ BEGIN
         ELSE
         BEGIN
           SELECT @Result = 'Skipped', @Msg = ST.SkipTestMessage FROM #SkipTest AS ST;
-          -->PRINT
+          RAISERROR('GOTHEREAA',0,1)WITH NOWAIT;
+          EXEC tSQLt.Private_Print @Message = 'AnImportantMessage';
+          RAISERROR('GOTHEREBB',0,1)WITH NOWAIT;
         END;
       END TRY
       BEGIN CATCH
