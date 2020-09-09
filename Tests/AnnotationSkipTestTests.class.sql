@@ -129,8 +129,7 @@ BEGIN
      '--[@'+'tSQLt:SkipTest]('''')
       CREATE PROC InnerTests.[test Me] AS RAISERROR(''Test should not execute'',16,10);'
     );
-
-    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Private_RunTest ''InnerTests.[test Me]'', ''tSQLt.NullTestResultFormatter'';';
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     
     EXEC(@RunTestCmd);
 
@@ -139,10 +138,21 @@ BEGIN
     EXEC tSQLt.AssertNotEquals @Expected = NULL, @Actual = @ActualTestEndTime;
 END;
 GO
-CREATE PROCEDURE AnnotationSkipTestTests.[test following annotations are processed(?) after skip]
+CREATE PROCEDURE AnnotationSkipTestTests.[test annotations listed after SkipTest are not processed]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+    EXEC tSQLt.NewTestClass 'InnerTests';
+    EXEC(
+     '--[@'+'tSQLt:SkipTest]('''')
+      --[@'+'tSQLt:AnAnnotation]()
+      CREATE PROC InnerTests.[test Me] AS RAISERROR(''test should not execute'',16,10);'
+    );
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''RAISERROR(''''this annotation should not execute'''',16,10);'' [AnnotationCmd];');
+
+    EXEC tSQLt.SetSummaryError @SummaryError=1;
+
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.DefaultResultFormatter'';';
+    EXEC(@RunTestCmd);
 END;
 GO
 

@@ -9,6 +9,7 @@ BEGIN
     EXEC ('CREATE PROC TestCaseA AS IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Class = ''TestClass'' AND TestCase = ''TestCaseDummy'')) RAISERROR(''NoTruncationError'',16,10);');
 
     EXEC tSQLt.Run TestCaseA;
+    EXEC tSQLt.Fail 'TODO: SummaryErrorProblem';
 
     IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE '%NoTruncationError%'))
     BEGIN

@@ -103,7 +103,6 @@ BEGIN
         BEGIN
           IF (@SetUp IS NOT NULL) EXEC @SetUp;
           EXEC (@Cmd);
-          SET @TestEndTime = GETDATE();
           IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
           BEGIN
             SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
@@ -112,10 +111,14 @@ BEGIN
         END;
         ELSE
         BEGIN
-          SELECT @Result = 'Skipped', @Msg = ST.SkipTestMessage FROM #SkipTest AS ST;
+          SELECT 
+              @Result = 'Skipped',
+              @Msg = ST.SkipTestMessage 
+            FROM #SkipTest AS ST;
           SET @TmpMsg = '-->'+@TestName+' skipped: '+@Msg;
           EXEC tSQLt.Private_Print @Message = @TmpMsg;
         END;
+        SET @TestEndTime = GETDATE();
       END TRY
       BEGIN CATCH
           SET @TestEndTime = ISNULL(@TestEndTime,GETDATE());

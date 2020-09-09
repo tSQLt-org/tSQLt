@@ -305,7 +305,7 @@ BEGIN
     );
     EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''WAITFOR DELAY ''''00:00:00.111'''';'' [AnnotationCmd];');
 
-    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Private_RunTest ''InnerTests.[test Me]'', ''tSQLt.NullTestResultFormatter'';';
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
 
     DECLARE @actual DATETIME;
@@ -346,7 +346,7 @@ BEGIN
     );
     EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''WAITFOR DELAY ''''00:00:00.111'''';'' [AnnotationCmd];');
 
-    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Private_RunTest ''InnerTests.[test Me]'', ''tSQLt.NullTestResultFormatter'';';
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
 
     DECLARE @actualEndTime DATETIME;
