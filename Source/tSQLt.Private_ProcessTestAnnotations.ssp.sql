@@ -7,28 +7,42 @@ CREATE PROCEDURE tSQLt.Private_ProcessTestAnnotations
 AS
 BEGIN
   DECLARE @Cmd NVARCHAR(MAX);
+  DECLARE @UnmatchedQuotesAnnotation NVARCHAR(MAX);
   CREATE TABLE #AnnotationCommands(AnnotationOrderNo INT, AnnotationString NVARCHAR(MAX), AnnotationCmd NVARCHAR(MAX));
+
+  SELECT * INTO #AnnotationList FROM tSQLt.Private_ListTestAnnotations(@TestObjectId);
+  SET @UnmatchedQuotesAnnotation = NULL;
+  SELECT TOP(1) @UnmatchedQuotesAnnotation = AL.Annotation 
+    FROM #AnnotationList AS AL 
+   WHERE (LEN(AL.Annotation ) - LEN(REPLACE(AL.Annotation, '''', '')))%2=1
+   ORDER BY AL.AnnotationNo;
+
+  IF(@UnmatchedQuotesAnnotation IS NOT NULL)
+  BEGIN
+    RAISERROR('Annotation has unmatched quote: %s',16,10,@UnmatchedQuotesAnnotation);
+  END;
+
   SELECT @Cmd = 
     'DECLARE @EM NVARCHAR(MAX),@ES INT,@ET INT,@EP NVARCHAR(MAX);'+
     (
       SELECT 
          'BEGIN TRY;INSERT INTO #AnnotationCommands '+
                 'SELECT '+
-                 CAST(AnnotationNo AS NVARCHAR(MAX))+','+
-                 ''''+EscapedAnnotationString+''''+
+                 CAST(AL.AnnotationNo AS NVARCHAR(MAX))+','+
+                 ''''+AL.EscapedAnnotationString+''''+
                  ',A.AnnotationCmd FROM '+
-         Annotation+' AS A;'+
+         AL.Annotation+' AS A;'+
          ';END TRY BEGIN CATCH;'+
          'SELECT @EM=ERROR_MESSAGE(),'+--REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
                 '@ES=ERROR_SEVERITY(),'+
                 '@ET=ERROR_STATE();'+
          'RAISERROR(''There is an internal error for annotation: %s'+CHAR(13)+CHAR(10)+
                     '  caused by {%i,%i} %s'',16,10,'''+
-                    EscapedAnnotationString+
+                    AL.EscapedAnnotationString+
                     ''',@ES,@ET,@EM);'+
          'END CATCH;' 
-        FROM tSQLt.Private_ListTestAnnotations(@TestObjectId)
-       ORDER BY AnnotationNo
+        FROM #AnnotationList AS AL
+       ORDER BY AL.AnnotationNo
          FOR XML PATH,TYPE
     ).value('.','NVARCHAR(MAX)');
 

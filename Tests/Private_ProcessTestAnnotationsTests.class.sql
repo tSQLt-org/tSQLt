@@ -12,6 +12,38 @@ AS
 RETURN
   SELECT 1 AnnotationNo,'tSQLt.[@tSQLt:AnotherTestAnnotation]()' EscapedAnnotationString,'tSQLt.[@tSQLt:AnotherTestAnnotation]()' Annotation;
 GO
+CREATE FUNCTION Private_ProcessTestAnnotationsTests.[return an annotation with a single quote anywhere on line](@TestObjectId INT)
+RETURNS TABLE
+AS
+RETURN
+  SELECT 1 AnnotationNo,'tSQLt.[@tSQLt:Annotaton](''''aa)' EscapedAnnotationString,'tSQLt.[@tSQLt:Annotation](''aa)' Annotation;
+GO
+CREATE FUNCTION Private_ProcessTestAnnotationsTests.[return an annotation with an even number of quotes anywhere on line](@TestObjectId INT)
+RETURNS TABLE
+AS
+RETURN
+  SELECT 1 AnnotationNo,'tSQLt.[@tSQLt:MyTestAnnotaton](''''aa'''')' EscapedAnnotationString,'tSQLt.[@tSQLt:MyTestAnnotation](''aa'')' Annotation;
+GO
+CREATE FUNCTION Private_ProcessTestAnnotationsTests.[return an annotation with an odd number of quotes anywhere on line](@TestObjectId INT)
+RETURNS TABLE
+AS
+RETURN
+  SELECT 1 AnnotationNo,'tSQLt.[@tSQLt:MyTestAnnotaton](''''aa'''',''''bb'''',''''cc)' EscapedAnnotationString,'tSQLt.[@tSQLt:MyTestAnnotation](''aa'',''bb'',''cc)' Annotation;
+GO
+CREATE FUNCTION Private_ProcessTestAnnotationsTests.[return several test Annotations with unmatched quotes](@TestObjectId INT)
+RETURNS TABLE
+AS
+RETURN
+  SELECT 1 AnnotationNo,'tSQLt.[@tSQLt:MyTestAnnotation1]()' EscapedAnnotationString,'tSQLt.[@tSQLt:MyTestAnnotation1](''aa'')' Annotation
+  UNION ALL 
+  SELECT 2 AnnotationNo,'tSQLt.[@tSQLt:MyTestAnnotation2]()' EscapedAnnotationString,'tSQLt.[@tSQLt:MyTestAnnotation2](''bb'',''cc)' Annotation
+  UNION ALL 
+  SELECT 3 AnnotationNo,'tSQLt.[@tSQLt:MyTestAnnotation3]()' EscapedAnnotationString,'tSQLt.[@tSQLt:MyTestAnnotation3](''dd'',''ee'')' Annotation
+  UNION ALL 
+  SELECT 4 AnnotationNo,'tSQLt.[@tSQLt:MyTestAnnotation4]()' EscapedAnnotationString,'tSQLt.[@tSQLt:MyTestAnnotation4](''ff'',''gg'',''hh)' Annotation
+  UNION ALL 
+  SELECT 5 AnnotationNo,'tSQLt.[@tSQLt:MyTestAnnotation5]()' EscapedAnnotationString,'tSQLt.[@tSQLt:MyTestAnnotation5](''ii'',''jj'',''kk'')' Annotation;
+GO
 CREATE FUNCTION Private_ProcessTestAnnotationsTests.[return 3 Test Annotations](@TestObjectId INT)
 RETURNS TABLE
 AS
@@ -125,10 +157,56 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test reports meaninfull error if annotation line has single quote]
+CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test reports meaningful error if annotation line has a lonely single quote]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.FakeFunction 
+         @FunctionName = 'tSQLt.Private_ListTestAnnotations', 
+         @FakeFunctionName = 'Private_ProcessTestAnnotationsTests.[return an annotation with a single quote anywhere on line]';
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Annotation has unmatched quote: tSQLt.[@tSQLt:Annotation](''aa)', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId = NULL;
 END;
 GO
+CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test reports no error if annotation line has matched quotes]
+AS
+BEGIN
+
+  EXEC('CREATE FUNCTION tSQLt.[@tSQLt:MyTestAnnotation](@param NVARCHAR(MAX)) RETURNS TABLE AS RETURN SELECT ''DECLARE @x XML;'' AS AnnotationCmd;');
+
+  EXEC tSQLt.FakeFunction 
+         @FunctionName = 'tSQLt.Private_ListTestAnnotations', 
+         @FakeFunctionName = 'Private_ProcessTestAnnotationsTests.[return an annotation with an even number of quotes anywhere on line]';
+  
+  EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId = NULL;
+END;
+GO
+CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test reports error if annotation line has an odd number of quotes]
+AS
+BEGIN
+
+  EXEC tSQLt.FakeFunction 
+         @FunctionName = 'tSQLt.Private_ListTestAnnotations', 
+         @FakeFunctionName = 'Private_ProcessTestAnnotationsTests.[return an annotation with an odd number of quotes anywhere on line]';
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Annotation has unmatched quote: tSQLt.[@tSQLt:MyTestAnnotation](''aa'',''bb'',''cc)', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId = NULL;
+END;
+GO
+CREATE PROCEDURE Private_ProcessTestAnnotationsTests.[test reports unmatched quote error for correct annotation]
+AS
+BEGIN
+
+  EXEC tSQLt.FakeFunction 
+         @FunctionName = 'tSQLt.Private_ListTestAnnotations', 
+         @FakeFunctionName = 'Private_ProcessTestAnnotationsTests.[return several test Annotations with unmatched quotes]';
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Annotation has unmatched quote: tSQLt.[@tSQLt:MyTestAnnotation2](''bb'',''cc)', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId = NULL;
+END;
+GO
+
+
+
 
