@@ -9,7 +9,6 @@ BEGIN
     EXEC ('CREATE PROC TestCaseA AS IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Class = ''TestClass'' AND TestCase = ''TestCaseDummy'')) RAISERROR(''NoTruncationError'',16,10);');
 
     EXEC tSQLt.Run TestCaseA;
-    EXEC tSQLt.Fail 'TODO: SummaryErrorProblem';
 
     IF(EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE '%NoTruncationError%'))
     BEGIN
@@ -39,7 +38,6 @@ GO
 CREATE PROC Run_Methods_Tests.test_Run_handles_test_names_with_spaces
 AS
 BEGIN
-    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
@@ -48,7 +46,7 @@ BEGIN
         EXEC tSQLt.Run 'MyTestClass.Test Case A';
     END TRY
     BEGIN CATCH
-        SET @ErrorRaised = 1;
+      --This space left intentionally blank
     END CATCH
     SELECT Class, TestCase, Msg 
       INTO Run_Methods_Tests.actual
@@ -223,13 +221,13 @@ BEGIN
     EXEC tSQLt.RunTestClass MyTestClass;
     
     SELECT Class, TestCase 
-      INTO actual
+      INTO #Actual
       FROM tSQLt.TestResult;
       
     SELECT 'MyTestClass' Class, 'Test Case A' TestCase
-      INTO expected;
+      INTO #Expected;
     
-    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
@@ -267,7 +265,7 @@ AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
   
-  EXEC tSQLt.Private_Run 'NoTestSchema.NoTest','SomeTestResultFormatter';
+  EXEC tSQLt.Private_Run  @TestName = 'NoTestSchema.NoTest', @TestResultFormatter = 'SomeTestResultFormatter';
   
   SELECT TestResultFormatter
     INTO #Actual
