@@ -72,7 +72,9 @@ BEGIN
     (
       SELECT 
          'BEGIN TRY;'+
+         'IF(NOT EXISTS(SELECT 1 FROM #SkipTest)) BEGIN '+
          AnnotationCmd+
+         ';END'+
          ';END TRY BEGIN CATCH;'+
          'SELECT @EM=ERROR_MESSAGE(),'+--REPLACE(ERROR_MESSAGE(),'''''''',''''''''''''),'+
                 '@ES=ERROR_SEVERITY(),'+

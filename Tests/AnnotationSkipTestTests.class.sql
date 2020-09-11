@@ -138,7 +138,7 @@ BEGIN
     EXEC tSQLt.AssertNotEquals @Expected = NULL, @Actual = @ActualTestEndTime;
 END;
 GO
-CREATE PROCEDURE AnnotationSkipTestTests.[test annotations listed after SkipTest are not processed]
+CREATE PROCEDURE AnnotationSkipTestTests.[test annotation listed after SkipTest are not processed]
 AS
 BEGIN
     EXEC tSQLt.NewTestClass 'InnerTests';
@@ -152,7 +152,43 @@ BEGIN
     EXEC tSQLt.SetSummaryError @SummaryError=1;
 
     DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.DefaultResultFormatter'';';
+
+    EXEC tSQLt.ExpectNoException;    
     EXEC(@RunTestCmd);
 END;
 GO
+CREATE PROCEDURE AnnotationSkipTestTests.[test annotations are only processed until SkipTest is encountered]
+AS
+BEGIN
+    EXEC tSQLt.NewTestClass 'InnerTests';
+    EXEC(
+     '
+      --[@'+'tSQLt:AnAnnotation](1)
+      --[@'+'tSQLt:AnAnnotation](2)
+      --[@'+'tSQLt:AnAnnotation](3)
+      --[@'+'tSQLt:SkipTest]('''')
+      --[@'+'tSQLt:AnAnnotation](4)
+      --[@'+'tSQLt:AnAnnotation](5)
+      --[@'+'tSQLt:AnAnnotation](6)
+      CREATE PROC InnerTests.[test Me] AS RAISERROR(''test should not execute'',16,10);'
+    );
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation](@id INT) RETURNS TABLE AS RETURN SELECT ''PRINT ''''AnnotationExecutedWith''+CAST(@id AS NVARCHAR(MAX))+'''''';'' [AnnotationCmd];');
 
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
+
+    EXEC tSQLt.CaptureOutput @RunTestCmd;
+    
+    DECLARE @ActualOutput NVARCHAR(MAX);
+    SELECT @ActualOutput = OutputText 
+      FROM tSQLt.CaptureOutputLog;
+    
+    IF(
+      NOT(@ActualOutput LIKE '%AnnotationExecutedWith1%AnnotationExecutedWith2%AnnotationExecutedWith3%')
+      OR @ActualOutput LIKE '%AnnotationExecutedWith4%'
+      OR @ActualOutput LIKE '%AnnotationExecutedWith5%'
+      OR @ActualOutput LIKE '%AnnotationExecutedWith6%'
+    )
+    BEGIN
+      EXEC tSQLt.Fail 'there was a problem with executing the correct annotations. Captured output:',@ActualOutput;
+    END;
+END;
