@@ -376,33 +376,28 @@ BEGIN
     END;
 END;
 GO
+CREATE PROCEDURE AnnotationsTests.[test Executes Annotations before test, no matter where they are located in test]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:MyTestAnnotation](1)
+CREATE PROCEDURE MyInnerTests.[test inner test] 
+--[@'+'tSQLt:MyTestAnnotation](2)
+AS 
+--[@'+'tSQLt:MyTestAnnotation](3)
+EXEC tSQLt.AssertEqualsTable ''#Expected'',''#Actual'';
+--[@'+'tSQLt:MyTestAnnotation](4)
+  ');
+  EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:MyTestAnnotation](@id INT) RETURNS TABLE AS RETURN SELECT ''INSERT INTO #Actual VALUES(''+CAST(@id AS NVARCHAR(MAX))+'');'' [AnnotationCmd];');
+ 
+  CREATE TABLE #Actual(id INT);
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1),(2),(3),(4);
 
+  EXEC tSQLt.SetSummaryError @SummaryError = 1;
+  EXEC tSQLt.ExpectNoException;  --<-- Assertion happens within [test inner test]
+  EXEC tSQLt.Run @TestName = 'MyInnerTests.[test inner test]', 
+                 @TestResultFormatter = 'tSQLt.DefaultResultFormatter';
+END;
 
-
--- Future Tests Log:
----------------------------------------------------------------------------
---
--- test performance
--- 
--- -------------------+
---                    | (AnnotationTests)
---                    V
---
--- TODO (requires no-transaction tests)
---- cast error (& figure out if a batch-ending error can be caught better)
---- quotes in error messages caused by annotation function
---
--- 
--- -------------------+
---                    | (Skipped Tests)
---                    V
---
--- test summary to include skipped in sorting and in total
--- test execution times to include annotations
--- skipped tests to report duration
--- skipped tests can have reason message
--- 
-
----------------------------------------------------------------------------
-GO
-IF(XACT_STATE()<>0)ROLLBACK

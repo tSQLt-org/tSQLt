@@ -55,7 +55,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @ExpectedMessage = '<no reason provided>';
 END;
 GO
-CREATE PROCEDURE AnnotationSkipTestTests.[test when @SkipReason IS NULL]
+CREATE PROCEDURE AnnotationSkipTestTests.[test skips when @SkipReason IS NULL]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -69,7 +69,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
        @ExpectedMessage = '<no reason provided>';
 END;
 GO
-CREATE PROCEDURE AnnotationSkipTestTests.[test when @SkipReason is given as DEFAULT]
+CREATE PROCEDURE AnnotationSkipTestTests.[test skips when @SkipReason is given as DEFAULT]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
