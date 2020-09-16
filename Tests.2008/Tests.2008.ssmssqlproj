@@ -43,18 +43,6 @@
           <AssociatedConnUserName />
           <FullPath>Private_GetFullTypeNameTests_2008.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_RemoveSchemaBindingTests_2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Private_RemoveSchemaBindingTests_2008.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Private_RemoveSchemBoundReferencesTests_2008.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Private_RemoveSchemBoundReferencesTests_2008.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="Private_ScriptIndexTests_2008.class.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>

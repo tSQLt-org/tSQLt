@@ -599,7 +599,7 @@ AS
 BEGIN
    CREATE TYPE SpyProcedureTests.ProcedureAndType AS TABLE(id INT);
    EXEC('CREATE PROC SpyProcedureTests.ProcedureAndType AS RETURN;');
-SELECT OBJECT_ID('SpyProcedureTests.ProcedureAndType'),TYPE_ID('SpyProcedureTests.ProcedureAndType');
+--SELECT OBJECT_ID('SpyProcedureTests.ProcedureAndType'),TYPE_ID('SpyProcedureTests.ProcedureAndType');
    EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.ProcedureAndType';
 
    EXEC ('EXEC SpyProcedureTests.ProcedureAndType');
@@ -614,5 +614,35 @@ SELECT OBJECT_ID('SpyProcedureTests.ProcedureAndType'),TYPE_ID('SpyProcedureTest
    VALUES(1);
 
    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE TYPE SpyProcedureTests.TableType1001 AS TABLE(SomeInt INT, SomeVarChar VARCHAR(10));
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure can have a table type parameter]
+AS
+BEGIN
+  EXEC('CREATE PROC SpyProcedureTests.InnerProcedure @P1 SpyProcedureTests.TableType1001 READONLY AS EXEC tSQLt.Fail ''InnerProcedure was executed;''');
+
+  EXEC tSQLt.SpyProcedure 'SpyProcedureTests.InnerProcedure';
+
+  DECLARE @TableParameter SpyProcedureTests.TableType1001;
+  INSERT INTO @TableParameter(SomeInt,SomeVarChar)VALUES(10,'S1');
+  INSERT INTO @TableParameter(SomeInt,SomeVarChar)VALUES(202,'V2');
+  INSERT INTO @TableParameter(SomeInt,SomeVarChar)VALUES(3303,'C3');
+
+  DECLARE @InnerProcedure VARCHAR(MAX);SET @InnerProcedure = 'SpyProcedureTests.InnerProcedure'
+  EXEC @InnerProcedure @P1 = @TableParameter; 
+
+  SELECT RowNode.value('SomeInt[1]','INT') SomeInt,RowNode.value('SomeVarChar[1]','VARCHAR(10)') SomeVarChar
+    INTO #Actual
+    FROM SpyProcedureTests.InnerProcedure_SpyProcedureLog
+   CROSS APPLY P1.nodes('P1/row') AS N(RowNode);  
+  
+  SELECT *
+  INTO #Expected
+  FROM @TableParameter AS TP;
+ 
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
 END;
 GO

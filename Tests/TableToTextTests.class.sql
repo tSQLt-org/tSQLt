@@ -13,10 +13,10 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-EXEC tSQLt.NewTestClass 'tSQLtPrivate_test';
+EXEC tSQLt.NewTestClass 'TableToTextTests';
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText throws exception if table does not exist]
+CREATE PROCEDURE TableToTextTests.[test TableToText throws exception if table does not exist]
 AS
 BEGIN
 
@@ -37,7 +37,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText throws exception if tablename is NULL]
+CREATE PROCEDURE TableToTextTests.[test TableToText throws exception if tablename is NULL]
 AS
 BEGIN
 
@@ -58,7 +58,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one column #table]
 AS
 BEGIN
     SELECT *
@@ -74,7 +74,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one damn short column]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one damn short column]
 AS
 BEGIN
     SELECT '' [ ]
@@ -90,7 +90,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for a weird column name]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for a weird column name]
 AS
 BEGIN
     DECLARE @result NVARCHAR(MAX);
@@ -109,7 +109,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for column names starting and ending with square brackets]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for column names starting and ending with square brackets]
 AS
 BEGIN
     DECLARE @result NVARCHAR(MAX);
@@ -128,7 +128,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one BIGINT column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one BIGINT column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -149,7 +149,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one TEXT column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one TEXT column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -166,7 +166,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one NTEXT column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one NTEXT column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -183,7 +183,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DOUBLE column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one DOUBLE column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -199,7 +199,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DECIMAL(38, 9) column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one DECIMAL(38, 9) column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -216,7 +216,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one ROWVERSION column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one ROWVERSION column #table]
 AS
 BEGIN
     DECLARE @rowid ROWVERSION;
@@ -258,7 +258,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one UNIQUEID column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one UNIQUEID column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -275,7 +275,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one XML column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one XML column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -292,7 +292,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one DATETIME column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one DATETIME column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -309,7 +309,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one SMALLDATETIME column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one SMALLDATETIME column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -326,7 +326,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one VARCHAR(MAX)>8000 column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one VARCHAR(MAX)>8000 column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -346,7 +346,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one IMAGE column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one IMAGE column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -366,7 +366,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one SQL_VARIANT column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one SQL_VARIANT column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -386,7 +386,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one VARBINARY(MAX) column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one VARBINARY(MAX) column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -403,7 +403,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one BINARY(90) column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one BINARY(90) column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -420,7 +420,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one CHAR(155) column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one CHAR(155) column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -437,7 +437,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one CHAR(156) column #table]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one CHAR(156) column #table]
 AS
 BEGIN
     CREATE TABLE #DoesExist(
@@ -455,7 +455,7 @@ END;
 GO
 
 -- Maximum display length is greater than maximum column length; however, once we make the display length configurable, we'll need a test LIKE this again
---CREATE PROC tSQLtPrivate_test.[test TableToText works for one long named column #table]
+--CREATE PROCEDURE TableToTextTests.[test TableToText works for one long named column #table]
 --AS
 --BEGIN
 --    CREATE TABLE #DoesExist(
@@ -472,7 +472,7 @@ GO
 --END;
 --GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works for one column #table with several rows]
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one column #table with several rows]
 AS
 BEGIN
     SELECT no
@@ -499,7 +499,7 @@ END;
 GO
 
 
-CREATE PROC tSQLtPrivate_test.[test TableToText works if @OrderBy IS NULL]
+CREATE PROCEDURE TableToTextTests.[test TableToText works if @OrderBy IS NULL]
 AS
 BEGIN
     SELECT no
@@ -525,7 +525,7 @@ OR (ISNULL(@result,'') NOT LIKE '%4%')
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText orders by @orderBy]
+CREATE PROCEDURE TableToTextTests.[test TableToText orders by @orderBy]
 AS
 BEGIN
     SELECT no
@@ -544,7 +544,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText with no rows]
+CREATE PROCEDURE TableToTextTests.[test TableToText with no rows]
 AS
 BEGIN
     SELECT no
@@ -559,7 +559,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText with several columns and rows]
+CREATE PROCEDURE TableToTextTests.[test TableToText with several columns and rows]
 AS
 BEGIN
     SELECT no, 10-no AS FromTen, NULL AS NullCol
@@ -578,7 +578,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText with aliased column names]
+CREATE PROCEDURE TableToTextTests.[test TableToText with aliased column names]
 AS
 BEGIN
     SELECT no, 10-no AS FromTen, NULL AS NullCol
@@ -597,7 +597,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test NULL values with short column name]
+CREATE PROCEDURE TableToTextTests.[test NULL values with short column name]
 AS
 BEGIN
     SELECT NULL AS n
@@ -616,7 +616,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText with 100 columns]
+CREATE PROCEDURE TableToTextTests.[test TableToText with 100 columns]
 AS
 BEGIN
 /*
@@ -645,7 +645,7 @@ PRINT @cols;
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText removes quotes from columns in column list]
+CREATE PROCEDURE TableToTextTests.[test TableToText removes quotes from columns in column list]
 AS
 BEGIN
     SELECT *
@@ -661,7 +661,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText handles brackets in column names in column list]
+CREATE PROCEDURE TableToTextTests.[test TableToText handles brackets in column names in column list]
 AS
 BEGIN
     SELECT *
@@ -677,7 +677,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText handles column name containing ","]
+CREATE PROCEDURE TableToTextTests.[test TableToText handles column name containing ","]
 AS
 BEGIN
     SELECT *
@@ -693,7 +693,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLtPrivate_test.[test TableToText handles column containing "," in column list]
+CREATE PROCEDURE TableToTextTests.[test TableToText handles column containing "," in column list]
 AS
 BEGIN
     SELECT *
@@ -708,7 +708,70 @@ BEGIN
 |1|2  |', @result;
 END;
 GO
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one DATETIMEOFFSET column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T DATETIMEOFFSET
+    );
+    INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13 12:34:56.7891234 +13:24' AS DATETIMEOFFSET));
 
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+   
+    EXEC tSQLt.AssertEqualsString '|T                                 |
++----------------------------------+
+|2001-10-13 12:34:56.7891234 +13:24|', @result;
+END;
+GO
 
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one DATETIME2 column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T DATETIME2
+    );
+    INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13T12:34:56.7891234' AS DATETIME2));
 
---EXEC tSQLt.Run 'tSQLtPrivate_test';
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+   
+    EXEC tSQLt.AssertEqualsString '|T                          |
++---------------------------+
+|2001-10-13 12:34:56.7891234|', @result;
+END;
+GO
+
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one TIME column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T TIME
+    );
+    INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.7871234');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+   
+    EXEC tSQLt.AssertEqualsString '|T               |
++----------------+
+|12:34:56.7871234|', @result;
+END;
+GO
+
+CREATE PROCEDURE TableToTextTests.[test TableToText works for one DATE column #table]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(
+      T DATE
+    );
+    INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.787');
+    
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+   
+    EXEC tSQLt.AssertEqualsString '|T         |
++----------+
+|2001-10-13|', @result;
+END;
+GO

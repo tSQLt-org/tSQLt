@@ -1,6 +1,6 @@
-EXEC tSQLt.NewTestClass 'tSQLt_test_ResultSetFilter';
+EXEC tSQLt.NewTestClass 'ResultSetFilterTests';
 GO
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter returns specified result set]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter returns specified result set]
 AS
 BEGIN
     CREATE TABLE #Actual (val INT);
@@ -16,7 +16,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter returns specified result set with multiple columns]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter returns specified result set with multiple columns]
 AS
 BEGIN
     CREATE TABLE #Actual (val1 INT, val2 VARCHAR(3));
@@ -32,7 +32,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter throws error if specified result set is 1 greater than number of result sets returned]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter throws error if specified result set is 1 greater than number of result sets returned]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '--NO Error Thrown!--';
@@ -51,7 +51,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter throws error if specified result set is more than 1 greater than number of result sets returned]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter throws error if specified result set is more than 1 greater than number of result sets returned]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '--NO Error Thrown!--';
@@ -70,7 +70,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter retrieves no records and throws no error if 0 is specified]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter retrieves no records and throws no error if 0 is specified]
 AS
 BEGIN
     CREATE TABLE #Actual (val INT);
@@ -83,7 +83,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter retrieves no result set if 0 is specified]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter retrieves no result set if 0 is specified]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '--NO Error Thrown!--';
@@ -102,7 +102,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter handles code not returning a result set]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter handles code not returning a result set]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '--NO Error Thrown!--';
@@ -121,14 +121,14 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter throws no error if code is not returning a result set and 0 is passed in]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter throws no error if code is not returning a result set and 0 is passed in]
 AS
 BEGIN
       EXEC tSQLt.ResultSetFilter 0,'DECLARE @NoOp INT;';  
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter throws error if result set number NULL specified]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter throws error if result set number NULL specified]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '--NO Error Thrown!--';
@@ -148,7 +148,7 @@ END;
 GO
 
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter throws error if result set number of less than 0 specified]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter throws error if result set number of less than 0 specified]
 AS
 BEGIN
     DECLARE @err NVARCHAR(MAX); SET @err = '';
@@ -167,7 +167,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter can handle each datatype]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter can handle each datatype]
 AS
 BEGIN
     EXEC tSQLt.AssertResultSetsHaveSameMetaData
@@ -263,7 +263,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter produces only requested columns when underlying table contains primary key]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter produces only requested columns when underlying table contains primary key]
 AS
 BEGIN
     CREATE TABLE BaseTable (i INT PRIMARY KEY, v VARCHAR(15));
@@ -280,7 +280,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter produces only requested columns when a join on foreign keys is performed]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter produces only requested columns when a join on foreign keys is performed]
 AS
 BEGIN
     CREATE TABLE BaseTable1 (i1 INT PRIMARY KEY, v1 VARCHAR(15));
@@ -300,7 +300,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter produces only requested columns when a unique column exists]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter produces only requested columns when a unique column exists]
 AS
 BEGIN
     CREATE TABLE BaseTable1 (i1 INT UNIQUE, v1 VARCHAR(15));
@@ -317,7 +317,7 @@ BEGIN
 END;
 GO
 
-CREATE PROC tSQLt_test_ResultSetFilter.[test ResultSetFilter produces only requested columns when a check constraint exists]
+CREATE PROC ResultSetFilterTests.[test ResultSetFilter produces only requested columns when a check constraint exists]
 AS
 BEGIN
     CREATE TABLE BaseTable1 (i1 INT CHECK(i1 = 1), v1 VARCHAR(15));
@@ -332,4 +332,39 @@ BEGIN
     
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
+GO
+CREATE PROCEDURE ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype
+  @Value NVARCHAR(MAX),
+  @Datatype NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @ExpectedStmt NVARCHAR(MAX),
+            @ActualStmt NVARCHAR(MAX);
+
+    DECLARE @ActualValue NVARCHAR(MAX);
+    SET @ActualValue = REPLACE(@Value, '''', '''''');
+    
+    SELECT @ExpectedStmt = 'SELECT CAST(' + @Value + ' AS ' + @Datatype + ') AS val;';
+    SELECT @ActualStmt = 'EXEC tSQLt.ResultSetFilter 1, ''SELECT CAST(' + @ActualValue + ' AS ' + @Datatype + ') AS val;''';
+
+    EXEC tSQLt.AssertResultSetsHaveSameMetaData @ExpectedStmt, @ActualStmt;
+
+END
+GO
+--[@tSQLt:MinSqlMajorVersion](10)
+CREATE PROCEDURE ResultSetFilterTests.[test ResultSetFilter can handle each 2008 datatype]
+AS
+BEGIN
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype '''2011-09-27 12:23:47.846753797''', 'DATETIME2';
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype '''2011-09-27 12:23:47.846753797''', 'DATETIME2(3)';
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype '''2011-09-27 12:23:47.846753797 +01:15''', 'DATETIMEOFFSET';
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype '''2011-09-27 12:23:47.846753797 +01:15''', 'DATETIMEOFFSET(3)';
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype '''2011-09-27 12:23:47.846753797''', 'DATE';
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype '''2011-09-27 12:23:47.846753797''', 'TIME';
+
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype 'geometry::STGeomFromText(''LINESTRING (100 100, 20 180, 180 180)'', 0)', 'geometry';
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype 'geography::STGeomFromText(''LINESTRING(-122.360 47.656, -122.343 47.656)'', 4326)', 'geography';
+    EXEC ResultSetFilterTests.AssertResultSetFilterCanHandleDatatype 'hierarchyid::Parse(''/1/'')', 'hierarchyid';
+
+END
 GO
