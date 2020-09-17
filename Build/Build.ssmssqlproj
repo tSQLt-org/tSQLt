@@ -245,12 +245,6 @@
           <AssociatedConnUserName />
           <FullPath>VersionInfo.vbs</FullPath>
         </FileNode>
-        <FileNode Name="build.xml">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>build.xml</FullPath>
-        </FileNode>
         <FileNode Name="buildNotes.txt">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -262,18 +256,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>buildtranslate.txt</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt.build">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>tSQLt.build</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt.validatebuild">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>tSQLt.validatebuild</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
