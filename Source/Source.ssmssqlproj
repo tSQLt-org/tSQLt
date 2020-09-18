@@ -205,6 +205,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.NewTestClass.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.PrepareServer.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.PrepareServer.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_Bin2Hex.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -264,6 +270,12 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_EnableCLR.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_EnableCLR.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetCommaSeparatedColumnList.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>

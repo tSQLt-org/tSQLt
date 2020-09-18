@@ -99,10 +99,10 @@
    <param name="append.source" value="temp/AllTests.sql" />
   </antcall>
  </target>
- <target name="create.tSQLt.scripts" description="generate database creation scripts">
-  <delete file="temp/temp_create_db.sql" />
+ <target name="create.tSQLt.scripts" description="generate build execution utility scripts">
+  <delete file="temp/temp_prepare_server.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_create_db.sql" />
+   <param name="append.target" value="temp/temp_prepare_server.sql" />
    <param name="append.source" value="temp/CreateBuildDb.sql" />
   </antcall>
 
@@ -273,7 +273,7 @@
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
-   <param name="execute.sql.filename" value="temp/temp_create_db.sql" />
+   <param name="execute.sql.filename" value="temp/temp_prepare_server.sql" />
   </antcall>
 
   <antcall target="execute.sql.file">
