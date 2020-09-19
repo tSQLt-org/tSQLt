@@ -328,7 +328,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(tSQLtExternalAccessKey).sql" />
+   <param name="execute.sql.filename" value="temp/Drop(tSQLtAssemblyKey).sql" />
   </antcall>
 
   <!-- run bootstrap tests -->
@@ -375,7 +375,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Install(tSQLtExternalAccessKey).sql" />
+   <param name="execute.sql.filename" value="temp/Install(tSQLtAssemblyKey).sql" />
   </antcall>
 
   <!-- EAKE Tests -->

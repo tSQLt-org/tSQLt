@@ -263,8 +263,8 @@
   <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build.SA).sql" todir="temp"/>
-  <copy file="Drop(tSQLtExternalAccessKey).sql" todir="temp"/>
-  <copy file="Install(tSQLtExternalAccessKey).sql" todir="temp"/>
+  <copy file="Drop(tSQLtAssemblyKey).sql" todir="temp"/>
+  <copy file="Install(tSQLtAssemblyKey).sql" todir="temp"/>
   <copy file="ChangeDbAndExecuteStatement(tSQLt.Build).sql" todir="temp"/>
   <copy file="EnableExternalAccess.sql" todir="temp"/>
   <copy file="CreateBuildDb.sql" todir="temp"/>
@@ -288,8 +288,8 @@
     <include name="BootStrapTest.sql"/>
     <include name="ExecuteAs(tSQLt.Build).sql"/>
     <include name="ExecuteAs(tSQLt.Build.SA).sql"/>
-    <include name="Drop(tSQLtExternalAccessKey).sql"/>
-    <include name="Install(tSQLtExternalAccessKey).sql"/>
+    <include name="Drop(tSQLtAssemblyKey).sql"/>
+    <include name="Install(tSQLtAssemblyKey).sql"/>
     <include name="EnableExternalAccess.sql"/>
     <include name="Drop(master.tSQLt_testutil).sql"/>
     <include name="Install(master.tSQLt_testutil).sql"/>

@@ -21,9 +21,13 @@ CREATE PROCEDURE PrepareServerTests.[test TODO]
 AS
 BEGIN
   EXEC tSQLt.Fail 'TODO:
-  -- call tSQLt.InstallExternalAccessKey  <-- RENAME to tSQLtAssemblyKey
+  -- call tSQLt.InstallAssemblyKey
   -- on 2019 add UNSAFE permission (maybe change to instead of add)
   -- change IEAK to be able to run on 2019 without altering server configurations (the bytes of the assembly can be used to create a bytecode over it, add it to the "whitelist" -use exception list- and then you can add it without having to worry about the configuration.)
   
+  --InstallAssemblyKey: install exception record, install key assembly, create assymetric key, create login, grant permissions, drop assembly, drop exception
+  --dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop exception
+
+
   ';
 END;

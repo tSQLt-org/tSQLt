@@ -14,6 +14,7 @@ tSQLt.class.sql
 ../Build/temp/tSQLt.Private_GetAssemblyKeyBytes.sql
 tSQLt.Private_EnableCLR.ssp.sql
 tSQLt.PrepareServer.ssp.sql
+tSQLt.RemoveAssemblyKey.ssp.sql
 tSQLt.RemoveExternalAccessKey.ssp.sql
 tSQLt.InstallAssemblyKey.ssp.sql
 tSQLt.InstallExternalAccessKey.ssp.sql

@@ -20,7 +20,7 @@ BEGIN
 
   SET @cmd2 = 'SELECT @cmd = ''DROP ASSEMBLY ''+QUOTENAME(A.name)+'';'''+ 
               '  FROM master.sys.assemblies AS A'+
-              ' WHERE A.clr_name LIKE ''tSQLtAssemblyKey, %'';';
+              ' WHERE A.clr_name LIKE ''tsqltassemblykey, %'';';
   EXEC sys.sp_executesql @cmd2,N'@cmd NVARCHAR(MAX) OUTPUT',@cmd OUT;
   EXEC @master_sys_sp_executesql @cmd;
 
