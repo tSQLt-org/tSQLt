@@ -11,7 +11,7 @@
 
  <target
    name="all"
-   depends="validate.parameters, init, clr.compile, tSQLtExternalAccessKey.compile, clr.testutil.compile, clr.UnsignedEmpty.compile, package.files"
+   depends="validate.parameters, init, clr.compile, tSQLtAssemblyKey.compile, clr.testutil.compile, clr.UnsignedEmpty.compile, package.files"
    />
 
 
@@ -53,13 +53,13 @@
   </exec>
  </target>
 
- <target name="tSQLtExternalAccessKey.compile">
-  <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
-  <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/bin/${build.configuration}" />
-  <delete dir="../tSQLtCLR/tSQLtExternalAccessKey/obj/${build.configuration}" />
-  <exec executable="cmd" dir="../tSQLtCLR/tSQLtExternalAccessKey/" failonerror="true">
+ <target name="tSQLtAssemblyKey.compile">
+  <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtAssemblyKey.csproj /p:Configuration=${build.configuration} /nologo"/>
+  <delete dir="../tSQLtCLR/tSQLtAssemblyKey/bin/${build.configuration}" />
+  <delete dir="../tSQLtCLR/tSQLtAssemblyKey/obj/${build.configuration}" />
+  <exec executable="cmd" dir="../tSQLtCLR/tSQLtAssemblyKey/" failonerror="true">
    <arg value="/c"/>
-   <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtExternalAccessKey.csproj /p:Configuration=${build.configuration} /nologo"/>
+   <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtAssemblyKey.csproj /p:Configuration=${build.configuration} /nologo"/>
   </exec>
  </target>
 

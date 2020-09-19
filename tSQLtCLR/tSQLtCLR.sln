@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tSQLtCLR", "tSQLtCLR\tSQLtC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tSQLtTestUtilCLR", "tSQLtTestUtilCLR\tSQLtTestUtilCLR.csproj", "{87E64BC4-089C-4E9F-BCB2-DB12BDB5FB89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tSQLtExternalAccessKey", "tSQLtExternalAccessKey\tSQLtExternalAccessKey.csproj", "{09611E35-7E79-4DD3-8BCD-83F27535FB5D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tSQLtAssemblyKey", "tSQLtAssemblyKey\tSQLtAssemblyKey.csproj", "{09611E35-7E79-4DD3-8BCD-83F27535FB5D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnsignedEmpty", "UnsignedEmpty\UnsignedEmpty.csproj", "{14624277-A18F-4D80-BC04-FDFCD09E13D8}"
 EndProject

@@ -8,8 +8,8 @@
     <ProjectGuid>{09611E35-7E79-4DD3-8BCD-83F27535FB5D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>tSQLtExternalAccessKey</RootNamespace>
-    <AssemblyName>tSQLtExternalAccessKey</AssemblyName>
+    <RootNamespace>tSQLtAssemblyKey</RootNamespace>
+    <AssemblyName>tSQLtAssemblyKey</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>

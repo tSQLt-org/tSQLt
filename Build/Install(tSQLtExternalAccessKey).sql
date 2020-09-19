@@ -1,1 +1,1 @@
-EXEC tSQLt.InstallExternalAccessKey;
+EXEC tSQLt.InstallAssemblyKey;

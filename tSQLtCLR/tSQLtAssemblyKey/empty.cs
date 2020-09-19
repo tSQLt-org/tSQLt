@@ -1,5 +1,5 @@
 ﻿
-namespace tSQLtExternalAccessKey
+namespace tSQLtAssemblyKey
 {
     class empty
     {

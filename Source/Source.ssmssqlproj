@@ -187,6 +187,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Info.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.InstallAssemblyKey.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.InstallAssemblyKey.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.InstallExternalAccessKey.ssp.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -277,6 +283,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_EnableCLR.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_GetAssemblyKeyBytes.mdl.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetAssemblyKeyBytes.mdl.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_GetCommaSeparatedColumnList.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -300,12 +312,6 @@
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_GetForeignKeyDefinition.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
