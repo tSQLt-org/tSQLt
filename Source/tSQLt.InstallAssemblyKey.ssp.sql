@@ -24,6 +24,22 @@ BEGIN
   EXEC sys.sp_executesql @cmd2,N'@cmd NVARCHAR(MAX) OUTPUT',@cmd OUT;
   EXEC @master_sys_sp_executesql @cmd;
 
+  DECLARE @Hash VARBINARY(64) = NULL;
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  BEGIN
+    SELECT @Hash = PGEAKB.AssemblyKeyBytes
+      FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
+
+    SELECT @cmd = 
+           'IF NOT EXISTS (SELECT * FROM sys.trusted_assemblies WHERE [hash] = @Hash)'+
+           'BEGIN'+
+           '  EXEC sys.sp_add_trusted_assembly @hash = @Hash, @description = N''tSQLt Ephemeral'';'+
+           'END ELSE BEGIN'+
+           '  SET @Hash = NULL;'+
+           'END;';
+    EXEC @master_sys_sp_executesql @cmd, N'@Hash VARBINARY(64) OUTPUT',@Hash OUT;
+  END;
+
   SELECT @cmd = 
          'CREATE ASSEMBLY tSQLtAssemblyKey AUTHORIZATION dbo FROM ' +
          BH.prefix +
@@ -55,6 +71,12 @@ BEGIN
   SET @cmd = 'DROP ASSEMBLY tSQLtAssemblyKey;';
   EXEC @master_sys_sp_executesql @cmd;
 
+  IF(@Hash IS NOT NULL)
+  BEGIN
+    SELECT @cmd = 'EXEC sys.sp_drop_trusted_assembly @hash = @Hash;';
+    EXEC @master_sys_sp_executesql @cmd, N'@Hash VARBINARY(64)',@Hash;
+  END;
+
   SET @cmd = 'GRANT EXTERNAL ACCESS ASSEMBLY TO tSQLtAssemblyKey;';
   EXEC @master_sys_sp_executesql @cmd;
 
@@ -62,3 +84,16 @@ END;
 GO
 ---Build-
 GO
+
+
+/*
+    '
+      DECLARE @cmd NVARCHAR(MAX);
+      SELECT @cmd = ''EXEC sys.sp_drop_trusted_assembly @hash = '' + @Hash + '';''
+        FROM sys.trusted_assemblies AS TA
+       WHERE TA.description = ''tSQLt Ephemeral''
+         AND TA.hash = '' + @Hash + '';
+      EXEC(@cmd);
+    ';
+
+*/
