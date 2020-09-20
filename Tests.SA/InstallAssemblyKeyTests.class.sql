@@ -27,7 +27,6 @@ BEGIN
       (
         SELECT ''EXEC sys.sp_drop_trusted_assembly @hash = '' + BH.prefix + '';'' FROM sys.trusted_assemblies AS TA
          CROSS APPLY tSQLt.Private_Bin2Hex(TA.[hash]) AS BH
-         WHERE TA.description = ''tSQLt Ephemeral''
            FOR XML PATH(''''),TYPE
       ).value(''.'',''NVARCHAR(MAX)'');
       EXEC(@cmd);
@@ -225,7 +224,11 @@ BEGIN
   SET @cmd = 'DROP ASSEMBLY [tSQLtAssemblyKey with wrong name!];';
   EXEC master.sys.sp_executesql @cmd;
 
+  RAISERROR('GOTHERE1',0,1)WITH NOWAIT;
+
   EXEC tSQLt.InstallAssemblyKey;
+
+  RAISERROR('GOTHERE2',0,1)WITH NOWAIT;
 
 END;
 GO
@@ -236,6 +239,17 @@ BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
 
   DECLARE @cmd NVARCHAR(MAX);
+
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  BEGIN
+    -- sp_add_trusted_assembly is new (and required) in 2019
+    SELECT @cmd = 
+           'EXEC sys.sp_add_trusted_assembly @hash = ' + BH.prefix + ', @description = N''tSQLt Ephemeral'';'
+      FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
+     CROSS APPLY tSQLt.Private_Bin2Hex(HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)) BH;
+  
+    EXEC master.sys.sp_executesql @cmd;
+  END;
 
   SELECT @cmd = 
          'CREATE ASSEMBLY [tSQLtAssemblyKey with wrong name!] AUTHORIZATION dbo FROM ' +
@@ -271,32 +285,6 @@ BEGIN
   
   EXEC tSQLt.InstallAssemblyKey;
 
-END;
-GO
-
-CREATE PROCEDURE InstallAssemblyKeyTests.[test grants EXTERNAL ACCESS ASSEMBLY permission to new login]
-AS
-BEGIN
-  EXEC InstallAssemblyKeyTests.DropExistingItems;
-  
-  EXEC tSQLt.InstallAssemblyKey;
-
-  SELECT SP.class_desc,
-         SP.permission_name,
-         SP.state_desc
-    INTO #Actual
-    FROM sys.server_permissions AS SP
-   WHERE SP.grantee_principal_id = SUSER_ID('tSQLtAssemblyKey')
-     AND SP.permission_name = 'EXTERNAL ACCESS ASSEMBLY'
-
-  SELECT TOP(0) *
-  INTO #Expected
-  FROM #Actual;
-
-  INSERT INTO #Expected
-  VALUES('SERVER','EXTERNAL ACCESS ASSEMBLY','GRANT');
-  
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
 
@@ -369,7 +357,7 @@ GO
 ------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------
 GO
---[@tsqlt:MinSQLMajorVersion](15)
+--[@tSQLt:MinSqlMajorVersion](15)
 CREATE PROCEDURE InstallAssemblyKeyTests.[test can install key even if clr strict security is set to 1]
 AS
 BEGIN
@@ -396,7 +384,7 @@ BEGIN
 
 END;
 GO
---[@tsqlt:MinSQLMajorVersion](15)
+--[@tSQLt:MinSqlMajorVersion](15)
 CREATE PROCEDURE InstallAssemblyKeyTests.[test works if trusted assembly entry exists already]
 AS
 BEGIN
@@ -414,7 +402,7 @@ BEGIN
 
 END;
 GO
---[@tsqlt:MinSQLMajorVersion](15)
+--[@tSQLt:MinSqlMajorVersion](15)
 CREATE PROCEDURE InstallAssemblyKeyTests.[test removes trusted assembly record when done]
 AS
 BEGIN
@@ -428,7 +416,7 @@ BEGIN
 
 END;
 GO
---[@tsqlt:MinSQLMajorVersion](15)
+--[@tSQLt:MinSqlMajorVersion](15)
 CREATE PROCEDURE InstallAssemblyKeyTests.[test does not remove trusted assembly record when it pre-existed without the tSQLt Ephemeral description]
 AS
 BEGIN
@@ -445,22 +433,77 @@ BEGIN
 
   EXEC tSQLt.InstallAssemblyKey;
 
-  SELECT TA.hash, TA.description INTO #Actual FROM sys.trusted_assemblies AS TA WHERE TA.hash = CAST(@Hash AS VARBINARY(MAX));
+  SELECT TA.hash, TA.description INTO #Actual FROM sys.trusted_assemblies AS TA;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES(CAST(@Hash AS VARBINARY(MAX)), 'tSQLt Ephemeral');
+  INSERT INTO #Expected VALUES(CONVERT(VARBINARY(64),@Hash,1), 'tSQLt Ephemeral');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+--[@tSQLt:MaxSqlMajorVersion](14)
+CREATE PROCEDURE InstallAssemblyKeyTests.[test grants EXTERNAL ACCESS ASSEMBLY permission to new login per SQL 2019]
+AS
+BEGIN
+  EXEC InstallAssemblyKeyTests.DropExistingItems;
+  
+  EXEC tSQLt.InstallAssemblyKey;
+
+  SELECT SP.class_desc,
+         SP.permission_name,
+         SP.state_desc
+    INTO #Actual
+    FROM sys.server_permissions AS SP
+   WHERE SP.grantee_principal_id = SUSER_ID('tSQLtAssemblyKey')
+     AND SP.permission_name LIKE '%ASSEMBLY'
+
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+
+  INSERT INTO #Expected
+  VALUES('SERVER','EXTERNAL ACCESS ASSEMBLY','GRANT');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
+END;
+GO
+--[@tSQLt:MinSqlMajorVersion](15)
+CREATE PROCEDURE InstallAssemblyKeyTests.[test grants UNSAFE ASSEMBLY permission to new login in SQL 2019 and later]
+AS
+BEGIN
+  EXEC InstallAssemblyKeyTests.DropExistingItems;
+  
+  EXEC tSQLt.InstallAssemblyKey;
+
+  SELECT SP.class_desc,
+         SP.permission_name,
+         SP.state_desc
+    INTO #Actual
+    FROM sys.server_permissions AS SP
+   WHERE SP.grantee_principal_id = SUSER_ID('tSQLtAssemblyKey')
+     AND SP.permission_name LIKE '%ASSEMBLY'
+
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+
+  INSERT INTO #Expected
+  VALUES('SERVER','UNSAFE ASSEMBLY','GRANT');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
+END;
+GO
+
+
 CREATE PROCEDURE InstallAssemblyKeyTests.[test TODO]
 AS
 BEGIN
 EXEC tSQLt.Fail 'TODO';
-  -- on 2019 add UNSAFE permission (maybe change to instead of add)
-  -- change IEAK to be able to run on 2019 without altering server configurations (the bytes of the assembly can be used to create a bytecode over it, add it to the "whitelist" -use exception list- and then you can add it without having to worry about the configuration.)
+  -- change IAK to be able to run on 2019 without setting clr strict security to 0
   
   --InstallAssemblyKey: install exception record, install key assembly, create assymetric key, create login, grant permissions, drop assembly, drop exception
   --dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop exception
+  --change the tSQLt install script to execute tSQLt.InstallAssemblyKey if indicated (what should that indication be?) (maybe this could be a command line flag in the build?)
+  -- delete everything below here
 END;
 GO
 
@@ -502,6 +545,10 @@ GO
 EXEC tSQLt.InstallAssemblyKey;
 GO
 EXEC sys.sp_configure @configname = 'clr strict security', @configvalue = 0;
+GO
+RECONFIGURE
+GO
+EXEC sys.sp_configure @configname = 'clr strict security', @configvalue = 1;
 GO
 RECONFIGURE
 GO

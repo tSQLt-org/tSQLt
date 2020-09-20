@@ -27,7 +27,7 @@ BEGIN
   DECLARE @Hash VARBINARY(64) = NULL;
   IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
   BEGIN
-    SELECT @Hash = PGEAKB.AssemblyKeyBytes
+    SELECT @Hash = HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)
       FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
 
     SELECT @cmd = 
@@ -77,7 +77,15 @@ BEGIN
     EXEC @master_sys_sp_executesql @cmd, N'@Hash VARBINARY(64)',@Hash;
   END;
 
-  SET @cmd = 'GRANT EXTERNAL ACCESS ASSEMBLY TO tSQLtAssemblyKey;';
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  BEGIN
+    SET @cmd = 'GRANT UNSAFE ASSEMBLY TO tSQLtAssemblyKey;';
+  END
+  ELSE
+  BEGIN
+    SET @cmd = 'GRANT EXTERNAL ACCESS ASSEMBLY TO tSQLtAssemblyKey;';
+  END;
+
   EXEC @master_sys_sp_executesql @cmd;
 
 END;
