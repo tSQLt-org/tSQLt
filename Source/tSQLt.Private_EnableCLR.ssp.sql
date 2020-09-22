@@ -5,7 +5,7 @@ GO
 CREATE PROCEDURE tSQLt.Private_EnableCLR
 AS
 BEGIN
-  EXEC tSQLt.SuppressOutput @command = 'EXEC master.sys.sp_configure @configname=''clr enabled'', @configvalue = 1;';
+  EXEC master.sys.sp_configure @configname='clr enabled', @configvalue = 1;
   RECONFIGURE;
 END;
 GO

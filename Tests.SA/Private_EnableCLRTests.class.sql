@@ -56,13 +56,3 @@ BEGIN
    EXEC tSQLt.Private_EnableCLR;
 END;
 GO
-CREATE PROCEDURE Private_EnableCLRTests.[test suppresses output]
-AS
-BEGIN
-   EXEC tSQLt.CaptureOutput 'BEGIN TRY EXEC tSQLt.Private_EnableCLR; END TRY BEGIN CATCH END CATCH;';
-
-   SELECT * INTO #Actual FROM tSQLt.CaptureOutputLog WHERE OutputText IS NOT NULL;
-   
-   EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
-END;
-GO

@@ -1,6 +1,11 @@
 tSQLt._Header.sql
 tSQLt.DropClass.ssp.sql
+../Build/temp/tSQLt.Private_GetAssemblyKeyBytes.sql
+tSQLt.Private_EnableCLR.ssp.sql
 tSQLt.Private_Bin2Hex.sfn.sql
+tSQLt.RemoveAssemblyKey.ssp.sql
+tSQLt.InstallAssemblyKey.ssp.sql
+tSQLt.PrepareServer.ssp.sql
 tSQLt.Private_NewTestClassList.tbl.sql
 tSQLt.Private_ResetNewTestClassList.ssp.sql
 tSQLt.Private_SysTypes.svw.sql
@@ -11,13 +16,6 @@ tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
 tSQLt.NewTestClass.ssp.sql
 tSQLt.Fail.ssp.sql
 tSQLt.class.sql
-../Build/temp/tSQLt.Private_GetAssemblyKeyBytes.sql
-tSQLt.Private_EnableCLR.ssp.sql
-tSQLt.PrepareServer.ssp.sql
-tSQLt.RemoveAssemblyKey.ssp.sql
-tSQLt.RemoveExternalAccessKey.ssp.sql
-tSQLt.InstallAssemblyKey.ssp.sql
-tSQLt.InstallExternalAccessKey.ssp.sql
 tSQLt.EnableExternalAccess.ssp.sql
 tSQLt.Private_Configurations.tbl.sql
 tSQLt.Private_SetConfiguration.ssp.sql
@@ -90,4 +88,6 @@ tSQLt.Private_SkipTestAnnotationHelper.ssp.sql
 tSQLt.(at)tSQLt_SkipTest.sfn.sql
 tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql
 tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql
+tSQLt.RemoveExternalAccessKey.ssp.sql
+tSQLt.InstallExternalAccessKey.ssp.sql
 tSQLt._Footer.sql
