@@ -25,8 +25,7 @@ BEGIN
       DECLARE @cmd NVARCHAR(MAX);
       SELECT @cmd = 
       (
-        SELECT ''EXEC sys.sp_drop_trusted_assembly @hash = '' + BH.prefix + '';'' FROM sys.trusted_assemblies AS TA
-         CROSS APPLY tSQLt.Private_Bin2Hex(TA.[hash]) AS BH
+        SELECT ''EXEC sys.sp_drop_trusted_assembly @hash = '' + CONVERT(NVARCHAR(MAX),TA.[hash],1) + '';'' FROM sys.trusted_assemblies AS TA
            FOR XML PATH(''''),TYPE
       ).value(''.'',''NVARCHAR(MAX)'');
       EXEC(@cmd);
@@ -41,8 +40,7 @@ AS
 BEGIN
   DECLARE @EAKey VARBINARY(100);
   DECLARE @tSQLtKey VARBINARY(100);
-  SELECT @EAKey = PGEAKB.AssemblyKeyThumbPrint
-    FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB;
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyThumbPrint = @EAKey OUT;
   SELECT @tSQLtKey = I.ClrSigningKey
     FROM tSQLt.Info() AS I;
   EXEC tSQLt.AssertEquals @Expected = @tSQLtKey, @Actual = @EAKey;
@@ -57,9 +55,8 @@ BEGIN
 
   DECLARE @KeyInfoPattern NVARCHAR(MAX);
   
-  SELECT @KeyInfoPattern = '%publickeytoken='+BH.bare+',%'
+  SELECT @KeyInfoPattern = '%publickeytoken='+LOWER(CONVERT(NVARCHAR(MAX),AK.thumbprint,2))+',%'
     FROM master.sys.asymmetric_keys AS AK 
-   CROSS APPLY tSQLt.Private_Bin2Hex(AK.thumbprint) AS BH
    WHERE AK.name = 'tSQLtAssemblyKey';
 
 
@@ -83,19 +80,17 @@ BEGIN
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
     SELECT @cmd = 
-           'EXEC sys.sp_add_trusted_assembly @hash = ' + BH.prefix + ', @description = N''tSQLt Ephemeral'';'
-      FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS PGEAKB
-     CROSS APPLY tSQLt.Private_Bin2Hex(HASHBYTES('SHA2_512',PGEAKB.UnsignedEmptyBytes)) BH;
+           'EXEC sys.sp_add_trusted_assembly @hash = ' + CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',PGEAKB.UnsignedEmptyBytes),1) + ', @description = N''tSQLt Ephemeral'';'
+      FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS PGEAKB;
   
     EXEC master.sys.sp_executesql @cmd;
   END;
 
   SELECT @cmd = 
          'CREATE ASSEMBLY tSQLtAssemblyKey AUTHORIZATION dbo FROM ' +
-         BH.prefix +
+         CONVERT(NVARCHAR(MAX),GUEB.UnsignedEmptyBytes,1) +
          ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS GUEB
-   CROSS APPLY tSQLt.Private_Bin2Hex(GUEB.UnsignedEmptyBytes) AS BH;
+    FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS GUEB;
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.ExpectNoException;  
@@ -114,20 +109,19 @@ BEGIN
   IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
+    DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+    EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+
     SELECT @cmd = 
-           'EXEC sys.sp_add_trusted_assembly @hash = ' + BH.prefix + ', @description = N''tSQLt Ephemeral'';'
-      FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-     CROSS APPLY tSQLt.Private_Bin2Hex(HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)) BH;
+           'EXEC sys.sp_add_trusted_assembly @hash = ' + CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1) + ', @description = N''tSQLt Ephemeral'';';
   
     EXEC master.sys.sp_executesql @cmd;
   END;
 
   SELECT @cmd = 
          'CREATE ASSEMBLY [tSQLtAssemblyKey with wrong name!] AUTHORIZATION dbo FROM ' +
-         BH.prefix +
-         ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.AssemblyKeyBytes) AS BH;
+         CONVERT(NVARCHAR(MAX),@AssemblyKeyBytes,1) +
+         ' WITH PERMISSION_SET = SAFE;';
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.InstallAssemblyKey;
@@ -197,25 +191,24 @@ AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
 
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+
   DECLARE @cmd NVARCHAR(MAX);
 
   IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
     SELECT @cmd = 
-           'EXEC sys.sp_add_trusted_assembly @hash = ' + BH.prefix + ', @description = N''tSQLt Ephemeral'';'
-      FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-     CROSS APPLY tSQLt.Private_Bin2Hex(HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)) BH;
+           'EXEC sys.sp_add_trusted_assembly @hash = ' + CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1) + ', @description = N''tSQLt Ephemeral'';';
   
     EXEC master.sys.sp_executesql @cmd;
   END;
 
   SELECT @cmd = 
          'CREATE ASSEMBLY [tSQLtAssemblyKey with wrong name!] AUTHORIZATION dbo FROM ' +
-         BH.prefix +
-         ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.AssemblyKeyBytes) AS BH;
+         CONVERT(NVARCHAR(MAX),@AssemblyKeyBytes,1) +
+         ' WITH PERMISSION_SET = SAFE;';
   EXEC master.sys.sp_executesql @cmd;
   
   SET @cmd = 'CREATE ASYMMETRIC KEY [tSQLtAssemblyKey->asymmetric key with wrong name!] FROM ASSEMBLY [tSQLtAssemblyKey with wrong name!];';
@@ -224,12 +217,7 @@ BEGIN
   SET @cmd = 'DROP ASSEMBLY [tSQLtAssemblyKey with wrong name!];';
   EXEC master.sys.sp_executesql @cmd;
 
-  RAISERROR('GOTHERE1',0,1)WITH NOWAIT;
-
   EXEC tSQLt.InstallAssemblyKey;
-
-  RAISERROR('GOTHERE2',0,1)WITH NOWAIT;
-
 END;
 GO
 
@@ -238,25 +226,24 @@ AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
 
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+
   DECLARE @cmd NVARCHAR(MAX);
 
   IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
     SELECT @cmd = 
-           'EXEC sys.sp_add_trusted_assembly @hash = ' + BH.prefix + ', @description = N''tSQLt Ephemeral'';'
-      FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-     CROSS APPLY tSQLt.Private_Bin2Hex(HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)) BH;
+           'EXEC sys.sp_add_trusted_assembly @hash = ' + CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1) + ', @description = N''tSQLt Ephemeral'';';
   
     EXEC master.sys.sp_executesql @cmd;
   END;
 
   SELECT @cmd = 
          'CREATE ASSEMBLY [tSQLtAssemblyKey with wrong name!] AUTHORIZATION dbo FROM ' +
-         BH.prefix +
-         ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.AssemblyKeyBytes) AS BH;
+         CONVERT(NVARCHAR(MAX),@AssemblyKeyBytes,1) +
+         ' WITH PERMISSION_SET = SAFE;';
   EXEC master.sys.sp_executesql @cmd;
   
   SET @cmd = 'CREATE ASYMMETRIC KEY [tSQLtAssemblyKey->asymmetric key with wrong name!] FROM ASSEMBLY [tSQLtAssemblyKey with wrong name!];';
@@ -389,12 +376,13 @@ CREATE PROCEDURE InstallAssemblyKeyTests.[test works if trusted assembly entry e
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
+
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
   
   DECLARE @cmd NVARCHAR(MAX);
   SELECT @cmd = 
-         'EXEC sys.sp_add_trusted_assembly @hash = ' + BH.prefix + ', @description = N''tSQLt Ephemeral'';'
-    FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-   CROSS APPLY tSQLt.Private_Bin2Hex(HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)) BH;
+         'EXEC sys.sp_add_trusted_assembly @hash = ' + CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1) + ', @description = N''tSQLt Ephemeral'';';
   EXEC master.sys.sp_executesql @cmd;
 
   EXEC tSQLt.ExpectNoException;  
@@ -422,10 +410,10 @@ AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
 
-  DECLARE @Hash NVARCHAR(MAX);
-  SELECT @Hash = BH.prefix
-    FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-   CROSS APPLY tSQLt.Private_Bin2Hex(HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)) BH;
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+
+  DECLARE @Hash NVARCHAR(MAX) = CONVERT(NVARCHAR(MAX),@AssemblyKeyBytes,1);
 
   DECLARE @cmd NVARCHAR(MAX);
   SELECT @cmd = 'EXEC sys.sp_add_trusted_assembly @hash = ' + @Hash + ', @description = N''tSQLt Ephemeral'';'
@@ -493,72 +481,13 @@ BEGIN
 END;
 GO
 
-
 CREATE PROCEDURE InstallAssemblyKeyTests.[test TODO]
 AS
 BEGIN
 EXEC tSQLt.Fail 'TODO';
   -- change IAK to be able to run on 2019 without setting clr strict security to 0
   
-  --InstallAssemblyKey: install exception record, install key assembly, create assymetric key, create login, grant permissions, drop assembly, drop exception
   --dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop exception
   --change the tSQLt install script to execute tSQLt.InstallAssemblyKey if indicated (what should that indication be?) (maybe this could be a command line flag in the build?)
-  -- delete everything below here
 END;
 GO
-
-
-  --IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
-  --BEGIN
-  --  DECLARE @cmd NVARCHAR(MAX);
-  --  SELECT @cmd = 
-  --  '
-  --    DECLARE @cmd NVARCHAR(MAX);
-  --    SELECT @cmd = 
-  --    (
-  --      SELECT ''EXEC sys.sp_drop_trusted_assembly @hash = '' + BH.prefix + '';'' FROM sys.trusted_assemblies AS TA
-  --       CROSS APPLY tSQLt.Private_Bin2Hex(TA.[hash]) AS BH
-  --       WHERE TA.description = ''tSQLt Ephemeral''
-  --         FOR XML PATH(''''),TYPE
-  --    ).value(''.'',''NVARCHAR(MAX)'');
-  --    EXEC(@cmd);
-  --  ';
-  --  EXEC(@cmd);
-  --END;
-
-
---USE [master];
---GO
---DECLARE @AssemblyDescription NVARCHAR(4000) = N'tSQLtCLR, version=1.0.5873.27393, culture=neutral, publickeytoken=null, processorarchitecture=msil';
---DECLARE @AssemblyHash VARBINARY(256) = 0x3DB45B06CA8007DE7FEA05AB5F4A770293FCEF98640FECE939769652177E2A9B7CB6998EAE7BD3FC567ECDA62ADAE08AAA66094C9023F359127CAC8235550E37;
---IF NOT EXISTS (SELECT * FROM sys.trusted_assemblies WHERE [hash] = @AssemblyHash)
---BEGIN
---    EXECUTE sys.sp_add_trusted_assembly @hash = @AssemblyHash, @description = @AssemblyDescription;
---END
---EXECUTE sys.sp_drop_trusted_assembly @hash = @AssemblyHash
---GO
-
---SELECT * FROM sys.trusted_assemblies
-
-/*
-
-EXEC tSQLt.InstallAssemblyKey;
-GO
-EXEC sys.sp_configure @configname = 'clr strict security', @configvalue = 0;
-GO
-RECONFIGURE
-GO
-EXEC sys.sp_configure @configname = 'clr strict security', @configvalue = 1;
-GO
-RECONFIGURE
-GO
-EXEC master.sys.sp_executesql N'GRANT UNSAFE ASSEMBLY TO tSQLtAssemblyKey;',N'';
-GO
-SELECT 
-    HASHBYTES('SHA2_512',AssemblyKeyBytes),
-    AssemblyKeyBytes, AssemblyKeyThumbPrint 
-  FROM tSQLt.Private_GetAssemblyKeyBytes()
-
-  
-
-*/

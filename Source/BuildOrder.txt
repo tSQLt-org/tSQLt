@@ -2,7 +2,6 @@ tSQLt._Header.sql
 tSQLt.DropClass.ssp.sql
 ../Build/temp/tSQLt.Private_GetAssemblyKeyBytes.sql
 tSQLt.Private_EnableCLR.ssp.sql
-tSQLt.Private_Bin2Hex.sfn.sql
 tSQLt.RemoveAssemblyKey.ssp.sql
 tSQLt.InstallAssemblyKey.ssp.sql
 tSQLt.PrepareServer.ssp.sql

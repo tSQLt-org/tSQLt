@@ -23,9 +23,8 @@ BEGIN
   DECLARE @SigningKeyPattern NVARCHAR(MAX);
   DECLARE @ClrInfo NVARCHAR(MAX);
   
-  SELECT @SigningKeyPattern = '%publickeytoken='+PBH.bare+',%'
-    FROM tSQLt.Info() I
-   CROSS APPLY tSQLt.Private_Bin2Hex(I.ClrSigningKey) AS PBH;
+  SELECT @SigningKeyPattern = '%publickeytoken='+LOWER(CONVERT(NVARCHAR(MAX),I.ClrSigningKey,2))+',%'
+    FROM tSQLt.Info() I;
   
   SELECT @ClrInfo=clr_name FROM sys.assemblies WHERE name='tSQLtCLR'  
 

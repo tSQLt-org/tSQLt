@@ -28,10 +28,9 @@ BEGIN
 
   SELECT @cmd = 
          'CREATE ASSEMBLY tSQLtAssemblyKey AUTHORIZATION dbo FROM ' +
-         BH.prefix +
+         CONVERT(NVARCHAR(MAX),GUEB.UnsignedEmptyBytes,1) +
          ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS GUEB
-   CROSS APPLY tSQLt.Private_Bin2Hex(GUEB.UnsignedEmptyBytes) AS BH;
+    FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS GUEB;
   EXEC master.sys.sp_executesql @cmd;
   
   EXEC tSQLt.RemoveAssemblyKey;

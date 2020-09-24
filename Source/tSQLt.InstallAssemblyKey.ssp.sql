@@ -15,6 +15,11 @@ BEGIN
   DECLARE @cmd2 NVARCHAR(MAX);
   DECLARE @master_sys_sp_executesql NVARCHAR(MAX); SET @master_sys_sp_executesql = 'master.sys.sp_executesql';
 
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX),
+          @AssemblyKeyThumbPrint VARBINARY(MAX);
+
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes OUT, @AssemblyKeyThumbPrint OUT;
+
   SET @cmd = 'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtAssemblyKey'') DROP ASSEMBLY tSQLtAssemblyKey;';
   EXEC @master_sys_sp_executesql @cmd;
 
@@ -27,8 +32,7 @@ BEGIN
   DECLARE @Hash VARBINARY(64) = NULL;
   IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
   BEGIN
-    SELECT @Hash = HASHBYTES('SHA2_512',PGEAKB.AssemblyKeyBytes)
-      FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
+    SELECT @Hash = HASHBYTES('SHA2_512',@AssemblyKeyBytes);
 
     SELECT @cmd = 
            'IF NOT EXISTS (SELECT * FROM sys.trusted_assemblies WHERE [hash] = @Hash)'+
@@ -42,10 +46,8 @@ BEGIN
 
   SELECT @cmd = 
          'CREATE ASSEMBLY tSQLtAssemblyKey AUTHORIZATION dbo FROM ' +
-         BH.prefix +
-         ' WITH PERMISSION_SET = SAFE;'       
-    FROM tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB
-   CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.AssemblyKeyBytes) BH;
+         CONVERT(NVARCHAR(MAX),@AssemblyKeyBytes,1) +
+         ' WITH PERMISSION_SET = SAFE;'
   EXEC @master_sys_sp_executesql @cmd;
 
   IF SUSER_ID('tSQLtAssemblyKey') IS NOT NULL DROP LOGIN tSQLtAssemblyKey;
@@ -55,11 +57,10 @@ BEGIN
 
   SET @cmd2 = 'SELECT @cmd = ISNULL(''DROP LOGIN ''+QUOTENAME(SP.name)+'';'','''')+''DROP ASYMMETRIC KEY '' + QUOTENAME(AK.name) + '';'''+
               '  FROM master.sys.asymmetric_keys AS AK'+
-              '  JOIN tSQLt.Private_GetAssemblyKeyBytes() AS PGEAKB'+
-              '    ON AK.thumbprint = PGEAKB.AssemblyKeyThumbPrint'+
               '  LEFT JOIN master.sys.server_principals AS SP'+
-              '    ON AK.sid = SP.sid;';
-  EXEC sys.sp_executesql @cmd2,N'@cmd NVARCHAR(MAX) OUTPUT',@cmd OUT;
+              '    ON AK.sid = SP.sid'+
+              ' WHERE AK.thumbprint = @AssemblyKeyThumbPrint;';
+  EXEC sys.sp_executesql @cmd2,N'@cmd NVARCHAR(MAX) OUTPUT, @AssemblyKeyThumbPrint VARBINARY(MAX)',@cmd OUT, @AssemblyKeyThumbPrint;
   EXEC @master_sys_sp_executesql @cmd;
 
   SET @cmd = 'CREATE ASYMMETRIC KEY tSQLtAssemblyKey FROM ASSEMBLY tSQLtAssemblyKey;';
@@ -92,16 +93,3 @@ END;
 GO
 ---Build-
 GO
-
-
-/*
-    '
-      DECLARE @cmd NVARCHAR(MAX);
-      SELECT @cmd = ''EXEC sys.sp_drop_trusted_assembly @hash = '' + @Hash + '';''
-        FROM sys.trusted_assemblies AS TA
-       WHERE TA.description = ''tSQLt Ephemeral''
-         AND TA.hash = '' + @Hash + '';
-      EXEC(@cmd);
-    ';
-
-*/
