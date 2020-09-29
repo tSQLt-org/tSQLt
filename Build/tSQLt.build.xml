@@ -13,7 +13,7 @@
 
  <target
    name="package.create.tSQLt"
-   depends="init, init.tSQLtCLR, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
+   depends="init, init.tSQLtCLR, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.PrepareServer, package.create.example, package.create.artifacts"
    />
 
  <target
@@ -30,10 +30,15 @@
  <!--========                 Misc                                 =========-->
  <!--=======================================================================-->
 
+ <target name="diagnostics" description="diagnostics">
+  <diagnostics/>
+ </target>
+ 
  <target name="init" description="prepare directories">
   <mkdir dir="output" />
   <delete dir="temp"/>
   <mkdir dir="temp"/>
+  <antcall target="diagnostics" ></antcall>
  </target>
 
  <target name="validate.parameter">
@@ -163,7 +168,47 @@
 
  </target>
 
+ <target name="package.create.PrepareServer">
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Source/PrepareServerBuildOrder.txt"/>
+   <arg value="temp/PrepareServer.sql"/>
+  </exec>
+
+  <!-- [{"tSQLt.","#"},{"OBJECT_ID('#","OBJECT_ID('tempdb..#"}] -->
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="tSQLt." />
+   <param name="replace.value" value="#" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="OBJECT_ID('#" />
+   <param name="replace.value" value="OBJECT_ID('tempdb..#" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="---Build-" />
+   <param name="replace.value" value="" />
+  </antcall>
+  
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="---Build+" />
+   <param name="replace.value" value="" />
+  </antcall>
+
+  <replaceregexp match="^(?:[\t ]*(?:\r?\n|\r))+" replace="" flags="gm" byline="false" file="temp/PrepareServer.sql" />
+  <!--<replaceregexp match="^[\t ]*GO[\t ]*(\r?\n)([\t ]*GO[\t ]*(\r?\n)+)+$" replace="GO\1" flags="gm" byline="false" file="temp/PrepareServer.sql" />-->
+  <replaceregexp match="^(GO)(\r?\n\1)+$" replace="\1" flags="gm" byline="false" file="temp/PrepareServer.sql" />
+
+ </target> 
+ 
  <target name="package.create.example">
+  <xxx />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
@@ -181,8 +226,8 @@
     <include name="ReleaseNotes.txt"/>
     <include name="License.txt"/>
     <include name="tSQLt.class.sql"/>
-    <include name="SetClrEnabled.sql"/>
     <include name="Example.sql"/>
+    <include name="PrepareServer.sql"/>
    </fileset>
   </zip>
   <copy file="temp/Version.txt" tofile="output/Version.txt"/>
@@ -298,6 +343,7 @@
     <include name="GetTestResults.sql"/>
     <include name="GetFailedTestCount.sql"/>
     <include name="TestThatExamplesAreDeployed.sql"/>
+    <include name="PrepareServer.sql"/>
    </fileset>
   </zip>
  </target>

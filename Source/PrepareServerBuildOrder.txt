@@ -1,4 +1,4 @@
-../Build/temp/tSQLt.Private_GetAssemblyKeyBytes.sql [{"tSQLt.","#"},{"OBJECT_ID('#","OBJECT_ID('tempdb..#"}]
+../Build/temp/tSQLt.Private_GetAssemblyKeyBytes.sql 
 tSQLt.Private_EnableCLR.ssp.sql
 tSQLt.RemoveAssemblyKey.ssp.sql
 tSQLt.InstallAssemblyKey.ssp.sql
