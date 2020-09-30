@@ -3,3 +3,4 @@ tSQLt.Private_EnableCLR.ssp.sql
 tSQLt.RemoveAssemblyKey.ssp.sql
 tSQLt.InstallAssemblyKey.ssp.sql
 tSQLt.PrepareServer.ssp.sql
+ExecutePrepareServer.sql

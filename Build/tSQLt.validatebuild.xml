@@ -3,7 +3,7 @@
 
  <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Example, report.SQL.Version" />
 
- <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, deploy.tSQLt, deploy.Example" />
+ <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, prepare.server, deploy.tSQLt, deploy.Example" />
 
  <target name="validate.parameters">
   <antcall target="validate.parameter">
@@ -83,6 +83,16 @@
   <property name="execute.sql.elevated" value="false" />
   <property name="deployandrun.tests.elevated" value="false" />
 
+ </target>
+
+ <target name="prepare.server" description="prepare sql server for tSQLtCLR">
+  
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/PrepareServer.sql" />
+  </antcall>
+  
  </target>
 
  <target name="append.file" description="append one sql file to another">

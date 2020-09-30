@@ -202,13 +202,11 @@
   </antcall>
 
   <replaceregexp match="^(?:[\t ]*(?:\r?\n|\r))+" replace="" flags="gm" byline="false" file="temp/PrepareServer.sql" />
-  <!--<replaceregexp match="^[\t ]*GO[\t ]*(\r?\n)([\t ]*GO[\t ]*(\r?\n)+)+$" replace="GO\1" flags="gm" byline="false" file="temp/PrepareServer.sql" />-->
-  <replaceregexp match="^(GO)(\r?\n\1)+$" replace="\1" flags="gm" byline="false" file="temp/PrepareServer.sql" />
+  <replaceregexp match="^\s*GO\s*((\r?\n)\s*GO\s*)+$" replace="GO" flags="gm" byline="false" file="temp/PrepareServer.sql" />
 
  </target> 
  
  <target name="package.create.example">
-  <xxx />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
