@@ -226,7 +226,7 @@ stages:
   displayName: "Validate on ($[variables.SqlVersionEdition])"
   dependsOn: Build_tSQLt
   variables:
-    SQLVersionEdition: 2016
+    SQLVersionEdition: 2019
     NamePreFix: 'tSQLtCI_'
 
   jobs:
