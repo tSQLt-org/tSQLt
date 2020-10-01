@@ -30,7 +30,7 @@ BEGIN
   EXEC @master_sys_sp_executesql @cmd;
 
   DECLARE @Hash VARBINARY(64) = NULL;
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
     SELECT @Hash = HASHBYTES('SHA2_512',@AssemblyKeyBytes);
 
@@ -39,7 +39,7 @@ BEGIN
            'BEGIN'+
            '  EXEC sys.sp_add_trusted_assembly @hash = @Hash, @description = N''tSQLt Ephemeral'';'+
            'END ELSE BEGIN'+
-           '  SET @Hash = NULL;'+
+           '  SELECT @Hash = NULL FROM sys.trusted_assemblies WHERE [hash] = @Hash AND description <> ''tSQLt Ephemeral'';'+
            'END;';
     EXEC @master_sys_sp_executesql @cmd, N'@Hash VARBINARY(64) OUTPUT',@Hash OUT;
   END;
@@ -78,7 +78,7 @@ BEGIN
     EXEC @master_sys_sp_executesql @cmd, N'@Hash VARBINARY(64)',@Hash;
   END;
 
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
     SET @cmd = 'GRANT UNSAFE ASSEMBLY TO tSQLtAssemblyKey;';
   END

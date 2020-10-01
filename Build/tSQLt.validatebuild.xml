@@ -5,6 +5,10 @@
 
  <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, prepare.server, deploy.tSQLt, deploy.Example" />
 
+ <target name="StopBuild">
+  <Intentional---Error---To---Stop---The---Build />
+ </target>
+ 
  <target name="validate.parameters">
   <antcall target="validate.parameter">
    <param name="parameter.name" value="db.server" />
@@ -338,7 +342,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(tSQLtAssemblyKey).sql" />
+   <param name="execute.sql.filename" value="temp/Drop(tSQLtAssemblyKey)(Pre2017).sql" />
   </antcall>
 
   <!-- run bootstrap tests -->

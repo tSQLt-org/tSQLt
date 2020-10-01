@@ -17,7 +17,7 @@ BEGIN
   EXEC master.sys.sp_executesql N'IF ASYMKEY_ID(''tSQLtAssemblyKey'') IS NOT NULL DROP ASYMMETRIC KEY tSQLtAssemblyKey;';
   EXEC master.sys.sp_executesql N'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtAssemblyKey'') DROP ASSEMBLY tSQLtAssemblyKey;';
   
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
     DECLARE @cmd NVARCHAR(MAX);
     SELECT @cmd = 
@@ -76,7 +76,7 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
     SELECT @cmd = 
@@ -106,7 +106,7 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
     DECLARE @AssemblyKeyBytes VARBINARY(MAX);
@@ -196,7 +196,7 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
     SELECT @cmd = 
@@ -231,7 +231,7 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=15)
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2019
     SELECT @cmd = 
@@ -344,7 +344,7 @@ GO
 ------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------
 GO
---[@tSQLt:MinSqlMajorVersion](15)
+--[@tSQLt:MinSqlMajorVersion](14)
 CREATE PROCEDURE InstallAssemblyKeyTests.[test can install key even if clr strict security is set to 1]
 AS
 BEGIN
@@ -371,7 +371,7 @@ BEGIN
 
 END;
 GO
---[@tSQLt:MinSqlMajorVersion](15)
+--[@tSQLt:MinSqlMajorVersion](14)
 CREATE PROCEDURE InstallAssemblyKeyTests.[test works if trusted assembly entry exists already]
 AS
 BEGIN
@@ -390,7 +390,7 @@ BEGIN
 
 END;
 GO
---[@tSQLt:MinSqlMajorVersion](15)
+--[@tSQLt:MinSqlMajorVersion](14)
 CREATE PROCEDURE InstallAssemblyKeyTests.[test removes trusted assembly record when done]
 AS
 BEGIN
@@ -404,8 +404,8 @@ BEGIN
 
 END;
 GO
---[@tSQLt:MinSqlMajorVersion](15)
-CREATE PROCEDURE InstallAssemblyKeyTests.[test does not remove trusted assembly record when it pre-existed without the tSQLt Ephemeral description]
+--[@tSQLt:MinSqlMajorVersion](14)
+CREATE PROCEDURE InstallAssemblyKeyTests.[test does not remove trusted assembly record if it already exists (based on hash)]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -413,10 +413,10 @@ BEGIN
   DECLARE @AssemblyKeyBytes VARBINARY(MAX);
   EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
 
-  DECLARE @Hash NVARCHAR(MAX) = CONVERT(NVARCHAR(MAX),@AssemblyKeyBytes,1);
+  DECLARE @Hash NVARCHAR(MAX) = CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1);
 
   DECLARE @cmd NVARCHAR(MAX);
-  SELECT @cmd = 'EXEC sys.sp_add_trusted_assembly @hash = ' + @Hash + ', @description = N''tSQLt Ephemeral'';'
+  SELECT @cmd = 'EXEC sys.sp_add_trusted_assembly @hash = ' + @Hash + ', @description = N''some random description'';'
   EXEC master.sys.sp_executesql @cmd;
 
   EXEC tSQLt.InstallAssemblyKey;
@@ -424,12 +424,34 @@ BEGIN
   SELECT TA.hash, TA.description INTO #Actual FROM sys.trusted_assemblies AS TA;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES(CONVERT(VARBINARY(64),@Hash,1), 'tSQLt Ephemeral');
+  INSERT INTO #Expected VALUES(CONVERT(VARBINARY(64),@Hash,1), 'some random description'); --failing this on purpose. Fix me.
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
---[@tSQLt:MaxSqlMajorVersion](14)
-CREATE PROCEDURE InstallAssemblyKeyTests.[test grants EXTERNAL ACCESS ASSEMBLY permission to new login per SQL 2019]
+--[@tSQLt:MinSqlMajorVersion](14)
+CREATE PROCEDURE InstallAssemblyKeyTests.[test removes trusted assembly record if it already exists (based on hash) and has the tSQLt Ephemeral description]
+AS
+BEGIN
+  EXEC InstallAssemblyKeyTests.DropExistingItems;
+
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+
+  DECLARE @Hash NVARCHAR(MAX) = CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1);
+
+  DECLARE @cmd NVARCHAR(MAX);
+  SELECT @cmd = 'EXEC sys.sp_add_trusted_assembly @hash = ' + @Hash + ', @description = N''tSQLt Ephemeral'';'
+  EXEC master.sys.sp_executesql @cmd;
+
+  EXEC tSQLt.InstallAssemblyKey;
+
+  SELECT * INTO #Actual FROM sys.trusted_assemblies AS TA WHERE TA.description = 'tSQLt Ephemeral';
+
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+END;
+GO
+--[@tSQLt:MaxSqlMajorVersion](13)
+CREATE PROCEDURE InstallAssemblyKeyTests.[test grants EXTERNAL ACCESS ASSEMBLY permission to new login pre SQL 2017]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -454,8 +476,8 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
---[@tSQLt:MinSqlMajorVersion](15)
-CREATE PROCEDURE InstallAssemblyKeyTests.[test grants UNSAFE ASSEMBLY permission to new login in SQL 2019 and later]
+--[@tSQLt:MinSqlMajorVersion](14)
+CREATE PROCEDURE InstallAssemblyKeyTests.[test grants UNSAFE ASSEMBLY permission to new login in SQL 2017 and later]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -485,9 +507,12 @@ CREATE PROCEDURE InstallAssemblyKeyTests.[test TODO]
 AS
 BEGIN
 EXEC tSQLt.Fail 'TODO';
-  -- change IAK to be able to run on 2019 without setting clr strict security to 0
+  -- change IAK to be able to run on 2017 and 2019 without setting clr strict security to 0
   
-  --dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop exception
-  --change the tSQLt install script to execute tSQLt.InstallAssemblyKey if indicated (what should that indication be?) (maybe this could be a command line flag in the build?)
+  --dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop trusted_assembly exception
+  --fix these ---v
+  --[EnableExternalAccessTests].[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails]
+  --[Private_InitTests_EAKE].[test Private_Init does not fail if external access isn't possible]
+  --[RemoveAssemblyKeyTests].[test removes tSQLtAssemblyKey assembly]
 END;
 GO
