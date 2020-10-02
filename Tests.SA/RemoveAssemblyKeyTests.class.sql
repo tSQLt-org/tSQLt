@@ -26,6 +26,17 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
+  BEGIN
+    -- sp_add_trusted_assembly is new (and required) in 2017
+    SELECT @cmd = 
+           'EXEC sys.sp_add_trusted_assembly @hash = ' + CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',PGEAKB.UnsignedEmptyBytes),1) + ', @description = N''tSQLt Ephemeral'';'
+      FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS PGEAKB
+     WHERE NOT EXISTS(SELECT 1 FROM sys.trusted_assemblies AS TA WHERE TA.hash = HASHBYTES('SHA2_512',PGEAKB.UnsignedEmptyBytes));
+  
+    EXEC master.sys.sp_executesql @cmd;
+  END;
+
   SELECT @cmd = 
          'CREATE ASSEMBLY tSQLtAssemblyKey AUTHORIZATION dbo FROM ' +
          CONVERT(NVARCHAR(MAX),GUEB.UnsignedEmptyBytes,1) +
@@ -35,12 +46,10 @@ BEGIN
   
   EXEC tSQLt.RemoveAssemblyKey;
 
-  SELECT *
-    INTO #Actual
-    FROM master.sys.assemblies AS A
-   WHERE A.name = 'tSQLtAssemblyKey'
-
-  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual'; --<-- this might blow up if the table isn't empty.
+  IF(EXISTS(SELECT 1 FROM master.sys.assemblies WHERE name = 'tSQLtAssemblyKey'))
+  BEGIN
+    EXEC tSQLt.Fail 'Assembly tSQLtAssemblyKey not removed.';
+  END;
 END;
 GO
 

@@ -78,7 +78,7 @@ BEGIN
 
   IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
   BEGIN
-    -- sp_add_trusted_assembly is new (and required) in 2019
+    -- sp_add_trusted_assembly is new (and required) in 2017
     SELECT @cmd = 
            'EXEC sys.sp_add_trusted_assembly @hash = ' + CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',PGEAKB.UnsignedEmptyBytes),1) + ', @description = N''tSQLt Ephemeral'';'
       FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS PGEAKB;
@@ -507,12 +507,10 @@ CREATE PROCEDURE InstallAssemblyKeyTests.[test TODO]
 AS
 BEGIN
 EXEC tSQLt.Fail 'TODO';
-  -- change IAK to be able to run on 2017 and 2019 without setting clr strict security to 0
+  -- change PrepareServer to be able to run on 2019 without setting clr strict security to 0
+
+  -- Harden tSQLt build server in beginning of build (Strict enabled on 2017+, clr disabled, no tSQLt objects in master) "CleanLocalEnvironment"?
   
-  --dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop trusted_assembly exception
-  --fix these ---v
-  --[EnableExternalAccessTests].[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails]
-  --[Private_InitTests_EAKE].[test Private_Init does not fail if external access isn't possible]
-  --[RemoveAssemblyKeyTests].[test removes tSQLtAssemblyKey assembly]
+  -- dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop trusted_assembly exception
 END;
 GO
