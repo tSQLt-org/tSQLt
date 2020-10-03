@@ -16,6 +16,29 @@ BEGIN
   IF SUSER_ID('tSQLtAssemblyKey') IS NOT NULL DROP LOGIN tSQLtAssemblyKey;
   EXEC master.sys.sp_executesql N'IF ASYMKEY_ID(''tSQLtAssemblyKey'') IS NOT NULL DROP ASYMMETRIC KEY tSQLtAssemblyKey;';
   EXEC master.sys.sp_executesql N'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtAssemblyKey'') DROP ASSEMBLY tSQLtAssemblyKey;';
+  DECLARE @cmd NVARCHAR(MAX);
+  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
+  BEGIN
+    -- sp_drop_trusted_assembly is new (and required) in 2017
+    DECLARE @TrustedHash NVARCHAR(MAX);
+    SELECT @TrustedHash = CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',PGEAKB.UnsignedEmptyBytes),1)
+      FROM tSQLt_testutil.GetUnsignedEmptyBytes() AS PGEAKB
+
+    SELECT @cmd = 
+           'IF EXISTS(SELECT 1 FROM sys.trusted_assemblies WHERE hash = ' + @TrustedHash +')'+
+           'EXEC sys.sp_drop_trusted_assembly @hash = ' + @TrustedHash + ';';
+    EXEC master.sys.sp_executesql @cmd;
+
+    DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+    EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+
+    SELECT @TrustedHash = CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1);
+
+    SELECT @cmd = 
+           'IF EXISTS(SELECT 1 FROM sys.trusted_assemblies WHERE hash = ' + @TrustedHash +')'+
+           'EXEC sys.sp_drop_trusted_assembly @hash = ' + @TrustedHash + ';';
+    EXEC master.sys.sp_executesql @cmd;
+  END;
 END;
 GO
 GO
@@ -53,7 +76,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE RemoveAssemblyKeyTests.[test removes tSQLtAssemblyKey certificate]
+CREATE PROCEDURE RemoveAssemblyKeyTests.[test removes tSQLtAssemblyKey asymmetric key]
 AS
 BEGIN
   EXEC RemoveAssemblyKeyTests.DropExistingItems;
@@ -95,7 +118,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE RemoveAssemblyKeyTests.[test removes tSQLtAssemblyKey certificate and login in correct order]
+CREATE PROCEDURE RemoveAssemblyKeyTests.[test removes tSQLtAssemblyKey asymmetric key and login in correct order]
 AS
 BEGIN
   EXEC RemoveAssemblyKeyTests.DropExistingItems;
@@ -151,7 +174,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE RemoveAssemblyKeyTests.[test login with control server can execute procedure]
+CREATE PROCEDURE RemoveAssemblyKeyTests.[test login with control server permission can execute procedure]
 AS
 BEGIN
 
@@ -173,4 +196,51 @@ BEGIN
 
 END;
 GO
+--[@tSQLt:MinSqlMajorVersion](14)
+CREATE PROCEDURE RemoveAssemblyKeyTests.[test removes trusted assembly record if it exists]
+AS
+BEGIN
+  EXEC RemoveAssemblyKeyTests.DropExistingItems;
 
+  DECLARE @cmd NVARCHAR(MAX);
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+  DECLARE @TrustedHash NVARCHAR(MAX);
+
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+  SELECT @TrustedHash = CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1);
+
+  SELECT @cmd = 'EXEC sys.sp_add_trusted_assembly @hash = ' + @TrustedHash +',@description = N''tSQLt Ephemeral'';'  
+  EXEC master.sys.sp_executesql @cmd;
+  
+  EXEC tSQLt.RemoveAssemblyKey;
+
+  IF(EXISTS(SELECT 1 FROM master.sys.trusted_assemblies WHERE hash = CONVERT(VARBINARY(MAX),@TrustedHash,1)))
+  BEGIN
+    EXEC tSQLt.Fail 'Trusted Assembly record for tSQLtAssemblyKey not removed.';
+  END;
+END;
+GO
+--[@tSQLt:MinSqlMajorVersion](14)
+CREATE PROCEDURE RemoveAssemblyKeyTests.[test doesn't remove trusted assembly record if it is not 'tSQLt Ephemeral']
+AS
+BEGIN
+  EXEC RemoveAssemblyKeyTests.DropExistingItems;
+
+  DECLARE @cmd NVARCHAR(MAX);
+  DECLARE @AssemblyKeyBytes VARBINARY(MAX);
+  DECLARE @TrustedHash NVARCHAR(MAX);
+
+  EXEC tSQLt.Private_GetAssemblyKeyBytes @AssemblyKeyBytes = @AssemblyKeyBytes OUT;
+  SELECT @TrustedHash = CONVERT(NVARCHAR(MAX),HASHBYTES('SHA2_512',@AssemblyKeyBytes),1);
+
+  SELECT @cmd = 'EXEC sys.sp_add_trusted_assembly @hash = ' + @TrustedHash +',@description = N''something else'';'  
+  EXEC master.sys.sp_executesql @cmd;
+  
+  EXEC tSQLt.RemoveAssemblyKey;
+
+  IF(NOT EXISTS(SELECT 1 FROM master.sys.trusted_assemblies WHERE hash = CONVERT(VARBINARY(MAX),@TrustedHash,1)))
+  BEGIN
+    EXEC tSQLt.Fail 'Trusted Assembly record for tSQLtAssemblyKey removed despite description <> ''tSQLt Ephemeral''.';
+  END;
+END;
+GO

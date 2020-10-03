@@ -18,7 +18,7 @@
 
  <target
   name="package.create.tSQLt.tests"
-  depends="init, init.tSQLt.tests, package.test.files, package.test.create.artifacts"
+  depends="init, init.tSQLt.tests, package.test.files, package.create.ResetValidationServer, package.test.create.artifacts"
    />
 
  <target
@@ -122,13 +122,13 @@
   </exec>
 
   <echo message="Generating GetAssemblyKeyBytes function."/>
-  <exec executable="cmd" dir="." failonerror="true" output="temp/tSQLt.Private_GetAssemblyKeyBytes.sql">
+  <exec executable="cmd" dir="." failonerror="true" output="output/tSQLt.Private_GetAssemblyKeyBytes.sql">
    <arg value="/c"/>
    <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtAssemblyKey.dll ../Source/tSQLt.Private_GetAssemblyKeyBytes.mdl.sql 0x000000 0x000001 200 &quot;+\n0x&quot;"/>
   </exec>
   <exec executable="cmd" dir="." failonerror="true" >
    <arg value="/c"/>
-   <arg value="type temp\tSQLt.Private_GetAssemblyKeyBytes.sql"/>
+   <arg value="type output\tSQLt.Private_GetAssemblyKeyBytes.sql"/>
   </exec>
 
   <exec executable="cmd" dir="." failonerror="true">
@@ -176,7 +176,6 @@
    <arg value="temp/PrepareServer.sql"/>
   </exec>
 
-  <!-- [{"tSQLt.","#"},{"OBJECT_ID('#","OBJECT_ID('tempdb..#"}] -->
   <antcall target="replace.in.file">
    <param name="replace.file" value="temp/PrepareServer.sql" />
    <param name="replace.token" value="tSQLt." />
@@ -194,7 +193,7 @@
    <param name="replace.token" value="---Build-" />
    <param name="replace.value" value="" />
   </antcall>
-  
+
   <antcall target="replace.in.file">
    <param name="replace.file" value="temp/PrepareServer.sql" />
    <param name="replace.token" value="---Build+" />
@@ -204,8 +203,57 @@
   <replaceregexp match="^(?:[\t ]*(?:\r?\n|\r))+" replace="" flags="gm" byline="false" file="temp/PrepareServer.sql" />
   <replaceregexp match="^\s*GO\s*((\r?\n)\s*GO\s*)+$" replace="GO" flags="gm" byline="false" file="temp/PrepareServer.sql" />
 
- </target> 
- 
+ </target>
+
+ <target name="append.file" description="append one sql file to another">
+  <echo message="append:${append.source}" />
+  <loadfile srcfile="${append.source}" property="append.file.content" />
+  <echo message="${append.file.content}" file="${append.target}" append="true"/>
+  <echo message="${line.separator}${line.separator}GO${line.separator}${line.separator}" file="${append.target}" append="true" />
+ </target>
+
+ <target name="package.create.ResetValidationServer">
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Source/ResetValidationServerBuildOrder.txt"/>
+   <arg value="temp/ResetValidationServer.sql"/>
+  </exec>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="tSQLt." />
+   <param name="replace.value" value="#" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="OBJECT_ID('#" />
+   <param name="replace.value" value="OBJECT_ID('tempdb..#" />
+  </antcall>
+
+  <antcall target="append.file">
+   <param name="append.target" value="temp/ResetValidationServer.sql" />
+   <param name="append.source" value="CreateLogin(tSQLt.Build).sql" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="---Build-" />
+   <param name="replace.value" value="" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="---Build+" />
+   <param name="replace.value" value="" />
+  </antcall>
+
+  <replaceregexp match="^(?:[\t ]*(?:\r?\n|\r))+" replace="" flags="gm" byline="false" file="temp/ResetValidationServer.sql" />
+  <replaceregexp match="^\s*GO\s*((\r?\n)\s*GO\s*)+$" replace="GO" flags="gm" byline="false" file="temp/ResetValidationServer.sql" />
+
+ </target>
+
  <target name="package.create.example">
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
@@ -342,6 +390,7 @@
     <include name="GetFailedTestCount.sql"/>
     <include name="TestThatExamplesAreDeployed.sql"/>
     <include name="PrepareServer.sql"/>
+    <include name="ResetValidationServer.sql"/>
    </fileset>
   </zip>
  </target>

@@ -46,7 +46,7 @@ BEGIN
   EXEC tSQLt.AssertEquals @Expected = @tSQLtKey, @Actual = @EAKey;
 END;
 GO
-CREATE PROCEDURE InstallAssemblyKeyTests.[test creates correct certificate in master]
+CREATE PROCEDURE InstallAssemblyKeyTests.[test creates correct asymmetric key in master]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -145,7 +145,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE InstallAssemblyKeyTests.[test creates login based on the new certificate]
+CREATE PROCEDURE InstallAssemblyKeyTests.[test creates login based on the new asymmetric key]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -153,7 +153,7 @@ BEGIN
   EXEC tSQLt.InstallAssemblyKey;
 
   SELECT SP.name login_name,
-         AK.name certificate_name,
+         AK.name asymmetric_key_name,
          SP.type_desc 
     INTO #Actual
     FROM master.sys.server_principals AS SP
@@ -171,7 +171,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE InstallAssemblyKeyTests.[test works if a tSQLtAssemblyKey certificate already exists]
+CREATE PROCEDURE InstallAssemblyKeyTests.[test works if a tSQLtAssemblyKey asymmetric key already exists]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -186,7 +186,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE InstallAssemblyKeyTests.[test works if a tSQLtAssemblyKey certificate already exists under different name]
+CREATE PROCEDURE InstallAssemblyKeyTests.[test works if a tSQLtAssemblyKey asymmetric key already exists under different name]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -221,7 +221,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE InstallAssemblyKeyTests.[test works if a tSQLtAssemblyKey certificate/login pair already exists under different name]
+CREATE PROCEDURE InstallAssemblyKeyTests.[test works if a tSQLtAssemblyKey asymmetric key/login pair already exists under different name]
 AS
 BEGIN
   EXEC InstallAssemblyKeyTests.DropExistingItems;
@@ -353,7 +353,7 @@ BEGIN
   EXEC tSQLt.InstallAssemblyKey;
 
   SELECT SP.name login_name,
-         AK.name certificate_name,
+         AK.name asymmetric_key_name,
          SP.type_desc 
     INTO #Actual
     FROM master.sys.server_principals AS SP

@@ -1,0 +1,3 @@
+../Build/output/tSQLt.Private_GetAssemblyKeyBytes.sql 
+tSQLt.RemoveAssemblyKey.ssp.sql
+../Build/ExecuteResetValidationServer.sql

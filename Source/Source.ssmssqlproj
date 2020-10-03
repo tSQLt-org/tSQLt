@@ -599,6 +599,12 @@
           <AssociatedConnUserName />
           <FullPath>PrepareServerBuildOrder.txt</FullPath>
         </FileNode>
+        <FileNode Name="ResetValidationServerBuildOrder.txt">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>ResetValidationServerBuildOrder.txt</FullPath>
+        </FileNode>
       </Items>
     </LogicalFolder>
   </Items>

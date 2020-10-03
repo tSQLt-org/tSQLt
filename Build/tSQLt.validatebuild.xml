@@ -3,7 +3,7 @@
 
  <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Example, report.SQL.Version" />
 
- <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, prepare.server, deploy.tSQLt, deploy.Example" />
+ <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, reset.server, prepare.server, deploy.tSQLt, deploy.Example" />
 
  <target name="StopBuild">
   <Intentional---Error---To---Stop---The---Build />
@@ -89,14 +89,24 @@
 
  </target>
 
+ <target name="reset.server" description="Bring server's security into a known state">
+
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/ResetValidationServer.sql" />
+  </antcall>
+
+ </target>
+
  <target name="prepare.server" description="prepare sql server for tSQLtCLR">
-  
+
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
    <param name="execute.sql.filename" value="temp/PrepareServer.sql" />
   </antcall>
-  
+
  </target>
 
  <target name="append.file" description="append one sql file to another">
@@ -113,6 +123,7 @@
    <param name="append.source" value="temp/AllTests.sql" />
   </antcall>
  </target>
+ 
  <target name="create.tSQLt.scripts" description="generate build execution utility scripts">
   <delete file="temp/temp_prepare_server.sql" />
   <antcall target="append.file">
@@ -144,7 +155,7 @@
 
  </target>
 
- <target name="create.Example.scripts" description="generate database creation scripts">
+ <target name="create.Example.scripts" description="generate database creation scripts for example">
   <delete file="temp/temp_create_example.sql" />
   <antcall target="append.file">
    <param name="append.target" value="temp/temp_create_example.sql" />
