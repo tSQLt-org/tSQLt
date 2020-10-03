@@ -92,8 +92,8 @@
  <target name="reset.server" description="Bring server's security into a known state">
 
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.database" value="tempdb" />
+   <param name="execute.sql.caller" value="true" />
    <param name="execute.sql.filename" value="temp/ResetValidationServer.sql" />
   </antcall>
 
@@ -102,7 +102,7 @@
  <target name="prepare.server" description="prepare sql server for tSQLtCLR">
 
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="tempdb" />
    <param name="execute.sql.elevated" value="true" />
    <param name="execute.sql.filename" value="temp/PrepareServer.sql" />
   </antcall>
@@ -151,6 +151,11 @@
    <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
   </antcall>
 
+  <delete file="temp/temp_executeas_caller.sql" />
+  <antcall target="append.file">
+   <param name="append.target" value="temp/temp_executeas_caller.sql" />
+   <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+  </antcall>  
   <antcall target="create.tSQLt.scripts.AllTests.Main" />
 
  </target>
@@ -176,13 +181,19 @@
  <!--========                   create database                    =========-->
  <!--=======================================================================-->
 
+ <target name="execute.sql.statement_or_file.permissions.caller" if="execute.sql.statement_or_file.permissions.caller">
+  <echo message="--> execute.sql.statement_or_file.caller" />
+  <antcall target="execute.sql.statement_or_file.exec">
+   <param name="execute.sql.executeas" value="temp/temp_executeas_caller.sql" />
+  </antcall>
+ </target>
  <target name="execute.sql.statement_or_file.permissions.elevated" if="execute.sql.statement_or_file.permissions.elevated">
   <echo message="--> execute.sql.statement_or_file.elevated" />
   <antcall target="execute.sql.statement_or_file.exec">
    <param name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
   </antcall>
  </target>
- <target name="execute.sql.statement_or_file.permissions.default" unless="execute.sql.statement_or_file.permissions.elevated">
+ <target name="execute.sql.statement_or_file.permissions.default" if="execute.sql.statement_or_file.permissions.default">
   <echo message="--> execute.sql.statement_or_file.default" />
   <antcall target="execute.sql.statement_or_file.exec">
    <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
@@ -196,6 +207,7 @@
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
   <antcall target="execute.sql.statement_or_file.permissions.default" />
   <antcall target="execute.sql.statement_or_file.permissions.elevated" />
+  <antcall target="execute.sql.statement_or_file.permissions.caller" />
   <echo message="execute.sql.statement_or_file.with.permissions finished" />
  </target>
 
@@ -207,6 +219,18 @@
   <condition property="execute.sql.statement_or_file.permissions.elevated">
    <equals arg1="${execute.sql.elevated}" arg2="true" />
   </condition>
+  <condition property="execute.sql.statement_or_file.permissions.caller">
+   <equals arg1="${execute.sql.caller}" arg2="true" />
+  </condition>
+  <condition property="execute.sql.statement_or_file.permissions.default">
+   <not>
+    <or>
+     <equals arg1="${execute.sql.elevated}" arg2="true" />
+     <equals arg1="${execute.sql.caller}" arg2="true" />
+    </or>
+   </not>
+  </condition>
+
   <antcall target="execute.sql.statement_or_file.with.permissions">
    <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
    <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; ${db.login}" />

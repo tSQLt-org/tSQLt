@@ -502,15 +502,3 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO
-
-CREATE PROCEDURE InstallAssemblyKeyTests.[test TODO]
-AS
-BEGIN
-EXEC tSQLt.Fail 'TODO';
-  -- change PrepareServer to be able to run on 2019 without setting clr strict security to 0
-
-  -- Harden tSQLt build server in beginning of build (Strict enabled on 2017+, clr disabled, no tSQLt objects in master) "CleanLocalEnvironment"?
-  
-  -- dropAssemblyKey: drop login, drop assymetric key, drop assembly, drop assembly if named differently, drop trusted_assembly exception
-END;
-GO
