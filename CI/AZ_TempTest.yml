@@ -40,13 +40,6 @@ variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
 
-resources:
-  repositories:
-  - repository: tmp6
-    type: github
-    name: tSQLt/tmp6
-    endpoint: GitHub-tSQLt-Robot
-    ref: $(ArtifactBranchName)
 
 jobs:
 - job: joba
@@ -63,6 +56,7 @@ jobs:
     fetchDepth: 1
     lfs: false
     path: tSQLt
+
 
 
   - task: AzureKeyVault@1
