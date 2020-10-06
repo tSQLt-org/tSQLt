@@ -45,10 +45,6 @@ jobs:
 - job: joba
   condition: false
   
-  variables:
-    SQLVersionEdition: 2019
-    NamePreFix: 'tSQLtCI_'
-  
   steps:
 
   - checkout: self
@@ -102,6 +98,10 @@ jobs:
        
       
 - job: SetupVM
+  variables:
+    SQLVersionEdition: 2019
+    NamePreFix: 'tSQLtCI_'
+
   steps:
   - checkout: self
     clean: true
