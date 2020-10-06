@@ -42,6 +42,24 @@
                         }
                     },
                     {
+                        "name": "SQL_Port42042",
+                        "properties": {
+                            "description": "SQL Server",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "42042",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
                         "name": "Port_3389",
                         "properties": {
                             "description": "RDP",

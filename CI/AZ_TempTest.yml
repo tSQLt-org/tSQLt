@@ -50,6 +50,11 @@ resources:
 
 jobs:
 - job: joba
+  condition: false
+  
+  variables:
+    SQLVersionEdition: 2019
+    NamePreFix: 'tSQLtCI_'
   
   steps:
 
@@ -132,4 +137,67 @@ jobs:
         @ECHO -------------------------------
         @ECHO -------------------------------
         git status
+
+       
+      
+- job: SetupVM
+  steps:
+  - checkout: self
+    clean: true
+    fetchDepth: $(GitFetchDepth)
+    lfs: false
+
+  - task: AzureKeyVault@1
+    inputs:
+      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+      KeyVaultName: 'tSQLtSigningKey'
+      SecretsFilter: '*'
+
+  - task: AzurePowerShell@4
+    name: CreateVMAndMore
+    env:
+      USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+      PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      CONTACT_EMAIL: $(NotificationEmail)
+      LABVMSHUTDOWNNOTIFICATIONEMAIL: $(NotificationEmail)
+      LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
+      SQLPORTMINIMUM: $(SqlPortMinimum)
+      SQLPORTMAXIMUM: $(SqlPortMaximum)
+    inputs:
+      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptType: 'InlineScript'
+      Inline: |
+        Set-Location $(Build.Repository.LocalPath)
+        .("CI/CommonFunctionsAndMethods.ps1")
+
+        $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
+
+
+        Log-Output '==========================================================';
+        Log-Output '==========================================================';
+        Log-Output 'Executing CreateVM.ps1';
+        Log-Output '==========================================================';
+        Log-Output '==========================================================';
+        $Parameters = @{
+          NamePreFix="$(NamePreFix)";
+          BuildId="$(Build.BuildId)";
+          SQLVersionEdition="$(SQLVersionEdition)";
+          SQLPort="$SqlPort";
+          LabShutdownNotificationEmail="$env:LABVMSHUTDOWNNOTIFICATIONEMAIL";
+          LabShutdownNotificationURL="$env:LABVMSHUTDOWNNOTIFICATIONURL";
+          SQLUserName="$env:USER_NAME";
+          SQLPassword="$env:PASSWORD";
+        }; 
+        $DTLDetails = .'CI/CreateVM.ps1' @Parameters
+  
+        Log-Output '==========================================================';
+        Log-Output '==========================================================';
+        Log-Output 'Done: Executing CreateVM.ps1';
+        Log-Output '==========================================================';
+        Log-Output '==========================================================';
+            
+        $SerializedDTLDetails=(ConvertTo-JSON -InputObject $DTLDetails -Compress);
         
+        $SerializedDTLDetails
+        Write-Host "##vso[task.setvariable variable=SerializedDTLDetails;isOutput=true]$SerializedDTLDetails"
