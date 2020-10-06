@@ -64,12 +64,6 @@ jobs:
     lfs: false
     path: tSQLt
 
-  - checkout: tmp6
-    clean: true
-    fetchDepth: 1
-    lfs: false
-    path: tmp6
-    persistCredentials: true
 
   - task: AzureKeyVault@1
     inputs:
@@ -110,33 +104,6 @@ jobs:
       buildType: 'current'
       artifactName: 'tempArtifact'
       targetPath: '$(Pipeline.Workspace)\tmp2'
-
-
-
-  - task: CmdLine@2
-    name: StoreInArtifactRepo
-    condition: false
-    env:
-      GITHUB_USERNAME: $(GitHubUserName)
-      GITHUB_EMAIL: $(GitHubEmail)
-    inputs:
-      script: |
-        @ECHO ON
-        cd $(Pipeline.Workspace)\tmp6
-        @ECHO %CD%
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git config --global user.email "%GITHUB_EMAIL%"
-        git config --global user.name "%GITHUB_USERNAME%"
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git show
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git log
-        @ECHO -------------------------------
-        @ECHO -------------------------------
-        git status
 
        
       
