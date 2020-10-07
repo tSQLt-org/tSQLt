@@ -453,6 +453,25 @@ stages:
             throw "Git Failed. See prior errors.";
           } 
 
+    - task: PowerShell@2
+      name: CreateArtifact
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          $BasePath = "$(Build.SourcesDirectory)";
+          $ArtifactPath = ($BasePath+"\Build\output\TestResults\");
+          New-Item -Path $ArtifactPath  -ItemType directory -Force
+          (Get-ChildItem $BasePath -recurse)|Out-File  -FilePath $ArtifactPath+"dir.txt"
+          (Get-ChildItem $BasePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $ArtifactPath -recurse -PassThru
+          Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)/Build/output/TestResults'
+        artifact: 'TestResults'
+        publishLocation: 'pipeline'
+    
 
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
