@@ -137,7 +137,7 @@ jobs:
 
         Log-Output '==========================================================';
         Log-Output '==========================================================';
-        Log-Output 'Executing CreateVM.ps1';
+        Log-Output 'Executing CreateVMTest1.ps1';
         Log-Output '==========================================================';
         Log-Output '==========================================================';
         $Parameters = @{
@@ -150,11 +150,11 @@ jobs:
           SQLUserName="$env:USER_NAME";
           SQLPassword="$env:PASSWORD";
         }; 
-        $DTLDetails = .'CI/CreateVM.ps1' @Parameters
+        $DTLDetails = .'CI/CreateVMTest1.ps1' @Parameters
   
         Log-Output '==========================================================';
         Log-Output '==========================================================';
-        Log-Output 'Done: Executing CreateVM.ps1';
+        Log-Output 'Done: Executing CreateVMTest1.ps1';
         Log-Output '==========================================================';
         Log-Output '==========================================================';
             
