@@ -389,7 +389,27 @@ stages:
         testResultsFiles: '**/?(Example)TestResults*.xml'
         testRunTitle: 'testtitle'
         javaHomeOption: 'JDKVersion'
-    
+        
+    - task: PowerShell@2
+      name: CreateTestResultArtifact
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          $BasePath = "$(Build.SourcesDirectory)";
+          $ArtifactPath = ($BasePath+"\Build\output\TestResults\");
+          New-Item -Path $ArtifactPath  -ItemType directory -Force
+          (Get-ChildItem $BasePath -recurse)|Out-File  -FilePath $ArtifactPath+"dir.txt"
+          (Get-ChildItem $BasePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $ArtifactPath -recurse -PassThru
+          Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
+
+    - task: PublishPipelineArtifact@1
+      name: PublishTestResultArtifact
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)/Build/output/TestResults'
+        artifact: 'TestResults'
+        publishLocation: 'pipeline'
+  
     - task: PowerShell@2
       name: TestXMLOutput  ####<<---------Is this needed????
       condition: false
@@ -451,27 +471,7 @@ stages:
             git status
           }catch{
             throw "Git Failed. See prior errors.";
-          } 
-
-    - task: PowerShell@2
-      name: CreateArtifact
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          $BasePath = "$(Build.SourcesDirectory)";
-          $ArtifactPath = ($BasePath+"\Build\output\TestResults\");
-          New-Item -Path $ArtifactPath  -ItemType directory -Force
-          (Get-ChildItem $BasePath -recurse)|Out-File  -FilePath $ArtifactPath+"dir.txt"
-          (Get-ChildItem $BasePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $ArtifactPath -recurse -PassThru
-          Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
-
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: '$(Build.SourcesDirectory)/Build/output/TestResults'
-        artifact: 'TestResults'
-        publishLocation: 'pipeline'
-    
+          }  
 
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
