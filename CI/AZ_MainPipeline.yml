@@ -71,6 +71,9 @@ stages:
           git status
           Write-Host $(BuiltAlready);
           Write-Host $[variables.BuiltAlready];
+          Write-Host ${{ variables.BuiltAlready }};
+          "This is the problem"
+          Write-Host 1/0;
 
 
 - stage: Build_tSQLt
@@ -275,6 +278,7 @@ stages:
 
 - stage: Validate_tSQLt_2016
   displayName: "Validate on ($[variables.SqlVersionEdition])"
+  condition: or(succeeded(),skipped())
   dependsOn: Build_tSQLt
   variables:
     SQLVersionEdition: 2019
