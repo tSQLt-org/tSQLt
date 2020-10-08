@@ -64,7 +64,6 @@ stages:
             {
               Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true"
             }
-          }
           }catch{
             throw "Git Failed. See prior errors.";
           } 
