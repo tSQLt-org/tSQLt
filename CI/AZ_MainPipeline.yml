@@ -62,16 +62,20 @@ stages:
             $CheckIfGitOk.invoke($?);
             if( -not [string]::IsNullOrEmpty($B) )
             {
-              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true"
+              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true";
+              Write-Host "Build Branch Found";
             }
           }catch{
             throw "Git Failed. See prior errors.";
           } 
           git status
+          Write-Host $(BuiltAlready);
+          Write-Host $[variables.BuiltAlready];
 
 
 - stage: Build_tSQLt
-  condition: and(ne('$[variables.BuiltAlready]','true'), succeeded())
+  condition: and(eq('$[variables.BuiltAlready]','false'), succeeded())
+  dependsOn: Check_If_Built_Already
   jobs:
 
   - job: CompileCLR
