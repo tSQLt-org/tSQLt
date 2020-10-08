@@ -60,7 +60,7 @@ stages:
 
             $B = (git branch -r --list "origin/$(ArtifactBranchName)")
             $CheckIfGitOk.invoke($?);
-            if( -not [string]::IsNullOrEmpty($R) )
+            if( -not [string]::IsNullOrEmpty($B) )
             {
               Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true"
             }
@@ -433,7 +433,7 @@ stages:
         options: '-Ddb.version="$(SQLVersion)" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"$(SQLCMDPath)\""'
         targets: 'all'
         publishJUnitResults: true
-        testResultsFiles: '**/?(Example)TestResults*.xml'
+        testResultsFiles: '../**/?(Example)TestResults*.xml'
         testRunTitle: 'testtitle'
         javaHomeOption: 'JDKVersion'
         
@@ -443,16 +443,22 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
+          "---------------------------------------------------"
           $BasePath = "$(Build.SourcesDirectory)";
           $BasePath;
+          "==================================================="
           $ArtifactPath = ($BasePath+"\Build\output\TestResults\");
           $ArtifactPath;
+          "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
           New-Item -Path $ArtifactPath  -ItemType directory -Force
           (Get-ChildItem $BasePath -recurse);
+          "== == == == == == == == == == == == == == == == == "
           (Get-ChildItem $BasePath -recurse)|Out-File  -FilePath $ArtifactPath+"dir.txt"
           (Get-ChildItem $BasePath -recurse -include "*TestResults*.xml").FullName; 
+          "==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-"
           (Get-ChildItem $BasePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $ArtifactPath -recurse -PassThru
           Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
+          "=== === === === === === === === === === === === ==="
 
     - task: PublishPipelineArtifact@1
       name: PublishTestResultArtifact
