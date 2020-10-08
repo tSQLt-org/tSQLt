@@ -12,6 +12,8 @@ variables:
     value: tSQLt$(Build.SourceVersion)
   - name: GitFetchDepth
     value: 11
+  - name: BuiltAlready
+    value: false
 
 
 resources:
@@ -23,8 +25,48 @@ resources:
   
   
 stages:
-    
+- stage: Check_If_Built_Already
+  jobs:
+
+  - job: test
+    steps:
+    - checkout: tSQLtArtifacts
+      clean: true
+      fetchDepth: 1
+      lfs: false
+      persistCredentials: true
+      path: tSQLtArtifacts
+
+    - task: PowerShell@2
+      name: test
+      env:
+        GITHUB_USERNAME: $(GitHubUserName)
+        GITHUB_EMAIL: $(GitHubEmail)
+      inputs:
+        targetType: 'inline'
+        failOnStderr: false
+        ## git seems to print progress to stderror
+        script: |
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
+
+          Get-Location;
+          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          try{
+            git config --global user.email "$env:GITHUB_EMAIL"
+            git config --global user.name "$env:GITHUB_USERNAME"
+            git status
+            git remote show origin
+
+            $B = (git branch -r --list "origin/$(ArtifactBranchName)")
+            $CheckIfGitOk.invoke($?);
+            if( -not [string]::IsNullOrEmpty($R) )
+            {
+              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true"
+            }
+
 - stage: Build_tSQLt
+  condition: and(ne('$[variables.BuiltAlready]','true'), succeeded())
   jobs:
 
   - job: CompileCLR
