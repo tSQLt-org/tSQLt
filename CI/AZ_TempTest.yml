@@ -40,125 +40,165 @@ variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
 
+stages:
+- stage: StageA
+  jobs:
+  - job: JobA1
+    steps:
+    - checkout: none
+    - task: CmdLine@2
+      name: StepA1a
+      inputs:
+        script: |
+          ECHO "##vso[task.setvariable variable=BuiltAlready;isOutput=true]false";
+          
+- stage: StageB
+  dependsOn: StageA
+  condition: and(succeeded(), eq(dependencies.StageA.outputs['JobA1.StepA1a.BuiltAlready'], 'false'))
+  jobs:
+  - job: JobB1
+    steps:
+    - checkout: none
+    - task: CmdLine@2
+      name: StepB1a
+      inputs:
+        script: |
+          ECHO "StageB.JobB1.StepB1a executed";
+          
+- stage: StageC
+  dependsOn: StageA,StageB
+  condition: or(succeeded(), eq(dependencies.StageA.outputs['JobA1.StepA1a.BuiltAlready'], 'true'))
+  jobs:
+  - job: JobC1
+    steps:
+    - checkout: none
+    - task: CmdLine@2
+      name: StepC1a
+      inputs:
+        script: |
+          ECHO "StageC.JobC1.StepC1a executed";
+        
 
-jobs:
-- job: joba
-  condition: false
-  
-  steps:
+- stage: StageX
+  condition: false()
+  jobs:
+  - job: joba
+    condition: false
+    
+    steps:
 
-  - checkout: self
-    clean: true
-    fetchDepth: 1
-    lfs: false
-    path: tSQLt
+    - checkout: self
+      clean: true
+      fetchDepth: 1
+      lfs: false
+      path: tSQLt
 
 
 
-  - task: AzureKeyVault@1
-    inputs:
-      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-      KeyVaultName: 'tSQLtSigningKey'
-      SecretsFilter: '*'
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
+        SecretsFilter: '*'
 
-  - task: CmdLine@2
-    name: AgentInfo
-    inputs:
-      script: |
-        @ECHO ON
-        systeminfo
-        "${{ parameters.SQLCMDPath }}\SQLCMD" -?
-        SET
-        ECHO $(Pipeline.Workspace)
-        ECHO $(Agent.BuildDirectory)
-        dir $(Pipeline.Workspace) /s
+    - task: CmdLine@2
+      name: AgentInfo
+      inputs:
+        script: |
+          @ECHO ON
+          systeminfo
+          "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+          SET
+          ECHO $(Pipeline.Workspace)
+          ECHO $(Agent.BuildDirectory)
+          dir $(Pipeline.Workspace) /s
 
-  - task: CmdLine@2
-    name: GetCommitId
-    inputs:
-      script: |
-        @ECHO ON
-        ECHO %BUILD_SOURCEVERSION% >CommitId.txt
-        MKDIR $(Pipeline.Workspace)\tmp1
-        XCOPY CommitId.txt $(Pipeline.Workspace)\tmp1\
+    - task: CmdLine@2
+      name: GetCommitId
+      inputs:
+        script: |
+          @ECHO ON
+          ECHO %BUILD_SOURCEVERSION% >CommitId.txt
+          MKDIR $(Pipeline.Workspace)\tmp1
+          XCOPY CommitId.txt $(Pipeline.Workspace)\tmp1\
 
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: '$(Pipeline.Workspace)\tmp1\'
-      artifact: 'tempArtifact'
-      publishLocation: 'pipeline'
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Pipeline.Workspace)\tmp1\'
+        artifact: 'tempArtifact'
+        publishLocation: 'pipeline'
 
-  - task: DownloadPipelineArtifact@2
-    name: DownloadPipelineArtifact
-    inputs:
-      buildType: 'current'
-      artifactName: 'tempArtifact'
-      targetPath: '$(Pipeline.Workspace)\tmp2'
+    - task: DownloadPipelineArtifact@2
+      name: DownloadPipelineArtifact
+      inputs:
+        buildType: 'current'
+        artifactName: 'tempArtifact'
+        targetPath: '$(Pipeline.Workspace)\tmp2'
 
        
       
-- job: SetupVM
-  variables:
-    SQLVersionEdition: 2019
-    NamePreFix: 'tSQLtCI_'
+  - job: SetupVM
+    variables:
+      SQLVersionEdition: 2019
+      NamePreFix: 'tSQLtCI_'
 
-  steps:
-  - checkout: self
-    clean: true
-    fetchDepth: $(GitFetchDepth)
-    lfs: false
+    steps:
+    - checkout: self
+      clean: true
+      fetchDepth: $(GitFetchDepth)
+      lfs: false
 
-  - task: AzureKeyVault@1
-    inputs:
-      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-      KeyVaultName: 'tSQLtSigningKey'
-      SecretsFilter: '*'
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
+        SecretsFilter: '*'
 
-  - task: AzurePowerShell@4
-    name: CreateVMAndMore
-    env:
-      USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-      PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-      CONTACT_EMAIL: $(NotificationEmail)
-      LABVMSHUTDOWNNOTIFICATIONEMAIL: $(NotificationEmail)
-      LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
-      SQLPORTMINIMUM: $(SqlPortMinimum)
-      SQLPORTMAXIMUM: $(SqlPortMaximum)
-    inputs:
-      azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-      azurePowerShellVersion: 'LatestVersion'
-      ScriptType: 'InlineScript'
-      Inline: |
-        Set-Location $(Build.Repository.LocalPath)
-        .("CI/CommonFunctionsAndMethods.ps1")
+    - task: AzurePowerShell@4
+      name: CreateVMAndMore
+      env:
+        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+        CONTACT_EMAIL: $(NotificationEmail)
+        LABVMSHUTDOWNNOTIFICATIONEMAIL: $(NotificationEmail)
+        LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
+        SQLPORTMINIMUM: $(SqlPortMinimum)
+        SQLPORTMAXIMUM: $(SqlPortMaximum)
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azurePowerShellVersion: 'LatestVersion'
+        ScriptType: 'InlineScript'
+        Inline: |
+          Set-Location $(Build.Repository.LocalPath)
+          .("CI/CommonFunctionsAndMethods.ps1")
 
-        $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
+          $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
 
 
-        Log-Output '==========================================================';
-        Log-Output '==========================================================';
-        Log-Output 'Executing CreateVMTest1.ps1';
-        Log-Output '==========================================================';
-        Log-Output '==========================================================';
-        $Parameters = @{
-          NamePreFix="$(NamePreFix)";
-          BuildId="$(Build.BuildId)";
-          SQLVersionEdition="$(SQLVersionEdition)";
-          SQLPort="$SqlPort";
-          LabShutdownNotificationEmail="$env:LABVMSHUTDOWNNOTIFICATIONEMAIL";
-          LabShutdownNotificationURL="$env:LABVMSHUTDOWNNOTIFICATIONURL";
-          SQLUserName="$env:USER_NAME";
-          SQLPassword="$env:PASSWORD";
-        }; 
-        $DTLDetails = .'CI/CreateVMTest1.ps1' @Parameters
-  
-        Log-Output '==========================================================';
-        Log-Output '==========================================================';
-        Log-Output 'Done: Executing CreateVMTest1.ps1';
-        Log-Output '==========================================================';
-        Log-Output '==========================================================';
-            
-        $SerializedDTLDetails=(ConvertTo-JSON -InputObject $DTLDetails -Compress);
-        
-        $SerializedDTLDetails
-        Write-Host "##vso[task.setvariable variable=SerializedDTLDetails;isOutput=true]$SerializedDTLDetails"
+          Log-Output '==========================================================';
+          Log-Output '==========================================================';
+          Log-Output 'Executing CreateVMTest1.ps1';
+          Log-Output '==========================================================';
+          Log-Output '==========================================================';
+          $Parameters = @{
+            NamePreFix="$(NamePreFix)";
+            BuildId="$(Build.BuildId)";
+            SQLVersionEdition="$(SQLVersionEdition)";
+            SQLPort="$SqlPort";
+            LabShutdownNotificationEmail="$env:LABVMSHUTDOWNNOTIFICATIONEMAIL";
+            LabShutdownNotificationURL="$env:LABVMSHUTDOWNNOTIFICATIONURL";
+            SQLUserName="$env:USER_NAME";
+            SQLPassword="$env:PASSWORD";
+          }; 
+          $DTLDetails = .'CI/CreateVMTest1.ps1' @Parameters
+    
+          Log-Output '==========================================================';
+          Log-Output '==========================================================';
+          Log-Output 'Done: Executing CreateVMTest1.ps1';
+          Log-Output '==========================================================';
+          Log-Output '==========================================================';
+              
+          $SerializedDTLDetails=(ConvertTo-JSON -InputObject $DTLDetails -Compress);
+          
+          $SerializedDTLDetails
+          Write-Host "##vso[task.setvariable variable=SerializedDTLDetails;isOutput=true]$SerializedDTLDetails"
