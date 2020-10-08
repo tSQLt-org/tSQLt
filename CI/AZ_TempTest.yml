@@ -80,7 +80,7 @@ stages:
         
 
 - stage: StageX
-  condition: false()
+  condition: false
   jobs:
   - job: joba
     condition: false
