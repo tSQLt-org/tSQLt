@@ -64,6 +64,12 @@ stages:
             {
               Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true"
             }
+          }
+          }catch{
+            throw "Git Failed. See prior errors.";
+          } 
+          git status
+
 
 - stage: Build_tSQLt
   condition: and(ne('$[variables.BuiltAlready]','true'), succeeded())
