@@ -56,11 +56,14 @@ stages:
   variables:
     xxxx: $[ dependencies.A.outputs['A1.printvar.shouldrun'] ]
   jobs:
-  - job: B1
+  - job: X1
     steps:
     - script: |
+        echo "111"
         echo $[ dependencies.A.outputs['A1.printvar.shouldrun'] ]
+        echo "222"
         echo $(xxxx)
+        echo "done"
 
 - stage: B
   condition: and(succeeded(), eq(dependencies.A.outputs['A1.printvar.shouldrun'], 'true'))
