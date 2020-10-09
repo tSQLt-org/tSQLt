@@ -41,44 +41,44 @@ variables:
     value: tSQLt$(Build.SourceVersion)
 
 stages:
-- stage: StageA
+- stage: stagea
   jobs:
-  - job: JobA1
+  - job: joba1
     steps:
     - checkout: none
     - task: CmdLine@2
-      name: StepA1a
+      name: stepa1a
       inputs:
         script: |
-          ECHO "##vso[task.setvariable variable=BuiltAlready;isOutput=true]false";
+          ECHO "##vso[task.setvariable variable=builtalready;isOutput=true]false";
           
-- stage: StageB
-  dependsOn: StageA
-  condition: and(succeeded(), eq(dependencies.StageA.outputs['JobA1.StepA1a.BuiltAlready'], 'false'))
+- stage: stageb
+  dependsOn: stagea
+  condition: and(succeeded(), eq(dependencies.stagea.outputs['joba1.stepa1a.builtalready'], 'false'))
   jobs:
-  - job: JobB1
+  - job: jobb1
     steps:
     - checkout: none
     - task: CmdLine@2
-      name: StepB1a
+      name: stepb1a
       inputs:
         script: |
-          ECHO "StageB.JobB1.StepB1a executed";
+          ECHO "stageb.jobb1.stepb1a executed";
           
-- stage: StageC
+- stage: stagec
   dependsOn: 
-  - StageA
-  - StageB
-  condition: or(succeeded(), eq(dependencies.StageA.outputs['JobA1.StepA1a.BuiltAlready'], 'true'))
+  - stagea
+  - stageb
+  condition: or(succeeded(), eq(dependencies.stagea.outputs['joba1.stepa1a.builtalready'], 'true'))
   jobs:
-  - job: JobC1
+  - job: jobc1
     steps:
     - checkout: none
     - task: CmdLine@2
-      name: StepC1a
+      name: stepc1a
       inputs:
         script: |
-          ECHO "StageC.JobC1.StepC1a executed";
+          ECHO "stagec.jobc1.stepc1a executed";
         
 
 - stage: StageX
