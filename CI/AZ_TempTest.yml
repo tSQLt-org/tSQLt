@@ -73,7 +73,7 @@ stages:
 
 
 - stage: stagea
-  dependsOn: none
+  condition: always()
   jobs:
   - job: joba1
     steps:
