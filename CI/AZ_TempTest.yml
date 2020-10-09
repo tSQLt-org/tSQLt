@@ -51,19 +51,30 @@ stages:
         echo "111"
         echo "##vso[task.setvariable variable=shouldrun;isOutput=true]true"
         echo "222"
-        echo $[variables.shouldrun]
         echo "333"
-        echo $(shouldrun)
         echo "done"
       name: printvar
     - script: |
         echo "111"
         echo "222"
-        echo $[variables.shouldrun]
         echo "333"
-        echo $(shouldrun)
+        echo $(printvar.shouldrun)
         echo "done"
       name: something
+  - job: A2
+    dependsOn: A1
+    variables:
+      xxxx: $[ dependencies.A1.outputs['printvar.shouldrun'] ]
+    steps:
+    - checkout: none
+    - script: |
+        echo "111"
+        echo "222"
+        echo $(xxxx)
+        echo "333"
+        echo "done"
+      name: something2
+  
 
 - stage: X
   dependsOn: A
