@@ -79,14 +79,13 @@ stages:
 - stage: X
   dependsOn: A
   variables:
-    xxxx: $[ dependencies.A.outputs['A1.printvar.shouldrun'] ]
+    xxxx: $[ stageDependencies.A.outputs['A1.printvar.shouldrun'] ]
   jobs:
   - job: X1
     steps:
     - checkout: none
     - script: |
         echo "111"
-        echo $[ dependencies.A.outputs['A1.printvar.shouldrun'] ]
         echo "222"
         echo $(xxxx)
         echo "done"
@@ -103,6 +102,9 @@ stages:
 
 
 - stage: stagea
+  dependsOn: 
+  - B
+  - X
   condition: always()
   jobs:
   - job: joba1
