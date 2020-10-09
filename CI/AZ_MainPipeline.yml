@@ -439,7 +439,7 @@ stages:
         failOnStderr: true
         script: |
           "---------------------------------------------------"
-          $BasePath = "$(Build.SourcesDirectory)";
+          $BasePath = "$(Build.SourcesDirectory)\..";
           $BasePath;
           "==================================================="
           $ArtifactPath = ($BasePath+"\Build\output\TestResults\");
