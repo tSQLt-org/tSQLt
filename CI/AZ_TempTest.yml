@@ -46,10 +46,13 @@ stages:
   jobs:
   - job: A1
     steps:
-     # - bash: echo "##vso[task.setvariable variable=shouldrun;isOutput=true]true"
-     # or on Windows:
-     - script: echo ##vso[task.setvariable variable=shouldrun;isOutput=true]true
-       name: printvar
+    - script: 
+        echo "111"
+        echo "##vso[task.setvariable variable=shouldrun;isOutput=true]true"
+        echo "222"
+        echo $[ variables['shouldrun'] ]
+        echo "done"
+      name: printvar
 
 - stage: X
   dependsOn: A
