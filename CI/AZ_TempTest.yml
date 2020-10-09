@@ -53,13 +53,14 @@ stages:
 
 - stage: X
   dependsOn: A
+  variables:
+    xxxx: $[ dependencies.A.outputs['A1.printvar.shouldrun'] ]
   jobs:
   - job: B1
     steps:
     - script: |
-        echo $(dependencies.A.outputs['A1.printvar.shouldrun'])
-        echo dependencies.A.outputs['A1.printvar.shouldrun']
-        echo ${{ dependencies.A.outputs['A1.printvar.shouldrun'] }}
+        echo $[ dependencies.A.outputs['A1.printvar.shouldrun'] ]
+        echo $(xxxx)
 
 - stage: B
   condition: and(succeeded(), eq(dependencies.A.outputs['A1.printvar.shouldrun'], 'true'))
