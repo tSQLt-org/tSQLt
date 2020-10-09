@@ -52,6 +52,8 @@ stages:
         echo "##vso[task.setvariable variable=shouldrun;isOutput=true]true"
         echo "222"
         echo $[ variables['shouldrun'] ]
+        echo "333"
+        echo $(shouldrun)
         echo "done"
       name: printvar
 
