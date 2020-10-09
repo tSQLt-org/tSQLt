@@ -442,7 +442,7 @@ stages:
           $BasePath = "$(Build.SourcesDirectory)\..";
           $BasePath;
           "==================================================="
-          $ArtifactPath = ($BasePath+"\Build\output\TestResults\");
+          $ArtifactPath = ($BasePath+"\tSQLt\Build\output\TestResults\");
           $ArtifactPath;
           "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
           New-Item -Path $ArtifactPath  -ItemType directory -Force
@@ -458,7 +458,7 @@ stages:
     - task: PublishPipelineArtifact@1
       name: PublishTestResultArtifact
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/Build/output/TestResults'
+        targetPath: '$(Build.SourcesDirectory)/../tSQLt/Build/output/TestResults'
         artifact: 'TestResults'
         publishLocation: 'pipeline'
   
