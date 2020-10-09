@@ -79,7 +79,7 @@ stages:
 - stage: X
   dependsOn: A
   variables:
-    xxxx: $[ stageDependencies.A.outputs['A1.printvar.shouldrun'] ]
+    xxxx: $[ stageDependencies.A.A1.outputs['printvar.shouldrun'] ]
   jobs:
   - job: X1
     steps:
@@ -114,7 +114,7 @@ stages:
       name: stepa1a
       inputs:
         script: |
-          ECHO ##vso[task.setvariable variable=builtalready;isOutput=true]false
+          ECHO ##vso[task.setvariable variable=builtalready;isOutput=true]true
           
 - stage: stageb
   dependsOn: stagea
