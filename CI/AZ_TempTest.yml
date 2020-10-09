@@ -63,6 +63,7 @@ stages:
       name: something
   - job: A2
     dependsOn: A1
+    condition: and(succeeded(), eq(dependencies.A1.outputs['printvar.shouldrun'], 'true'))
     variables:
       xxxx: $[ dependencies.A1.outputs['printvar.shouldrun'] ]
     steps:
