@@ -71,11 +71,9 @@ stages:
             throw "Git Failed. See prior errors.";
           } 
           git status
-          Write-Host $(BuiltAlready);
-          Write-Host $[variables.BuiltAlready];
-          Write-Host ${{ variables.BuiltAlready }};
 
   - job: CompileCLR
+    dependsOn: Check_If_Built_Already
     condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['the_test.BuiltAlready'], 'false'))
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
@@ -155,7 +153,6 @@ stages:
 
 
   - job: BuildSQLScripts
-    condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['the_test.BuiltAlready'], 'false'))
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
     dependsOn: CompileCLR
@@ -205,10 +202,6 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
   - job: PublishArtifactToRepo
-    dependsOn: 
-    - CompileCLR
-    - BuildSQLScripts
-    condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['the_test.BuiltAlready'], 'false'))
 
     steps:
     - checkout: tSQLtArtifacts
