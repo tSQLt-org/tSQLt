@@ -66,7 +66,9 @@ stages:
           ECHO "StageB.JobB1.StepB1a executed";
           
 - stage: StageC
-  dependsOn: StageA,StageB
+  dependsOn: 
+  - StageA
+  - StageB
   condition: or(succeeded(), eq(dependencies.StageA.outputs['JobA1.StepA1a.BuiltAlready'], 'true'))
   jobs:
   - job: JobC1
