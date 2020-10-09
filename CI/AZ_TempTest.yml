@@ -49,7 +49,7 @@ stages:
     - checkout: none
     - script: |
         echo "111"
-        echo ##vso[task.setvariable variable=shouldrun;isOutput=true]true
+        echo ##vso[task.setvariable variable=shouldrun;isOutput=true]false
         echo "222"
         echo "333"
         echo "done"
