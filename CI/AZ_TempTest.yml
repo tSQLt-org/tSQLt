@@ -51,6 +51,16 @@ stages:
      - script: echo ##vso[task.setvariable variable=shouldrun;isOutput=true]true
        name: printvar
 
+- stage: X
+  dependsOn: A
+  jobs:
+  - job: B1
+    steps:
+    - script: |
+        echo $(dependencies.A.outputs['A1.printvar.shouldrun'])
+        echo dependencies.A.outputs['A1.printvar.shouldrun']
+        echo ${{ dependencies.A.outputs['A1.printvar.shouldrun'] }}
+
 - stage: B
   condition: and(succeeded(), eq(dependencies.A.outputs['A1.printvar.shouldrun'], 'true'))
   dependsOn: A
@@ -58,8 +68,11 @@ stages:
   - job: B1
     steps:
     - script: echo hello from Stage B
+  
+
 
 - stage: stagea
+  dependsOn: none
   jobs:
   - job: joba1
     steps:
