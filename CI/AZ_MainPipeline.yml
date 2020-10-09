@@ -150,8 +150,6 @@ stages:
         artifact: 'tSQLtClrDlls'
         publishLocation: 'pipeline'
 
-
-
   - job: BuildSQLScripts
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
@@ -202,6 +200,7 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
   - job: PublishArtifactToRepo
+    dependsOn: BuildSQLScripts
 
     steps:
     - checkout: tSQLtArtifacts
