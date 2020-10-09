@@ -114,7 +114,7 @@ stages:
       name: stepa1a
       inputs:
         script: |
-          ECHO "##vso[task.setvariable variable=builtalready;isOutput=true]false";
+          ECHO ##vso[task.setvariable variable=builtalready;isOutput=true]false
           
 - stage: stageb
   dependsOn: stagea
