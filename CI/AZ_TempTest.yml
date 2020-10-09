@@ -51,11 +51,19 @@ stages:
         echo "111"
         echo "##vso[task.setvariable variable=shouldrun;isOutput=true]true"
         echo "222"
-        echo $[ variables['shouldrun'] ]
+        echo $[variables.shouldrun]
         echo "333"
         echo $(shouldrun)
         echo "done"
       name: printvar
+    - script: |
+        echo "111"
+        echo "222"
+        echo $[variables.shouldrun]
+        echo "333"
+        echo $(shouldrun)
+        echo "done"
+      name: something
 
 - stage: X
   dependsOn: A
