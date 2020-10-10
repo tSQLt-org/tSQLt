@@ -307,9 +307,8 @@ stages:
         Inline: |
           Write-Host '$(Build.Repository.LocalPath)';
           (Get-ChildItem);
-          (Get-Location);
-          $pwd;
           Set-Location $(Build.Repository.LocalPath)
+          (Get-ChildItem);
           .("CI/CommonFunctionsAndMethods.ps1")
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
