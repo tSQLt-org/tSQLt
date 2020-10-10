@@ -264,8 +264,8 @@ stages:
 ###############################################################################
 ###############################################################################
 
-- stage: Validate_tSQLt_2016
-  displayName: "Validate on ($[variables.SqlVersionEdition])"
+- stage: Validate
+  displayName: ValidateAll
   dependsOn: Build_tSQLt
   variables:
     SQLVersionEdition: 2019
@@ -273,7 +273,11 @@ stages:
 
   jobs:
 
-  - job: SetupVM
+  - job: Validate
+
+    variables:
+      SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+
     steps:
     - checkout: self
       clean: true
@@ -338,31 +342,12 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
-  - job: RunTests
-    dependsOn: SetupVM
-    variables:
-      SerializedDTLDetails: $[ dependencies.SetupVM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
-      SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
-        
-    steps:
-    - checkout: self
-      clean: true
-      fetchDepth: $(GitFetchDepth)
-      lfs: false
-      path: tSQLt
-
     - checkout: tSQLtArtifacts
       clean: true
       fetchDepth: $(GitFetchDepth)
       lfs: false
       persistCredentials: true
       path: tSQLtArtifacts
-
-    - task: AzureKeyVault@1
-      inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-        KeyVaultName: 'tSQLtSigningKey'
-        SecretsFilter: '*'
 
     - task: PowerShell@2
       name: GetArtifact
@@ -396,9 +381,9 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $env:SerializedDTLDetails;
+          Write-Host '$(CreateVMAndMore.SerializedDTLDetails)';
 
-          $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
+          $DTLDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedDTLDetails)');
           #-----------------------------------------------------------------------#
           # IMPORTANT (and, you've got to be kidding me):                         #
           # The space below is absolutely required to make the ANT Task work.     #
@@ -461,39 +446,9 @@ stages:
         targetPath: '$(Build.SourcesDirectory)/../tSQLt/Build/output/TestResults'
         artifact: 'TestResults'
         publishLocation: 'pipeline'
-  
-    - task: PowerShell@2
-      name: TestXMLOutput  ####<<---------Is this needed????
-      condition: false
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-      inputs:
-        targetType: 'inline'
-        script: |
-          # Write your PowerShell commands here.
-          
-          &"$(SQLCMDPath)\sqlcmd" -S "$(FQDNAndPort)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Pipeline.Workspace)/tSQLt/Build/GetTestResults.sql" -o "$(Pipeline.Workspace)/tSQLt/Build/test20200420093015.txt"
     
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-
-  - job: TagRepository
-    dependsOn: RunTests
-
-    steps:
-    - checkout: tSQLtArtifacts
-      clean: true
-      fetchDepth: $(GitFetchDepth)
-      lfs: false
-      persistCredentials: true
-      path: tSQLtArtifacts
-
-    - task: AzureKeyVault@1
-      inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-        KeyVaultName: 'tSQLtSigningKey'
-        SecretsFilter: '*'
 
     - task: PowerShell@2
       name: TagArtifact
@@ -527,32 +482,19 @@ stages:
 
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-
-  - job: CleanUp
-    dependsOn: 
-    - RunTests
-    - SetupVM
-    variables:
-      SerializedDTLDetails: $[ dependencies.SetupVM.outputs['CreateVMAndMore.SerializedDTLDetails'] ]
-    condition: Always()
-
-    steps:
-    - checkout: self
-      clean: true
-      fetchDepth: $(GitFetchDepth)
-      lfs: false
       
     - task: AzurePowerShell@4
       name: ShutdownVM
+      condition: always()
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         azurePowerShellVersion: 'LatestVersion'
         ScriptType: 'InlineScript'
         Inline: |
 
-          $env:SerializedDTLDetails;
+          Write-Host '$(CreateVMAndMore.SerializedDTLDetails)'
 
-          $DTLDetails = (ConvertFrom-JSON $env:SerializedDTLDetails);
+          $DTLDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedDTLDetails)');
           $HiddenVmName = $DTLDetails.HiddenVmName;
           $HiddenVmRGName = $DTLDetails.HiddenVmRGName;
     
