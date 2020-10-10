@@ -305,6 +305,10 @@ stages:
         azurePowerShellVersion: 'LatestVersion'
         ScriptType: 'InlineScript'
         Inline: |
+          Write-Host '$(Build.Repository.LocalPath)';
+          (Get-ChildItem);
+          (Get-Location);
+          $pwd;
           Set-Location $(Build.Repository.LocalPath)
           .("CI/CommonFunctionsAndMethods.ps1")
 
