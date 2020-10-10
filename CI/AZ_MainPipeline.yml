@@ -23,6 +23,7 @@ resources:
   
 stages:
 - stage: Build_tSQLt
+  condition: false
 
   jobs:
   - job: Check_If_Built_Already
@@ -266,7 +267,8 @@ stages:
 
 - stage: Validate
   displayName: ValidateAll
-  dependsOn: Build_tSQLt
+  #dependsOn: Build_tSQLt
+  condition: always()
   variables:
     SQLVersionEdition: 2019
     NamePreFix: 'tSQLtCI_'
@@ -283,6 +285,7 @@ stages:
       clean: true
       fetchDepth: $(GitFetchDepth)
       lfs: false
+      path: tSQLt
 
     - task: AzureKeyVault@1
       inputs:
@@ -307,7 +310,9 @@ stages:
         Inline: |
           Write-Host '$(Build.Repository.LocalPath)';
           (Get-ChildItem);
-          Set-Location $(Build.Repository.LocalPath)
+          Set-Location $(Build.Repository.LocalPath)/..
+          (Get-ChildItem);
+          Set-Location $(Build.Repository.LocalPath)/../tSQLt
           (Get-ChildItem);
           .("CI/CommonFunctionsAndMethods.ps1")
 
