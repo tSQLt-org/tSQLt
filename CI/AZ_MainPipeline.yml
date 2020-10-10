@@ -23,7 +23,6 @@ resources:
   
 stages:
 - stage: Build_tSQLt
-  condition: false
 
   jobs:
   - job: Check_If_Built_Already
@@ -267,8 +266,7 @@ stages:
 
 - stage: Validate
   displayName: ValidateAll
-  #dependsOn: Build_tSQLt
-  condition: always()
+  dependsOn: Build_tSQLt
   variables:
     SQLVersionEdition: 2019
     NamePreFix: 'tSQLtCI_'
