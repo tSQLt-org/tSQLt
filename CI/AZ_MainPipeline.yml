@@ -268,12 +268,13 @@ stages:
   displayName: ValidateAll
   dependsOn: Build_tSQLt
   variables:
-    SQLVersionEdition: 2019
     NamePreFix: 'tSQLtCI_'
 
   jobs:
 
   - job: Validate
+    strategy:
+      matrix: {'2019':{'SQLVersionEdition':'2019'}, '2017':{'SQLVersionEdition':'2017'}}
 
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
