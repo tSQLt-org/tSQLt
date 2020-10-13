@@ -274,7 +274,16 @@ stages:
 
   - job: Validate
     strategy:
-      matrix: {'2019':{'SQLVersionEdition':'2019'}, '2017':{'SQLVersionEdition':'2017'}}
+      matrix: {
+        '2008R2':{'SQLVersionEdition':'2008R2Std'},
+        '2012':{'SQLVersionEdition':'2012Std'},
+        '2008R2E':{'SQLVersionEdition':'2008R2Ent'},
+        '2012E':{'SQLVersionEdition':'2012Ent'},
+        '2014':{'SQLVersionEdition':'2014'},
+        '2016':{'SQLVersionEdition':'2016'},
+        '2017':{'SQLVersionEdition':'2017'},
+        '2019':{'SQLVersionEdition':'2019'}, 
+         }
 
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
