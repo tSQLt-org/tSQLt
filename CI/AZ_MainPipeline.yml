@@ -275,10 +275,10 @@ stages:
   - job: Validate
     strategy:
       matrix: {
-        '2008R2':{'SQLVersionEdition':'2008R2Std'},
-        '2012':{'SQLVersionEdition':'2012Std'},
-        '2008R2E':{'SQLVersionEdition':'2008R2Ent'},
-        '2012E':{'SQLVersionEdition':'2012Ent'},
+      #  '2008R2':{'SQLVersionEdition':'2008R2Std'},
+      #  '2012':{'SQLVersionEdition':'2012Std'},
+      #  '2008R2E':{'SQLVersionEdition':'2008R2Ent'},
+      #  '2012E':{'SQLVersionEdition':'2012Ent'},
         '2014':{'SQLVersionEdition':'2014'},
         '2016':{'SQLVersionEdition':'2016'},
         '2017':{'SQLVersionEdition':'2017'},
@@ -430,7 +430,7 @@ stages:
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '../**/?(Example)TestResults*.xml'
-        testRunTitle: 'testtitle'
+        testRunTitle: '$(SQLVersionEdition)'
         javaHomeOption: 'JDKVersion'
         
     - task: PowerShell@2
@@ -460,7 +460,7 @@ stages:
       name: PublishTestResultArtifact
       inputs:
         targetPath: '$(Build.SourcesDirectory)/../tSQLt/Build/output/TestResults'
-        artifact: 'TestResults'
+        artifact: 'TestResults_$(SQLVersionEdition)'
         publishLocation: 'pipeline'
     
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
