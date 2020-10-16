@@ -325,6 +325,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetIdentityDefinition.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_GetSQLProductMajorVersion.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetSQLProductMajorVersion.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>

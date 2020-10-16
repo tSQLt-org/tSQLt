@@ -1,6 +1,7 @@
 tSQLt._Header.sql
 tSQLt.DropClass.ssp.sql
 ../Build/output/tSQLt.Private_GetAssemblyKeyBytes.sql
+tSQLt.Private_GetSQLProductMajorVersion.ssp.sql
 tSQLt.Private_EnableCLR.ssp.sql
 tSQLt.RemoveAssemblyKey.ssp.sql
 tSQLt.InstallAssemblyKey.ssp.sql

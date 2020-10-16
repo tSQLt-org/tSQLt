@@ -16,11 +16,13 @@ GO
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess reports meaningful error with details, if setting fails]
 AS
 BEGIN
+  DECLARE @ProductMajorVersion INT;
+  EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
   ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
   EXEC master.tSQLt_testutil.tSQLtTestUtil_UnsafeAssemblyAndExternalAccessRevoke;
   DECLARE @ExpectedMessagePattern NVARCHAR(MAX) =  
               'The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed: ALTER ASSEMBLY%tSQLtCLR%failed%'+
-              CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT)>=14 THEN 'UNSAFE ASSEMBLY' ELSE 'EXTERNAL_ACCESS' END+
+              CASE WHEN @ProductMajorVersion>=14 THEN 'UNSAFE ASSEMBLY' ELSE 'EXTERNAL_ACCESS' END+
               '%';
   EXEC tSQLt.ExpectException @ExpectedMessagePattern = @ExpectedMessagePattern;
   EXEC tSQLt.EnableExternalAccess;

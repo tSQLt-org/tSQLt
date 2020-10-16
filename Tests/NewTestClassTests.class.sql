@@ -30,6 +30,9 @@ CREATE PROCEDURE NewTestClassTests.[test NewTestClass should throw an error if t
 AS
 BEGIN
     DECLARE @Err NVARCHAR(MAX); SET @Err = 'NO ERROR';
+    DECLARE @ProductMajorVersion INT;
+    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+
     EXEC('CREATE SCHEMA MySchema;');
 
     BEGIN TRY
@@ -41,7 +44,7 @@ BEGIN
     
     DECLARE @ExpectedErr NVARCHAR(MAX) =
         '%Attempted to execute tSQLt.NewTestClass on ''MySchema'' which is an existing schema but not a test class%(Error originated in '+
-        CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'tSQLt.' ELSE '' END+
+        CASE WHEN @ProductMajorVersion >= 14 THEN 'tSQLt.' ELSE '' END+
         'Private_DisallowOverwritingNonTestSchema)%'
     IF @Err NOT LIKE @ExpectedErr
     BEGIN
@@ -54,6 +57,9 @@ CREATE PROCEDURE NewTestClassTests.[test the NewTestClass-"not a test class" err
 AS
 BEGIN
     DECLARE @ErrProc NVARCHAR(MAX); SET @ErrProc = 'NO ERROR';
+    DECLARE @ProductMajorVersion INT;
+    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+
     EXEC('CREATE SCHEMA MySchema;');
 
     BEGIN TRY
@@ -63,7 +69,7 @@ BEGIN
       SET @ErrProc = ERROR_PROCEDURE();
     END CATCH
     
-    DECLARE @ExpectedErrProc NVARCHAR(MAX) = CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'tSQLt.' ELSE '' END + 'NewTestClass'
+    DECLARE @ExpectedErrProc NVARCHAR(MAX) = CASE WHEN @ProductMajorVersion >= 14 THEN 'tSQLt.' ELSE '' END + 'NewTestClass'
     EXEC tSQLt.AssertEqualsString @ExpectedErrProc, @ErrProc;
 END;
 GO

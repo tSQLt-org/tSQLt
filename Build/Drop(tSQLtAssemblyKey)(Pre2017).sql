@@ -1,6 +1,6 @@
 DECLARE @cmd NVARCHAR(MAX);
 
-IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)<14)
+IF(CAST(PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(MAX)),4) AS INT)<14)
 BEGIN
   PRINT '-------Dropping tSQLtAssemblyKey---------------';
   SET @cmd = N'IF SUSER_ID(''tSQLtAssemblyKey'') IS NOT NULL DROP LOGIN tSQLtAssemblyKey;';

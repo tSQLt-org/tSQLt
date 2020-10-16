@@ -14,6 +14,8 @@ BEGIN
   DECLARE @cmd NVARCHAR(MAX);
   DECLARE @cmd2 NVARCHAR(MAX);
   DECLARE @master_sys_sp_executesql NVARCHAR(MAX); SET @master_sys_sp_executesql = 'master.sys.sp_executesql';
+  DECLARE @ProductMajorVersion INT;
+  EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
 
   DECLARE @AssemblyKeyBytes VARBINARY(MAX),
           @AssemblyKeyThumbPrint VARBINARY(MAX);
@@ -30,7 +32,7 @@ BEGIN
   EXEC @master_sys_sp_executesql @cmd;
 
   DECLARE @Hash VARBINARY(64) = NULL;
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
+  IF(@ProductMajorVersion>=14)
   BEGIN
     SELECT @Hash = HASHBYTES('SHA2_512',@AssemblyKeyBytes);
 
@@ -78,7 +80,7 @@ BEGIN
     EXEC @master_sys_sp_executesql @cmd, N'@Hash VARBINARY(64)',@Hash;
   END;
 
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
+  IF(@ProductMajorVersion>=14)
   BEGIN
     SET @cmd = 'GRANT UNSAFE ASSEMBLY TO tSQLtAssemblyKey;';
   END

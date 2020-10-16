@@ -12,13 +12,15 @@ BEGIN
   END;
 
   DECLARE @master_sys_sp_executesql NVARCHAR(MAX); SET @master_sys_sp_executesql = 'master.sys.sp_executesql';
+  DECLARE @ProductMajorVersion INT;
+  EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
 
   IF SUSER_ID('tSQLtAssemblyKey') IS NOT NULL DROP LOGIN tSQLtAssemblyKey;
   EXEC @master_sys_sp_executesql N'IF ASYMKEY_ID(''tSQLtAssemblyKey'') IS NOT NULL DROP ASYMMETRIC KEY tSQLtAssemblyKey;';
   EXEC @master_sys_sp_executesql N'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtAssemblyKey'') DROP ASSEMBLY tSQLtAssemblyKey;';
 
   DECLARE @cmd NVARCHAR(MAX);
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
+  IF(@ProductMajorVersion>=14)
   BEGIN
     DECLARE @TrustedHash NVARCHAR(MAX);
     DECLARE @AssemblyKeyBytes VARBINARY(MAX);

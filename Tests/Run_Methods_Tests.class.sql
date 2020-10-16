@@ -38,6 +38,8 @@ GO
 CREATE PROC Run_Methods_Tests.test_Run_handles_test_names_with_spaces
 AS
 BEGIN
+    DECLARE @ProductMajorVersion INT;
+    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
@@ -54,7 +56,7 @@ BEGIN
     SELECT TOP(0)* INTO Run_Methods_Tests.expected FROM  Run_Methods_Tests.actual;
 
     INSERT INTO Run_Methods_Tests.expected
-    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{'+CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'MyTestClass.' ELSE '' END+'Test Case A,1}' Msg
+    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{'+CASE WHEN @ProductMajorVersion >= 14 THEN 'MyTestClass.' ELSE '' END+'Test Case A,1}' Msg
     
     EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.expected', 'Run_Methods_Tests.actual';
 END;

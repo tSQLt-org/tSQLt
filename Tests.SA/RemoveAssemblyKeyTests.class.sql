@@ -17,7 +17,9 @@ BEGIN
   EXEC master.sys.sp_executesql N'IF ASYMKEY_ID(''tSQLtAssemblyKey'') IS NOT NULL DROP ASYMMETRIC KEY tSQLtAssemblyKey;';
   EXEC master.sys.sp_executesql N'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtAssemblyKey'') DROP ASSEMBLY tSQLtAssemblyKey;';
   DECLARE @cmd NVARCHAR(MAX);
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
+  DECLARE @ProductMajorVersion INT;
+  EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+  IF(@ProductMajorVersion>=14)
   BEGIN
     -- sp_drop_trusted_assembly is new (and required) in 2017
     DECLARE @TrustedHash NVARCHAR(MAX);
@@ -49,7 +51,9 @@ BEGIN
 
   DECLARE @cmd NVARCHAR(MAX);
 
-  IF(CAST(SERVERPROPERTY('ProductMajorVersion') AS INT)>=14)
+  DECLARE @ProductMajorVersion INT;
+  EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+  IF(@ProductMajorVersion>=14)
   BEGIN
     -- sp_add_trusted_assembly is new (and required) in 2017
     SELECT @cmd = 

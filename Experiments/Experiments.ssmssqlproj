@@ -67,6 +67,12 @@
           <AssociatedConnUserName />
           <FullPath>NameResolutionResearch.sql</FullPath>
         </FileNode>
+        <FileNode Name="RunExternalAccessKeyExistsTests.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>RunExternalAccessKeyExistsTests.sql</FullPath>
+        </FileNode>
         <FileNode Name="SpProcPrototype.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
@@ -100,7 +106,14 @@
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
-      <Items />
+      <Items>
+        <FileNode Name="RunTestsManually.bat">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>RunTestsManually.bat</FullPath>
+        </FileNode>
+      </Items>
     </LogicalFolder>
   </Items>
 </SqlWorkbenchSqlProject>
