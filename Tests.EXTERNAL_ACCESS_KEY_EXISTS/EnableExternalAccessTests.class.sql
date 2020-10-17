@@ -41,7 +41,8 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = 'SAFE_ACCESS', @Actual = @Actual;
 END;
 GO
-CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails]
+--[@tSQLt:MinSqlMajorVersion](11)
+CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails (2012++)]
 AS
 BEGIN
   ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
@@ -69,6 +70,29 @@ BEGIN
   FROM #Actual;
   INSERT INTO #Expected
   VALUES(NULL);
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+--[@tSQLt:MaxSqlMajorVersion](10)
+CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails (2008,2008R2)]
+AS
+BEGIN
+  ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
+  EXEC master.tSQLt_testutil.tSQLtTestUtil_UnsafeAssemblyAndExternalAccessRevoke;
+  
+  EXEC tSQLt.CaptureOutput 'EXEC tSQLt.EnableExternalAccess @try = 1;';
+  
+  SELECT OutputText 
+    INTO #Actual
+    FROM tSQLt.CaptureOutputLog;
+  
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  VALUES(NULL);
+  
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
