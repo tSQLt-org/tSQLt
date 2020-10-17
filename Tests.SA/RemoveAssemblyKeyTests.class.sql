@@ -1,14 +1,18 @@
 EXEC tSQLt.NewTestClass 'RemoveAssemblyKeyTests';
 GO
-DECLARE @cmd NVARCHAR(MAX);
-SET @cmd = 'IF(SUSER_ID(''RemoveAssemblyKeyTestsUser1'')) IS NOT NULL DROP LOGIN RemoveAssemblyKeyTestsUser1;';
-EXEC master.sys.sp_executesql @cmd;
-SET @cmd = 'IF(SCHEMA_ID(''RemoveAssemblyKeyTestsUser1'')) IS NOT NULL DROP SCHEMA RemoveAssemblyKeyTestsUser1;';
-EXEC master.sys.sp_executesql @cmd;
-EXEC sys.sp_executesql @cmd;
-SET @cmd = 'IF(USER_ID(''RemoveAssemblyKeyTestsUser1'')) IS NOT NULL DROP USER RemoveAssemblyKeyTestsUser1;';
-EXEC master.sys.sp_executesql @cmd;
-EXEC sys.sp_executesql @cmd;
+CREATE PROCEDURE RemoveAssemblyKeyTests.RemoveKeyTestUser
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+  SET @cmd = 'IF(SUSER_ID(''RemoveAssemblyKeyTestsUser1'')) IS NOT NULL DROP LOGIN RemoveAssemblyKeyTestsUser1;';
+  EXEC master.sys.sp_executesql @cmd;
+  SET @cmd = 'IF(SCHEMA_ID(''RemoveAssemblyKeyTestsUser1'')) IS NOT NULL DROP SCHEMA RemoveAssemblyKeyTestsUser1;';
+  EXEC master.sys.sp_executesql @cmd;
+  EXEC sys.sp_executesql @cmd;
+  SET @cmd = 'IF(USER_ID(''RemoveAssemblyKeyTestsUser1'')) IS NOT NULL DROP USER RemoveAssemblyKeyTestsUser1;';
+  EXEC master.sys.sp_executesql @cmd;
+  EXEC sys.sp_executesql @cmd;
+END;
 GO
 CREATE PROCEDURE RemoveAssemblyKeyTests.DropExistingItems
 AS
@@ -156,6 +160,8 @@ GO
 CREATE PROCEDURE RemoveAssemblyKeyTests.[test non-sysadmin cannot execute procedure]
 AS
 BEGIN
+  EXEC RemoveAssemblyKeyTests.RemoveKeyTestUser;
+
   DECLARE @cmd NVARCHAR(MAX);
     
   SET @cmd = 'CREATE LOGIN RemoveAssemblyKeyTestsUser1 WITH PASSWORD='''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
@@ -172,8 +178,8 @@ BEGIN
   EXEC tSQLt.ExpectException @ExpectedMessage = 'Only principals with CONTROL SERVER permission can execute this procedure.';
   
   EXECUTE AS LOGIN = 'RemoveAssemblyKeyTestsUser1';
-  EXEC tSQLt.RemoveAssemblyKey;
-  REVERT;
+    EXEC tSQLt.RemoveAssemblyKey;
+  REVERT;--<--won't actually get executed...
 
 END;
 GO
@@ -181,23 +187,23 @@ GO
 CREATE PROCEDURE RemoveAssemblyKeyTests.[test login with control server permission can execute procedure]
 AS
 BEGIN
+  EXEC RemoveAssemblyKeyTests.DropExistingItems;
 
-    EXEC RemoveAssemblyKeyTests.DropExistingItems;
+  EXEC RemoveAssemblyKeyTests.RemoveKeyTestUser;
 
-    DECLARE @cmd NVARCHAR(MAX);
+  DECLARE @cmd NVARCHAR(MAX);
     
-    SET @cmd = 'CREATE LOGIN RemoveAssemblyKeyTestsUser1 WITH PASSWORD='''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
-    EXEC master.sys.sp_executesql @cmd;
+  SET @cmd = 'CREATE LOGIN RemoveAssemblyKeyTestsUser1 WITH PASSWORD='''+(SELECT PW FROM tSQLt_testutil.GenerateRandomPassword(NEWID()))+''';';
+  EXEC master.sys.sp_executesql @cmd;
 
-    SET @cmd = 'GRANT CONTROL SERVER TO RemoveAssemblyKeyTestsUser1;';
-    EXEC master.sys.sp_executesql @cmd;
+  SET @cmd = 'GRANT CONTROL SERVER TO RemoveAssemblyKeyTestsUser1;';
+  EXEC master.sys.sp_executesql @cmd;
   
-    EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.ExpectNoException;
   
-    EXECUTE AS LOGIN = 'RemoveAssemblyKeyTestsUser1';
-      EXEC tSQLt.RemoveAssemblyKey;
-    REVERT;
-
+  EXECUTE AS LOGIN = 'RemoveAssemblyKeyTestsUser1';
+    EXEC tSQLt.RemoveAssemblyKey;
+  REVERT;
 END;
 GO
 --[@tSQLt:MinSqlMajorVersion](14)
