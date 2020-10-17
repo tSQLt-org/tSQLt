@@ -53,6 +53,12 @@
           <AssociatedConnUserName />
           <FullPath>AZ_CreateSQLVM.yml</FullPath>
         </FileNode>
+        <FileNode Name="AZ_MainPipeline.yml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>AZ_MainPipeline.yml</FullPath>
+        </FileNode>
         <FileNode Name="AZ_NightlyCleanup.yml">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
