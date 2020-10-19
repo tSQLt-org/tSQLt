@@ -5,6 +5,8 @@ REM This is only needed if you want to build tSQLt yourself.
 REM
 
 cd /d "%~dp0"
+DEL KeyInfo.txt
+DEL KeyInfoC.txt
 ECHO --------------------------------------------------------------------------------------------------------------------
 ECHO Deleting existing container (might fail)
 ECHO --------------------------------------------------------------------------------------------------------------------

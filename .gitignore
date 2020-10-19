@@ -23,3 +23,6 @@
 /Build_Artifact
 /tSQLtCLR/OfficialSigningKey/tSQLtOfficialSigningKey.b64.txt
 .DS_Store
+/Build_Output
+/tSQLtCLR/OfficialSigningKey/KeyInfo.txt
+/tSQLtCLR/OfficialSigningKey/KeyInfoC.txt

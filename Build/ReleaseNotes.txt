@@ -9,13 +9,42 @@ Release: VLATEST-BUILD-NUMBER
 
 BUG FIXES:
 
-1. Fixed error message in tSQLt.FakeTable
-
-2. tSQLt.DropClass now handles already quoted names correctly
+N/A
 
 NEW FEATURES:
 
 1. The tSQLt CLR is now signed with a new key:
+
+    Public key (hash algorithm: sha1):
+    0024000004800000940000000602000000240000525341310004000001000100b9af416ad8dfed
+    ec08a5652fa257f1242bf4ed60ef5a7b84a429604d62c919c5663a9c7710a7c5df9953b69ec89f
+    ce85d71e051140b273f4c9bf890a2bc19c48f22d7b1f1d739f90eebc5729555f7f8b63ed088bbb
+    083b336f7e38b92d44cfe1c842f09632b85114772ff2122bc638c78d497c4e88c2d656c166050d
+    6e1ef394
+
+    Public key token is e8fff6f136d7b53e
+
+2. Several improvements to the build process, including switching from NAnt to Ant
+
+3. New prepare server process (this fixes all installation issues with 2017 and 2019)
+   
+   Before installing tSQLt, you can now run the PrepareServer.sql that is part of the tSQLt.zip download.
+   It automatically enables CLR and installs a server certificate that allows the installation of the CLR.
+   There is no need to disable strict CLR security on the server nor do you need to modify database security settings.
+   Executing the script requires SA permissions, but needs to be done only once per server.
+
+   Reminder: If you are using the tSQLt.NewConnection feature, 
+             you need to execute tSQLt.EnableExternalAccess after each installation of tSQLt.
+
+4. Annotations
+
+   tSQLt now allows for test case annotations to modify test behavior. The annotations implemented so far are:
+
+   --[@tSQLt:MaxSqlMajorVersion](@MaxVersion) <-- Skips the test if the major version of SQL Server is > @MaxVersion
+   --[@tSQLt:MinSqlMajorVersion](@MinVersion) <-- Skips the test if the major version of SQL Server is < @MinVersion
+   --[@tSQLt:Skip](@SkipReason)               <-- Skips the test and reports @SkipReason as reason in the output
+
+5. Implemented a CI pipeline for tSQLt itself in Azure DevOps
 
 ---------------------------
 Release: V1.0.5873.27393
