@@ -1,6 +1,8 @@
 IF OBJECT_ID('tSQLt.Info') IS NOT NULL DROP FUNCTION tSQLt.Info;
+-- This will not work if executed outside of the build!
 GO
 ---Build+
+GO
 CREATE FUNCTION tSQLt.Info()
 RETURNS TABLE
 AS
@@ -13,17 +15,13 @@ SELECT Version = '$LATEST-BUILD-NUMBER$',
        V.SqlEdition
   FROM
   (
-    SELECT CAST(VI.major+'.'+VI.minor AS NUMERIC(10,2)) AS SqlVersion,
-           CAST(VI.build+'.'+VI.revision AS NUMERIC(10,2)) AS SqlBuild,
-           SqlEdition
-      FROM
-      (
-        SELECT PARSENAME(PSV.ProductVersion,4) major,
-               PARSENAME(PSV.ProductVersion,3) minor, 
-               PARSENAME(PSV.ProductVersion,2) build,
-               PARSENAME(PSV.ProductVersion,1) revision,
-               Edition AS SqlEdition
+    SELECT CAST(PSSV.Major+'.'+PSSV.Minor AS NUMERIC(10,2)) AS SqlVersion,
+           CAST(PSSV.Build+'.'+PSSV.Revision AS NUMERIC(10,2)) AS SqlBuild,
+           PSV.Edition AS SqlEdition
           FROM tSQLt.Private_SqlVersion() AS PSV
-      )VI
+         CROSS APPLY tSQLt.Private_SplitSqlVersion(PSV.ProductVersion) AS PSSV
   )V;
+GO
 ---Build-
+GO
+SELECT * FROM tSQLt.Info() AS I;

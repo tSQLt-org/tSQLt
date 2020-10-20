@@ -8,8 +8,8 @@
 /tSQLtCLR/tSQLtCLR.suo
 /tSQLtCLR/UnsignedEmpty/obj
 /tSQLtCLR/UnsignedEmpty/bin
-/tSQLtCLR/tSQLtExternalAccessKey/bin
-/tSQLtCLR/tSQLtExternalAccessKey/obj
+/tSQLtCLR/tSQLtAssemblyKey/bin
+/tSQLtCLR/tSQLtAssemblyKey/obj
 /tSQLtCLR/tSQLtCLR.v12.suo
 *.dtbcache
 *.suo
@@ -19,3 +19,10 @@
 /tSQLtCLR/.vs/tSQLtCLR/v15/Server/sqlite3/storage.ide
 /tSQLtCLR/.vs/tSQLtCLR/v15/Server/sqlite3/storage.ide-shm
 /tSQLtCLR/.vs/tSQLtCLR/v15/Server/sqlite3/storage.ide-wal
+/tSQLtCLR/.vs/tSQLtCLR/v16/Server/sqlite3
+/Build_Artifact
+/tSQLtCLR/OfficialSigningKey/tSQLtOfficialSigningKey.b64.txt
+.DS_Store
+/Build_Output
+/tSQLtCLR/OfficialSigningKey/KeyInfo.txt
+/tSQLtCLR/OfficialSigningKey/KeyInfoC.txt

@@ -31,3 +31,5 @@ using System;
 // by using the '*' as shown below:
 [assembly: AssemblyVersion("1.0.*")]
 
+// Sign assembly with key in this container:
+[assembly: System.Reflection.AssemblyKeyNameAttribute("tSQLt_OfficialSigningKey")]

@@ -241,3 +241,40 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable 'dbo.Parms','#Actual';
 END;
 GO
+CREATE PROC Private_GetFullTypeNameTests.[test Private_GetFullTypeName should handle all 2008 compatible data types]
+AS
+BEGIN
+
+  CREATE TABLE dbo.Parms(
+    ColumnName NVARCHAR(MAX),
+    ColumnType NVARCHAR(MAX)
+  );
+    
+  INSERT INTO dbo.Parms(ColumnName, ColumnType) VALUES ('[sys.date]', '[sys].[date]');
+  INSERT INTO dbo.Parms(ColumnName, ColumnType) VALUES ('[sys.datetime2]', '[sys].[datetime2]');
+  INSERT INTO dbo.Parms(ColumnName, ColumnType) VALUES ('[sys.datetimeoffset]', '[sys].[datetimeoffset]');
+  INSERT INTO dbo.Parms(ColumnName, ColumnType) VALUES ('[sys.geography]', '[sys].[geography]');
+  INSERT INTO dbo.Parms(ColumnName, ColumnType) VALUES ('[sys.geometry]', '[sys].[geometry]');
+  INSERT INTO dbo.Parms(ColumnName, ColumnType) VALUES ('[sys.hierarchyid]', '[sys].[hierarchyid]');
+  INSERT INTO dbo.Parms(ColumnName, ColumnType) VALUES ('[sys.time]', '[sys].[time]');
+  
+  DECLARE @Cmd NVARCHAR(MAX);
+  SET @Cmd = STUFF((
+                    SELECT ', ' + ColumnName + ' ' + ColumnType
+                      FROM dbo.Parms
+                       FOR XML PATH(''), TYPE
+                   ).value('.','NVARCHAR(MAX)'),1,2,'');
+  SET @Cmd = 'CREATE TABLE dbo.tst1(' + @Cmd + ');';
+
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+  EXEC(@Cmd);
+  
+  SELECT QUOTENAME(c.name) ColumnName, t.TypeName AS ColumnType
+    INTO #Actual
+    FROM sys.columns c
+   CROSS APPLY tSQLt.Private_GetFullTypeName(c.user_type_id,c.max_length, c.precision, c.scale, c.collation_name) t
+   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable 'dbo.Parms','#Actual';
+END;
+GO

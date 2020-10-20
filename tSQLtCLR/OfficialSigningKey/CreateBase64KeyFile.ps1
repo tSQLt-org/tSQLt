@@ -1,0 +1,1 @@
+Set-Content -Path $PSScriptRoot'\tSQLtOfficialSigningKey.b64.txt' -Value ([Convert]::ToBase64String([IO.File]::ReadAllBytes($PSScriptRoot+'\tSQLtOfficialSigningKey.pfx')))

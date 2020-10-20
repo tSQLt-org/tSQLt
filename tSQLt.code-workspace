@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+  ],
+"settings": {
+	"powershell.codeFormatting.addWhitespaceAroundPipe": true
+}
+}

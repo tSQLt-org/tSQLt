@@ -1,25 +1,24 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
  <description>Build tSQLt</description>
- <target name="clean" description="remove all generated files">
-  <echo message="${msbuild.path}" />
-  <echo message="${db.server}" />
-  <echo message="${db.name}" />
+
+ <target name="validate.parameters" description="">
+  <!-- no parameters at this point-->
  </target>
 
  <target
    name="all"
-   depends="package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests, teamcity"
+   depends="validate.parameters, package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests, teamcity"
    />
 
  <target
    name="package.create.tSQLt"
-   depends="init, init.tSQLtCLR, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.example, package.create.artifacts"
+   depends="init, init.tSQLtCLR, package.copy.files, package.construct.tsqlt, package.set.build.version, package.create.PrepareServer, package.create.example, package.create.artifacts"
    />
 
  <target
   name="package.create.tSQLt.tests"
-  depends="init, init.tSQLt.tests, package.test.files, package.test.create.artifacts"
+  depends="init, init.tSQLt.tests, package.test.files, package.create.ResetValidationServer, package.test.create.artifacts"
    />
 
  <target
@@ -31,10 +30,27 @@
  <!--========                 Misc                                 =========-->
  <!--=======================================================================-->
 
+ <target name="diagnostics" description="diagnostics">
+  <diagnostics/>
+ </target>
+ 
  <target name="init" description="prepare directories">
   <mkdir dir="output" />
   <delete dir="temp"/>
   <mkdir dir="temp"/>
+  <antcall target="diagnostics" ></antcall>
+ </target>
+
+ <target name="validate.parameter">
+  <fail message="Parameter '${parameter.name}' is required">
+   <condition>
+    <not>
+     <and>
+      <isset property="${parameter.name}"/>
+     </and>
+    </not>
+   </condition>
+  </fail>
  </target>
 
  <target name="init.tSQLtCLR" description="open tSQLtCLR artifact">
@@ -105,14 +121,14 @@
    <arg value="type temp\CreateAssembly.sql"/>
   </exec>
 
-  <echo message="Generating GetSQLtExternalAccessKeyBytes function."/>
-  <exec executable="cmd" dir="." failonerror="true" output="temp/tSQLt.Private_GetExternalAccessKeyBytes.sql">
+  <echo message="Generating GetAssemblyKeyBytes function."/>
+  <exec executable="cmd" dir="." failonerror="true" output="output/tSQLt.Private_GetAssemblyKeyBytes.sql">
    <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtExternalAccessKey.dll ../Source/tSQLt.Private_GetExternalAccessKeyBytes.mdl.sql 0x000000 0x000001 200 &quot;+\n0x&quot;"/>
+   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtAssemblyKey.dll ../Source/tSQLt.Private_GetAssemblyKeyBytes.mdl.sql 0x000000 0x000001 200 &quot;+\n0x&quot;"/>
   </exec>
   <exec executable="cmd" dir="." failonerror="true" >
    <arg value="/c"/>
-   <arg value="type temp\tSQLt.Private_GetExternalAccessKeyBytes.sql"/>
+   <arg value="type output\tSQLt.Private_GetAssemblyKeyBytes.sql"/>
   </exec>
 
   <exec executable="cmd" dir="." failonerror="true">
@@ -152,6 +168,92 @@
 
  </target>
 
+ <target name="package.create.PrepareServer">
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Source/PrepareServerBuildOrder.txt"/>
+   <arg value="temp/PrepareServer.sql"/>
+  </exec>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="tSQLt." />
+   <param name="replace.value" value="#" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="OBJECT_ID('#" />
+   <param name="replace.value" value="OBJECT_ID('tempdb..#" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="---Build-" />
+   <param name="replace.value" value="" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/PrepareServer.sql" />
+   <param name="replace.token" value="---Build+" />
+   <param name="replace.value" value="" />
+  </antcall>
+
+  <replaceregexp match="^(?:[\t ]*(?:\r?\n|\r))+" replace="" flags="gm" byline="false" file="temp/PrepareServer.sql" />
+  <replaceregexp match="^\s*GO\s*((\r?\n)\s*GO\s*)+$" replace="GO" flags="gm" byline="false" file="temp/PrepareServer.sql" />
+
+ </target>
+
+ <target name="append.file" description="append one sql file to another">
+  <echo message="append:${append.source}" />
+  <loadfile srcfile="${append.source}" property="append.file.content" />
+  <echo message="${append.file.content}" file="${append.target}" append="true"/>
+  <echo message="${line.separator}${line.separator}GO${line.separator}${line.separator}" file="${append.target}" append="true" />
+ </target>
+
+ <target name="package.create.ResetValidationServer">
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../Source/ResetValidationServerBuildOrder.txt"/>
+   <arg value="temp/ResetValidationServer.sql"/>
+  </exec>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="tSQLt." />
+   <param name="replace.value" value="#" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="OBJECT_ID('#" />
+   <param name="replace.value" value="OBJECT_ID('tempdb..#" />
+  </antcall>
+
+  <antcall target="append.file">
+   <param name="append.target" value="temp/ResetValidationServer.sql" />
+   <param name="append.source" value="CreateLogin(tSQLt.Build).sql" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="---Build-" />
+   <param name="replace.value" value="" />
+  </antcall>
+
+  <antcall target="replace.in.file">
+   <param name="replace.file" value="temp/ResetValidationServer.sql" />
+   <param name="replace.token" value="---Build+" />
+   <param name="replace.value" value="" />
+  </antcall>
+
+  <replaceregexp match="^(?:[\t ]*(?:\r?\n|\r))+" replace="" flags="gm" byline="false" file="temp/ResetValidationServer.sql" />
+  <replaceregexp match="^\s*GO\s*((\r?\n)\s*GO\s*)+$" replace="GO" flags="gm" byline="false" file="temp/ResetValidationServer.sql" />
+
+ </target>
+
  <target name="package.create.example">
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
@@ -170,8 +272,8 @@
     <include name="ReleaseNotes.txt"/>
     <include name="License.txt"/>
     <include name="tSQLt.class.sql"/>
-    <include name="SetClrEnabled.sql"/>
     <include name="Example.sql"/>
+    <include name="PrepareServer.sql"/>
    </fileset>
   </zip>
   <copy file="temp/Version.txt" tofile="output/Version.txt"/>
@@ -208,36 +310,20 @@
    <arg value="temp/TestUtil.sql"/>
   </exec>
 
+  <echo message="Building TestUtilTests.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../TestUtilTests/*.class.sql"/>
+   <arg value="temp/TestUtilTests.sql"/>
+  </exec>
+
   <echo message="Building AllTests.sql" />
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
    <arg value="../Tests/*.class.sql"/>
    <arg value="temp/AllTests.sql"/>
-  </exec>
-
-  <echo message="Building AllTests.2008.sql" />
-  <exec executable="cmd" dir="." failonerror="true">
-   <arg value="/c"/>
-   <arg value="BuildHelper.exe"/>
-   <arg value="../Tests.2008/*.class.sql"/>
-   <arg value="temp/AllTests.2008.sql"/>
-  </exec>
-
-  <echo message="Building AllTests.2012.sql" />
-  <exec executable="cmd" dir="." failonerror="true">
-   <arg value="/c"/>
-   <arg value="BuildHelper.exe"/>
-   <arg value="../Tests.2012/*.class.sql"/>
-   <arg value="temp/AllTests.2012.sql"/>
-  </exec>
-
-  <echo message="Building AllTests.2014.sql" />
-  <exec executable="cmd" dir="." failonerror="true">
-   <arg value="/c"/>
-   <arg value="BuildHelper.exe"/>
-   <arg value="../Tests.2014/*.class.sql"/>
-   <arg value="temp/AllTests.2014.sql"/>
   </exec>
 
   <echo message="Building AllTests.EXTERNAL_ACCESS.sql" />
@@ -268,8 +354,8 @@
   <copy file="../Tests/BootStrapTest.sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build).sql" todir="temp"/>
   <copy file="ExecuteAs(tSQLt.Build.SA).sql" todir="temp"/>
-  <copy file="Drop(tSQLtExternalAccessKey).sql" todir="temp"/>
-  <copy file="Install(tSQLtExternalAccessKey).sql" todir="temp"/>
+  <copy file="Drop(tSQLtAssemblyKey)(Pre2017).sql" todir="temp"/>
+  <copy file="Install(tSQLtAssemblyKey).sql" todir="temp"/>
   <copy file="ChangeDbAndExecuteStatement(tSQLt.Build).sql" todir="temp"/>
   <copy file="EnableExternalAccess.sql" todir="temp"/>
   <copy file="CreateBuildDb.sql" todir="temp"/>
@@ -286,18 +372,16 @@
   <zip zipfile="output/tSQLt.tests.zip">
    <fileset dir="temp">
     <include name="TestUtil.sql"/>
+    <include name="TestUtilTests.sql"/>
     <include name="AllTests.sql"/>
-    <include name="AllTests.2008.sql"/>
-    <include name="AllTests.2012.sql"/>
-    <include name="AllTests.2014.sql"/>
     <include name="AllTests.EXTERNAL_ACCESS.sql"/>
     <include name="AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql"/>
     <include name="AllTests.SA.sql"/>
     <include name="BootStrapTest.sql"/>
     <include name="ExecuteAs(tSQLt.Build).sql"/>
     <include name="ExecuteAs(tSQLt.Build.SA).sql"/>
-    <include name="Drop(tSQLtExternalAccessKey).sql"/>
-    <include name="Install(tSQLtExternalAccessKey).sql"/>
+    <include name="Drop(tSQLtAssemblyKey)(Pre2017).sql"/>
+    <include name="Install(tSQLtAssemblyKey).sql"/>
     <include name="EnableExternalAccess.sql"/>
     <include name="Drop(master.tSQLt_testutil).sql"/>
     <include name="Install(master.tSQLt_testutil).sql"/>
@@ -307,6 +391,8 @@
     <include name="GetTestResults.sql"/>
     <include name="GetFailedTestCount.sql"/>
     <include name="TestThatExamplesAreDeployed.sql"/>
+    <include name="PrepareServer.sql"/>
+    <include name="ResetValidationServer.sql"/>
    </fileset>
   </zip>
  </target>

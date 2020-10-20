@@ -1,0 +1,13 @@
+SELECT 
+    CASE PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(MAX)),4)
+      WHEN 10 THEN 
+        CASE PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(MAX)),3)
+          WHEN 0 THEN '2008' ELSE '2008R2' 
+        END
+      WHEN 11 THEN '2012'
+      WHEN 12 THEN '2014'
+      WHEN 13 THEN '2016'
+      WHEN 14 THEN '2017'
+      WHEN 15 THEN '2019'
+      ELSE 'Unknown'
+    END SQLVersion;
