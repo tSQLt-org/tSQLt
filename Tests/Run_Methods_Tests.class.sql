@@ -35,32 +35,11 @@ BEGIN
 END;
 GO
 
-CREATE PROC Run_Methods_Tests.[test RunTestClass raises error if error in default print mode]
-AS
-BEGIN
-    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
-
-    EXEC tSQLt.SetTestResultFormatter 'tSQLt.DefaultResultFormatter';
-    EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.TestCaseA AS RETURN 1/0;');
-    
-    BEGIN TRY
-        EXEC tSQLt.RunTestClass MyTestClass;
-    END TRY
-    BEGIN CATCH
-        SET @ErrorRaised = 1;
-    END CATCH
-    IF(@ErrorRaised = 0)
-    BEGIN
-        EXEC tSQLt.Fail 'tSQLt.RunTestClass did not raise an error!';
-    END
-END;
-GO
-
 CREATE PROC Run_Methods_Tests.test_Run_handles_test_names_with_spaces
 AS
 BEGIN
-    DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
+    DECLARE @ProductMajorVersion INT;
+    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
@@ -69,7 +48,7 @@ BEGIN
         EXEC tSQLt.Run 'MyTestClass.Test Case A';
     END TRY
     BEGIN CATCH
-        SET @ErrorRaised = 1;
+      --This space left intentionally blank
     END CATCH
     SELECT Class, TestCase, Msg 
       INTO Run_Methods_Tests.actual
@@ -77,7 +56,7 @@ BEGIN
     SELECT TOP(0)* INTO Run_Methods_Tests.expected FROM  Run_Methods_Tests.actual;
 
     INSERT INTO Run_Methods_Tests.expected
-    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{'+CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'MyTestClass.' ELSE '' END+'Test Case A,1}' Msg
+    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{'+CASE WHEN @ProductMajorVersion >= 14 THEN 'MyTestClass.' ELSE '' END+'Test Case A,1}' Msg
     
     EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.expected', 'Run_Methods_Tests.actual';
 END;
@@ -244,13 +223,13 @@ BEGIN
     EXEC tSQLt.RunTestClass MyTestClass;
     
     SELECT Class, TestCase 
-      INTO actual
+      INTO #Actual
       FROM tSQLt.TestResult;
       
     SELECT 'MyTestClass' Class, 'Test Case A' TestCase
-      INTO expected;
+      INTO #Expected;
     
-    EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
 
@@ -288,7 +267,7 @@ AS
 BEGIN
   EXEC tSQLt.SpyProcedure 'tSQLt.Private_OutputTestResults';
   
-  EXEC tSQLt.Private_Run 'NoTestSchema.NoTest','SomeTestResultFormatter';
+  EXEC tSQLt.Private_Run  @TestName = 'NoTestSchema.NoTest', @TestResultFormatter = 'SomeTestResultFormatter';
   
   SELECT TestResultFormatter
     INTO #Actual
@@ -1438,38 +1417,6 @@ BEGIN
     END;
 END;
 GO
-CREATE PROC Run_Methods_Tests.[test DefaultResultFormatter outputs test execution duration]
-AS
-BEGIN
-  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
-  DECLARE @ttt_object_id INT;SET @ttt_object_id = OBJECT_ID('tSQLt.TableToText');
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.TableToText', @CommandToExecute = 'EXEC(''SELECT * INTO Run_Methods_Tests.Actual FROM ''+@TableName);';
-                                 
-  EXEC('                                                                                    
-  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
-  VALUES(''[a test class].[test 1]'',''success'',''2015-07-18T00:00:01.000'',''2015-07-18T00:10:10.555'');
-  INSERT INTO tSQLt.TestResult(Name,Result,TestStartTime,TestEndTime)
-  VALUES(''[a test class].[test 2]'',''failure'',''2015-07-18T00:00:02.000'',''2015-07-18T00:22:03.444'');
-  ');
-
-  EXEC tSQLt.DefaultResultFormatter;
-
-  DROP PROCEDURE tSQLt.TableToText;
-  DECLARE @new_ttt_name NVARCHAR(MAX); SET @new_ttt_name = 'tSQLt.'+QUOTENAME(OBJECT_NAME(@ttt_object_id));
-  EXEC sys.sp_rename @new_ttt_name,'TableToText','OBJECT';
-
-  SELECT TOP(0) *
-  INTO Run_Methods_Tests.Expected
-  FROM Run_Methods_Tests.Actual;
-  
-  INSERT INTO Run_Methods_Tests.Expected
-  VALUES(1,'[a test class].[test 1]',' 609556','success');
-  INSERT INTO Run_Methods_Tests.Expected
-  VALUES(2,'[a test class].[test 2]','1321443','failure');
-
-  EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.Expected','Run_Methods_Tests.Actual';
-END;
-GO
 CREATE PROC Run_Methods_Tests.[test Privat_GetCursorForRunNew returns all test classes created after(!) tSQLt.Reset was called]
 AS
 BEGIN
@@ -1704,4 +1651,561 @@ BEGIN
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+CREATE PROC Run_Methods_Tests.[test PrepareTestResultForOutput calculates test duration]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+                                 
+  EXEC('                                                                                    
+  INSERT INTO tSQLt.TestResult(Name,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 1]'',''2015-07-18T00:00:01.000'',''2015-07-18T00:10:10.555'');
+  INSERT INTO tSQLt.TestResult(Name,TestStartTime,TestEndTime)
+  VALUES(''[a test class].[test 2]'',''2015-07-18T00:00:02.000'',''2015-07-18T00:22:03.444'');
+  ');
+
+  SELECT PTRFO.[Test Case Name],
+         PTRFO.[Dur(ms)]
+    INTO #Actual
+    FROM tSQLt.Private_PrepareTestResultForOutput() AS PTRFO
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('[a test class].[test 1]',' 609556'),
+        ('[a test class].[test 2]','1321443');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test PrepareTestResultForOutput orders tests appropriately]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 7]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 9]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 5]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 6]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 8]'',''Skipped'');
+  ');
+
+  SELECT 
+      PTRFO.No,
+      PTRFO.[Test Case Name],
+      PTRFO.Result
+    INTO #Actual
+    FROM tSQLt.Private_PrepareTestResultForOutput() AS PTRFO
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES(1,'[a test class].[test 1]','Success'),
+        (2,'[a test class].[test 3]','Success'),
+        (3,'[a test class].[test 7]','Success'),
+        (4,'[a test class].[test 5]','Skipped'),
+        (5,'[a test class].[test 8]','Skipped'),
+        (6,'[a test class].[test 4]','Failure'),
+        (7,'[a test class].[test 9]','Failure'),
+        (8,'[a test class].[test 2]','Error'),
+        (9,'[a test class].[test 6]','Error');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE FUNCTION Run_Methods_Tests.[Returns 7,SomeSpecificName,42,Failure]()
+RETURNS TABLE
+AS
+RETURN
+  SELECT 7 No,'SomeSpecificName' [Test Case Name],42 [Dur(ms)], 'Failure' Result;
+GO
+CREATE PROC Run_Methods_Tests.[test DefaultResultFormatter is using PrepareTestResultForOutput]
+AS
+BEGIN
+ EXEC tSQLt.FakeFunction 
+   @FunctionName = 'tSQLt.Private_PrepareTestResultForOutput', 
+   @FakeFunctionName = 'Run_Methods_Tests.[Returns 7,SomeSpecificName,42,Failure]';
+
+ EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+
+ EXEC tSQLt.DefaultResultFormatter;
+  
+ EXEC tSQLt_testutil.AssertTableContainsString 
+         @Table = 'tSQLt.Private_Print_SpyProcedureLog',
+         @Column = 'Message',
+         @Pattern = '%7%SomeSpecificName%42%Failure%';
+
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter creates testsuite with multiple test elements some skipped]
+AS
+BEGIN
+    EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
+    DECLARE @XML XML;
+
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testA', 'XYZ', 'Skipped', 'testA intentionally skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testB', 'XYZ', 'Success', NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testC', 'XYZ', 'Skipped', 'testC intentionally skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result, Msg)
+    VALUES ('MyTestClass', 'testD', 'XYZ', 'Success', NULL);
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT TestCase.value('@name','NVARCHAR(MAX)') AS TestCase, TestCase.value('skipped[1]/@message','NVARCHAR(MAX)') AS Msg
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
+    
+    
+    SELECT TestCase,Msg
+    INTO #expected
+    FROM tSQLt.TestResult;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter sets correct counts for skipped tests]
+AS
+BEGIN
+    EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
+    DECLARE @XML XML;
+
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass1', 'testA', 'XYZ', 'Failure');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass1', 'testB', 'XYZ', 'Success');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass2', 'testC', 'XYZ', 'Skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass2', 'testD', 'XYZ', 'Error');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass2', 'testE', 'XYZ', 'Failure');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testF', 'XYZ', 'Skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testG', 'XYZ', 'Error');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testH', 'XYZ', 'Skipped');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, TranName, Result)
+    VALUES ('MyTestClass3', 'testI', 'XYZ', 'Skipped');
+    
+    EXEC tSQLt.XmlResultFormatter;
+    
+    SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+
+    SELECT 
+      TestCase.value('@name','NVARCHAR(MAX)') AS Class,
+      TestCase.value('@tests','NVARCHAR(MAX)') AS Tests,
+      TestCase.value('@skipped','NVARCHAR(MAX)') AS Skipped
+    INTO #actual
+    FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
+    
+--    SELECT * FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    
+    SELECT *
+    INTO #expected
+    FROM (
+      SELECT N'MyTestClass1' AS Class, 2 Tests, 0 Skipped
+      UNION ALL
+      SELECT N'MyTestClass2' AS Class, 3 Tests, 1 Skipped
+      UNION ALL
+      SELECT N'MyTestClass3' AS Class, 4 Tests, 3 Skipped
+    ) AS x;
+    
+    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+CREATE PROCEDURE Run_Methods_Tests.SetupXMLSchemaCollection
+AS
+BEGIN
+--Valid JUnit XML Schema
+--Source:https://raw.githubusercontent.com/windyroad/JUnit-Schema/master/JUnit.xsd
+--Source with commit-id: https://raw.githubusercontent.com/windyroad/JUnit-Schema/d6daa414c448da22b810c8562f9d6fca086983ba/JUnit.xsd
+DECLARE @cmd NVARCHAR(MAX);SET @cmd = 
+'<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	 elementFormDefault="qualified"
+	 attributeFormDefault="unqualified">
+	<xs:annotation>
+		<xs:documentation xml:lang="en">JUnit test result schema for the Apache Ant JUnit and JUnitReport tasks
+Copyright © 2011, Windy Road Technology Pty. Limited
+The Apache Ant JUnit XML Schema is distributed under the terms of the Apache License Version 2.0 http://www.apache.org/licenses/
+Permission to waive conditions of this license may be requested from Windy Road Support (http://windyroad.org/support).</xs:documentation>
+	</xs:annotation>
+	<xs:element name="testsuite" type="testsuite"/>
+	<xs:simpleType name="ISO8601_DATETIME_PATTERN">
+		<xs:restriction base="xs:dateTime">
+			<xs:pattern value="[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="testsuites">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Contains an aggregation of testsuite results</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="testsuite" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:complexContent>
+							<xs:extension base="testsuite">
+								<xs:attribute name="package" type="xs:token" use="required">
+									<xs:annotation>
+										<xs:documentation xml:lang="en">Derived from testsuite/@name in the non-aggregated documents</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="id" type="xs:int" use="required">
+									<xs:annotation>
+										<xs:documentation xml:lang="en">Starts at ''0'' for the first testsuite and is incremented by 1 for each following testsuite</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:extension>
+						</xs:complexContent>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="testsuite">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Contains the results of exexuting a testsuite</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="properties">
+				<xs:annotation>
+					<xs:documentation xml:lang="en">Properties (e.g., environment settings) set during test execution</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:attribute name="name" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:token">
+											<xs:minLength value="1"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="value" type="xs:string" use="required"/>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="testcase" minOccurs="0" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:choice minOccurs="0">
+						<xs:element name="skipped" />
+						<xs:element name="error" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation xml:lang="en">Indicates that the test errored.  An errored test is one that had an unanticipated problem. e.g., an unchecked throwable; or a problem with the implementation of the test. Contains as a text node relevant data for the error, e.g., a stack trace</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:simpleContent>
+									<xs:extension base="pre-string">
+										<xs:attribute name="message" type="xs:string">
+											<xs:annotation>
+												<xs:documentation xml:lang="en">The error message. e.g., if a java exception is thrown, the return value of getMessage()</xs:documentation>
+											</xs:annotation>
+										</xs:attribute>
+										<xs:attribute name="type" type="xs:string" use="required">
+											<xs:annotation>
+												<xs:documentation xml:lang="en">The type of error that occured. e.g., if a java execption is thrown the full class name of the exception.</xs:documentation>
+											</xs:annotation>
+										</xs:attribute>
+									</xs:extension>
+								</xs:simpleContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="failure">
+							<xs:annotation>
+								<xs:documentation xml:lang="en">Indicates that the test failed. A failure is a test which the code has explicitly failed by using the mechanisms for that purpose. e.g., via an assertEquals. Contains as a text node relevant data for the failure, e.g., a stack trace</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:simpleContent>
+									<xs:extension base="pre-string">
+										<xs:attribute name="message" type="xs:string">
+											<xs:annotation>
+												<xs:documentation xml:lang="en">The message specified in the assert</xs:documentation>
+											</xs:annotation>
+										</xs:attribute>
+										<xs:attribute name="type" type="xs:string" use="required">
+											<xs:annotation>
+												<xs:documentation xml:lang="en">The type of the assert.</xs:documentation>
+											</xs:annotation>
+										</xs:attribute>
+									</xs:extension>
+								</xs:simpleContent>
+							</xs:complexType>
+						</xs:element>
+					</xs:choice>
+					<xs:attribute name="name" type="xs:token" use="required">
+						<xs:annotation>
+							<xs:documentation xml:lang="en">Name of the test method</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="classname" type="xs:token" use="required">
+						<xs:annotation>
+							<xs:documentation xml:lang="en">Full class name for the class the test method is in.</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="time" type="xs:decimal" use="required">
+						<xs:annotation>
+							<xs:documentation xml:lang="en">Time taken (in seconds) to execute the test</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="system-out">
+				<xs:annotation>
+					<xs:documentation xml:lang="en">Data that was written to standard out while the test was executed</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="pre-string">
+						<xs:whiteSpace value="preserve"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="system-err">
+				<xs:annotation>
+					<xs:documentation xml:lang="en">Data that was written to standard error while the test was executed</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="pre-string">
+						<xs:whiteSpace value="preserve"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" use="required">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">Full class name of the test for non-aggregated testsuite documents. Class name without the package for aggregated testsuites documents</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:token">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="timestamp" type="ISO8601_DATETIME_PATTERN" use="required">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">when the test was executed. Timezone may not be specified.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="hostname" use="required">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">Host on which the tests were executed. ''localhost'' should be used if the hostname cannot be determined.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:token">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="tests" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">The total number of tests in the suite</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="failures" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">The total number of tests in the suite that failed. A failure is a test which the code has explicitly failed by using the mechanisms for that purpose. e.g., via an assertEquals</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="errors" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">The total number of tests in the suite that errored. An errored test is one that had an unanticipated problem. e.g., an unchecked throwable; or a problem with the implementation of the test.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="skipped" type="xs:int" use="optional">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">The total number of ignored or skipped tests in the suite.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="time" type="xs:decimal" use="required">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">Time taken (in seconds) to execute the tests in the suite</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="pre-string">
+		<xs:restriction base="xs:string">
+			<xs:whiteSpace value="preserve"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>';
+SET @cmd = 'CREATE XML SCHEMA COLLECTION Run_Methods_Tests.ValidJUnitXML AS '''+REPLACE(REPLACE(@cmd,'''',''''''),'©','(c)')+''';';
+--EXEC(@cmd);
+EXEC tSQLt.CaptureOutput @cmd;
+END;
+GO
+--[@tSQLt:MinSqlMajorVersion](10)
+CREATE PROC Run_Methods_Tests.[test XmlResultFormatter returns XML that validates against the JUnit test result xsd]
+AS
+BEGIN
+    EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_PrintXML';
+
+    DELETE FROM tSQLt.TestResult;
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass1', 'testA', 'Failure', '2015-07-24T00:00:01.000', '2015-07-24T00:00:01.138','failed intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass1', 'testB', 'Success', '2015-07-24T00:00:02.000', '2015-07-24T00:00:02.633',NULL);
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testC', 'Failure', '2015-07-24T00:00:01.111', '2015-07-24T20:31:24.758','failed intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testD', 'Error', '2015-07-24T00:00:00.667', '2015-07-24T00:00:01.055','errored intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testE', 'Skipped', '2015-07-24T00:00:01.111', '2015-07-24T20:31:24.758','skipped intentionally');
+    INSERT INTO tSQLt.TestResult (Class, TestCase, Result, TestStartTime, TestEndTime,Msg)
+    VALUES ('MyTestClass2', 'testF', 'Skipped', '2015-07-24T00:00:00.667', '2015-07-24T00:00:01.055','skipped intentionally');
+    
+    EXEC tSQLt.XmlResultFormatter;
+
+    EXEC tSQLt.ExpectNoException;
+    EXEC Run_Methods_Tests.SetupXMLSchemaCollection;
+    DECLARE @TestResultXML XML;
+    SELECT @TestResultXML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
+    -- The assignment below will fail if the @TestResultXML is not schema conform
+    EXEC sp_executesql N'DECLARE @TestSchema XML(Run_Methods_Tests.ValidJUnitXML) = @TestResultXML',N'@TestResultXML XML',@TestResultXML;
+END;
+GO
+--[@tSQLt:MinSqlMajorVersion](10)
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Private_InputBuffer does not produce output]
+AS
+BEGIN
+  DECLARE @Actual NVARCHAR(MAX);SET @Actual = '<Something went wrong!>';
+
+  EXEC tSQLt.CaptureOutput 'DECLARE @r NVARCHAR(MAX);EXEC tSQLt.Private_InputBuffer @r OUT;';
+
+  SELECT @Actual  = COL.OutputText FROM tSQLt.CaptureOutputLog AS COL;
+  
+  EXEC tSQLt.AssertEqualsString @Expected = NULL, @Actual = @Actual;
+END;
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is "printed" as error if there is one error result]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
+  EXEC tSQLt.DefaultResultFormatter;
+
+END
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is "printed" as error if there is one failure result]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
+  EXEC tSQLt.DefaultResultFormatter;
+
+END
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is "printed" as error if there are multiple failure and error results]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 5]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 6]'',''Error'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 7]'',''Failure'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 8]'',''Success'');
+  ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Test Case Summary:%';
+  EXEC tSQLt.DefaultResultFormatter;
+
+END
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is not "printed" as error if there are only success results]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+  ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
+  EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.DefaultResultFormatter;
+
+END
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is not "printed" as error if there are only skipped results]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
+  EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.DefaultResultFormatter;
+
+END
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test the Test Case Summary line is not "printed" as error if there are only success and skipped results]
+AS
+BEGIN
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestResult';
+  EXEC('
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 1]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 2]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 3]'',''Success'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 4]'',''Skipped'');
+    INSERT INTO tSQLt.TestResult(Name,Result)VALUES(''[a test class].[test 5]'',''Skipped'');
+  ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1; --Global setting to actually raise an error -- the build is turning this off
+
+  EXEC tSQLt.ExpectNoException;
+  EXEC tSQLt.DefaultResultFormatter;
+
+END
 GO

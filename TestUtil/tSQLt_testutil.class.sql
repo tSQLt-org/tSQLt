@@ -263,6 +263,102 @@ BEGIN
     END
 END;
 GO
+CREATE PROCEDURE tSQLt_testutil.AssertTestSkipped
+  @TestName NVARCHAR(MAX),
+  @ExpectedMessage NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    DECLARE @Result NVARCHAR(MAX);
+    DECLARE @Msg NVARCHAR(MAX);
+    
+    EXEC tSQLt_testutil.CaptureTestResult @TestName, @Result OUTPUT, @Msg OUTPUT;
+    
+    IF(@Result <> 'Skipped')
+    BEGIN
+      EXEC tSQLt.Fail 'Expected test to be skipped. Instead it resulted in ',@Result,'. The Message is: "',@Msg,'"';
+    END
+    
+    IF(@ExpectedMessage IS NOT NULL)
+    BEGIN
+      EXEC tSQLt.AssertLike @ExpectedMessage,@Msg,'Incorrect Skip Message:';
+    END
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.PrepMultiRunLogTable
+AS
+BEGIN
+  IF OBJECT_ID('tSQLt_testutil.MultiRunLog') IS NOT NULL DROP TABLE tSQLt_testutil.MultiRunLog;
+  CREATE TABLE tSQLt_testutil.MultiRunLog
+  (
+    id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    Success INT,
+    Skipped INT,
+    Failure INT,
+    [Error] INT,
+    TestCaseSet NVARCHAR(MAX)
+  );
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.LogMultiRunResult
+  @TestCaseSet NVARCHAR(MAX)
+AS
+BEGIN
+  SELECT 
+      SUM(CASE WHEN Result = 'Success' THEN 1 ELSE 0 END) Success,
+      SUM(CASE WHEN Result = 'Skipped' THEN 1 ELSE 0 END) Skipped,
+      SUM(CASE WHEN Result = 'Failure' THEN 1 ELSE 0 END) Failure,
+      SUM(CASE WHEN Result = 'Error' THEN 1 ELSE 0 END) [Error],
+      @TestCaseSet TestCaseSet
+    INTO #MRL
+    FROM tSQLt.TestResult;
+  SELECT * FROM #MRL AS M;
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error,TestCaseSet)
+  SELECT * FROM #MRL AS M;
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.CheckMultiRunResults
+AS
+BEGIN
+  SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = 16
+  END;
+  IF(NOT EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = 16
+  END;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Failure = 0 AND MRL.Error = 0))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = 16
+  END;
+END;
+GO
+CREATE FUNCTION tSQLt_testutil.GenerateRandomPassword(@R UNIQUEIDENTIFIER)
+RETURNS TABLE
+AS
+RETURN
+SELECT CAST(@R AS NVARCHAR(MAX))+'[P0l1cyRe7u1r3mnt$]' PW;
+GO
+CREATE PROCEDURE tSQLt_testutil.AssertTableContainsString
+  @Table NVARCHAR(MAX),
+  @Column NVARCHAR(MAX),
+  @Pattern NVARCHAR(MAX)
+AS
+BEGIN
+ CREATE TABLE #TheRowExists(Yes INT);
+ DECLARE @cmd NVARCHAR(MAX) =  N'INSERT INTO #TheRowExists SELECT 1 FROM '+@Table+' WHERE '+@Column+' LIKE @Pattern';
+ EXEC sp_executesql @cmd,N'@Pattern NVARCHAR(MAX)',@Pattern;
+
+ IF NOT EXISTS(SELECT 1 FROM #TheRowExists)
+ BEGIN
+   DECLARE @Msg NVARCHAR(MAX) = 'Expected to find '+@Pattern+' in '+@Table+' but didn''t.';
+   EXEC tSQLt.AssertEmptyTable -- roundabout way to get the table content printed
+     @TableName = @Table, 
+     @Message = @Msg;
+   EXEC tSQLt.Fail 'Expected to find ',@Pattern,' in ',@Table,' but didn''t. Table was empty.';
+ END;
+END;
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

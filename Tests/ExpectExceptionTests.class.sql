@@ -287,3 +287,40 @@ BEGIN
     EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingException';
 END;
 GO
+
+CREATE PROCEDURE ExpectExceptionTests.[test ExpectException reports TestEndTime when failing]
+AS
+BEGIN
+    EXEC tSQLt.NewTestClass 'InnerTests';
+    EXEC(
+     'CREATE PROC InnerTests.[test Me] AS EXEC tSQLt.ExpectException;'
+    );
+
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
+    
+    EXEC(@RunTestCmd);
+
+    DECLARE @ActualTestEndTime DATETIME2 = (SELECT TR.TestEndTime FROM tSQLt.TestResult AS TR WHERE TR.Name = '[InnerTests].[test Me]');
+
+    EXEC tSQLt.AssertNotEquals @Expected = NULL, @Actual = @ActualTestEndTime;
+END;
+GO
+
+CREATE PROCEDURE ExpectExceptionTests.[test ExpectException reports TestEndTime when passing]
+AS
+BEGIN
+    EXEC tSQLt.NewTestClass 'InnerTests';
+    EXEC(
+     'CREATE PROC InnerTests.[test Me] AS EXEC tSQLt.ExpectException; RAISERROR(''Expected error'',16,10);'
+    );
+
+    DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
+    
+    EXEC(@RunTestCmd);
+
+    DECLARE @ActualTestEndTime DATETIME2 = (SELECT TR.TestEndTime FROM tSQLt.TestResult AS TR WHERE TR.Name = '[InnerTests].[test Me]');
+
+    EXEC tSQLt.AssertNotEquals @Expected = NULL, @Actual = @ActualTestEndTime;
+
+END;
+GO

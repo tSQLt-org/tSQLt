@@ -97,6 +97,9 @@ CREATE PROC tSQLt_test.test_Run_handles_uncommitable_transaction
 AS
 BEGIN
     DECLARE @TranName sysname; 
+    DECLARE @ProductMajorVersion INT;
+    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+
     SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_Run_handles_uncommitable_transaction' ORDER BY Id DESC;
     EXEC ('CREATE PROC tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063 AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
     BEGIN TRY
@@ -109,7 +112,7 @@ BEGIN
                      WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063'
                        AND Result = 'Error'
                        AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{'+
-                                     CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'tSQLt_test.' ELSE '' END+
+                                     CASE WHEN @ProductMajorVersion >= 14 THEN 'tSQLt_test.' ELSE '' END+
                                      'testUncommitable00A1030051764AE7A946E827159E7063,1}%'
                        AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
                    )

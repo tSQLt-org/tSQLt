@@ -1,0 +1,128 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))(SQL ${{parameters.SQLVersion}})
+
+trigger: none
+pr: none
+#schedules:
+#  - cron: 0 12 24 3 *
+#    displayName: Scheduled once(ish)
+#    branches:
+#      include:
+#      - CITesting
+#    always: true
+#  - cron: 15 12 24 3 *
+#    displayName: Scheduled once(ish)
+#    branches:
+#      include:
+#      - CITesting
+#    always: true
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+
+parameters:
+- name: SQLCMDPath
+  type: string
+  default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+- name: FQDN
+  type: string
+  default: 'v1771-2016.eastus2.cloudapp.azure.com'
+- name: Port
+  type: string
+  default: '41433'
+- name: SQLVersion
+  type: string
+  default: '2016'
+
+
+variables:
+  #------------------------------------------------------------------#
+  # IMPORTANT (and, you've got to be kidding me):                    #
+  # The space below is absolutely required to make the ANT Task work #
+  #---------------------------------|--------------------------------#
+  FQDNAndPort: ${{parameters.FQDN}}, ${{parameters.Port}}
+  #---------------------------------|--------------------------------#
+  #------------------------------------------------------------------#
+
+
+steps:
+
+- task: CmdLine@2
+  name: AgentInfo
+  inputs:
+    script: |
+      @ECHO ON
+      systeminfo
+      "${{ parameters.SQLCMDPath }}\SQLCMD" -?
+
+- task: DownloadPipelineArtifact@2
+  inputs:
+    buildType: 'specific'
+    project: '276a22c3-dbc9-4c7c-8e4e-18c70ef165d8'
+    definition: '1'
+    buildVersionToDownload: 'latest'
+    artifactName: 'tSQLtPreTests'
+    targetPath: '$(Build.SourcesDirectory)/Build_Artifact'
+
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    KeyVaultName: 'tSQLtSigningKey'
+    SecretsFilter: '*'
+
+- task: PowerShell@2
+  name: PrintSQLVersionInfo
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(FQDNAndPort)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+      $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }
+
+
+- task: Ant@1
+  name: Run_tSQLt_validatebuild_xml
+  inputs:
+    buildFile: 'Build/tSQLt.validatebuild.xml'
+    options: '-Ddb.version="${{parameters.SQLVersion}}" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="\"${{ parameters.SQLCMDPath }}\""'
+    targets: 'all'
+    publishJUnitResults: true
+    testResultsFiles: '**/?(Example)TestResults*.xml'
+    testRunTitle: 'testtitle'
+    javaHomeOption: 'JDKVersion'
+
+- task: PowerShell@2
+  name: TestXMLOutput
+  env:
+    USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+    PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      &"${{ parameters.SQLCMDPath }}\sqlcmd" -S "$(FQDNAndPort)" -U "$env:USER_NAME" -P "$env:PASSWORD" -d tSQLt_dev -i "$(Build.SourcesDirectory)/Build/GetTestResults.sql" -o "$(Build.SourcesDirectory)/Build/test20200420093015.txt"
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)/Build'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+- task: CmdLine@2
+  condition: false
+  inputs:
+    script: |
+      echo end pipeline here      
+      echx
+
+

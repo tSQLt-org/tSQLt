@@ -13,23 +13,29 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = 'EXTERNAL_ACCESS', @Actual = @Actual;
 END;
 GO
-CREATE PROCEDURE Private_InitTests_EAKE.[test Private_Init does not fail if external access isn't possible]
+CREATE PROCEDURE Private_InitTests_EAKE.[test Private_Init does not fail if enabling external access isn't possible]
 AS
 BEGIN
-  ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
-  EXEC('EXEC master.tSQLt_testutil.tSQLtTestUtil_ExternalAccessRevoke;');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.EnableExternalAccess', @CommandToExecute = NULL;
 
-  EXEC tSQLt.ExpectNoException;  
   EXEC tSQLt.Private_Init;
 
+  SELECT [try] INTO #Actual FROM tSQLt.EnableExternalAccess_SpyProcedureLog;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES (1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+--[@tSQLt:MaxSqlMajorVersion](13)
 CREATE PROCEDURE Private_InitTests_EAKE.[test Private_Init fails if CLR cannot be accessed]
 AS
 BEGIN
   EXEC('ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = EXTERNAL_ACCESS;');
 
-  EXEC('EXEC master.tSQLt_testutil.tSQLtTestUtil_ExternalAccessRevoke;');
+  EXEC('EXEC master.tSQLt_testutil.tSQLtTestUtil_UnsafeAssemblyAndExternalAccessRevoke;');
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot access CLR. Assembly might be in an invalid state. Try running EXEC tSQLt.EnableExternalAccess @enable = 0; or reinstalling tSQLt.', @ExpectedSeverity = 16, @ExpectedState = 10;
   EXEC tSQLt.Private_Init;

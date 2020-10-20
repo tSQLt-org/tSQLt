@@ -307,7 +307,7 @@ BEGIN CATCH
   RAISERROR(@m,0,1);
 END CATCH;
 
-DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 1 succeeded, 0 failed, 0 errored.';
+DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 1 succeeded, 0 skipped, 0 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
 SELECT @actual = Message
@@ -350,7 +350,7 @@ BEGIN CATCH
   RAISERROR(@m,0,1);
 END CATCH;
 
-DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 1 failed, 0 errored.';
+DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 0 skipped, 1 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
 SELECT @actual = Message
@@ -393,7 +393,7 @@ BEGIN CATCH
   RAISERROR(@m,0,1);
 END CATCH;
 
-DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 0 failed, 1 errored.';
+DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 1 test case(s) executed, 0 succeeded, 0 skipped, 0 failed, 1 errored.';
 
 DECLARE @actual VARCHAR(MAX);
 SELECT @actual = Message
@@ -438,7 +438,7 @@ BEGIN CATCH
   RAISERROR(@m,0,1);
 END CATCH;
 
-DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 2 succeeded, 0 failed, 0 errored.';
+DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 2 succeeded, 0 skipped, 0 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
 SELECT @actual = Message
@@ -482,7 +482,7 @@ BEGIN CATCH
   RAISERROR(@m,0,1);
 END CATCH;
 
-DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 1 succeeded, 1 failed, 0 errored.';
+DECLARE @expected VARCHAR(MAX); SET @expected = 'Test Case Summary: 2 test case(s) executed, 1 succeeded, 0 skipped, 1 failed, 0 errored.';
 
 DECLARE @actual VARCHAR(MAX);
 SELECT @actual = Message

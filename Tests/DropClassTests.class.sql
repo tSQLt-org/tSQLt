@@ -107,5 +107,26 @@ BEGIN
 END;
 GO
 
+CREATE PROC DropClassTests.[test removes class if it contains a CLR TVF]
+AS
+BEGIN
+    EXEC('CREATE SCHEMA MyTestClass;');
+
+    EXEC('
+CREATE FUNCTION MyTestClass.AClrTvf(@p1 NVARCHAR(MAX), @p2 NVARCHAR(MAX))
+       RETURNS TABLE(id INT, val NVARCHAR(MAX))
+       AS EXTERNAL NAME tSQLtTestUtilCLR.[tSQLtTestUtilCLR.ClrFunctions].AClrTvf;
+    ');
+
+    EXEC tSQLt.ExpectNoException;
+        EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+
 
 

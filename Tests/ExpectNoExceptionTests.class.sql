@@ -24,9 +24,12 @@ BEGIN
     EXEC('CREATE PROC MyTestClass.TestExpectingNoException AS EXEC tSQLt.ExpectNoException;RAISERROR(''test error message'',16,10);');
 
     DECLARE @ExpectedMessage NVARCHAR(MAX);
+    DECLARE @ProductMajorVersion INT;
+    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+
     SET @ExpectedMessage = 'Expected no error to be raised. Instead this error was encountered:'+CHAR(13)+CHAR(10)+
                            'test error message[[]16,10]{'+
-                           CASE WHEN CAST(SERVERPROPERTY('ProductMajorVersion')AS INT) >= 14 THEN 'MyTestClass.' ELSE '' END+
+                           CASE WHEN @ProductMajorVersion >= 14 THEN 'MyTestClass.' ELSE '' END+
                            'TestExpectingNoException,1}';
     EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingNoException', @ExpectedMessage;
 END;
