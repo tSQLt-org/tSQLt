@@ -95,7 +95,9 @@ CREATE PROCEDURE FakeFunctionTests.[test errors when function doesn't exist]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.Fake() RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''''; END;');
+
   EXEC tSQLt.ExpectException @ExpectedMessage = 'FakeFunctionTests.ANotExistingFunction does not exist!', @ExpectedSeverity = 16, @ExpectedState = 10;  
+
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.ANotExistingFunction', @FakeFunctionName = 'FakeFunctionTests.Fake';
   
 END;
@@ -371,6 +373,7 @@ AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@id INT) RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''''; END;');
   EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@di INT) RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''''; END;');
+
   EXEC FakeFunctionTests.[assert parameter missmatch causes error];
 END;
 GO
@@ -388,6 +391,7 @@ AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@id NUMERIC(10,1)) RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''''; END;');
   EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@id NUMERIC(11,1)) RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''''; END;');
+
   EXEC FakeFunctionTests.[assert parameter missmatch causes error];
 END;
 GO
@@ -405,6 +409,7 @@ AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@id1 INT, @id2 INT) RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''''; END;');
   EXEC('CREATE FUNCTION FakeFunctionTests.AFakeFunction(@id2 INT, @id1 INT) RETURNS NVARCHAR(MAX) AS BEGIN RETURN ''''; END;');
+
   EXEC FakeFunctionTests.[assert parameter missmatch causes error];
 END;
 GO
