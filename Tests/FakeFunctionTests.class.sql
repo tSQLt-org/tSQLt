@@ -422,7 +422,7 @@ BEGIN
   EXEC FakeFunctionTests.[assert parameter missmatch causes error];
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeFunctionName and @FakeDataSource can't be both NULL]
+CREATE PROCEDURE FakeFunctionTests.[test errors when both @FakeFunctionName and @FakeDataSource are passed]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int, @b int) RETURNS TABLE AS RETURN (SELECT @a AS one);');
@@ -430,7 +430,7 @@ BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeFunctionName and @FakeDataSource can't be both NOT NULL]
+CREATE PROCEDURE FakeFunctionTests.[test errors when neither @FakeFunctionName nor @FakeDataSource are passed]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int, @b int) RETURNS TABLE AS RETURN (SELECT @a AS one);');
@@ -440,7 +440,20 @@ BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'select 1 one';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource with temp table with inline table function]
+CREATE PROCEDURE FakeFunctionTests.[test errors when scalar function is passed as @FakeDataSource]
+AS
+BEGIN
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS NVARCHAR(10) AS BEGIN RETURN ''''; END;');
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline Table-Valued Function and Multi-Statement Table-Valued Function functions', 
+                             @ExpectedSeverity = 16, 
+                             @ExpectedState = 10;  
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'select 1 as a';
+
+END;
+GO
+CREATE PROCEDURE FakeFunctionTests.[test can fake Inline table function using a temp table as fake data source]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT  1 AS one);');
@@ -448,16 +461,14 @@ BEGIN
   CREATE TABLE #expected (a CHAR(1));
   INSERT INTO #expected VALUES('a');
 
-  CREATE TABLE #actual (a CHAR(1))
-
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '#expected';
 
-  INSERT INTO #actual SELECT * FROM FakeFunctionTests.AFunction();
+  SELECT * INTO #actual FROM FakeFunctionTests.AFunction();
 
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource with temp table with multistatement table valued function]
+CREATE PROCEDURE FakeFunctionTests.[test can fake multi-statement table function using a temp table as fake data source]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int) RETURNS @t TABLE (a int) AS BEGIN;
@@ -466,16 +477,14 @@ BEGIN
   CREATE TABLE #expected (a CHAR(1));
   INSERT INTO #expected VALUES('a');
 
-  CREATE TABLE #actual (a CHAR(1))
-
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '#expected';
 
-  INSERT INTO #actual SELECT * FROM FakeFunctionTests.AFunction(123);
+  SELECT * INTO #actual FROM FakeFunctionTests.AFunction(123);
 
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource to accept function with single param]
+CREATE PROCEDURE FakeFunctionTests.[test can fake function with one parameter]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int) RETURNS TABLE AS RETURN (SELECT @a AS one);');
@@ -483,33 +492,29 @@ BEGIN
   CREATE TABLE #expected (a INT);
   INSERT INTO #expected VALUES(1);
 
-  CREATE TABLE #actual (a INT)
-
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '#expected';
 
-  INSERT INTO #actual SELECT * FROM FakeFunctionTests.AFunction(123);
+  SELECT * INTO #actual FROM FakeFunctionTests.AFunction(123);
 
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource to accept function with multiple params]
+CREATE PROCEDURE FakeFunctionTests.[test can fake function with multiple parameters]
 AS
 BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int, @b int) RETURNS TABLE AS RETURN (SELECT @a AS one);');
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int, @b int, @c char(1)) RETURNS TABLE AS RETURN (SELECT @a AS one);');
 
   CREATE TABLE #expected (a INT);
   INSERT INTO #expected VALUES(1);
 
-  CREATE TABLE #actual (a INT)
-
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '#expected';
 
-  INSERT INTO #actual SELECT * FROM FakeFunctionTests.AFunction(123, 321);
+  SELECT * INTO #actual FROM FakeFunctionTests.AFunction(123, 321, 'a');
 
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource fakes function with VALUES clause]
+CREATE PROCEDURE FakeFunctionTests.[test can fake function with VALUES clause as fake data source]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
@@ -517,11 +522,27 @@ BEGIN
   CREATE TABLE #expected (a INT);
   INSERT INTO #expected VALUES(1);
 
-  CREATE TABLE #actual (a INT)
-
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '(VALUES(1)) a(a)';
 
-  INSERT INTO #actual SELECT * FROM FakeFunctionTests.AFunction();
+  SELECT * INTO #actual FROM FakeFunctionTests.AFunction();
+
+  EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+CREATE PROCEDURE FakeFunctionTests.[test can fake function with two part named table as fake data source]
+AS
+BEGIN
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
+
+  CREATE TABLE #expected (a INT);
+  INSERT INTO #expected VALUES(1);
+
+  SELECT * INTO FakeFunctionTests.SomeTable FROM #expected;
+
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'FakeFunctionTests.SomeTable';
+
+  SELECT * INTO #actual FROM FakeFunctionTests.AFunction();
 
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
@@ -546,7 +567,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = 233515, @Actual = @Actual;
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource fakes function with derived table]
+CREATE PROCEDURE FakeFunctionTests.[test can fake with derived table]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
@@ -561,19 +582,6 @@ BEGIN
   INSERT INTO #actual SELECT * FROM FakeFunctionTests.AFunction();
 
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
-END;
-GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource does not work with scalar function]
-AS
-BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS NVARCHAR(10) AS BEGIN RETURN ''''; END;');
-
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline Table-Valued Function and Multi-Statement Table-Valued Function functions', 
-                             @ExpectedSeverity = 16, 
-                             @ExpectedState = 10;  
-
-  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'select 1 as a';
-
 END;
 GO
 CREATE PROCEDURE FakeFunctionTests.[test Private_PrepareFakeFunctionOutputTable returns table with VALUES]
