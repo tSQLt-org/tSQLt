@@ -509,40 +509,6 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource fakes function with all possible standard types]
-AS
-BEGIN
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction
-    (
-@p1 BIGINT ,@p2 BINARY ,@p3 BIT ,@p4 CHAR ,@p5 DATE ,@p6 DATETIME ,@p7 DATETIME2 ,@p8 DATETIMEOFFSET ,@p9 DECIMAL ,@p10 FLOAT ,@p11 GEOGRAPHY ,@p12 GEOMETRY ,
-@p14 IMAGE ,@p15 INT ,@p16 MONEY ,@p17 NCHAR ,@p18 NTEXT ,@p19 NUMERIC ,@p20 NVARCHAR ,@p21 REAL ,@p22 SMALLDATETIME ,@p23 SMALLINT ,@p24 SMALLMONEY ,@p25 SQL_VARIANT ,
-@p26 sysname ,@p27 TEXT ,@p28 TIME ,@p30 TINYINT ,@p31 UNIQUEIDENTIFIER ,@p32 VARBINARY ,@p33 VARCHAR ,@p34 XML)
-RETURNS TABLE
-AS RETURN
-    ( SELECT    1 AS one
-    );
-');
-
-  CREATE TABLE #expected (a INT);
-  INSERT INTO #expected VALUES(1);
-
-  CREATE TABLE #actual (a INT)
-
-  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '#expected';
-
-  INSERT INTO #actual SELECT  *
-FROM    FakeFunctionTests.AFunction(1, CAST(NULL AS BINARY), 0, '', '19830430', '19830430',
-                      '19830430', '19830430', 1, 1,
-                      'LINESTRING(-122.360 47.656, -122.343 47.656 )',
-                      geometry::STGeomFromText('POLYGON((0 0, 3 0, 3 3, 0 3, 0 0))',
-                                               0), CAST(NULL AS IMAGE), 1, 1,
-                      '', '', 1, '', 1, '19830430', 1, 1, '', '', '',
-                      '00:00:01', 1, '61864287-DF2A-4FED-B609-26C523666E5A',
-                      CAST(NULL AS VARBINARY), '', CAST(NULL AS XML));
-
-  EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
-END;
-GO
 CREATE PROCEDURE FakeFunctionTests.[test @FakeDataSource fakes function with VALUES clause]
 AS
 BEGIN
