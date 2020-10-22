@@ -7,7 +7,7 @@ CREATE PROCEDURE tSQLt.Private_PrepareFakeFunctionOutputTable
     @OutputTable    sysname OUTPUT
 AS
     BEGIN
-        SET @OutputTable = 'tmp' + REPLACE(CAST(NEWID() AS CHAR(36)), '-','');
+        SET @OutputTable = 'dbo.tmp' + REPLACE(CAST(NEWID() AS CHAR(36)), '-','');
 
         IF ( LOWER(LTRIM(@FakeDataSource)) LIKE 'select%'
              AND OBJECT_ID(@FakeDataSource) IS NULL
