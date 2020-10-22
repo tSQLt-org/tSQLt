@@ -25,7 +25,7 @@ BEGIN
 
    IF (@FakeFunctionName  IS NOT NULL  AND @FakeDataSource IS NOT NULL )
    BEGIN
-      RAISERROR ('@FakeFunctionName and @FakeDataSource are mutually exclisive, please use 1 param', 16, 10);
+      RAISERROR ('Both @FakeFunctionName and @FakeDataSource are valued. Please use only one.', 16, 10);
    END;
 
    IF (@FakeDataSource IS NOT NULL ) 
@@ -34,7 +34,7 @@ BEGIN
          SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(@FunctionName) and type in ('TF', 'IF')
       ) 
       BEGIN
-         RAISERROR('You can use @FakeDataSource only with Inline Table-Valued Function and Multi-Statement Table-Valued Function functions', 16, 10);
+         RAISERROR('You can use @FakeDataSource only with Inline or Multi-Statement Table-Valued functions.', 16, 10);
       END
       
 	  RETURN 0;
