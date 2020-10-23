@@ -584,6 +584,33 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
+CREATE PROCEDURE FakeFunctionTests.[test can fake function with very long name]
+AS
+BEGIN
+
+  DECLARE @maxFunctionName sysname,
+          @Cmd NVARCHAR(MAX);
+  SET @maxFunctionName = CONCAT('FakeFunctionTests.', REPLICATE('a', 128));
+
+  SET @Cmd = CONCAT('CREATE FUNCTION ', @maxFunctionName, '() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
+  EXEC(@Cmd);
+
+  CREATE TABLE #Expected (a INT);
+  SELECT * INTO #Actual FROM #Expected;
+
+  INSERT INTO #Expected VALUES (1);
+
+  EXEC tSQLt.FakeFunction @FunctionName = @maxFunctionName, 
+                         @FakeDataSource = N'#Expected';
+  
+
+  SET @Cmd = CONCAT('INSERT INTO #Actual SELECT * FROM ', @maxFunctionName, '();');
+  EXEC(@Cmd);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+
+END;
+GO
 CREATE PROCEDURE FakeFunctionTests.[test Private_PrepareFakeFunctionOutputTable returns table with VALUES]
 AS
 BEGIN
@@ -593,7 +620,7 @@ BEGIN
   CREATE TABLE #Expected (a int);
   INSERT INTO #Expected VALUES(1);
   
-  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable '(VALUES (1)) a(a)', @NewTable OUTPUT;
+  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable '(VALUES (1)) a(a)', 'func', @NewTable OUTPUT;
 
   EXEC tSQLt.AssertEqualsTable '#Expected', @NewTable;
 
@@ -608,9 +635,28 @@ BEGIN
   CREATE TABLE #Expected (a int);
   INSERT INTO #Expected VALUES(1);
   
-  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1 AS a', @NewTable OUTPUT;
+  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1 AS a','func', @NewTable OUTPUT;
 
   EXEC tSQLt.AssertEqualsTable '#Expected', @NewTable;
+
+END;
+GO
+CREATE PROCEDURE FakeFunctionTests.[test Private_PrepareFakeFunctionOutputTable output table in the same schema as function]
+AS
+BEGIN
+  DECLARE @Expected INT = 1;
+  DECLARE @Actual INT = 0;
+  DECLARE @NewTable sysname;
+
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
+  
+  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1 AS a', 'FakeFunctionTests.AFunction', @NewTable OUTPUT;
+
+  SELECT @Actual = COUNT(*)
+  FROM sys.tables
+  WHERE name = 'AFunction_FakeFunctionOutputTable' AND schema_id = SCHEMA_ID('FakeFunctionTests');
+
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
 
 END;
 GO
