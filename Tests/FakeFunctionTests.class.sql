@@ -611,6 +611,25 @@ BEGIN
 
 END;
 GO
+CREATE PROCEDURE FakeFunctionTests.[test can fake with data source table that starts with select]
+AS
+BEGIN
+  DECLARE @Expected INT = 1;
+  DECLARE @Actual INT = 0;
+
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
+
+  CREATE TABLE SelectFakeFunctionTestsTable (a int);
+  INSERT INTO SelectFakeFunctionTestsTable VALUES (@Expected);
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', 
+                         @FakeDataSource = N'SelectFakeFunctionTestsTable';
+  
+  SELECT @Actual = a FROM FakeFunctionTests.AFunction()
+  EXEC tSQLt.AssertEquals @Expected, @Actual;
+
+END;
+GO
 CREATE PROCEDURE FakeFunctionTests.[test Private_PrepareFakeFunctionOutputTable returns table with VALUES]
 AS
 BEGIN
