@@ -47,8 +47,8 @@ BEGIN
   END
   ELSE IF (@FakeDataSource IS NOT NULL)
   BEGIN
-    DECLARE @newTbleName VARCHAR(35);
-    EXEC tSQLt.Private_PrepareFakeFunctionOutputTable @FakeDataSource, @newTbleName OUTPUT;
+    DECLARE @newTbleName NVARCHAR(MAX);
+    EXEC tSQLt.Private_PrepareFakeFunctionOutputTable @FakeDataSource, @FunctionName, @newTbleName OUTPUT;
     EXEC ('CREATE FUNCTION '+@FunctionName+'('+@ParameterList+') RETURNS TABLE AS RETURN ( SELECT * FROM '+@newTbleName+');');
   END
   ELSE

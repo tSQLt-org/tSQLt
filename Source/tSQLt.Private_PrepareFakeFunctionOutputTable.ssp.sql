@@ -3,11 +3,15 @@ IF OBJECT_ID('tSQLt.Private_PrepareFakeFunctionOutputTable') IS NOT NULL
 GO
 ---Build+
 CREATE PROCEDURE tSQLt.Private_PrepareFakeFunctionOutputTable
-    @FakeDataSource NVARCHAR(MAX) ,
+    @FakeDataSource NVARCHAR(MAX),
+    @FunctionName    NVARCHAR(MAX),
     @OutputTable    sysname OUTPUT
 AS
     BEGIN
-        SET @OutputTable = 'dbo.tmp' + REPLACE(CAST(NEWID() AS CHAR(36)), '-','');
+        DECLARE @SchemaName SYSNAME;
+        SET @SchemaName = COALESCE(PARSENAME(@FunctionName, 2), 'tSQlt');
+        SET @FunctionName = LEFT(PARSENAME(@FunctionName, 1), 100);
+        SET @OutputTable = CONCAT(QUOTENAME(@SchemaName), '.', QUOTENAME(CONCAT(@FunctionName, '_', 'FakeFunctionOutputTable')));
 
         IF ( LOWER(LTRIM(@FakeDataSource)) LIKE 'select%'
              AND OBJECT_ID(@FakeDataSource) IS NULL
@@ -16,10 +20,9 @@ AS
                 SET @FakeDataSource = N'(' + @FakeDataSource + N') a';
             END;
 
-        DECLARE @newTblStmt VARCHAR(2000) = 'SELECT * INTO ' + @OutputTable
-            + ' FROM ' + @FakeDataSource;
+        DECLARE @Cmd NVARCHAR(2000) = CONCAT('SELECT * INTO ', @OutputTable, ' FROM ', @FakeDataSource);
 
-        EXEC tSQLt.SuppressOutput @command = @newTblStmt;
+        EXEC sp_executesql @Cmd;
 
         RETURN 0;
     END;
