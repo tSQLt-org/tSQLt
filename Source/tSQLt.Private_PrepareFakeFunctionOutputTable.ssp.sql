@@ -4,13 +4,9 @@ GO
 ---Build+
 CREATE PROCEDURE tSQLt.Private_PrepareFakeFunctionOutputTable
     @FakeDataSource NVARCHAR(MAX),
-    @FunctionName    NVARCHAR(MAX),
     @OutputTable    NVARCHAR(MAX) OUTPUT
 AS
     BEGIN
-        DECLARE @SchemaName NVARCHAR(MAX);
-        SET @SchemaName = COALESCE(PARSENAME(@FunctionName, 2), 'tSQlt');
-        SET @FunctionName = LEFT(PARSENAME(@FunctionName, 1), 100);
         SET @OutputTable = tSQLt.Private::CreateUniqueObjectName();
 
         IF ( LOWER(LTRIM(@FakeDataSource)) LIKE 'select%'
