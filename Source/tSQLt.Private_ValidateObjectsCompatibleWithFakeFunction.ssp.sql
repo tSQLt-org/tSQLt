@@ -36,7 +36,7 @@ BEGIN
       BEGIN
          RAISERROR('You can use @FakeDataSource only with Inline or Multi-Statement Table-Valued functions.', 16, 10);
       END
-      
+    
 	  RETURN 0;
    END
 

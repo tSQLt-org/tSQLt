@@ -11,7 +11,7 @@ AS
         DECLARE @SchemaName NVARCHAR(MAX);
         SET @SchemaName = COALESCE(PARSENAME(@FunctionName, 2), 'tSQlt');
         SET @FunctionName = LEFT(PARSENAME(@FunctionName, 1), 100);
-        SET @OutputTable = CONCAT(QUOTENAME(@SchemaName), '.', QUOTENAME(CONCAT(@FunctionName, '_FakeFunctionOutputTable')));
+        SET @OutputTable = tSQLt.Private::CreateUniqueObjectName();
 
         IF ( LOWER(LTRIM(@FakeDataSource)) LIKE 'select%'
              AND OBJECT_ID(@FakeDataSource) IS NULL

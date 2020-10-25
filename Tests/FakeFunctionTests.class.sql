@@ -584,33 +584,6 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test can fake function with very long name]
-AS
-BEGIN
-
-  DECLARE @maxFunctionName sysname,
-          @Cmd NVARCHAR(MAX);
-  SET @maxFunctionName = CONCAT('FakeFunctionTests.', REPLICATE('a', 128));
-
-  SET @Cmd = CONCAT('CREATE FUNCTION ', @maxFunctionName, '() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
-  EXEC(@Cmd);
-
-  CREATE TABLE #Expected (a INT);
-  SELECT * INTO #Actual FROM #Expected;
-
-  INSERT INTO #Expected VALUES (1);
-
-  EXEC tSQLt.FakeFunction @FunctionName = @maxFunctionName, 
-                         @FakeDataSource = N'#Expected';
-  
-
-  SET @Cmd = CONCAT('INSERT INTO #Actual SELECT * FROM ', @maxFunctionName, '();');
-  EXEC(@Cmd);
-  
-  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
-
-END;
-GO
 CREATE PROCEDURE FakeFunctionTests.[test can fake with data source table that starts with select]
 AS
 BEGIN
