@@ -132,6 +132,9 @@
   </exec>
   <concat>
    <filelist dir="." files="temp\CreateAssembly.sql"/>
+   <filterchain>
+    <prefixlines prefix="    "/>
+   </filterchain>
   </concat>
 
   <echo message="Generating GetAssemblyKeyBytes function."/>
@@ -155,6 +158,9 @@
   </exec>
   <concat>
    <filelist dir="." files="output/tSQLt.Private_GetAssemblyKeyBytes.sql"/>
+   <filterchain>
+    <prefixlines prefix="    "/>
+   </filterchain>
   </concat>
 
   <exec executable="cmd" dir="." failonerror="true">
