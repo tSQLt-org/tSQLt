@@ -112,24 +112,50 @@
 
  <target name="package.construct.tsqlt">
   <echo message="Generating CREATE ASSEMBLY statement."/>
-  <exec executable="cmd" dir="." failonerror="true" output="temp/CreateAssembly.sql">
-   <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtCLR.dll ../Source/tSQLtCLR.mdl.sql 0x000000 &quot;&quot; 200 &quot;'+\n'&quot;"/>
+  <exec executable="pwsh" dir="." failonerror="true" output="temp/CreateAssembly.sql" logError="true">
+   <arg value="-ExecutionPolicy"/>
+   <arg value="RemoteSigned"/>
+   <arg value="-File"/>
+   <arg value="CreateAssemblyGenerator.ps1"/>
+   <arg value="-dllPath"/>
+   <arg value="output/tSQLtCLR/tSQLtCLR.dll"/>
+   <arg value="-templatePath"/>
+   <arg value="../Source/tSQLtCLR.mdl.sql"/>
+   <arg value="-assemblyPattern"/>
+   <arg value="0x000000"/>
+   <arg value="-thumbprintPattern"/>
+   <arg value=""/>
+   <arg value="-maxLength"/>
+   <arg value="200"/>
+   <arg value="-separator"/>
+   <arg value="'+\n'"/>
   </exec>
-  <exec executable="cmd" dir="." failonerror="true" >
-   <arg value="/c"/>
-   <arg value="type temp\CreateAssembly.sql"/>
-  </exec>
+  <concat>
+   <filelist dir="." files="temp\CreateAssembly.sql"/>
+  </concat>
 
   <echo message="Generating GetAssemblyKeyBytes function."/>
-  <exec executable="cmd" dir="." failonerror="true" output="output/tSQLt.Private_GetAssemblyKeyBytes.sql">
-   <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtAssemblyKey.dll ../Source/tSQLt.Private_GetAssemblyKeyBytes.mdl.sql 0x000000 0x000001 200 &quot;+\n0x&quot;"/>
+  <exec executable="pwsh" dir="." failonerror="true" output="output/tSQLt.Private_GetAssemblyKeyBytes.sql" logError="true">
+   <arg value="-ExecutionPolicy"/>
+   <arg value="RemoteSigned"/>
+   <arg value="-File"/>
+   <arg value="CreateAssemblyGenerator.ps1"/>
+   <arg value="-dllPath"/>
+   <arg value="output/tSQLtCLR/tSQLtAssemblyKey.dll"/>
+   <arg value="-templatePath"/>
+   <arg value="../Source/tSQLt.Private_GetAssemblyKeyBytes.mdl.sql"/>
+   <arg value="-assemblyPattern"/>
+   <arg value="0x000000"/>
+   <arg value="-thumbprintPattern"/>
+   <arg value="0x000001"/>
+   <arg value="-maxLength"/>
+   <arg value="200"/>
+   <arg value="-separator"/>
+   <arg value="+\n0x"/>
   </exec>
-  <exec executable="cmd" dir="." failonerror="true" >
-   <arg value="/c"/>
-   <arg value="type output\tSQLt.Private_GetAssemblyKeyBytes.sql"/>
-  </exec>
+  <concat>
+   <filelist dir="." files="output/tSQLt.Private_GetAssemblyKeyBytes.sql"/>
+  </concat>
 
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
@@ -291,15 +317,31 @@
 
  <target name="package.test.files">
   <echo message="scripting tSQLtTestUtilCLR.dll" />
-  <exec executable="cmd" dir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql">
-   <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/tSQLtTestUtilCLR.dll ../TestUtil/tSQLtTestUtilCLR.mdl.sql 0x000000"/>
+  <exec executable="pwsh" dir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql" logError="true">
+   <arg value="-ExecutionPolicy"/>
+   <arg value="RemoteSigned"/>
+   <arg value="-File"/>
+   <arg value="CreateAssemblyGenerator.ps1"/>
+   <arg value="-dllPath"/>
+   <arg value="output/tSQLtCLR/tSQLtTestUtilCLR.dll"/>
+   <arg value="-templatePath"/>
+   <arg value="../TestUtil/tSQLtTestUtilCLR.mdl.sql"/>
+   <arg value="-assemblyPattern"/>
+   <arg value="0x000000"/>
   </exec>
 
   <echo message="scripting UnsignedEmpty.dll" />
-  <exec executable="cmd" dir="." failonerror="true" output="temp/GetUnsignedEmptyBytes.sql">
-   <arg value="/c"/>
-   <arg value="CreateAssemblyGenerator.exe output/tSQLtCLR/UnsignedEmpty.dll ../TestUtil/GetUnsignedEmptyBytes.mdl.sql 0x000000"/>
+  <exec executable="pwsh" dir="." failonerror="true" output="temp/GetUnsignedEmptyBytes.sql" logError="true">
+   <arg value="-ExecutionPolicy"/>
+   <arg value="RemoteSigned"/>
+   <arg value="-File"/>
+   <arg value="CreateAssemblyGenerator.ps1"/>
+   <arg value="-dllPath"/>
+   <arg value="output/tSQLtCLR/UnsignedEmpty.dll"/>
+   <arg value="-templatePath"/>
+   <arg value="../TestUtil/GetUnsignedEmptyBytes.mdl.sql"/>
+   <arg value="-assemblyPattern"/>
+   <arg value="0x000000"/>
   </exec>
 
   <echo message="Building TestUtil.sql" />
