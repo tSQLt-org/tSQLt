@@ -2,8 +2,20 @@
 <project name="tSQLt" default="all" basedir=".">
  <description>Build tSQLt</description>
 
+ <condition property="powershell.exe" value="powershell" else="pwsh">
+  <os family="windows"/>
+ </condition>
+
  <target name="validate.parameters" description="">
-  <!-- no parameters at this point-->
+  <fail message="Parameter '${powershell.exe}' is required">
+   <condition>
+    <not>
+     <and>
+      <isset property="${powershell.exe}"/>
+     </and>
+    </not>
+   </condition>
+  </fail>
  </target>
 
  <target
@@ -112,7 +124,7 @@
 
  <target name="package.construct.tsqlt">
   <echo message="Generating CREATE ASSEMBLY statement."/>
-  <exec executable="pwsh" dir="." failonerror="true" output="temp/CreateAssembly.sql" logError="true">
+  <exec executable="${powershell.exe}" dir="." failonerror="true" output="temp/CreateAssembly.sql" logError="true">
    <arg value="-ExecutionPolicy"/>
    <arg value="RemoteSigned"/>
    <arg value="-File"/>
@@ -138,7 +150,7 @@
   </concat>
 
   <echo message="Generating GetAssemblyKeyBytes function."/>
-  <exec executable="pwsh" dir="." failonerror="true" output="output/tSQLt.Private_GetAssemblyKeyBytes.sql" logError="true">
+  <exec executable="${powershell.exe}" dir="." failonerror="true" output="output/tSQLt.Private_GetAssemblyKeyBytes.sql" logError="true">
    <arg value="-ExecutionPolicy"/>
    <arg value="RemoteSigned"/>
    <arg value="-File"/>
@@ -323,7 +335,7 @@
 
  <target name="package.test.files">
   <echo message="scripting tSQLtTestUtilCLR.dll" />
-  <exec executable="pwsh" dir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql" logError="true">
+  <exec executable="${powershell.exe}" dir="." failonerror="true" output="temp/CreateTestUtilAssembly.sql" logError="true">
    <arg value="-ExecutionPolicy"/>
    <arg value="RemoteSigned"/>
    <arg value="-File"/>
@@ -337,7 +349,7 @@
   </exec>
 
   <echo message="scripting UnsignedEmpty.dll" />
-  <exec executable="pwsh" dir="." failonerror="true" output="temp/GetUnsignedEmptyBytes.sql" logError="true">
+  <exec executable="${powershell.exe}" dir="." failonerror="true" output="temp/GetUnsignedEmptyBytes.sql" logError="true">
    <arg value="-ExecutionPolicy"/>
    <arg value="RemoteSigned"/>
    <arg value="-File"/>
