@@ -435,7 +435,7 @@ AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int, @b int) RETURNS TABLE AS RETURN (SELECT @a AS one);');
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = '@FakeFunctionName and @FakeDataSource are mutually exclisive, please use 1 param', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Both @FakeFunctionName and @FakeDataSource are valued. Please use only one.', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'select 1 one';
 END;
@@ -445,7 +445,7 @@ AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS NVARCHAR(10) AS BEGIN RETURN ''''; END;');
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline Table-Valued Function and Multi-Statement Table-Valued Function functions', 
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline or Multi-Statement Table-Valued functions.', 
                              @ExpectedSeverity = 16, 
                              @ExpectedState = 10;  
 
@@ -612,7 +612,7 @@ BEGIN
   CREATE TABLE #Expected (a int);
   INSERT INTO #Expected VALUES(1);
   
-  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable '(VALUES (1)) a(a)', 'func', @NewTable OUTPUT;
+  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable '(VALUES (1)) a(a)', @NewTable OUTPUT;
 
   EXEC tSQLt.AssertEqualsTable '#Expected', @NewTable;
 
@@ -627,28 +627,9 @@ BEGIN
   CREATE TABLE #Expected (a int);
   INSERT INTO #Expected VALUES(1);
   
-  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1 AS a','func', @NewTable OUTPUT;
+  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1 AS a', @NewTable OUTPUT;
 
   EXEC tSQLt.AssertEqualsTable '#Expected', @NewTable;
-
-END;
-GO
-CREATE PROCEDURE FakeFunctionTests.[test Private_PrepareFakeFunctionOutputTable output table in the same schema as function]
-AS
-BEGIN
-  DECLARE @Expected INT = 1;
-  DECLARE @Actual INT = 0;
-  DECLARE @NewTable sysname;
-
-  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
-  
-  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1 AS a', 'FakeFunctionTests.AFunction', @NewTable OUTPUT;
-
-  SELECT @Actual = COUNT(*)
-  FROM sys.tables
-  WHERE name = 'AFunction_FakeFunctionOutputTable' AND schema_id = SCHEMA_ID('FakeFunctionTests');
-
-  EXEC tSQLt.AssertEquals @Expected, @Actual;
 
 END;
 GO
