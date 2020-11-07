@@ -181,6 +181,15 @@ BEGIN
   EXEC FakeFunctionTests.[Assert errors on function type mismatch] 'FakeFunctionTests.[An SVF]', 'FakeFunctionTests.[A Table]';
 END;
 GO
+CREATE PROCEDURE FakeFunctionTests.[test errors when function is SVF, fake is CLRTVF and data source is used]
+AS
+BEGIN
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline or Multi-Statement Table-Valued functions.', @ExpectedSeverity = 16, @ExpectedState = 10;  
+ 
+  EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt_testutil.AClrTvf', 
+                         @FakeDataSource = N'(VALUES (1), (2)) a(one)'
+END;
+GO
 CREATE PROCEDURE FakeFunctionTests.[Assert TVF can be faked]
   @FunctionName NVARCHAR(MAX),
   @FakeFunctionName NVARCHAR(MAX)
