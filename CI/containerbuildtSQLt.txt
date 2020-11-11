@@ -1,0 +1,20 @@
+# Where is msbuild? Note the path. Don't have it? Install it by installing Visual Studio Community Edition (I'm using 2019 at the moment)
+#- C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\msbuild.exe
+# OBTW, you need a java jdk, so that you can run ant.
+#- https://www.oracle.com/java/technologies/javase-jdk15-downloads.html
+#- Setup JAVA_HOME env variable and check that you have it setup properly "Get-ChildItem Env:JAVA_HOME"
+# Do you have ant installed? No? You need it.
+#- https://ant.apache.org/bindownload.cgi	
+# What about sqlcmd? You need that too.
+#- https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility
+#- Setup ANT_HOME env variable and check that you have it setup properly "Get-ChildItem Env:ANT_HOME"
+# Set some variables
+#- SQLCMD_HOME
+#- ANT_HOME
+#- MSBUILD_HOME
+# Go to SSMS and setup your External Tools
+#- tSQLt local Dev_tSQLt (ANT)
+#- $(SolutionDir)\Build\localBuild.bat
+#- "%ANT_HOME%" "%MSBUILD_HOME%" "%SQLCMD_HOME%" <SERVERNAME eg Dev_tSQLt>  tSQLt_dev -v
+#- $(SolutionDir)
+# Open the solution from the repo
