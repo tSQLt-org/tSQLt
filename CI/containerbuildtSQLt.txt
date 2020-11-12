@@ -11,10 +11,14 @@
 # Set some variables
 #- SQLCMD_HOME
 #- ANT_HOME
-#- MSBUILD_HOME
+#- MSBUILD_HOME (make sure that your HOME environment variables consistently DO NOT end with a backslash "\")
 # Go to SSMS and setup your External Tools
 #- tSQLt local Dev_tSQLt (ANT)
 #- $(SolutionDir)\Build\localBuild.bat
 #- "%ANT_HOME%" "%MSBUILD_HOME%" "%SQLCMD_HOME%" <SERVERNAME eg Dev_tSQLt>  tSQLt_dev -v
 #- $(SolutionDir)
 # Open the solution from the repo
+
+
+ADDITIONAL IRRITATING REQUIREMENTS BECAUSE OF SQL SERVER 2008 R2 and possibly 2012, but who's checking?
+- You must have .NET framework 3.5 SP1 installed (https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net35-sp1-web-installer)
