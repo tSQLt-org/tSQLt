@@ -12,7 +12,7 @@ RETURN SELECT
                           ' IDENTITY(' + CAST(seed_value AS NVARCHAR(MAX)) + ',' + CAST(increment_value AS NVARCHAR(MAX)) + ')' AS IdentityDefinition, 
                           object_id, 
                           column_id
-                     FROM sys.identity_columns
+                     FROM tSQLt.Private_SysIdentityColumns
                   ) AS id
                ON id.object_id = @ObjectId
               AND id.column_id = @ColumnId

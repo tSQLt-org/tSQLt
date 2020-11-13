@@ -190,10 +190,35 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test FakeTable works with remote 2 part names in first parameter]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i INT);
+  CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test a faked table has no check constraints]
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT CHECK(i > 5));
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  INSERT INTO FakeTableTests.TempTable1 (i) VALUES (5);
+END;
+GO
+
+CREATE PROC FakeTableTests.[test a faked remote table has no check constraints]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i INT CHECK(i > 5));
+  CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
@@ -207,6 +232,22 @@ AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable0(i INT PRIMARY KEY);
   CREATE TABLE FakeTableTests.TempTable1(i INT REFERENCES FakeTableTests.TempTable0(i));
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  INSERT INTO FakeTableTests.TempTable1 (i) VALUES (5);
+END;
+GO
+
+CREATE PROC FakeTableTests.[test a faked remote table has no foreign keys]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable0(i INT PRIMARY KEY);
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i INT REFERENCES tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable0(i));
+  
+  CREATE SYNONYM FakeTableTests.TempTable0 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable0;
+  CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
@@ -233,11 +274,44 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable: a faked table has any defaults removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i INT DEFAULT(77));
+  CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
+
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  INSERT INTO FakeTableTests.TempTable1 (i) DEFAULT VALUES;
+  
+  DECLARE @value INT;
+  SELECT @value = i
+    FROM FakeTableTests.TempTable1;
+    
+  EXEC tSQLt.AssertEquals NULL, @value;
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable: a faked table has any unique constraints removed]
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT UNIQUE);
   
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
+  INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable: a faked table has any unique constraints removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i INT UNIQUE);
+  CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
+
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
@@ -260,11 +334,39 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable: a faked table has any unique indexes removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i INT);
+  CREATE UNIQUE INDEX UQ_tSQLt_test_TempTable1_i ON tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i);
+  CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
+
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
+  INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable: a faked table has any not null constraints removed]
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
   
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  INSERT INTO FakeTableTests.TempTable1 (i) VALUES (NULL);
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable: a faked table has any not null constraints removed]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1(i INT NOT NULL);
+  CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
+
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
   EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
@@ -281,6 +383,27 @@ BEGIN
   CREATE TABLE FakeTableTests.tst1(i INT PRIMARY KEY);
   CREATE TABLE FakeTableTests.tst2(i INT PRIMARY KEY, tst1i INT REFERENCES FakeTableTests.tst1(i));
   
+  BEGIN TRY
+    EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
+  END TRY
+  BEGIN CATCH
+    DECLARE @ErrorMessage NVARCHAR(MAX);
+    SELECT @ErrorMessage = ERROR_MESSAGE()+'{'+ISNULL(ERROR_PROCEDURE(),'NULL')+','+ISNULL(CAST(ERROR_LINE() AS VARCHAR),'NULL')+'}';
+
+    EXEC tSQLt.Fail 'FakeTable threw unexpected error:', @ErrorMessage;
+  END CATCH;
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable works on referencedTo tables]
+AS
+BEGIN
+  
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1(i INT PRIMARY KEY);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst2(i INT PRIMARY KEY, tst1i INT REFERENCES tSQLt_RemoteSynonymsTestDatabase.dbo.tst1(i));
+
   BEGIN TRY
     EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
   END TRY
@@ -314,6 +437,28 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable doesn't produce output]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst(i INT);
+  CREATE SYNONYM FakeTableTests.tst FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst;
+
+  EXEC tSQLt.CaptureOutput 'EXEC tSQLt.FakeTable ''FakeTableTests.tst''';
+
+  SELECT OutputText
+  INTO #actual
+  FROM tSQLt.CaptureOutputLog;
+  
+  SELECT TOP(0) *
+  INTO #expected 
+  FROM #actual;
+  
+  INSERT INTO #expected(OutputText)VALUES(NULL);
+  
+  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable doesn't preserve identity if @Identity parameter is not specified]
 AS
 BEGIN
@@ -327,6 +472,21 @@ BEGIN
   BEGIN
     EXEC tSQLt.Fail 'Fake table has identity column!';
   END
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable doesn't preserve identity if @Identity parameter is not specified]
+AS
+BEGIN
+
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1(i INT IDENTITY(1,1));
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
+  
+  EXEC('INSERT INTO FakeTableTests.tst1(i) VALUES(1)');
+
 END;
 GO
 
@@ -346,6 +506,19 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable doesn't preserve identity if @identity parameter is 0]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1(i INT IDENTITY(1,1));
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1',@Identity=0;
+  
+  EXEC('INSERT INTO FakeTableTests.tst1(i) VALUES(1)');
+
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves identity if @identity parameter is 1]
 AS
 BEGIN
@@ -362,6 +535,27 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves identity if @identity parameter is 1]
+AS
+BEGIN
+
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 ( i INT IDENTITY(1, 1) );
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+    
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1', @Identity = 1;
+  BEGIN TRY
+      EXEC('INSERT INTO FakeTableTests.tst1(i) VALUES(1)');
+      EXEC tSQLt.Fail @Message0 = N'Fake table has no identity column!';
+  END TRY
+  BEGIN CATCH
+      DECLARE @ErrorMessage NVARCHAR(4000);
+      SET @ErrorMessage = ERROR_MESSAGE();
+      EXEC tSQLt.AssertEquals @Expected = 'Cannot insert explicit value for identity column in table ''tst1'' when IDENTITY_INSERT is set to OFF.',
+          @Actual = @ErrorMessage;
+  END CATCH
+END;
+GO
 
 CREATE PROC FakeTableTests.[test FakeTable works with more than one column]
 AS
@@ -383,6 +577,37 @@ BEGIN
    WHERE object_id = OBJECT_ID('dbo.tst1')
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+ 
+CREATE PROC FakeTableTests.[test remote FakeTable works with more than one column]
+AS
+BEGIN
+
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1(i1 INT,i2 INT,i3 INT,i4 INT,i5 INT,i6 INT,i7 INT,i8 INT);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  CREATE TABLE #Actual (column_id INT, [name] NVARCHAR(500));
+  CREATE TABLE #Expected (column_id INT, [name] NVARCHAR(500));
+  
+  INSERT    INTO #Expected
+            SELECT  column_id ,
+                    c.name
+            FROM    tSQLt_RemoteSynonymsTestDatabase.sys.columns c
+                    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables t ON t.object_id = c.object_id
+                    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas s ON s.schema_id = t.schema_id
+            WHERE   t.name = 'tst1'
+                    AND s.name = 'dbo';
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
+
+  INSERT    INTO #Actual
+            SELECT  column_id ,
+                    name
+            FROM    sys.columns
+            WHERE   object_id = OBJECT_ID('FakeTableTests.tst1');
+   
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
 END;
 GO
  
@@ -408,6 +633,37 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+ 
+CREATE PROC FakeTableTests.[test remote FakeTable works with ugly column and table names]
+AS
+BEGIN
+
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.[tst!@#$%^&*()_+ 1]([col!@#$%^&*()_+ 1] INT);
+  CREATE SYNONYM FakeTableTests.[tst!@#$%^&*()_+ 1] FOR tSQLt_RemoteSynonymsTestDatabase.dbo.[tst!@#$%^&*()_+ 1];
+  
+  CREATE TABLE #Actual (column_id INT, [name] NVARCHAR(500));
+  CREATE TABLE #Expected (column_id INT, [name] NVARCHAR(500));
+  
+  INSERT    INTO #Expected
+            SELECT  column_id ,
+                    c.name
+            FROM    tSQLt_RemoteSynonymsTestDatabase.sys.columns c
+                    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables t ON t.object_id = c.object_id
+                    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas s ON s.schema_id = t.schema_id
+            WHERE   t.name = 'tst!@#$%^&*()_+ 1'
+                    AND s.name = 'dbo';
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.[tst!@#$%^&*()_+ 1]';
+
+  INSERT    INTO #Actual
+            SELECT  column_id ,
+                    name
+            FROM    sys.columns
+            WHERE   object_id = OBJECT_ID('FakeTableTests.[tst!@#$%^&*()_+ 1]');
+   
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
 
 CREATE PROC FakeTableTests.[test FakeTable preserves identity base and step-size]
 AS
@@ -428,6 +684,29 @@ BEGIN
   INSERT INTO dbo.tst1 DEFAULT VALUES;
   
   EXEC tSQLt.AssertEqualsTable '#Expected', 'dbo.tst1';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves identity base and step-size]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (i INT IDENTITY(42,13));
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  INSERT INTO FakeTableTests.tst1 DEFAULT VALUES;
+  INSERT INTO FakeTableTests.tst1 DEFAULT VALUES;
+
+  SELECT i 
+    INTO #Expected
+    FROM FakeTableTests.tst1;
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1',@Identity=1;
+  
+  INSERT INTO FakeTableTests.tst1 DEFAULT VALUES;
+  INSERT INTO FakeTableTests.tst1 DEFAULT VALUES;
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected', 'FakeTableTests.tst1';
   
 END;
 GO
@@ -456,6 +735,36 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves data type of identity column with @Identity=0]
+AS
+BEGIN
+    CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 ( i INT );
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+    CREATE TABLE #Expected(type_name NVARCHAR(500));
+    CREATE TABLE #Actual (type_name NVARCHAR(500));
+
+    INSERT  INTO #Expected
+            SELECT  tp.name type_name
+            FROM    tSQLt_RemoteSynonymsTestDatabase.sys.columns c
+                    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.types tp ON tp.user_type_id = c.user_type_id
+                    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables t ON t.object_id = c.object_id
+                    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas s ON s.schema_id = t.schema_id
+            WHERE   t.name = 'tst1'
+                    AND s.name = 'dbo';
+  
+    EXEC tSQLt.FakeTable 'FakeTableTests.tst1', @Identity = 0;
+
+    INSERT  INTO #Actual
+            SELECT  TYPE_NAME(user_type_id) type_name
+            FROM    sys.columns
+            WHERE   object_id = OBJECT_ID('FakeTableTests.tst1');
+    
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual'
+  
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves data type of identity column with @Identity=1]
 AS
 BEGIN
@@ -480,6 +789,37 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves data type of identity column with @Identity=1]
+AS
+BEGIN
+    CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 ( i [DECIMAL](4) IDENTITY(1,1) );
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+    CREATE TABLE #Expected(type_name NVARCHAR(500), max_length INT, precision INT, scale INT);
+    CREATE TABLE #Actual(type_name NVARCHAR(500), max_length INT, precision INT, scale INT);
+
+    INSERT  INTO #Expected
+    SELECT  tp.name type_name, c.max_length, c.precision, c.scale
+    FROM    tSQLt_RemoteSynonymsTestDatabase.sys.columns c
+            JOIN tSQLt_RemoteSynonymsTestDatabase.sys.types tp ON tp.user_type_id = c.user_type_id
+            JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables t ON t.object_id = c.object_id
+            JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas s ON s.schema_id = t.schema_id
+    WHERE   t.name = 'tst1'
+            AND s.name = 'dbo';    
+
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1',@Identity = 1;
+
+  INSERT  INTO #Actual
+  SELECT TYPE_NAME(user_type_id) type_name,max_length,precision,scale
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('FakeTableTests.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable works if IDENTITYCOL is not the first column (with @Identity=1)]
 AS
 BEGIN
@@ -496,6 +836,42 @@ BEGIN
 
   SELECT name, is_identity
     INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable works if IDENTITYCOL is not the first column (with @Identity=1)]
+AS
+BEGIN
+
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1(x INT, i INT IDENTITY(1,1), y VARCHAR(30));
+  CREATE TABLE #Actual
+      (
+        name VARCHAR(500) ,
+        is_identity BIT
+      );
+  CREATE TABLE #Expected
+      (
+        name VARCHAR(500) ,
+        is_identity BIT
+      );
+  INSERT  INTO #Expected
+  SELECT c.name, is_identity
+    FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns c
+    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables t ON t.object_id = c.object_id
+    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas s ON s.schema_id = t.schema_id
+   WHERE t.name = 'tst1' AND s.name = 'dbo';
+
+   CREATE SYNONYM dbo.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC tSQLt.FakeTable 'dbo.tst1',@Identity = 1;
+
+  INSERT  INTO #Actual
+  SELECT name, is_identity
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
 
@@ -528,32 +904,91 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable works if there is no IDENTITYCOL and @Identity = 1]
+AS
+BEGIN
+
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1(x INT, y VARCHAR(30));
+   CREATE SYNONYM dbo.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  CREATE TABLE #Actual
+      (
+        name VARCHAR(500) ,
+        is_identity BIT
+      );
+  CREATE TABLE #Expected
+      (
+        name VARCHAR(500) ,
+        is_identity BIT
+      );
+  INSERT  INTO #Expected
+  SELECT c.name, is_identity
+    FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns c
+    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables t ON t.object_id = c.object_id
+    JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas s ON s.schema_id = t.schema_id
+   WHERE t.name = 'tst1' AND s.name = 'dbo';
+  
+  EXEC tSQLt.FakeTable 'dbo.tst1',@Identity = 1;
+
+  INSERT INTO #Actual
+  SELECT name, is_identity
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForComputedCols
    @TableName NVARCHAR(MAX),
    @Cmd NVARCHAR(MAX),
    @ClearComputedCols INT
 AS
 BEGIN
+
+  DECLARE @Database NVARCHAR(MAX),
+          @Instance NVARCHAR(MAX),
+          @Schema NVARCHAR(MAX),
+          @Table NVARCHAR(MAX);
+
+   SELECT  @Instance = PARSENAME(S.base_object_name, 4),
+            @Database = PARSENAME(S.base_object_name, 3),
+            @Schema = PARSENAME(S.base_object_name, 2),
+            @Table = PARSENAME(S.base_object_name, 1)
+     FROM sys.synonyms AS S 
+    WHERE S.object_id = OBJECT_ID(@TableName);
+
+  IF (@Database IS NOT NULL)
+  BEGIN
+    EXEC tSQLt.Private_CreateRemoteSysObjects @Instance = @Instance, @Database = @Database;
+  END
+  CREATE TABLE #Expected(column_id INT, IsComputedColumn BIT, is_persisted BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+  CREATE TABLE #Actual(column_id INT, IsComputedColumn BIT, is_persisted BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+   
+  INSERT  INTO #Expected
   SELECT c.column_id, CASE WHEN cc.column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, cc.is_persisted, c.name, cc.definition, c.user_type_id
-    INTO #Expected
-    FROM sys.columns c
-    LEFT OUTER JOIN sys.computed_columns cc ON cc.object_id = c.object_id
+    FROM tSQLt.Private_SysColumns c
+    JOIN tSQLt.Private_SysObjects o ON o.object_id = c.object_id
+    JOIN tSQLt.Private_SysSchemas s ON s.schema_id = o.schema_id
+    LEFT OUTER JOIN tSQLt.Private_SysComputedColumns cc ON cc.object_id = c.object_id
                                               AND cc.column_id = c.column_id
                                               AND @ClearComputedCols = 0
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+   WHERE o.name = COALESCE(@Table,PARSENAME(@TableName, 1)) AND s.name = COALESCE(@Schema, PARSENAME(@TableName, 2));
 
   EXEC (@Cmd);  
-
+  
+  INSERT  INTO #Actual
   SELECT c.column_id, CASE WHEN cc.column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, cc.is_persisted, c.name, cc.definition, c.user_type_id
-    INTO #Actual
     FROM sys.columns c
     LEFT OUTER JOIN sys.computed_columns cc ON cc.object_id = c.object_id
                                               AND cc.column_id = c.column_id
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+   WHERE c.object_id = OBJECT_ID(@TableName);
    
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+
 
 CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols
    @TableName NVARCHAR(MAX),
@@ -584,6 +1019,16 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 1;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves persisted computed columns if @ComputedColumns = 1]
 AS
 BEGIN
@@ -592,6 +1037,16 @@ BEGIN
   CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
   
   EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @ComputedColumns = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves persisted computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 1;';
 END;
 GO
 
@@ -606,6 +1061,16 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable does not preserve persisted computed columns if @ComputedColumns = 0]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 0;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable does not preserve persisted computed columns if @ComputedColumns is not specified]
 AS
 BEGIN
@@ -614,6 +1079,16 @@ BEGIN
   CREATE TABLE dbo.tst1(x INT, y AS x + 5 PERSISTED);
 
   EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'';';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable does not preserve persisted computed columns if @ComputedColumns is not specified]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT, y AS x + 5 PERSISTED);
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'';';
 END;
 GO
 
@@ -628,28 +1103,62 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves multiple mixed persisted computed columns if @ComputedColumns = 1]
+AS
+BEGIN
+  CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (NotComputed INT, ComputedAndPersisted AS (NotComputed + 5) PERSISTED, ComputedNotPersisted AS (NotComputed + 7), AnotherComputed AS (GETDATE()));
+  CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForComputedCols 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @ComputedColumns = 1;';
+END;
+GO
+
 CREATE PROC FakeTableTests.AssertTableStructureBeforeAndAfterCommandForDefaults
    @TableName NVARCHAR(MAX),
    @Cmd NVARCHAR(MAX),
    @ClearDefaults INT
 AS
 BEGIN
+
+  DECLARE @Database NVARCHAR(MAX),
+          @Instance NVARCHAR(MAX),
+          @Schema NVARCHAR(MAX),
+          @Table NVARCHAR(MAX);
+
+   SELECT  @Instance = PARSENAME(S.base_object_name, 4),
+            @Database = PARSENAME(S.base_object_name, 3),
+            @Schema = PARSENAME(S.base_object_name, 2),
+            @Table = PARSENAME(S.base_object_name, 1)
+     FROM sys.synonyms AS S 
+    WHERE S.object_id = OBJECT_ID(@TableName);
+
+  IF (@Database IS NOT NULL)
+  BEGIN
+    EXEC tSQLt.Private_CreateRemoteSysObjects @Instance = @Instance, @Database = @Database;
+  END
+  CREATE TABLE #Expected(column_id INT, IsComputedColumn BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+  CREATE TABLE #Actual(column_id INT, IsComputedColumn BIT, name NVARCHAR(MAX), definition NVARCHAR(MAX), user_type_id INT)
+   
+    INSERT  INTO #Expected
   SELECT c.column_id, CASE WHEN dc.parent_column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, c.name, dc.definition, c.user_type_id
-    INTO #Expected
-    FROM sys.columns c
-    LEFT OUTER JOIN sys.default_constraints dc ON dc.parent_object_id = c.object_id
+    FROM tSQLt.Private_SysColumns c
+    JOIN tSQLt.Private_SysObjects o ON o.object_id = c.object_id
+    JOIN tSQLt.Private_SysSchemas s ON s.schema_id = o.schema_id
+    LEFT OUTER JOIN tSQLt.Private_SysDefaultConstraints dc ON dc.parent_object_id = c.object_id
                                               AND dc.parent_column_id = c.column_id
                                               AND @ClearDefaults = 0
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
-
+   WHERE o.name = COALESCE(@Table,PARSENAME(@TableName, 1)) AND s.name = COALESCE(@Schema, PARSENAME(@TableName, 2));
+  
+   IF NOT EXISTS (SELECT 1 FROM #Expected) EXEC tSQLt.Fail;
+  
   EXEC (@Cmd);  
 
+    INSERT INTO #Actual
   SELECT c.column_id, CASE WHEN dc.parent_column_id IS NULL THEN 0 ELSE 1 END AS IsComputedColumn, c.name, dc.definition, c.user_type_id
-    INTO #Actual
     FROM sys.columns c
     LEFT OUTER JOIN sys.default_constraints dc ON dc.parent_object_id = c.object_id
                                               AND dc.parent_column_id = c.column_id
-   WHERE c.object_id = OBJECT_ID('dbo.tst1');
+   WHERE c.object_id = OBJECT_ID(@TableName);
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -684,6 +1193,17 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remoteFakeTable does not preserve defaults if @Defaults is not specified]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT DEFAULT(5));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1''';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable does not preserve defaults if @Defaults = 0]
 AS
 BEGIN
@@ -695,6 +1215,17 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable does not preserve defaults if @Defaults = 0]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT DEFAULT(5));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableAfterCommandHasNoDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 0;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves defaults if @Defaults = 1]
 AS
 BEGIN
@@ -703,6 +1234,17 @@ BEGIN
   CREATE TABLE dbo.tst1(x INT DEFAULT(5));
   
   EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves defaults if @Defaults = 1]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x INT DEFAULT(5));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+  
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 1;';
 END;
 GO
 
@@ -720,6 +1262,18 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves defaults if @Defaults = 1 when multiple columns exist on table]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (    ColWithNoDefault CHAR(3),
+    ColWithDefault DATETIME DEFAULT(GETDATE()));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 1;';
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves defaults if @Defaults = 1 when multiple varied columns exist on table]
 AS
 BEGIN
@@ -732,6 +1286,19 @@ BEGIN
   );
   
   EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'dbo.tst1', 'EXEC tSQLt.FakeTable ''dbo.tst1'', @Defaults = 1;';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves defaults if @Defaults = 1 when multiple varied columns exist on table]
+AS
+BEGIN
+ CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (    ColWithNoDefault CHAR(3),
+    ColWithDefault DATETIME DEFAULT(GETDATE()),
+    ColWithDiffDefault INT DEFAULT(-3));
+
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+  EXEC FakeTableTests.AssertTableStructureBeforeAndAfterCommandIsSameForDefaults 'FakeTableTests.tst1', 'EXEC tSQLt.FakeTable ''FakeTableTests.tst1'', @Defaults = 1;';
 END;
 GO
 
@@ -754,6 +1321,35 @@ BEGIN
     INTO #Actual
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves the collation of a column]
+AS
+BEGIN
+     CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.tst1 (x VARCHAR(30) COLLATE Latin1_General_BIN,
+                        y VARCHAR(40));
+    CREATE SYNONYM FakeTableTests.tst1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.tst1;
+
+    CREATE TABLE #Expected (name NVARCHAR(MAX), collation_name NVARCHAR(MAX));
+    CREATE TABLE #Actual (name NVARCHAR(MAX), collation_name NVARCHAR(MAX));
+
+   INSERT INTO #Expected
+   SELECT C.name ,C.collation_name
+     FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns AS C 
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables AS t ON t.object_id = C.object_id
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas AS s ON s.schema_id = t.schema_id
+     WHERE t.name = 'tst1' AND s.name = 'dbo';
+
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.tst1';
+  INSERT INTO #Actual
+  SELECT name, collation_name
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('FakeTableTests.tst1');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -914,6 +1510,32 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test remote FakeTable preserves UDTd]
+AS
+BEGIN
+  CREATE SYNONYM dbo.tbl FOR tSQLt_RemoteSynonymsTestDatabase.MyTestClass.tbli;
+
+   CREATE TABLE #Expected (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+   CREATE TABLE #Actual (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+     
+	 INSERT INTO #Expected
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns AS C 
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables AS t ON t.object_id = C.object_id
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas AS s ON s.schema_id = t.schema_id
+     WHERE t.name = 'tbli' AND s.name = 'MyTestClass';
+
+   EXEC tSQLt.FakeTable @TableName = 'dbo.tbl';
+
+     INSERT INTO #Actual
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('dbo.tbl');
+
+   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 CREATE PROC FakeTableTests.[test FakeTable preserves UDTd based on char type]
 AS
 BEGIN
@@ -932,6 +1554,32 @@ BEGIN
     FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('MyTestClass.tbl');
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable preserves UDTd based on char type]
+AS
+BEGIN
+   CREATE SYNONYM dbo.tbl FOR tSQLt_RemoteSynonymsTestDatabase.MyTestClass.tbl;
+   
+   CREATE TABLE #Expected (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+   CREATE TABLE #Actual (name NVARCHAR(255), system_type_id INT, max_length INT, precision INT, scale INT, is_nullable BIT);
+     
+	 INSERT INTO #Expected
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM tSQLt_RemoteSynonymsTestDatabase.sys.columns AS C 
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.tables AS t ON t.object_id = C.object_id
+     JOIN tSQLt_RemoteSynonymsTestDatabase.sys.schemas AS s ON s.schema_id = t.schema_id
+     WHERE t.name = 'tbl' AND s.name = 'MyTestClass';
+
+   EXEC tSQLt.FakeTable @TableName = 'dbo.tbl';
+
+     INSERT INTO #Actual
+   SELECT C.name ,C.system_type_id,C.max_length,C.precision,C.scale,C.is_nullable 
+     FROM sys.columns AS C WHERE C.object_id = OBJECT_ID('dbo.tbl');
+
+   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
 END;
 GO
@@ -960,6 +1608,17 @@ BEGIN
 END;
 GO
 
+CREATE PROC FakeTableTests.[test raises appropriate error if synonym is remote but not of a table]
+AS
+BEGIN
+  CREATE SYNONYM FakeTableTests.TempSynonym1 FOR tSQLt_RemoteSynonymsTestDatabase.FakeTableTests.NotATable;
+ 
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot fake synonym [FakeTableTests].[TempSynonym1] as it is pointing to [tSQLt_RemoteSynonymsTestDatabase].[FakeTableTests].[NotATable], which is not a table or view!';
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
+
+END;
+GO
+
 CREATE PROC FakeTableTests.[test can fake view]
 AS
 BEGIN
@@ -969,6 +1628,20 @@ BEGIN
   EXEC tSQLt.FakeTable 'FakeTableTests.TempView1';
 
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempView1';  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test can fake view to remote table]
+AS
+BEGIN
+
+  SELECT TOP(0) * INTO #actual FROM tSQLt_RemoteSynonymsTestDatabase.dbo.TestTable;
+
+  EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT * FROM tSQLt_RemoteSynonymsTestDatabase.dbo.TestTable;');
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempView1';
+
+  EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = #actual;  
 END;
 GO
 
@@ -982,6 +1655,18 @@ BEGIN
   EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
 
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempSynonym1';  
+END;
+GO
+
+CREATE PROC FakeTableTests.[test can fake remote synonym of view]
+AS
+BEGIN
+
+  CREATE SYNONYM FakeTableTests.TempSynonym1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TestView;
+  
+  EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
+
+  EXEC('INSERT INTO FakeTableTests.TempSynonym1 VALUES (1,2,NULL)');
 END;
 GO
 
@@ -1009,6 +1694,19 @@ CREATE PROC FakeTableTests.[test FakeTable works with two parameters, if they ar
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
+  
+  EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
+  
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+
+END;
+GO
+
+CREATE PROC FakeTableTests.[test remote FakeTable works with two parameters, if they are quoted]
+AS
+BEGIN
+    CREATE TABLE tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1 ( i INT NOT NULL );
+    CREATE SYNONYM FakeTableTests.TempTable1 FOR tSQLt_RemoteSynonymsTestDatabase.dbo.TempTable1;
   
   EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
   

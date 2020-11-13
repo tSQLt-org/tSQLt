@@ -7,11 +7,17 @@ CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
   @OrigTableFullName NVARCHAR(MAX),
   @Identity BIT,
   @ComputedColumns BIT,
-  @Defaults BIT
+  @Defaults BIT,
+  @RemoteObjectID INT
 AS
 BEGIN
    DECLARE @Cmd NVARCHAR(MAX);
    DECLARE @Cols NVARCHAR(MAX);
+
+   IF (@RemoteObjectID IS NOT NULL)
+   BEGIN
+      EXEC tSQLt.Private_CreateRemoteUserDefinedDataTypes @RemoteObjectID = @RemoteObjectID
+   END
    
    SELECT @Cols = 
    (
@@ -25,11 +31,11 @@ BEGIN
             THEN ''
             ELSE ' NULL'
        END
-      FROM sys.columns c
+      FROM tSQLt.Private_SysColumns c
      CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(c.user_type_id, c.max_length, c.precision, c.scale, c.collation_name, c.object_id, c.column_id, @ComputedColumns) cc
      CROSS APPLY tSQLt.Private_GetDefaultConstraintDefinition(c.object_id, c.column_id, @Defaults) AS dc
      CROSS APPLY tSQLt.Private_GetIdentityDefinition(c.object_id, c.column_id, @Identity) AS id
-     WHERE object_id = OBJECT_ID(@OrigTableFullName)
+     WHERE object_id = COALESCE(@RemoteObjectID, OBJECT_ID(@OrigTableFullName))
      ORDER BY column_id
      FOR XML PATH(''), TYPE
     ).value('.', 'NVARCHAR(MAX)');
