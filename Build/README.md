@@ -54,7 +54,7 @@ or
 
 4. git clone [tSQLt Sources](https://github.com/tSQLt-org/tSQLt) `https://github.com/tSQLt-org/tSQLt.git`
 5. If you do not have access to the original key (probably not), create self-signed key without password, using [Strong Name Tool (sn.exe)](https://docs.microsoft.com/en-us/dotnet/framework/tools/sn-exe-strong-name-tool). You can run [.\tSQLtCLR\OfficialSigningKey\InstallSigningKey.bat](../tSQLtCLR/OfficialSigningKey/InstallSigningKeyNoPassword.bat)
-    * cd [.\tSQLtCLR\OfficialSigningKey](../tSQLtCLR\OfficialSigningKey)
+    * cd [.\tSQLtCLR\OfficialSigningKey](../tSQLtCLR/OfficialSigningKey)
     * copy tSQLtOfficialSigningKey.pfx tSQLtOfficialSigningKey.pfx_backup
     * "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools"\sn.exe -k tSQLtOfficialSigningKey.pfx
     * Run [.\tSQLtCLR\OfficialSigningKey\InstallSigningKey.bat](../tSQLtCLR/OfficialSigningKey/InstallSigningKey.bat) file
