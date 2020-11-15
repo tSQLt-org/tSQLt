@@ -49,14 +49,15 @@ or
     * Open *Sql Server Configuration Manager*
     * Navigate to *SQL Native Client 11.0 Configuration --> Aliases* and/or  *SQL Native Client 11.0 Configuration (32bit) --> Aliases* (you can add them both if you are not sure)
     * Fill `Dev_tSQLt` as *Alias Name* and port if it is not default one
+
     ![Aliases](./images/aliases.png "Aliases")
 
 4. git clone [tSQLt Sources](https://github.com/tSQLt-org/tSQLt) `https://github.com/tSQLt-org/tSQLt.git`
-5. If you do not have access to the original key (probably not), create self-signed key without password, using [Strong Name Tool (sn.exe)](https://docs.microsoft.com/en-us/dotnet/framework/tools/sn-exe-strong-name-tool). You can run [.\tSQLtCLR\OfficialSigningKey\InstallSigningKey.bat](..\tSQLtCLR\OfficialSigningKey\InstallSigningKeyNoPassword.bat)
-    * cd [.\tSQLtCLR\OfficialSigningKey](..\tSQLtCLR\OfficialSigningKey)
+5. If you do not have access to the original key (probably not), create self-signed key without password, using [Strong Name Tool (sn.exe)](https://docs.microsoft.com/en-us/dotnet/framework/tools/sn-exe-strong-name-tool). You can run [.\tSQLtCLR\OfficialSigningKey\InstallSigningKey.bat](../tSQLtCLR/OfficialSigningKey/InstallSigningKeyNoPassword.bat)
+    * cd [.\tSQLtCLR\OfficialSigningKey](../tSQLtCLR\OfficialSigningKey)
     * copy tSQLtOfficialSigningKey.pfx tSQLtOfficialSigningKey.pfx_backup
     * "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools"\sn.exe -k tSQLtOfficialSigningKey.pfx
-    * Run [.\tSQLtCLR\OfficialSigningKey\InstallSigningKey.bat](..\tSQLtCLR\OfficialSigningKey\InstallSigningKey.bat) file
+    * Run [.\tSQLtCLR\OfficialSigningKey\InstallSigningKey.bat](../tSQLtCLR/OfficialSigningKey/InstallSigningKey.bat) file
     * InstallSigningKey.bat
 6. Re-start SSMS (if it was open)
 7. Go to `Tools --> External Tools`, tick `Use Output Window` and fill:
@@ -83,4 +84,4 @@ Total time: 1 minute 19 seconds
 ```
 
 # Troubleshooting
-Try to run [Build\TestEnvironment.ps1](.\TestEnvironment.ps1) script to test your environment setup
+Try to run [Build\TestEnvironment.ps1](./TestEnvironment.ps1) script to test your environment setup
