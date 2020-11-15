@@ -69,7 +69,7 @@ or
     | Initial directory | $(SolutionDir) |
     ![External Tools](./images/external_tools.png "External Tools")
 
-8. Open the solution `File --> Open --> Project/Solution` or <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>O</kbd> and choose `tSQLt.ssmssln` file
+8. Open the solution `File --> Open --> Project/Solution` or <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>O</kbd> and choose [tSQLt.ssmssln](../tSQLt.ssmssln) file
 9. Run the build `Tools --> tSQLt local Dev_tSQLt`
     ![Run Build](./images/run_build.png "Run Build")
 
