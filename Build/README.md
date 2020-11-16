@@ -44,7 +44,7 @@ or
 
     ![Environment variables](./images/variables.png "Environment variables")
 
-2. Enable TCP connection on SQL Server Instance. [Follow this instructions](https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/enable-or-disable-a-server-network-protocol?view=sql-server-ver15)
+2. Enable TCP connection on SQL Server Instance. [Follow these instructions](https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/enable-or-disable-a-server-network-protocol?view=sql-server-ver15)
 3. Create instance alias `Dev_tSQLt` to `localhost` (optional). You can use either `Sql Server Configuration Manager` or TCP alias in `cliconfig.exe` (`C:\Windows\SysWOW64\cliconfig.exe`, `C:\Windows\System32\cliconfig.exe`)
     * Open *Sql Server Configuration Manager*
     * Navigate to *SQL Native Client 11.0 Configuration --> Aliases* and/or  *SQL Native Client 11.0 Configuration (32bit) --> Aliases* (you can add them both if you are not sure)
