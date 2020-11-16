@@ -38,9 +38,9 @@ or
 
     | Variable | Value |
     |----------|-------|
-    | AntHome | "%PROGRAMDATA%\chocolatey\lib\ant\tools\apache-ant-1.10.9" |
-    | NET4Home | "%WINDIR%\Microsoft.NET\Framework\v4.0.30319" |
-    | SQLCMDPath | "%PROGRAMFILES%\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn" |
+    | AntHome | %PROGRAMDATA%\chocolatey\lib\ant\tools\apache-ant-1.10.9 |
+    | NET4Home | %WINDIR%\Microsoft.NET\Framework\v4.0.30319 |
+    | SQLCMDPath | %PROGRAMFILES%\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn |
 
     ![Environment variables](./images/variables.png "Environment variables")
 
