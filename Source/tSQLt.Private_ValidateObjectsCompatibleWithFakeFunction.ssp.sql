@@ -31,10 +31,10 @@ BEGIN
    IF (@FakeDataSource IS NOT NULL ) 
    BEGIN
       IF NOT EXISTS (
-         SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(@FunctionName) and type in ('TF', 'IF')
+         SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(@FunctionName) and type in ('TF', 'IF', 'FT')
       ) 
       BEGIN
-         RAISERROR('You can use @FakeDataSource only with Inline or Multi-Statement Table-Valued functions.', 16, 10);
+         RAISERROR('You can use @FakeDataSource only with Inline, Multi-Statement or CLR Table-Valued functions.', 16, 10);
       END
     
 	  RETURN 0;

@@ -13,10 +13,10 @@ AS
              AND OBJECT_ID(@FakeDataSource) IS NULL
            )
             BEGIN
-                SET @FakeDataSource = CONCAT(N'(', @FakeDataSource, N') a');
+                SET @FakeDataSource = N'('+ @FakeDataSource + N') a';
             END;
 
-        DECLARE @Cmd NVARCHAR(MAX) = CONCAT('SELECT * INTO ', @OutputTable, ' FROM ', @FakeDataSource);
+        DECLARE @Cmd NVARCHAR(MAX) = N'SELECT * INTO ' + @OutputTable + N' FROM ' + @FakeDataSource;
 
         EXEC sp_executesql @Cmd;
 

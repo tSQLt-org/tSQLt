@@ -435,26 +435,37 @@ CREATE PROCEDURE FakeFunctionTests.[test errors when both @FakeFunctionName and 
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int, @b int) RETURNS TABLE AS RETURN (SELECT @a AS one);');
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Either @FakeFunctionName or @FakeDataSource must be provided', @ExpectedSeverity = 16, @ExpectedState = 10;
-  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction';
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Both @FakeFunctionName and @FakeDataSource are valued. Please use only one.', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'select 1 one';
 END;
 GO
 CREATE PROCEDURE FakeFunctionTests.[test errors when neither @FakeFunctionName nor @FakeDataSource are passed]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction(@a int, @b int) RETURNS TABLE AS RETURN (SELECT @a AS one);');
-
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Both @FakeFunctionName and @FakeDataSource are valued. Please use only one.', @ExpectedSeverity = 16, @ExpectedState = 10;
-
-  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeFunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'select 1 one';
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Either @FakeFunctionName or @FakeDataSource must be provided', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction';
 END;
 GO
-CREATE PROCEDURE FakeFunctionTests.[test errors when scalar function is passed as @FakeDataSource]
+CREATE PROCEDURE FakeFunctionTests.[test errors if function is a SVF and @FakeDataSource is used]
 AS
 BEGIN
   EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS NVARCHAR(10) AS BEGIN RETURN ''''; END;');
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline or Multi-Statement Table-Valued functions.', 
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline, Multi-Statement or CLR Table-Valued functions.', 
+                             @ExpectedSeverity = 16, 
+                             @ExpectedState = 10;  
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = 'select 1 as a';
+
+END;
+GO
+CREATE PROCEDURE FakeFunctionTests.[test errors if function is a CLR SVF and @FakeDataSource is used]
+AS
+BEGIN
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS NVARCHAR(10) AS BEGIN RETURN ''''; END;');
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'You can use @FakeDataSource only with Inline, Multi-Statement or CLR Table-Valued functions.', 
                              @ExpectedSeverity = 16, 
                              @ExpectedState = 10;  
 
@@ -489,6 +500,20 @@ BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '#expected';
 
   SELECT * INTO #actual FROM FakeFunctionTests.AFunction(123);
+
+  EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
+END;
+GO
+CREATE PROCEDURE FakeFunctionTests.[test can fake CLR table function using a temp table as fake data source]
+AS
+BEGIN
+
+  CREATE TABLE #expected (a CHAR(1));
+  INSERT INTO #expected VALUES('a');
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt_testutil.AClrTvf', @FakeDataSource = '#expected';
+
+  SELECT * INTO #actual FROM tSQLt_testutil.AClrTvf('', '');
 
   EXEC tSQLt.AssertEqualsTable '#expected', '#actual';
 END;
