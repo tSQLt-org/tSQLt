@@ -385,6 +385,29 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+
+CREATE PROC FakeTableTests.[test FakeTable handles column length, precision, and scale]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(Length1 VARCHAR(42), Length2 VARCHAR(MAX), Precision_Scale NUMERIC(21,3));
+
+  SELECT top(1) column_id,name,max_length, precision, scale
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+  
+  EXEC tSQLt.FakeTable 'dbo.tst1';
+
+  SELECT column_id,name,max_length, precision, scale
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
  
 CREATE PROC FakeTableTests.[test FakeTable works with ugly column and table names]
 AS

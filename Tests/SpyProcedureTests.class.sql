@@ -545,6 +545,30 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure handles length, precision, and scale correctly]
+  AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure(
+             @LENGTH1 VARCHAR(42) ,
+             @LENGTH2 VARCHAR(MAX) ,
+             @PRECISION_SCALE NUMERIC(21, 13) 
+          )
+          AS BEGIN RETURN 0; END');
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Expected
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.SpyProcedure 'dbo.InnerProcedure'
+
+    SELECT name, parameter_id, system_type_id, user_type_id, max_length, precision, scale 
+      INTO #Actual
+      FROM sys.parameters
+     WHERE object_id = OBJECT_ID('dbo.InnerProcedure');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
 CREATE PROC SpyProcedureTests.[test SpyProcedure fails with error if spyee has more than 1020 parameters]
 AS
 BEGIN
