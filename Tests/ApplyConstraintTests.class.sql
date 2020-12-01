@@ -844,6 +844,50 @@ BEGIN
 END;
 GO
 
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint can handle data types with length when changing NULLability]
+AS
+BEGIN
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (
+      Length1 VARCHAR(42) NOT NULL, 
+      CONSTRAINT testConstraint PRIMARY KEY (Length1)
+    );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+
+    EXEC tSQLt.ExpectNoException;
+    INSERT INTO schemaA.tableA(Length1)VALUES(NULL);
+    TRUNCATE TABLE schemaA.tableA;
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%Cannot insert the value NULL%Length1%';
+    INSERT INTO schemaA.tableA(Length1)VALUES(NULL);
+END;
+GO
+
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint can handle data types with precision and scale when changing NULLability]
+AS
+BEGIN
+    EXEC('CREATE SCHEMA schemaA;');
+    CREATE TABLE schemaA.tableA (
+      Precision_Scale NUMERIC(21,3) NOT NULL, 
+      CONSTRAINT testConstraint PRIMARY KEY (Precision_Scale)
+    );
+
+    EXEC tSQLt.FakeTable 'schemaA.tableA';
+
+    EXEC tSQLt.ExpectNoException;
+    INSERT INTO schemaA.tableA(Precision_Scale)VALUES(NULL);
+    TRUNCATE TABLE schemaA.tableA;
+
+    EXEC tSQLt.ApplyConstraint 'schemaA.tableA', 'testConstraint';
+
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%Cannot insert the value NULL%Precision_Scale%';
+    INSERT INTO schemaA.tableA(Precision_Scale)VALUES(NULL);
+END;
+GO
+
 CREATE PROC ApplyConstraintTests.[test ApplyConstraint applies multi-column unique constraint]
 AS
 BEGIN

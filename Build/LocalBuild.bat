@@ -46,7 +46,7 @@ ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
 IF "%~7"=="-v" @ECHO ON
-CALL "%~1\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%~4" -Ddb.name=%~5 -Ddb.login="%DBLogin%" -Dsqlcmd.path="\"%~3\"" || goto :error
+CALL "%~1\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%~4" -Ddb.name=%~5 -Ddb.login="%DBLogin%" -Dsqlcmd.path="%~3" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

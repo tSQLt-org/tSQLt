@@ -37,6 +37,7 @@
   <echo message="db.server: ${db.server}" />
   <echo message="db.name: ${db.name}" />
   <echo message="db.login: ${db.login}" />
+  <echo message="sqlcmd.path: ${sqlcmd.path}" />
 
  </target>
 
