@@ -11,7 +11,7 @@ variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
   - name: GitFetchDepth
-    value: 11
+    value: 22
 
 resources:
   repositories:
