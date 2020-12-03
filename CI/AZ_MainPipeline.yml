@@ -92,7 +92,6 @@ stages:
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         KeyVaultName: 'tSQLtSigningKey'
-        SecretsFilter: '*'
 
     - task: PowerShell@2
       name: Install_tSQLt_OfficialSigningKey
@@ -118,22 +117,6 @@ stages:
         Contents: '*/bin/*/*.dll'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
         flattenFolders: true
-
-
-    - task: authenticode-sign@4
-      condition: false
-      inputs:
-        filePath: 'tSQLt*.dll'
-        signRootPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
-        timestampServer: 'http://timestamp.digicert.com'
-        timestampAlgo: 'sha256'
-        timestampServerDelay: '15'
-        fileAlgo: 'sha256'
-        retryCount: '5'
-        certificateLocation: 'pfxFile'
-        pfxFile: '$(CertificatePath)'
-        pfxPassword: '$(tSQLtSigningKeyPassword)'
-        additionalArguments: '/debug'
 
     - task: ArchiveFiles@2
       inputs:
@@ -298,7 +281,6 @@ stages:
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         KeyVaultName: 'tSQLtSigningKey'
-        SecretsFilter: '*'
 
     - task: AzurePowerShell@4
       name: CreateVMAndMore
