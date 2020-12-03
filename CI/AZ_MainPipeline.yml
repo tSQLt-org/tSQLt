@@ -11,7 +11,7 @@ variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
   - name: GitFetchDepth
-    value: 22
+    value: 11
 
 resources:
   repositories:
@@ -304,7 +304,8 @@ stages:
             git status
             git remote show origin
 
-            git switch "$(ArtifactBranchName)"
+            git fetch --depth=11 origin
+            git checkout "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
             git status
