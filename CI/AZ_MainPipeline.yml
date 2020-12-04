@@ -10,8 +10,6 @@ pool:
 variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
-  - name: GitFetchDepth
-    value: 11
 
 resources:
   repositories:
@@ -85,7 +83,6 @@ stages:
 
     - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
       clean: true
-      fetchDepth: $(GitFetchDepth)
       lfs: false
 
     - task: AzureKeyVault@1
@@ -142,7 +139,6 @@ stages:
 
     - checkout: self
       clean: true
-      fetchDepth: $(GitFetchDepth)
       lfs: false
 
     - task: DownloadPipelineArtifact@2
@@ -188,7 +184,6 @@ stages:
     steps:
     - checkout: tSQLtArtifacts
       clean: true
-      fetchDepth: $(GitFetchDepth)
       lfs: false
       persistCredentials: true
       path: tSQLtArtifacts
@@ -273,7 +268,6 @@ stages:
     steps:
     - checkout: self
       clean: true
-      fetchDepth: $(GitFetchDepth)
       lfs: false
       path: tSQLt
 
@@ -284,7 +278,6 @@ stages:
 
     - checkout: tSQLtArtifacts
       clean: true
-      fetchDepth: $(GitFetchDepth)
       lfs: false
       persistCredentials: true
       path: tSQLtArtifacts
@@ -304,7 +297,7 @@ stages:
             git status
             git remote show origin
 
-            git fetch --depth=11 origin
+            git fetch
             git checkout "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
