@@ -188,6 +188,11 @@ stages:
       persistCredentials: true
       path: tSQLtArtifacts
 
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
+
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
       inputs:
