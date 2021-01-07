@@ -17,6 +17,7 @@ resources:
     type: github
     name: tSQLt/tmp6
     endpoint: GitHub-tSQLt-Robot
+    ref: (https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/multi-repo-checkout?view=azure-devops) -- {{ $ArtifactBranchName }}
   
   
 stages:
@@ -32,47 +33,9 @@ stages:
       persistCredentials: true
       path: tSQLtArtifacts
 
-    - task: PowerShell@2
-      name: the_test
-      env:
-        GITHUB_USERNAME: $(GitHubUserName)
-        GITHUB_EMAIL: $(GitHubEmail)
-      inputs:
-        targetType: 'inline'
-        failOnStderr: false
-        ## git seems to print progress to stderror
-        script: |
-          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
-
-          Get-Location;
-          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
-          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
-          try{
-            git config --global user.email "$env:GITHUB_EMAIL"
-            git config --global user.name "$env:GITHUB_USERNAME"
-            git status
-            git remote show origin
-
-            $B = (git branch -r --list "origin/$(ArtifactBranchName)")
-            $CheckIfGitOk.invoke($?);
-            if( -not [string]::IsNullOrEmpty($B) )
-            {
-              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true";
-              Write-Host "Build Branch Found";
-            }
-            else
-            {
-              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]false";
-              Write-Host "Build Branch NOT Found";
-            };
-          }catch{
-            throw "Git Failed. See prior errors.";
-          } 
-          git status
-
   - job: CompileCLR
     dependsOn: Check_If_Built_Already
-    condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['the_test.BuiltAlready'], 'false'))
+    condition: failed()
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
 
@@ -292,19 +255,19 @@ stages:
 
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
 
-          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
-          try{
-            git status
-            git remote show origin
+          # Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          # try{
+          #   git status
+          #   git remote show origin
 
-            git fetch
-            git checkout "$(ArtifactBranchName)"
-            $CheckIfGitOk.invoke($?);
+          #   git fetch
+          #   git checkout "$(ArtifactBranchName)"
+          #   $CheckIfGitOk.invoke($?);
 
-            git status
-          }catch{
-            throw "Git Failed. See prior errors.";
-          } 
+          #   git status
+          # }catch{
+          #   throw "Git Failed. See prior errors.";
+          # } 
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
 
