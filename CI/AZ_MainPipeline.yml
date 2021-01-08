@@ -17,7 +17,7 @@ resources:
     type: github
     name: tSQLt/tmp6
     endpoint: GitHub-tSQLt-Robot
-    ref: (https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/multi-repo-checkout?view=azure-devops) -- {{ $ArtifactBranchName }}
+    ref: ${{ variables.ArtifactBranchName }}
   
   
 stages:
