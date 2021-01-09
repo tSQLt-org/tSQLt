@@ -287,32 +287,29 @@ stages:
       lfs: false
       fetchDepth: 1
       persistCredentials: true
-      path: dontUse
+      path: tSQLtArtifacts
   
     - task: PowerShell@2
       name: GetArtifact
       inputs:
         targetType: 'inline'
         script: |
-          $ArtifactTargetPath= '$(Pipeline.Workspace)/tSQLt/Build_Artifact'
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Set-Location "$(Pipeline.Workspace)";
+          Set-Location "$(Pipeline.Workspace)/tSQLtArtifacts";
+          $ArtifactTargetPath= '$(Pipeline.Workspace)/tSQLt/Build_Artifact'
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)");
 
-          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
-
-            $remoteURL = git config -f .\dontUse\.git\config remote.origin.url
+            git fetch origin $(ArtifactBranchName):$(ArtifactBranchName)
             $CheckIfGitOk.invoke($?);
-
-            git clone --depth=1 $remoteURL -b $(ArtifactBranchName) tSQLtArtifacts
+            git checkout $(ArtifactBranchName)
             $CheckIfGitOk.invoke($?);
           }catch{
-            throw "Git Failed. See prior errors.";
+            throw "git failed. See prior errors.";
           } 
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
-
           Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
 
     - task: AzurePowerShell@4
@@ -443,7 +440,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};    
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]git gailed!";throw "git failed!"}};    
           
           $TagName = "$(SQLVersionEdition)_$(Build.BuildId)"
 
@@ -465,7 +462,7 @@ stages:
 
             git status
           }catch{
-            throw "Git Failed. See prior errors.";
+            throw "git failed. See prior errors.";
           }  
 
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
