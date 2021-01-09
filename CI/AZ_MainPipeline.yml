@@ -42,8 +42,8 @@ stages:
         failOnStderr: false
         script: |
           Write-Host ("Build.Repository.Uri: {0}" -f "$(Build.Repository.Uri)"); 
-          Write-Host ("resources.repositories.tSQLtArtifacts: {0}" -f "$(resources.repositories.tSQLtArtifacts)"); 
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          Get-Item -Path Env:
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
             git config --global user.name "$env:GITHUB_USERNAME"
