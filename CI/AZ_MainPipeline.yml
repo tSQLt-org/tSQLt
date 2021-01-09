@@ -261,7 +261,6 @@ stages:
     strategy:
       matrix: {
         '2008R2':{'SQLVersionEdition':'2008R2Std'},
-        '2008R2E':{'SQLVersionEdition':'2008R2Ent'},
         '2012':{'SQLVersionEdition':'2012Ent'},
         '2014':{'SQLVersionEdition':'2014'},
         '2016':{'SQLVersionEdition':'2016'},
