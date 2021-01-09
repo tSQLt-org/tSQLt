@@ -217,6 +217,12 @@ stages:
             git status
             git remote show origin
 
+            Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+            Write-Host "";
+            git branch --remotes
+            Write-Host "";
+            Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+
             git switch -c "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
