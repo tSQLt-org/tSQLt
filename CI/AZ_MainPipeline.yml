@@ -331,12 +331,7 @@ stages:
         azurePowerShellVersion: 'LatestVersion'
         ScriptType: 'InlineScript'
         Inline: |
-          Write-Host '$(Build.Repository.LocalPath)';
-          (Get-ChildItem);
-          Set-Location $(Build.Repository.LocalPath)/..
-          (Get-ChildItem);
-          Set-Location $(Build.Repository.LocalPath)/../tSQLt
-          (Get-ChildItem);
+          Set-Location $(Pipeline.Workspace)/tSQLt
           .("CI/CommonFunctionsAndMethods.ps1")
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
@@ -410,7 +405,7 @@ stages:
         options: '-Ddb.version="$(SQLVersion)" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
         targets: 'all'
         publishJUnitResults: true
-        testResultsFiles: '../**/?(Example)TestResults*.xml'
+        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/?(Example)TestResults*.xml'
         testRunTitle: '$(SQLVersionEdition)'
         javaHomeOption: 'JDKVersion'
         
@@ -420,11 +415,8 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          "---------------------------------------------------"
-          $BasePath = "$(Build.SourcesDirectory)\..";
-          $BasePath;
           "==================================================="
-          $ArtifactPath = ($BasePath+"\tSQLt\Build\output\TestResults\");
+          $ArtifactPath = ($(Pipeline.Workspace)+"\tSQLt\Build\output\TestResults\");
           $ArtifactPath;
           "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
           New-Item -Path $ArtifactPath  -ItemType directory -Force
@@ -440,7 +432,7 @@ stages:
     - task: PublishPipelineArtifact@1
       name: PublishTestResultArtifact
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/../tSQLt/Build/output/TestResults'
+        targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/TestResults'
         artifact: 'TestResults_$(SQLVersionEdition)'
         publishLocation: 'pipeline'
     
