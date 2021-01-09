@@ -17,7 +17,6 @@ resources:
     type: github
     name: tSQLt/tmp6
     endpoint: GitHub-tSQLt-Robot
-    ref: ${{ variables.ArtifactBranchName }}
   
   
 stages:
@@ -33,9 +32,41 @@ stages:
       persistCredentials: true
       path: tSQLtArtifacts
 
+    - task: PowerShell@2
+      name: list_remote_branch
+      env:
+        GITHUB_USERNAME: $(GitHubUserName)
+        GITHUB_EMAIL: $(GitHubEmail)
+      inputs:
+        targetType: 'inline'
+        failOnStderr: false
+        script: |
+          Write-Host ("Build.Repository.Uri: {0}" -f "$(Build.Repository.Uri)"); 
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          try{
+            git config --global user.email "$env:GITHUB_EMAIL"
+            git config --global user.name "$env:GITHUB_USERNAME"
+
+            $B = (git ls-remote --heads $(Build.Repository.Uri) $(ArtifactBranchName))
+
+            if( -not [string]::IsNullOrEmpty($B) )
+            {
+              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true";
+              Write-Host "Build Branch Found";
+            }
+            else
+            {
+              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]false";
+              Write-Host "Build Branch NOT Found";
+            };
+          }catch{
+            throw "Git Failed. See prior errors.";
+          } 
+          git status
+
   - job: CompileCLR
     dependsOn: Check_If_Built_Already
-    condition: failed()
+    condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['the_test.BuiltAlready'], 'false'))
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
 
