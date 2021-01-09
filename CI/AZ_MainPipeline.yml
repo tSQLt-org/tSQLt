@@ -41,16 +41,24 @@ stages:
         targetType: 'inline'
         failOnStderr: false
         script: |
-          Write-Host ("Build.Repository.Uri: {0}" -f "$(Build.Repository.Uri)"); 
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "git failed!"}};          
+          
+          Get-Location;
+          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           Get-Item -Path Env:
           try{
-            git config --global user.email "$env:GITHUB_EMAIL"
-            git config --global user.name "$env:GITHUB_USERNAME"
+            # git config --global user.email "$env:GITHUB_EMAIL"
+            # git config --global user.name "$env:GITHUB_USERNAME"
 
-            $B = (git ls-remote --heads $(Build.Repository.Uri) $(ArtifactBranchName))
+            $remoteURL = git config remote.origin.url
+            $CheckIfGitOk.invoke($?);
+            
+            $branch = (git ls-remote --heads $remoteURL $(ArtifactBranchName))
+            $CheckIfGitOk.invoke($?);
 
-            if( -not [string]::IsNullOrEmpty($B) )
+            if( -not [string]::IsNullOrEmpty($branch) )
             {
               Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true";
               Write-Host "Build Branch Found";
@@ -61,7 +69,7 @@ stages:
               Write-Host "Build Branch NOT Found";
             };
           }catch{
-            throw "Git Failed. See prior errors.";
+            throw "git failed. See prior errors.";
           } 
           git status
 
