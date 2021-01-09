@@ -43,7 +43,6 @@ stages:
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
-          Get-Item -Path Env:
           try{
 
             $remoteURL = git config remote.origin.url
@@ -297,7 +296,7 @@ stages:
 
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
-            
+
             $remoteURL = git config -f .\dontUse\.git\config remote.origin.url
             $CheckIfGitOk.invoke($?);
 
