@@ -412,7 +412,7 @@ stages:
         failOnStderr: true
         script: |
           "==================================================="
-          $ArtifactPath = ($(Pipeline.Workspace)+"\tSQLt\Build\output\TestResults\");
+          $ArtifactPath = ($(Pipeline.Workspace)"\tSQLt\Build\output\TestResults\");
           $ArtifactPath;
           "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
           New-Item -Path $ArtifactPath  -ItemType directory -Force
