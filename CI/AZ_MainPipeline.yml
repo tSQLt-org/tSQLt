@@ -34,23 +34,17 @@ stages:
 
     - task: PowerShell@2
       name: list_remote_branch
-      env:
-        GITHUB_USERNAME: $(GitHubUserName)
-        GITHUB_EMAIL: $(GitHubEmail)
       inputs:
         targetType: 'inline'
         failOnStderr: false
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "git failed!"}};          
           
-          Get-Location;
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           Get-Item -Path Env:
           try{
-            # git config --global user.email "$env:GITHUB_EMAIL"
-            # git config --global user.name "$env:GITHUB_USERNAME"
 
             $remoteURL = git config remote.origin.url
             $CheckIfGitOk.invoke($?);
@@ -188,6 +182,7 @@ stages:
     - checkout: tSQLtArtifacts
       clean: true
       lfs: false
+      fetchDepth: 1
       persistCredentials: true
       path: tSQLtArtifacts
 
@@ -197,6 +192,11 @@ stages:
         buildType: 'current'
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Pipeline.Workspace)\tmp'
+
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
 
     - task: PowerShell@2
       name: StoreInArtifactRepo
@@ -210,7 +210,6 @@ stages:
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Get-Location;
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
@@ -282,8 +281,9 @@ stages:
     - checkout: tSQLtArtifacts
       clean: true
       lfs: false
+      fetchDepth: 1
       persistCredentials: true
-      path: tSQLtArtifacts
+      path: dontUse
   
     - task: PowerShell@2
       name: GetArtifact
@@ -293,21 +293,19 @@ stages:
           $ArtifactTargetPath= '$(Pipeline.Workspace)/tSQLt/Build_Artifact'
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          Set-Location "$(Pipeline.Workspace)";
 
-          # Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
-          # try{
-          #   git status
-          #   git remote show origin
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          try{
+            
+            $remoteURL = git config -f .\dontUse\.git\config remote.origin.url
+            $CheckIfGitOk.invoke($?);
 
-          #   git fetch
-          #   git checkout "$(ArtifactBranchName)"
-          #   $CheckIfGitOk.invoke($?);
-
-          #   git status
-          # }catch{
-          #   throw "Git Failed. See prior errors.";
-          # } 
+            git clone --depth=1 $remoteURL -b $(ArtifactBranchName) tSQLtArtifacts
+            $CheckIfGitOk.invoke($?);
+          }catch{
+            throw "Git Failed. See prior errors.";
+          } 
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
 
