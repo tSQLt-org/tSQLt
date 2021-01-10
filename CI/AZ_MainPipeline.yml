@@ -442,7 +442,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]git gailed!";throw "git failed!"}};    
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]git failed!";throw "git failed!"}};    
           
           $TagName = "$(SQLVersionEdition)_$(Build.BuildId)"
 
