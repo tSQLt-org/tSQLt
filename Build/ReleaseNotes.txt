@@ -9,6 +9,23 @@ Release: VLATEST-BUILD-NUMBER
 
 BUG FIXES:
 
+1. Fix sysname casing for case-sensitive databases. Fixed by Trygve Wastvedt (https://github.com/twastvedt).
+
+2. Fixed issue in tSQLt.Private_GetFullTypeName not handling fractional seconds precision on date and time types. Fixed by saperry (https://github.com/saperry).
+
+NEW FEATURES:
+
+1. FakeFunction now accepts non-functions as data sources for example tables or SELECT statements. Contributed by Dmitrij Kultasev (https://github.com/dkultasev).
+
+MISCELLANEOUS:
+
+1. For tSQLt contributors: allow SQL Server Authentication for build
+
+---------------------------
+Release: V1.0.7597.5637
+
+BUG FIXES:
+
 N/A
 
 NEW FEATURES:
