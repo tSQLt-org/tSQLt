@@ -33,29 +33,25 @@ stages:
       path: tSQLtArtifacts
 
     - task: PowerShell@2
-      name: the_test
-      env:
-        GITHUB_USERNAME: $(GitHubUserName)
-        GITHUB_EMAIL: $(GitHubEmail)
+      name: list_remote_branch
       inputs:
         targetType: 'inline'
         failOnStderr: false
-        ## git seems to print progress to stderror
         script: |
-          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
-
-          Get-Location;
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "git failed!"}};          
+          
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
-            git config --global user.email "$env:GITHUB_EMAIL"
-            git config --global user.name "$env:GITHUB_USERNAME"
-            git status
-            git remote show origin
 
-            $B = (git branch -r --list "origin/$(ArtifactBranchName)")
+            $remoteURL = git config remote.origin.url
             $CheckIfGitOk.invoke($?);
-            if( -not [string]::IsNullOrEmpty($B) )
+            
+            $branch = (git ls-remote --heads $remoteURL $(ArtifactBranchName))
+            $CheckIfGitOk.invoke($?);
+
+            if( -not [string]::IsNullOrEmpty($branch) )
             {
               Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true";
               Write-Host "Build Branch Found";
@@ -66,13 +62,13 @@ stages:
               Write-Host "Build Branch NOT Found";
             };
           }catch{
-            throw "Git Failed. See prior errors.";
+            throw "git failed. See prior errors.";
           } 
           git status
 
   - job: CompileCLR
     dependsOn: Check_If_Built_Already
-    condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['the_test.BuiltAlready'], 'false'))
+    condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['list_remote_branch.BuiltAlready'], 'false'))
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
 
@@ -162,12 +158,12 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $BasePath = "$(Build.SourcesDirectory)\Build\output\";
-          $ArtifactPath = ($BasePath+"Artifact\");
-          New-Item -Path $ArtifactPath  -ItemType directory -Force
-          $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip","tSQLtSnippets(SQLPrompt).zip")|%{$BasePath+$_});
-          $ArtifactFiles|Copy-Item -Verbose -Destination $ArtifactPath;
-          Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
+          $basePath = "$(Build.SourcesDirectory)\Build\output\";
+          $artifactPath = ($basePath+"Artifact\");
+          New-Item -Path $artifactPath  -ItemType directory -Force
+          $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip","tSQLtSnippets(SQLPrompt).zip")|%{$basePath+$_});
+          $ArtifactFiles|Copy-Item -Verbose -Destination $artifactPath;
+          Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
       inputs:
@@ -185,6 +181,7 @@ stages:
     - checkout: tSQLtArtifacts
       clean: true
       lfs: false
+      fetchDepth: 1
       persistCredentials: true
       path: tSQLtArtifacts
 
@@ -200,6 +197,11 @@ stages:
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Pipeline.Workspace)\tmp'
 
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
+
     - task: PowerShell@2
       name: StoreInArtifactRepo
       env:
@@ -212,7 +214,6 @@ stages:
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Get-Location;
           Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
@@ -220,6 +221,12 @@ stages:
             git config --global user.name "$env:GITHUB_USERNAME"
             git status
             git remote show origin
+
+            Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+            Write-Host "";
+            git branch --remotes
+            Write-Host "";
+            Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
 
             git switch -c "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
@@ -283,6 +290,7 @@ stages:
     - checkout: tSQLtArtifacts
       clean: true
       lfs: false
+      fetchDepth: 1
       persistCredentials: true
       path: tSQLtArtifacts
   
@@ -291,27 +299,22 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $ArtifactTargetPath= '$(Pipeline.Workspace)/tSQLt/Build_Artifact'
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          Set-Location "$(Pipeline.Workspace)/tSQLtArtifacts";
+          $ArtifactTargetPath= '$(Pipeline.Workspace)/tSQLt/Build_Artifact'
+          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)");
 
-          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
-            git status
-            git remote show origin
-
-            git fetch
-            git checkout "$(ArtifactBranchName)"
+            git fetch origin $(ArtifactBranchName):$(ArtifactBranchName)
             $CheckIfGitOk.invoke($?);
-
-            git status
+            git checkout $(ArtifactBranchName)
+            $CheckIfGitOk.invoke($?);
           }catch{
-            throw "Git Failed. See prior errors.";
+            throw "git failed. See prior errors.";
           } 
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
-
           Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
 
     - task: AzurePowerShell@4
@@ -329,12 +332,7 @@ stages:
         azurePowerShellVersion: 'LatestVersion'
         ScriptType: 'InlineScript'
         Inline: |
-          Write-Host '$(Build.Repository.LocalPath)';
-          (Get-ChildItem);
-          Set-Location $(Build.Repository.LocalPath)/..
-          (Get-ChildItem);
-          Set-Location $(Build.Repository.LocalPath)/../tSQLt
-          (Get-ChildItem);
+          Set-Location $(Pipeline.Workspace)/tSQLt
           .("CI/CommonFunctionsAndMethods.ps1")
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
@@ -404,11 +402,11 @@ stages:
     - task: Ant@1
       name: Run_tSQLt_validatebuild_xml
       inputs:
-        buildFile: '../tSQLt/Build/tSQLt.validatebuild.xml'
+        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
         options: '-Ddb.version="$(SQLVersion)" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
         targets: 'all'
         publishJUnitResults: true
-        testResultsFiles: '../**/?(Example)TestResults*.xml'
+        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/?(Example)TestResults*.xml'
         testRunTitle: '$(SQLVersionEdition)'
         javaHomeOption: 'JDKVersion'
         
@@ -419,26 +417,25 @@ stages:
         failOnStderr: true
         script: |
           "---------------------------------------------------"
-          $BasePath = "$(Build.SourcesDirectory)\..";
-          $BasePath;
+          $basePath = "$(Pipeline.Workspace)";
+          $basePath;
           "==================================================="
-          $ArtifactPath = ($BasePath+"\tSQLt\Build\output\TestResults\");
-          $ArtifactPath;
+          $artifactPath = "$basePath\tSQLt\Build\output\TestResults\";
+          $artifactPath;
           "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
-          New-Item -Path $ArtifactPath  -ItemType directory -Force
-          (Get-ChildItem $BasePath -recurse);
+          New-Item -Path $artifactPath  -ItemType directory -Force
           "== == == == == == == == == == == == == == == == == "
-          (Get-ChildItem $BasePath -recurse)|Out-File  -FilePath $ArtifactPath+"dir.txt"
-          (Get-ChildItem $BasePath -recurse -include "*TestResults*.xml").FullName; 
+          (Get-ChildItem $basePath -recurse)|Out-File  -FilePath $artifactPath+"dir.txt"
+          (Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName; 
           "==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-"
-          (Get-ChildItem $BasePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $ArtifactPath -recurse -PassThru
-          Set-Content -Path ($ArtifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
+          (Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $artifactPath -recurse -PassThru
+          Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
           "=== === === === === === === === === === === === ==="
 
     - task: PublishPipelineArtifact@1
       name: PublishTestResultArtifact
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/../tSQLt/Build/output/TestResults'
+        targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/TestResults'
         artifact: 'TestResults_$(SQLVersionEdition)'
         publishLocation: 'pipeline'
     
@@ -450,7 +447,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};    
+          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]git failed!";throw "git failed!"}};    
           
           $TagName = "$(SQLVersionEdition)_$(Build.BuildId)"
 
@@ -472,7 +469,7 @@ stages:
 
             git status
           }catch{
-            throw "Git Failed. See prior errors.";
+            throw "git failed. See prior errors.";
           }  
 
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
