@@ -161,7 +161,7 @@ stages:
           $basePath = "$(Build.SourcesDirectory)\Build\output\";
           $artifactPath = ($basePath+"Artifact\");
           New-Item -Path $artifactPath  -ItemType directory -Force
-          $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip")|%{$basePath+$_});
+          $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip","tSQLtSnippets(SQLPrompt).zip")|%{$basePath+$_});
           $ArtifactFiles|Copy-Item -Verbose -Destination $artifactPath;
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
@@ -184,6 +184,11 @@ stages:
       fetchDepth: 1
       persistCredentials: true
       path: tSQLtArtifacts
+
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
 
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
