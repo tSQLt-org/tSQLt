@@ -12,12 +12,14 @@ SELECT Version = '$LATEST-BUILD-NUMBER$',
        ClrSigningKey = (SELECT tSQLt.Private::SigningKey()),
        V.SqlVersion,
        V.SqlBuild,
-       V.SqlEdition
+       V.SqlEdition,
+       V.HostPlatform
   FROM
   (
     SELECT CAST(PSSV.Major+'.'+PSSV.Minor AS NUMERIC(10,2)) AS SqlVersion,
            CAST(PSSV.Build+'.'+PSSV.Revision AS NUMERIC(10,2)) AS SqlBuild,
-           PSV.Edition AS SqlEdition
+           PSV.Edition AS SqlEdition,
+           PSV.HostPlatform
           FROM tSQLt.Private_SqlVersion() AS PSV
          CROSS APPLY tSQLt.Private_SplitSqlVersion(PSV.ProductVersion) AS PSSV
   )V;

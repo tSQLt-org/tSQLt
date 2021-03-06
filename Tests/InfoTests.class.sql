@@ -34,7 +34,32 @@ GO
 CREATE FUNCTION InfoTests.[42.17.1986.57]()
 RETURNS TABLE
 AS
-RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition;
+RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition, NULL HostPlatform;
+GO
+CREATE FUNCTION InfoTests.[SomePlatform]()
+RETURNS TABLE
+AS
+RETURN SELECT NULL AS ProductVersion, NULL AS Edition, 'SomePlatform' HostPlatform;
+GO
+CREATE PROCEDURE InfoTests.[test returns HostPlatform]
+AS
+BEGIN
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'InfoTests.[SomePlatform]';
+
+  SELECT I.HostPlatform
+    INTO #Actual
+    FROM tSQLt.Info() AS I;
+  
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  VALUES('SomePlatform');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
 GO
 CREATE PROCEDURE InfoTests.[test returns SqlVersion and SqlBuild]
 AS
@@ -74,6 +99,28 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+CREATE PROCEDURE InfoTests.[test double ledger for tSQLt.Private_SqlVersion]
+AS
+BEGIN
+
+  SELECT *
+    INTO #Actual
+    FROM tSQLt.Private_SqlVersion() AS PSV;
+  
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  SELECT 
+      CAST(SERVERPROPERTY('ProductVersion')AS NVARCHAR(128)) ProductVersion,
+      CAST(SERVERPROPERTY('Edition')AS NVARCHAR(128)) Edition, 
+		    host_platform HostPlatform 
+    FROM sys.dm_os_host_info;
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
 
 --TODO:
--- include minimum supported version
+-- include minimum supported version, like column with the lowest number that we run CI tests on (hardcoded)
