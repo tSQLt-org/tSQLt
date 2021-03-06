@@ -30,22 +30,6 @@ BEGIN
   EXEC tSQLt.EnableExternalAccess;
 END;
 GO
-CREATE FUNCTION EnableExternalAccessTests.[HostPlatform Linux]()
-RETURNS TABLE
-AS
-RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'Developer Edition (64-bit)' SqlEdition, 'Linux' HostPlatform;
-GO
-CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess reports meaningful error if HostPlatform is Linux]
-AS
-BEGIN
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Info', @FakeFunctionName = 'EnableExternalAccessTests.[HostPlatform Linux]';
-
-  DECLARE @ExpectedMessagePattern NVARCHAR(MAX) =  
-              'The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed: EXTERNAL_ACCESS is not supported on Linux.';
-  EXEC tSQLt.ExpectException @ExpectedMessagePattern = @ExpectedMessagePattern;
-  EXEC tSQLt.EnableExternalAccess;
-END;
-GO
 --[@tSQLt:RunOnlyOnHostPlatform]('Windows')
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess sets PERMISSION_SET to SAFE if @enable = 0]
 AS
@@ -169,6 +153,34 @@ BEGIN
   EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;
   
   EXEC tSQLt.AssertEquals 0,@Actual;
+END;
+GO
+CREATE FUNCTION EnableExternalAccessTests.[HostPlatform Linux]()
+RETURNS TABLE
+AS
+RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'Developer Edition (64-bit)' SqlEdition, 'Linux' HostPlatform;
+GO
+CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess reports meaningful error if HostPlatform is Linux]
+AS
+BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Info', @FakeFunctionName = 'EnableExternalAccessTests.[HostPlatform Linux]';
+
+  DECLARE @ExpectedMessagePattern NVARCHAR(MAX) =  
+              'The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed: EXTERNAL_ACCESS is not supported on Linux.';
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = @ExpectedMessagePattern;
+  EXEC tSQLt.EnableExternalAccess;
+END;
+GO
+CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess returns -1, if @try = 1 and HostPlatform is Linux]
+AS
+BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Info', @FakeFunctionName = 'EnableExternalAccessTests.[HostPlatform Linux]';
+
+  DECLARE @Actual INT;
+  EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;
+  
+  EXEC tSQLt.AssertEquals -1,@Actual;
 END;
 GO
 
