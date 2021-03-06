@@ -22,7 +22,7 @@ BEGIN
     RETURN;
   END;
 
-  IF((SELECT SqlEdition FROM tSQLt.Info()) <> 'SQL Azure')
+  IF(NOT EXISTS(SELECT 1 FROM tSQLt.Info() WHERE SqlEdition = 'SQL Azure' OR HostPlatform = 'Linux'))
   BEGIN
     EXEC tSQLt.EnableExternalAccess @enable = @enable, @try = 1;
   END;
