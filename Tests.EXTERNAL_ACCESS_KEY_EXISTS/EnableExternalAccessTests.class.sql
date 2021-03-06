@@ -1,5 +1,7 @@
 EXEC tSQLt.NewTestClass 'EnableExternalAccessTests';
 GO
+
+--@tSQLt:RunOnlyOnHostPlatform('Windows')
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess sets PERMISSION_SET to EXTERNAL_ACCESS if called without parameters]
 AS
 BEGIN
@@ -13,6 +15,8 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = 'EXTERNAL_ACCESS', @Actual = @Actual;
 END;
 GO
+
+--@tSQLt:RunOnlyOnHostPlatform('Windows')
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess reports meaningful error with details, if setting fails]
 AS
 BEGIN
@@ -28,6 +32,8 @@ BEGIN
   EXEC tSQLt.EnableExternalAccess;
 END;
 GO
+
+--@tSQLt:RunOnlyOnHostPlatform('Windows')
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess sets PERMISSION_SET to SAFE if @enable = 0]
 AS
 BEGIN
@@ -41,6 +47,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = 'SAFE_ACCESS', @Actual = @Actual;
 END;
 GO
+
 --[@tSQLt:MinSqlMajorVersion](11)
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails (2012++)]
 AS
@@ -73,6 +80,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+
 --[@tSQLt:MaxSqlMajorVersion](10)
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess produces no output, if @try = 1 and setting fails (2008,2008R2)]
 AS
@@ -97,6 +105,7 @@ BEGIN
 END;
 GO
 
+--@tSQLt:RunOnlyOnHostPlatform('Windows')
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess reports meaningful error if disabling fails]
 AS
 BEGIN
@@ -139,6 +148,7 @@ BEGIN
 END;
 GO
 
+--@tSQLt:RunOnlyOnHostPlatform('Windows')
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess returns 0, if @try = 1 and setting is successful]
 AS
 BEGIN
