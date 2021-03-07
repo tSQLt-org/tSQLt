@@ -9,7 +9,11 @@ AS
 BEGIN
   IF((SELECT HostPlatform FROM tSQLt.Info()) = 'Linux')
   BEGIN
-    RAISERROR('The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed: EXTERNAL_ACCESS is not supported on Linux.',16,10);
+    IF(@try = 0)
+    BEGIN
+      RAISERROR('tSQLt.EnableExternalAccess is not supported on Linux.',16,10);
+    END;
+    RETURN -1;
   END;
   BEGIN TRY
     IF @enable = 1

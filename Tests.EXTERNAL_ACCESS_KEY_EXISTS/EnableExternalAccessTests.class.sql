@@ -166,7 +166,7 @@ BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Info', @FakeFunctionName = 'EnableExternalAccessTests.[HostPlatform Linux]';
 
   DECLARE @ExpectedMessagePattern NVARCHAR(MAX) =  
-              'The attempt to enable tSQLt features requiring EXTERNAL_ACCESS failed: EXTERNAL_ACCESS is not supported on Linux.';
+              'tSQLt.EnableExternalAccess is not supported on Linux.';
 
   EXEC tSQLt.ExpectException @ExpectedMessagePattern = @ExpectedMessagePattern;
   EXEC tSQLt.EnableExternalAccess;
