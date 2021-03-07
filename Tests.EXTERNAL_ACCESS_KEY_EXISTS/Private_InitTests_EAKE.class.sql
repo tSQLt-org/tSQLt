@@ -82,16 +82,3 @@ RETURNS TABLE
 AS
 RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'Developer Edition (64-bit)' SqlEdition, 'Linux' HostPlatform;
 GO
-CREATE PROCEDURE Private_InitTests_EAKE.[test does not call EnableExternalAccess if HostPlatform='Linux']
-AS
-BEGIN
-  
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Info', @FakeFunctionName = 'Private_InitTests_EAKE.[HostPlatform Linux]';
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.EnableExternalAccess', @CommandToExecute = NULL;
-
-  EXEC tSQLt.Private_Init;
-
-  EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.EnableExternalAccess_SpyProcedureLog';
-
-END;
-GO
