@@ -388,6 +388,40 @@ BEGIN
   
 END
 GO
+CREATE PROCEDURE tSQLt_testutil_test.[ptest CheckMultiRunResults doesn't throw error if]
+  @success INT = 0,
+  @skipped INT = 0,
+  @failed INT = 0,
+  @errored INT = 0
+AS
+BEGIN
+  EXEC tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error)
+  VALUES(@success,@skipped,@failed,@errored);
+
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  EXEC tSQLt.ExpectNoException;
+  
+  INSERT INTO #Actual
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+  
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults doesn't throw error if a success exists]
+AS
+BEGIN
+  EXEC tSQLt_testutil_test.[ptest CheckMultiRunResults doesn't throw error if] @success=1;
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults doesn't throw error if a skip exists]
+AS
+BEGIN
+  EXEC tSQLt_testutil_test.[ptest CheckMultiRunResults doesn't throw error if] @skipped=1;
+END
+GO
 CREATE PROCEDURE tSQLt_testutil_test.[test LogMultiRunResult captures all results]
 AS
 BEGIN

@@ -328,7 +328,7 @@ BEGIN
   BEGIN
     EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = 16
   END;
-  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Failure = 0 AND MRL.Error = 0))
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Skipped = 0))
   BEGIN
     EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = 16
   END;
