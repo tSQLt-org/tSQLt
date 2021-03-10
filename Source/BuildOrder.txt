@@ -89,6 +89,7 @@ tSQLt.Private_SkipTestAnnotationHelper.ssp.sql
 tSQLt.(at)tSQLt_SkipTest.sfn.sql
 tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql
 tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql
+tSQLt.(at)tSQLt_RunOnlyOnHostPlatform.sfn.sql
 tSQLt.RemoveExternalAccessKey.ssp.sql
 tSQLt.InstallExternalAccessKey.ssp.sql
 tSQLt._Footer.sql

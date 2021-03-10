@@ -1,5 +1,6 @@
 EXEC tSQLt.NewTestClass 'Private_InitTests_EAKE';
 GO
+--[@tSQLt:RunOnlyOnHostPlatform]('Windows')
 CREATE PROCEDURE Private_InitTests_EAKE.[test Private_Init enables external access if possible]
 AS
 BEGIN
@@ -61,7 +62,7 @@ GO
 CREATE FUNCTION Private_InitTests_EAKE.[SQL Azure Edition]()
 RETURNS TABLE
 AS
-RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'SQL Azure' SqlEdition;
+RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'SQL Azure' SqlEdition, 'Windows' HostPlatform;
 GO
 CREATE PROCEDURE Private_InitTests_EAKE.[test does not call EnableExternalAccess if Edition='SQL Azure']
 AS
@@ -75,4 +76,9 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.EnableExternalAccess_SpyProcedureLog';
 
 END;
+GO
+CREATE FUNCTION Private_InitTests_EAKE.[HostPlatform Linux]()
+RETURNS TABLE
+AS
+RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'Developer Edition (64-bit)' SqlEdition, 'Linux' HostPlatform;
 GO

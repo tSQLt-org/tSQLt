@@ -2209,3 +2209,13 @@ BEGIN
 
 END
 GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Private_InputBuffer returns non-empty string]
+AS
+BEGIN
+  DECLARE @r NVARCHAR(MAX);EXEC tSQLt.Private_InputBuffer @r OUT;
+  IF(ISNULL(@r,'') = '')
+  BEGIN
+    EXEC tSQLt.Fail 'tSQLt.Private_InputBuffer returned NULL or an empty string.';
+  END;
+END
+GO

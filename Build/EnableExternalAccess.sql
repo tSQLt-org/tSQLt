@@ -1,1 +1,1 @@
-EXEC tSQLt.EnableExternalAccess;
+EXEC tSQLt.EnableExternalAccess @try = 1;
