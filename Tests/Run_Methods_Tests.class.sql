@@ -1354,29 +1354,31 @@ BEGIN
 
     EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
 
-    DECLARE @actual DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
+    DECLARE @actual DATETIME2;
+    DECLARE @after DATETIME2;
+    DECLARE @before DATETIME2;
     
-    SET @before = GETDATE();  
+    SET @before = SYSDATETIME();  
     
     EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
     
-    SET @after = GETDATE();  
-    
+    SET @after = SYSDATETIME();  
+    DECLARE @expectedIntervalStart DATETIME2 = DATEADD(MILLISECOND, 111, @before);
+    DECLARE @expectedIntervalEnd DATETIME2 = @after;
+
     SELECT  @actual = TestEndTime
     FROM tSQLt.TestResult AS TR   
     
     DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < DATEADD(MILLISECOND,102,@before) OR @actual > DATEADD(MILLISECOND,9,@after) OR @actual IS NULL)
+    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
     BEGIN
       SET @msg = 
         'Expected:'+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,102,@before),121)+
+        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
         ' <= '+
         ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
         ' <= '+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,9,@after),121);
+        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
         EXEC tSQLt.Fail @msg;
     END;
 END;
@@ -1390,29 +1392,31 @@ BEGIN
 
     EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
 
-    DECLARE @actual DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
+    DECLARE @actual DATETIME2;
+    DECLARE @after DATETIME2;
+    DECLARE @before DATETIME2;
     
-    SET @before = GETDATE();  
+    SET @before = SYSDATETIME();  
     
     EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
     
-    SET @after = GETDATE();  
-    
+    SET @after = SYSDATETIME();  
+    DECLARE @expectedIntervalStart DATETIME2 = DATEADD(MILLISECOND, 111, @before);
+    DECLARE @expectedIntervalEnd DATETIME2 = @after;
+
     SELECT  @actual = TestEndTime
     FROM tSQLt.TestResult AS TR   
     
     DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < DATEADD(MILLISECOND,111,@before) OR @actual > @after OR @actual IS NULL)
+    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
     BEGIN
       SET @msg = 
         'Expected:'+
-        CONVERT(NVARCHAR(MAX),@before,121)+
+        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
         ' <= '+
         ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
         ' <= '+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-111,@after),121);
+        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
         EXEC tSQLt.Fail @msg;
     END;
 END;
@@ -1844,7 +1848,7 @@ DECLARE @cmd NVARCHAR(MAX);SET @cmd =
 	 attributeFormDefault="unqualified">
 	<xs:annotation>
 		<xs:documentation xml:lang="en">JUnit test result schema for the Apache Ant JUnit and JUnitReport tasks
-Copyright © 2011, Windy Road Technology Pty. Limited
+Copyright ï¿½ 2011, Windy Road Technology Pty. Limited
 The Apache Ant JUnit XML Schema is distributed under the terms of the Apache License Version 2.0 http://www.apache.org/licenses/
 Permission to waive conditions of this license may be requested from Windy Road Support (http://windyroad.org/support).</xs:documentation>
 	</xs:annotation>
@@ -2049,7 +2053,7 @@ Permission to waive conditions of this license may be requested from Windy Road 
 		</xs:restriction>
 	</xs:simpleType>
 </xs:schema>';
-SET @cmd = 'CREATE XML SCHEMA COLLECTION Run_Methods_Tests.ValidJUnitXML AS '''+REPLACE(REPLACE(@cmd,'''',''''''),'©','(c)')+''';';
+SET @cmd = 'CREATE XML SCHEMA COLLECTION Run_Methods_Tests.ValidJUnitXML AS '''+REPLACE(REPLACE(@cmd,'''',''''''),'ï¿½','(c)')+''';';
 --EXEC(@cmd);
 EXEC tSQLt.CaptureOutput @cmd;
 END;
