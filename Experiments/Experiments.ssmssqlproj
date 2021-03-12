@@ -109,6 +109,12 @@
           <AssociatedConnUserName />
           <FullPath>UnprepareServer.sql</FullPath>
         </FileNode>
+        <FileNode Name="WAITFOR_DELAY_Tests.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>WAITFOR_DELAY_Tests.sql</FullPath>
+        </FileNode>
         <FileNode Name="XMLExperiment.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
