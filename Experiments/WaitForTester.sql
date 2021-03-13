@@ -78,6 +78,8 @@ GO
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 GO
+SET QUOTED_IDENTIFIER ON;
+GO
 DROP TABLE IF EXISTS dbo.timelog;
 GO
 CREATE TABLE dbo.timelog(
@@ -232,7 +234,7 @@ SELECT * FROM AsyncExec.AsyncExecSourceQueue;
 --SELECT * FROM sys.service_queues AS SQ
 GO
 --EXEC AsyncExec.AsyncExecTargetQueueProcessor;
-SELECT X.[@b-@a],COUNT(1) cnt FROM(SELECT [@a],[@c],[@b],DATEDIFF(MILLISECOND,[@a],[@b])[@b-@a] FROM dbo.timelog AS T WITH(NOLOCK))X GROUP BY GROUPING SETS ((X.[@b-@a]),())ORDER BY X.[@b-@a];
+SELECT X.[@b-@a],MIN([@a]) [MIN(@a)], MAX([@a])[MAX(@a)],COUNT(1) cnt FROM(SELECT [@a],[@c],[@b],DATEDIFF(MILLISECOND,[@a],[@b])[@b-@a] FROM dbo.timelog AS T WITH(NOLOCK))X GROUP BY GROUPING SETS ((X.[@b-@a]),())ORDER BY X.[@b-@a];
 GO
 SELECT * FROM sys.dm_exec_requests
 SELECT * FROM sys.dm_exec_sessions AS DES
