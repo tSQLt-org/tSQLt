@@ -59,6 +59,11 @@ SELECT *
  ORDER BY X.[@b-@a], X.[@c-@a], X.[@b-@c]
 
 
+GO
+
+ SELECT X.[@b-@a],COUNT(1) cnt FROM(SELECT [@a],[@c],[@b],DATEDIFF(MILLISECOND,[@a],[@b])[@b-@a] FROM dbo.timelog AS T WITH(NOLOCK))X GROUP BY GROUPING SETS ((X.[@b-@a]),())ORDER BY X.[@b-@a]
+
+
  GO
  SELECT oms, COUNT(1) cc
  FROM(
@@ -69,3 +74,14 @@ SELECT *
  )ox 
  GROUP BY ox.oms;
 
+ --------------
+SELECT SYSDATETIME()
+GO
+DECLARE @dt TIME = DATEADD(MILLISECOND,111,SYSDATETIME());
+WHILE(CONVERT(NVARCHAR(12),SYSDATETIME(),121)<=CONVERT(NVARCHAR(12),@dt,121))
+BEGIN
+  WAITFOR DELAY '00:00:00.010';
+END;
+GO
+SELECT SYSDATETIME()
+--------------
