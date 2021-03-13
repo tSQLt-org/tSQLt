@@ -1309,116 +1309,92 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
-CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures start time]
+CREATE PROC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures]
+  @the NVARCHAR(MAX),
+  @whenTest NVARCHAR(MAX)
 AS
 BEGIN
     EXEC('EXEC tSQLt.DropClass innertest;');
     EXEC('CREATE SCHEMA innertest;');
-    EXEC('CREATE PROC innertest.testMe as WAITFOR DELAY ''00:00:00.111'';');
 
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
+    IF(@whenTest = 'succeeds')
+    BEGIN
+      EXEC('CREATE PROC innertest.testMe as EXEC tSQLt_testutil.WaitForMS 120;');
+    END;
+    IF(@whenTest = 'fails')
+    BEGIN
+      EXEC('CREATE PROC innertest.testMe as EXEC tSQLt_testutil.WaitForMS 120;EXEC tSQLt.Fail ''XX'';');
+    END;
 
-    DECLARE @actual DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
+    --Prime cache to prevent unintentional "padding" of the execution time during compilation
+    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';'; 
+
+    DECLARE @actual DATETIME2;
+    DECLARE @after DATETIME2;
+    DECLARE @before DATETIME2;
+
+    DELETE FROM tSQLt.TestResult;
     
-    SET @before = GETDATE();  
+    SET @before = SYSDATETIME();  
     
     EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
     
-    SET @after = GETDATE();  
-    
-    SELECT  @actual = TestStartTime
-    FROM tSQLt.TestResult AS TR   
-    
+    SET @after = SYSDATETIME();  
+
+    DECLARE @expectedIntervalStart DATETIME2;
+    DECLARE @expectedIntervalEnd DATETIME2;
+
+    IF(@the = 'StartTime')
+    BEGIN
+      SELECT  
+        @actual = (SELECT TestStartTime FROM tSQLt.TestResult), 
+        @expectedIntervalStart = @before,
+        @expectedIntervalEnd = DATEADD(MILLISECOND, -120, @after);
+    END;
+    IF(@the = 'EndTime')
+    BEGIN
+      SELECT  
+        @actual = (SELECT TestEndTime FROM tSQLt.TestResult), 
+        @expectedIntervalStart = DATEADD(MILLISECOND,120,@before), 
+        @expectedIntervalEnd = @after;  
+    END;
+
     DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < DATEADD(MILLISECOND,-9,@before) OR @actual > DATEADD(MILLISECOND,-102,@after) OR @actual IS NULL)
+    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
     BEGIN
       SET @msg = 
         'Expected:'+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-9,@before),121)+
+        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
         ' <= '+
         ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
         ' <= '+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-102,@after),121);
+        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
         EXEC tSQLt.Fail @msg;
     END;
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures start time]
+AS
+BEGIN
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'StartTime', @whenTest = 'succeeds';
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures start time for failing test]
+AS
+BEGIN
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'StartTime', @whenTest = 'fails';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures finish time]
 AS
 BEGIN
-    EXEC('EXEC tSQLt.DropClass innertest;');
-    EXEC('CREATE SCHEMA innertest;');
-    EXEC('CREATE PROC innertest.testMe as WAITFOR DELAY ''00:00:00.111'';');
-
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-
-    DECLARE @actual DATETIME2;
-    DECLARE @after DATETIME2;
-    DECLARE @before DATETIME2;
-    
-    SET @before = SYSDATETIME();  
-    
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-    
-    SET @after = SYSDATETIME();  
-    DECLARE @expectedIntervalStart DATETIME2 = DATEADD(MILLISECOND, 111, @before);
-    DECLARE @expectedIntervalEnd DATETIME2 = @after;
-
-    SELECT  @actual = TestEndTime
-    FROM tSQLt.TestResult AS TR   
-    
-    DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
-    BEGIN
-      SET @msg = 
-        'Expected:'+
-        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
-        ' <= '+
-        ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
-        ' <= '+
-        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
-        EXEC tSQLt.Fail @msg;
-    END;
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'EndTime', @whenTest = 'succeeds';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures finish time for failing test]
 AS
 BEGIN
-    EXEC('EXEC tSQLt.DropClass innertest;');
-    EXEC('CREATE SCHEMA innertest;');
-    EXEC('CREATE PROC innertest.testMe as WAITFOR DELAY ''00:00:00.111'';EXEC tSQLt.Fail ''XX'';');
-
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-
-    DECLARE @actual DATETIME2;
-    DECLARE @after DATETIME2;
-    DECLARE @before DATETIME2;
-    
-    SET @before = SYSDATETIME();  
-    
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-    
-    SET @after = SYSDATETIME();  
-    DECLARE @expectedIntervalStart DATETIME2 = DATEADD(MILLISECOND, 111, @before);
-    DECLARE @expectedIntervalEnd DATETIME2 = @after;
-
-    SELECT  @actual = TestEndTime
-    FROM tSQLt.TestResult AS TR   
-    
-    DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
-    BEGIN
-      SET @msg = 
-        'Expected:'+
-        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
-        ' <= '+
-        ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
-        ' <= '+
-        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
-        EXEC tSQLt.Fail @msg;
-    END;
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'EndTime', @whenTest = 'fails';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test Privat_GetCursorForRunNew returns all test classes created after(!) tSQLt.Reset was called]

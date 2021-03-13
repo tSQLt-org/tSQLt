@@ -303,7 +303,7 @@ BEGIN
      '--[@'+'tSQLt:AnAnnotation]()
       CREATE PROC InnerTests.[test Me] AS RETURN;'
     );
-    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''WAITFOR DELAY ''''00:00:00.111'''';'' [AnnotationCmd];');
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt_testutil.WaitForMS 110;'' [AnnotationCmd];');
 
     DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
@@ -322,7 +322,7 @@ BEGIN
     FROM tSQLt.TestResult AS TR   
     
     DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < @before OR @actual > DATEADD(MILLISECOND,-100,@after) OR @actual IS NULL)
+    IF(@actual < @before OR @actual > DATEADD(MILLISECOND,-110,@after) OR @actual IS NULL)
     BEGIN
       SET @msg = 
         'Expected:'+
