@@ -323,8 +323,6 @@ BEGIN
     SELECT  @actual = TestStartTime
     FROM tSQLt.TestResult AS TR   
 
-    DECLARE @expectedIntervalStart DATETIME2;
-    DECLARE @expectedIntervalEnd DATETIME2;
 
     SELECT  
       @expectedIntervalStart = @before,
@@ -358,7 +356,7 @@ BEGIN
     DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
 
-    DECLARE @actualEndTime DATETIME2;
+    DECLARE @actual DATETIME2;
     DECLARE @after DATETIME2;
     DECLARE @before DATETIME2;
     DECLARE @expectedIntervalStart DATETIME2;
@@ -370,7 +368,7 @@ BEGIN
     
     SET @after = SYSDATETIME();  
     
-    SELECT  @actualEndTime = TestEndTime
+    SELECT  @actual = TestEndTime
     FROM tSQLt.TestResult AS TR   
 
     SELECT  
