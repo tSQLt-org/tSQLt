@@ -311,6 +311,8 @@ BEGIN
     DECLARE @actual DATETIME2;
     DECLARE @after DATETIME2;
     DECLARE @before DATETIME2;
+    DECLARE @expectedIntervalStart DATETIME2;
+    DECLARE @expectedIntervalEnd DATETIME2;
     
     SET @before = SYSDATETIME();  
     
@@ -359,6 +361,8 @@ BEGIN
     DECLARE @actualEndTime DATETIME2;
     DECLARE @after DATETIME2;
     DECLARE @before DATETIME2;
+    DECLARE @expectedIntervalStart DATETIME2;
+    DECLARE @expectedIntervalEnd DATETIME2;
     
     SET @before = SYSDATETIME();  
     
