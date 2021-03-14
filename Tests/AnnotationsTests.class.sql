@@ -303,34 +303,41 @@ BEGIN
      '--[@'+'tSQLt:AnAnnotation]()
       CREATE PROC InnerTests.[test Me] AS RETURN;'
     );
-    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt_testutil.WaitForMS 110;'' [AnnotationCmd];');
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt_testutil.WaitForMS 120;'' [AnnotationCmd];');
 
     DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
 
-    DECLARE @actual DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
+    DECLARE @actual DATETIME2;
+    DECLARE @after DATETIME2;
+    DECLARE @before DATETIME2;
     
-    SET @before = GETDATE();  
+    SET @before = SYSDATETIME();  
     
     EXEC(@RunTestCmd);
     
-    SET @after = GETDATE();  
+    SET @after = SYSDATETIME();  
     
     SELECT  @actual = TestStartTime
     FROM tSQLt.TestResult AS TR   
+
+    DECLARE @expectedIntervalStart DATETIME2;
+    DECLARE @expectedIntervalEnd DATETIME2;
+
+    SELECT  
+      @expectedIntervalStart = @before,
+      @expectedIntervalEnd = DATEADD(MILLISECOND, -120, @after);
     
     DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < @before OR @actual > DATEADD(MILLISECOND,-110,@after) OR @actual IS NULL)
+    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
     BEGIN
       SET @msg = 
         'Expected:'+
-        CONVERT(NVARCHAR(MAX),@before,121)+
+        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
         ' <= '+
         ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
         ' <= '+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-100,@after),121);
+        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
         EXEC tSQLt.Fail @msg;
     END;
 END;
@@ -344,34 +351,38 @@ BEGIN
      '--[@'+'tSQLt:AnAnnotation]()
       CREATE PROC InnerTests.[test Me] AS RETURN;'
     );
-    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''WAITFOR DELAY ''''00:00:00.111'''';'' [AnnotationCmd];');
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt_testutil.WaitForMS 120;'''';'' [AnnotationCmd];');
 
     DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
 
-    DECLARE @actualEndTime DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
+    DECLARE @actualEndTime DATETIME2;
+    DECLARE @after DATETIME2;
+    DECLARE @before DATETIME2;
     
-    SET @before = GETDATE();  
+    SET @before = SYSDATETIME();  
     
     EXEC(@RunTestCmd);
     
-    SET @after = GETDATE();  
+    SET @after = SYSDATETIME();  
     
     SELECT  @actualEndTime = TestEndTime
     FROM tSQLt.TestResult AS TR   
+
+    SELECT  
+      @expectedIntervalStart = DATEADD(MILLISECOND,120,@before), 
+      @expectedIntervalEnd = @after;  
     
     DECLARE @msg NVARCHAR(MAX);
-    IF(@actualEndTime < DATEADD(MILLISECOND,100,@before) OR @actualEndTime > @after OR @actualEndTime IS NULL)
+    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
     BEGIN
       SET @msg = 
         'Expected:'+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,100,@before),121)+
+        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
         ' <= '+
-        ISNULL(CONVERT(NVARCHAR(MAX),@actualEndTime,121),'!NULL!')+
+        ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
         ' <= '+
-        CONVERT(NVARCHAR(MAX),@after,121);
+        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
         EXEC tSQLt.Fail @msg;
     END;
 END;
