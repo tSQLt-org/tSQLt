@@ -351,7 +351,7 @@ BEGIN
      '--[@'+'tSQLt:AnAnnotation]()
       CREATE PROC InnerTests.[test Me] AS RETURN;'
     );
-    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt_testutil.WaitForMS 120;'''';'' [AnnotationCmd];');
+    EXEC('CREATE FUNCTION tSQLt.[@'+'tSQLt:AnAnnotation]() RETURNS TABLE AS RETURN SELECT ''EXEC tSQLt_testutil.WaitForMS 120;'' [AnnotationCmd];');
 
     DECLARE @RunTestCmd NVARCHAR(MAX) = 'EXEC tSQLt.Run @TestName = ''InnerTests.[test Me]'', @TestResultFormatter = ''tSQLt.NullTestResultFormatter'';';
     EXEC tSQLt.CaptureOutput @command= @RunTestCmd;
