@@ -677,11 +677,11 @@ BEGIN
     FROM #Actual;
     
     INSERT INTO #Expected
-    VALUES('MyTestClass1', 'testA', '0.136');
+    VALUES('MyTestClass1', 'testA', '0.138');
     INSERT INTO #Expected
     VALUES('MyTestClass1', 'testB', '1.633');
     INSERT INTO #Expected
-    VALUES('MyTestClass2', 'testC', '2147483.646');
+    VALUES('MyTestClass2', 'testC', '2147483.647');
     INSERT INTO #Expected
     VALUES('MyTestClass2', 'testD', '0.003');
 
@@ -726,7 +726,7 @@ BEGIN
     INSERT INTO #Expected
     VALUES('MyTestClass1', '2015-07-24T00:00:01', '1.633');
     INSERT INTO #Expected
-    VALUES('MyTestClass2', '2015-07-24T00:00:00', '73884.090');
+    VALUES('MyTestClass2', '2015-07-24T00:00:00', '73884.091');
 
     EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
@@ -1651,8 +1651,8 @@ BEGIN
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('[a test class].[test 1]',' 609556'),
-        ('[a test class].[test 2]','1321443');
+  VALUES('[a test class].[test 1]',' 609555'),
+        ('[a test class].[test 2]','1321444');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   

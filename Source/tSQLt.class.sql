@@ -8,8 +8,8 @@ CREATE TABLE tSQLt.TestResult(
     TranName NVARCHAR(MAX) NOT NULL,
     Result NVARCHAR(MAX) NULL,
     Msg NVARCHAR(MAX) NULL,
-    TestStartTime DATETIME NOT NULL CONSTRAINT [DF:TestResult(TestStartTime)] DEFAULT GETDATE(),
-    TestEndTime DATETIME NULL
+    TestStartTime DATETIME2 NOT NULL CONSTRAINT [DF:TestResult(TestStartTime)] DEFAULT SYSDATETIME(),
+    TestEndTime DATETIME2 NULL
 );
 GO
 CREATE TABLE tSQLt.TestMessage(

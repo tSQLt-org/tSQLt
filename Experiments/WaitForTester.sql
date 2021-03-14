@@ -139,6 +139,24 @@ BEGIN
   END;
 END;
 GO
+DROP PROCEDURE IF EXISTS dbo.loopynoop;
+GO
+CREATE PROCEDURE dbo.loopynoop
+  @loopcount INT = 100000
+AS
+BEGIN
+  DECLARE @a DATETIME2, @b DATETIME2,@c DATETIME2;
+  WHILE(@loopcount > 0)
+  BEGIN
+    SET @a = SYSDATETIME();
+    --EXEC sp_executesql N'EXEC dbo.WaitForMS 120;SET @c = SYSDATETIME();',N'@c DATETIME2 OUTPUT', @c OUT;
+    SET @b = SYSDATETIME();
+    INSERT INTO dbo.timelog([@a],[@c],[@b])
+    SELECT @a,@c,@b;
+    SET @loopcount -=1;
+  END;
+END;
+GO
 --EXEC dbo.Loopy 10;
 --SELECT X.[@b-@a],COUNT(1) cnt FROM(SELECT [@a],[@c],[@b],DATEDIFF(MILLISECOND,[@a],[@b])[@b-@a] FROM dbo.timelog AS T WITH(NOLOCK))X GROUP BY GROUPING SETS ((X.[@b-@a]),())ORDER BY X.[@b-@a];
 GO
@@ -256,7 +274,7 @@ GO
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 GO
-EXEC AsyncExec.QueueCommand @cmd = 'EXEC dbo.Loopyfix 1000000;';
+EXEC AsyncExec.QueueCommand @cmd = 'EXEC dbo.loopynoop 1000000;';
 GO 20
 GO
 SELECT * FROM AsyncExec.AsyncExecSourceQueue;
