@@ -19,9 +19,10 @@ SELECT Version = '$LATEST-BUILD-NUMBER$',
     SELECT CAST(PSSV.Major+'.'+PSSV.Minor AS NUMERIC(10,2)) AS SqlVersion,
            CAST(PSSV.Build+'.'+PSSV.Revision AS NUMERIC(10,2)) AS SqlBuild,
            PSV.Edition AS SqlEdition,
-           PSV.HostPlatform
+           PHP.host_platform AS HostPlatform
           FROM tSQLt.Private_SqlVersion() AS PSV
          CROSS APPLY tSQLt.Private_SplitSqlVersion(PSV.ProductVersion) AS PSSV
+         CROSS JOIN tSQLt.Private_HostPlatform AS PHP
   )V;
 GO
 ---Build-

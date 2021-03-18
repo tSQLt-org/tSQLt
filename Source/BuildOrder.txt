@@ -8,8 +8,6 @@ tSQLt.InstallAssemblyKey.ssp.sql
 tSQLt.PrepareServer.ssp.sql
 tSQLt.Private_NewTestClassList.tbl.sql
 tSQLt.Private_ResetNewTestClassList.ssp.sql
-tSQLt.Private_SysTypes.svw.sql
-tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql
 tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql
 tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
@@ -40,9 +38,13 @@ tSQLt.Private_ProcessTestAnnotations.ssp.sql
 Run_Methods.sql
 tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql
+tSQLt.Private_HostPlatform.stub.sql
 tSQLt.Private_SqlVersion.sfn.sql
 tSQLt.Private_SplitSqlVersion.sfn.sql
 tSQLt.Info.sfn.sql
+tSQLt.Private_HostPlatform.svw.sql
+tSQLt.Private_SysTypes.svw.sql
+tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.Private_SysIndexes.svw.sql
 tSQLt.Private_ScriptIndex.sfn.sql
 tSQLt.Private_RemoveSchemaBinding.ssp.sql

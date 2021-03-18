@@ -36,16 +36,12 @@ RETURNS TABLE
 AS
 RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition, NULL HostPlatform;
 GO
-CREATE FUNCTION InfoTests.[SomePlatform]()
-RETURNS TABLE
-AS
-RETURN SELECT NULL AS ProductVersion, NULL AS Edition, 'SomePlatform' HostPlatform;
-GO
 CREATE PROCEDURE InfoTests.[test returns HostPlatform]
 AS
 BEGIN
 
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'InfoTests.[SomePlatform]';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_HostPlatform';
+  EXEC('INSERT INTO tSQLt.Private_HostPlatform(host_platform) VALUES (''SomePlatform'');');
 
   SELECT I.HostPlatform
     INTO #Actual
@@ -100,13 +96,14 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE InfoTests.[test double ledger for tSQLt.Private_SqlVersion]
+--[@tSQLt:MinSqlMajorVersion](14)
+CREATE PROCEDURE InfoTests.[test returns correct HostPlatform on SQL versions >= 2017]
 AS
 BEGIN
 
-  SELECT *
+  SELECT PSV.HostPlatform
     INTO #Actual
-    FROM tSQLt.Private_SqlVersion() AS PSV;
+    FROM tSQLt.Private_Info() AS PSV;
   
   SELECT TOP(0) *
   INTO #Expected
@@ -114,10 +111,26 @@ BEGIN
   
   INSERT INTO #Expected
   SELECT 
-      CAST(SERVERPROPERTY('ProductVersion')AS NVARCHAR(128)) ProductVersion,
-      CAST(SERVERPROPERTY('Edition')AS NVARCHAR(128)) Edition, 
 		    host_platform HostPlatform 
     FROM sys.dm_os_host_info;
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+--[@tSQLt:MaxSqlMajorVersion](13)
+CREATE PROCEDURE InfoTests.[test returns 'Windows' for HostPlatform on SQL versions < 2017]
+AS
+BEGIN
+
+  SELECT PSV.HostPlatform
+    INTO #Actual
+    FROM tSQLt.Private_Info() AS PSV;
+  
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected VALUES('Windows');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
