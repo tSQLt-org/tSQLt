@@ -103,7 +103,7 @@ BEGIN
 
   SELECT PSV.HostPlatform
     INTO #Actual
-    FROM tSQLt.Private_Info() AS PSV;
+    FROM tSQLt.Info() AS PSV;
   
   SELECT TOP(0) *
   INTO #Expected
@@ -124,7 +124,7 @@ BEGIN
 
   SELECT PSV.HostPlatform
     INTO #Actual
-    FROM tSQLt.Private_Info() AS PSV;
+    FROM tSQLt.Info() AS PSV;
   
   SELECT TOP(0) *
   INTO #Expected
