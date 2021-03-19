@@ -43,22 +43,6 @@ BEGIN
 
 END;
 GO
-CREATE FUNCTION Private_InitTests_EAKE.[mismatching versions]()
-RETURNS TABLE
-AS
-RETURN SELECT '1234' Version, '4567' ClrVersion, NULL SqlVersion, NULL SqlBuild, NULL SqlEdition;
-GO
-CREATE PROCEDURE Private_InitTests_EAKE.[test Private_Init fails if versions do not match]
-AS
-BEGIN
-  
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Info', @FakeFunctionName = 'Private_InitTests_EAKE.[mismatching versions]';
-
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt is in an invalid state. Please reinstall tSQLt.', @ExpectedSeverity = 16, @ExpectedState = 10;
-  EXEC tSQLt.Private_Init;
-
-END;
-GO
 CREATE FUNCTION Private_InitTests_EAKE.[SQL Azure Edition]()
 RETURNS TABLE
 AS

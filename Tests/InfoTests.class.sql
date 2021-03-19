@@ -96,6 +96,30 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE FUNCTION InfoTests.[return 97.53]()
+RETURNS TABLE
+AS
+RETURN SELECT CAST(97.53 AS NUMERIC(10,2)) AS SqlVersion;
+GO
+CREATE PROCEDURE InfoTests.[test returns InstalledOnSqlVersion]
+AS
+BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_InstallationInfo', @FakeFunctionName = 'InfoTests.[return 97.53]';
+
+  SELECT I.InstalledOnSqlVersion
+    INTO #Actual
+    FROM tSQLt.Info() AS I;
+  
+  SELECT TOP(0) *
+  INTO #Expected
+  FROM #Actual;
+  
+  INSERT INTO #Expected
+  VALUES(97.53);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
 --[@tSQLt:MinSqlMajorVersion](14)
 CREATE PROCEDURE InfoTests.[test returns correct HostPlatform on SQL versions >= 2017]
 AS
