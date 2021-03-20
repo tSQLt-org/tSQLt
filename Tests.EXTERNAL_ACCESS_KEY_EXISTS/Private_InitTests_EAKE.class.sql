@@ -46,7 +46,7 @@ GO
 CREATE FUNCTION Private_InitTests_EAKE.[SQL Azure Edition]()
 RETURNS TABLE
 AS
-RETURN SELECT '1' Version, '1' ClrVersion, NULL SqlVersion, NULL SqlBuild, 'SQL Azure' SqlEdition, 'Windows' HostPlatform;
+RETURN SELECT '1' Version, '1' ClrVersion, 0 SqlVersion, NULL SqlBuild, 'SQL Azure' SqlEdition, 'Windows' HostPlatform, 0 InstalledOnSqlVersion;
 GO
 CREATE PROCEDURE Private_InitTests_EAKE.[test does not call EnableExternalAccess if Edition='SQL Azure']
 AS

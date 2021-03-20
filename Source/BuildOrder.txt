@@ -1,5 +1,7 @@
 tSQLt._Header.sql
 tSQLt.DropClass.ssp.sql
+tSQLt.Private_HostPlatform.stub.sql
+tSQLt.Private_InstallationInfo.stub.sql
 ../Build/output/tSQLt.Private_GetAssemblyKeyBytes.sql
 tSQLt.Private_GetSQLProductMajorVersion.ssp.sql
 tSQLt.Private_EnableCLR.ssp.sql
@@ -34,16 +36,14 @@ tSQLt.RemoveObjectIfExists.ssp.sql
 tSQLt.Private_CleanTestResult.ssp.sql
 tSQLt.Private_ListTestAnnotations.sfn.sql
 tSQLt.Private_ProcessTestAnnotations.ssp.sql
-Run_Methods.sql
 tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql
-tSQLt.Private_HostPlatform.stub.sql
-tSQLt.Private_InstallationInfo.stub.sql
 tSQLt.Private_SqlVersion.sfn.sql
 tSQLt.Private_SplitSqlVersion.sfn.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_Init.ssp.sql
 tSQLt.Private_HostPlatform.svw.sql
+Run_Methods.sql
 tSQLt.Private_SysTypes.svw.sql
 tSQLt.Private_GetFullTypeName.sfn.sql
 tSQLt.Private_SysIndexes.svw.sql
