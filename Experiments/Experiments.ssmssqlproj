@@ -103,6 +103,24 @@
           <AssociatedConnUserName />
           <FullPath>SpProcPrototype.sql</FullPath>
         </FileNode>
+        <FileNode Name="SQLCmdTest.1.1.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SQLCmdTest.1.1.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SQLCmdTest.1.2.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SQLCmdTest.1.2.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SQLCmdTest.1.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SQLCmdTest.1.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLtListObjects.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
