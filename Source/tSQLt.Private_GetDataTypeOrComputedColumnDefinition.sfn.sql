@@ -14,7 +14,7 @@ RETURN SELECT
                           ' AS '+ cci.definition + CASE WHEN cci.is_persisted = 1 THEN ' PERSISTED' ELSE '' END AS ComputedColumnDefinition,
                           cci.object_id,
                           cci.column_id
-                     FROM sys.computed_columns cci
+                     FROM tSQLt.Private_SysComputedColumns cci
                   )cc
                ON cc.object_id = V.ObjectId
               AND cc.column_id = V.ColumnId
