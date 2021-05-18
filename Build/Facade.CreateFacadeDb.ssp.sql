@@ -1,0 +1,10 @@
+IF(SCHEMA_ID('Facade') IS NULL)EXEC('CREATE SCHEMA Facade;');
+GO
+CREATE PROCEDURE Facade.CreateSSPFacade
+  @FacadeDbName NVARCHAR(MAX), 
+  @Name NVARCHAR(MAX)
+AS
+BEGIN
+  RETURN;
+END;
+GO

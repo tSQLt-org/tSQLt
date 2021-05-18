@@ -670,3 +670,28 @@ BEGIN
     
 END;
 GO
+CREATE PROC SpyProcedureTests.[test Private_CreateProcedureSpy does not create log table when @LogTableName is NULL]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure AS RETURN;');
+
+    DECLARE @Procedure_Object_id INT = OBJECT_ID('dbo.InnerProcedure');
+    EXEC tSQLt.Private_CreateProcedureSpy @ProcedureObjectId = @Procedure_Object_id, @OriginalProcedureName = 'dbo.InnerProcedure', @LogTableName = NULL;
+
+    EXEC tSQLt.AssertObjectDoesNotExist @ObjectName = 'dbo.InnerProcedure_SpyProcedureLog';     
+
+END;
+GO
+GO
+CREATE PROC SpyProcedureTests.[test Private_CreateProcedureSpy does create spy when @LogTableName is NULL]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure AS RETURN;');
+
+    DECLARE @Procedure_Object_id INT = OBJECT_ID('dbo.InnerProcedure');
+    EXEC tSQLt.Private_CreateProcedureSpy @ProcedureObjectId = @Procedure_Object_id, @OriginalProcedureName = 'dbo.SpiedInnerProcedure', @LogTableName = NULL;
+
+    EXEC tSQLt.AssertObjectExists @ObjectName = 'dbo.SpiedInnerProcedure';     
+
+END;
+GO
