@@ -670,26 +670,47 @@ BEGIN
     
 END;
 GO
-CREATE PROC SpyProcedureTests.[test Private_CreateProcedureSpy does not create log table when @LogTableName is NULL]
+CREATE PROC SpyProcedureTests.[test Private_GenerateCreateProcedureSpyStatement does not create log table when @LogTableName is NULL]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure AS RETURN;');
+    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;');
 
-    DECLARE @Procedure_Object_id INT = OBJECT_ID('dbo.InnerProcedure');
-    EXEC tSQLt.Private_CreateProcedureSpy @ProcedureObjectId = @Procedure_Object_id, @OriginalProcedureName = 'dbo.InnerProcedure', @LogTableName = NULL;
+    DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.OriginalInnerProcedure');
 
-    EXEC tSQLt.AssertObjectDoesNotExist @ObjectName = 'dbo.InnerProcedure_SpyProcedureLog';     
+    DECLARE @CreateProcedureStatement NVARCHAR(MAX);
+    DECLARE @CreateLogTableStatement NVARCHAR(MAX);
 
+    EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
+           @ProcedureObjectId = @ProcedureObjectId,
+           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @LogTableName = NULL,
+           @CommandToExecute = NULL,
+           @CreateProcedureStatement = @CreateProcedureStatement OUT,
+           @CreateLogTableStatement = @CreateLogTableStatement OUT;
+
+    EXEC tSQLt.AssertEqualsString @Expected = NULL, @Actual = @CreateLogTableStatement;     
 END;
 GO
 GO
 CREATE PROC SpyProcedureTests.[test Private_CreateProcedureSpy does create spy when @LogTableName is NULL]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.InnerProcedure AS RETURN;');
+    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;');
 
-    DECLARE @Procedure_Object_id INT = OBJECT_ID('dbo.InnerProcedure');
-    EXEC tSQLt.Private_CreateProcedureSpy @ProcedureObjectId = @Procedure_Object_id, @OriginalProcedureName = 'dbo.SpiedInnerProcedure', @LogTableName = NULL;
+    DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.OriginalInnerProcedure');
+
+    DECLARE @CreateProcedureStatement NVARCHAR(MAX);
+    DECLARE @CreateLogTableStatement NVARCHAR(MAX);
+
+    EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
+           @ProcedureObjectId = @ProcedureObjectId,
+           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @LogTableName = NULL,
+           @CommandToExecute = NULL,
+           @CreateProcedureStatement = @CreateProcedureStatement OUT,
+           @CreateLogTableStatement = @CreateLogTableStatement OUT;
+
+    EXEC(@CreateProcedureStatement);
 
     EXEC tSQLt.AssertObjectExists @ObjectName = 'dbo.SpiedInnerProcedure';     
 

@@ -14,9 +14,24 @@ BEGIN
     DECLARE @LogTableName NVARCHAR(MAX);
     SELECT @LogTableName = QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId)) + '.' + QUOTENAME(OBJECT_NAME(@ProcedureObjectId)+'_SpyProcedureLog');
 
+    DECLARE @CreateProcedureStatement NVARCHAR(MAX);
+    DECLARE @CreateLogTableStatement NVARCHAR(MAX);
+
+    EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
+           @ProcedureObjectId = @ProcedureObjectId,
+           @OriginalProcedureName = @ProcedureName,
+           @LogTableName = @LogTableName,
+           @CommandToExecute = @CommandToExecute,
+           @CreateProcedureStatement = @CreateProcedureStatement OUT,
+           @CreateLogTableStatement = @CreateLogTableStatement OUT;
+    
+
     EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId;
 
-    EXEC tSQLt.Private_CreateProcedureSpy @ProcedureObjectId, @ProcedureName, @LogTableName, @CommandToExecute;
+--    EXEC tSQLt.Private_CreateProcedureSpy @ProcedureObjectId, @ProcedureName, @LogTableName, @CommandToExecute;
+    EXEC(@CreateLogTableStatement);
+
+    EXEC(@CreateProcedureStatement);
 
     RETURN 0;
 END;
