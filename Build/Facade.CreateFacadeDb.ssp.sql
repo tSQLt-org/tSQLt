@@ -5,9 +5,20 @@ CREATE OR ALTER PROCEDURE Facade.CreateSSPFacade
   @ProcedureName NVARCHAR(MAX)
 AS
 BEGIN
+  DECLARE @ProcedureObjectId INT = OBJECT_ID(@ProcedureName);
+  DECLARE @CreateProcedureStatement NVARCHAR(MAX);
+
   EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement 
-         @ProcedureObjectId = 222,
-         @OriginalProcedureName = @ProcedureName;
+         @ProcedureObjectId = @ProcedureObjectId,
+         @OriginalProcedureName = @ProcedureName,
+         @CreateProcedureStatement = @CreateProcedureStatement OUT;
+
+  DECLARE @ExecIn NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
+  DECLARE @WrappedStatement NVARCHAR(MAX) = 'EXEC('''+@CreateProcedureStatement+''');';
+  EXEC @ExecIn @WrappedStatement,N'';
+
   RETURN;
 END;
+GO
+CREATE VIEW Facade.[sys.procedures] AS SELECT * FROM sys.procedures AS P;
 GO
