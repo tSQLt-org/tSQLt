@@ -9,7 +9,7 @@ BEGIN
 
   EXEC('CREATE PROC dbo.AProc AS RETURN;'); 
 
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @Name = 'dbo.AProc';
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureName = 'dbo.AProc';
 
   SELECT 
       ProcedureObjectId,
