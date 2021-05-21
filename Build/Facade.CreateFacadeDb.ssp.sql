@@ -1,24 +1,63 @@
-IF(SCHEMA_ID('Facade') IS NULL)EXEC('CREATE SCHEMA Facade;');
+EXEC tSQLt.DropClass 'Facade';
 GO
-CREATE OR ALTER PROCEDURE Facade.CreateSSPFacade
+CREATE SCHEMA Facade;
+GO
+CREATE PROCEDURE Facade.CreateSchemaIfNotExists
   @FacadeDbName NVARCHAR(MAX), 
-  @ProcedureName NVARCHAR(MAX)
+  @SchemaName NVARCHAR(MAX) 
 AS
 BEGIN
-  DECLARE @ProcedureObjectId INT = OBJECT_ID(@ProcedureName);
+  DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
+  DECLARE @RemoteStatement NVARCHAR(MAX);
+
+  DECLARE @RemoteSchemaId INT;
+  SET @RemoteStatement = N'SET @RemoteSchemaId = SCHEMA_ID('''+PARSENAME(@SchemaName,1)+''');'
+  EXEC @ExecInRemoteDb @RemoteStatement, N'@RemoteSchemaId INT OUTPUT',@RemoteSchemaId OUT; 
+  IF(@RemoteSchemaId IS NULL)
+  BEGIN
+    SET @RemoteStatement = 'EXEC(''CREATE SCHEMA '+@SchemaName+';'');';
+    EXEC @ExecInRemoteDb @RemoteStatement,N'';
+  END;   
+END;
+GO
+CREATE PROCEDURE Facade.CreateSSPFacade
+  @FacadeDbName NVARCHAR(MAX), 
+  @ProcedureObjectId INT
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX) = QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId));
+  DECLARE @ProcedureName NVARCHAR(MAX) = @SchemaName+'.'+QUOTENAME(OBJECT_NAME(@ProcedureObjectId));
   DECLARE @CreateProcedureStatement NVARCHAR(MAX);
 
   EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement 
          @ProcedureObjectId = @ProcedureObjectId,
          @OriginalProcedureName = @ProcedureName,
-         @CreateProcedureStatement = @CreateProcedureStatement OUT;
+         @CreateProcedureStatement = @CreateProcedureStatement OUT,
+         @LogTableName = NULL,
+         @CommandToExecute = NULL,
+         @CreateLogTableStatement = NULL;
 
-  DECLARE @ExecIn NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
-  DECLARE @WrappedStatement NVARCHAR(MAX) = 'EXEC('''+@CreateProcedureStatement+''');';
-  EXEC @ExecIn @WrappedStatement,N'';
+  EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
+
+  DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
+  DECLARE @RemoteStatement NVARCHAR(MAX);
+
+  SET @RemoteStatement = 'EXEC('''+@CreateProcedureStatement+''');';
+  EXEC @ExecInRemoteDb @RemoteStatement,N'';
 
   RETURN;
 END;
 GO
 CREATE VIEW Facade.[sys.procedures] AS SELECT * FROM sys.procedures AS P;
+GO
+CREATE PROCEDURE Facade.CreateSSPFacades
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX) = 
+    (
+      SELECT 'EXEC Facade.CreateSSPFacade @ProcedureObjectId = '+CAST(object_id AS NVARCHAR(MAX))+';'
+        FROM Facade.[sys.procedures]
+    );
+  EXEC(@cmd);
+END;
 GO
