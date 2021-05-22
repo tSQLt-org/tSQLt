@@ -716,3 +716,21 @@ BEGIN
 
 END;
 GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works with CLR procedures]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @expectedCommand NVARCHAR(MAX), @actualCommand NVARCHAR(MAX) AS EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].AssertResultSetsHaveSameMetaData;');
+    
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcedure';
+
+    EXEC dbo.InnerProcedure @expectedCommand = 'Select 1 [Int]', @actualCommand = 'Select ''c'' [char]';
+
+    SELECT expectedCommand, actualCommand INTO #Actual FROM dbo.InnerProcedure_SpyProcedureLog;
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected
+    VALUES('Select 1 [Int]', 'Select ''c'' [char]');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO

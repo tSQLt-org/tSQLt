@@ -154,10 +154,75 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacades calls CreateSSPFacade for schema tSQLt only]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSSPFacade';
+  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.procedures]';
+  EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''AProc1'');');
+  EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1002,SCHEMA_ID(''dbo''),''AProc2'');');
+  EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1003,SCHEMA_ID(''tSQLt''),''AProc3'');');
+
+  EXEC Facade.CreateSSPFacades;
+
+  SELECT ProcedureObjectId INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES(1001),(1003);
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacades ignores Private_ SSPs]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSSPFacade';
+  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.procedures]';
+  EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''AProc1'');');
+  EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1002,SCHEMA_ID(''tSQLt''),''Private_AProc2'');');
+  EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1003,SCHEMA_ID(''tSQLt''),''PrivateProc3'');');
+
+  EXEC Facade.CreateSSPFacades;
+
+  SELECT ProcedureObjectId INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES(1001),(1003);
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
 /*------------------------
 Tests still to write:
 
--- only tSQLt
--- skip 'PRIVATE_'
+-- Functions
+-- Tables/views'
+
+
+
+---------------------------
+
+
+    SELECT O.name
+      FROM sys.procedures O
+     WHERE 1=1
+       AND O.name NOT LIKE 'Private[_]%'
+       AND O.schema_id = SCHEMA_ID('tSQLt')
+     ORDER BY O.type, O.name
+
+    SELECT O.type,O.type_desc, O.name
+      FROM sys.objects O
+     WHERE 1=1
+       AND O.name NOT LIKE 'Private[_]%'
+       AND O.schema_id = SCHEMA_ID('tSQLt')
+     ORDER BY O.type, O.name
+
+    SELECT O.type,O.type_desc, COUNT(1) cnt 
+      FROM sys.objects O
+     WHERE 1=1
+       AND O.name NOT LIKE 'Private[_]%'
+       AND O.schema_id = SCHEMA_ID('tSQLt')
+     GROUP BY O.type, O.type_desc
+
 
 ------------------------*/

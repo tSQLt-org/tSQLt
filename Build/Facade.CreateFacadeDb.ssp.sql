@@ -57,7 +57,10 @@ BEGIN
     (
       SELECT 'EXEC Facade.CreateSSPFacade @ProcedureObjectId = '+CAST(object_id AS NVARCHAR(MAX))+';'
         FROM Facade.[sys.procedures]
-    );
+       WHERE schema_id = SCHEMA_ID('tSQLt')
+         AND name NOT LIKE 'Private[_]%'
+         FOR XML PATH(''),TYPE
+    ).value('.','NVARCHAR(MAX)');
   EXEC(@cmd);
 END;
 GO
