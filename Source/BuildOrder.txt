@@ -57,6 +57,7 @@ tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
 tSQLt.Private_GetIdentityDefinition.sfn.sql
 tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql
 tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql
+tSQLt.Private_CreateFakeTableStatement.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
 tSQLt.Private_MarkFakeTable.ssp.sql
 tSQLt.FakeTable.ssp.sql

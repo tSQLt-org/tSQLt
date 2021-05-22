@@ -192,6 +192,92 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTBLFacade copies a simple table to the $(tSQLtFacade) database]
+AS
+BEGIN
+  CREATE TABLE dbo.SomeRandomTable(a INT);
+
+  DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeRandomTable');
+  
+  EXEC Facade.CreateTBLFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.SomeRandomTable';
+END;
+GO
+
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTBLFacade copies another table to the $(tSQLtFacade) database]
+AS
+BEGIN
+  CREATE TABLE dbo.SomeOtherTable(a INT);
+
+  DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeOtherTable');
+  
+  EXEC Facade.CreateTBLFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.SomeOtherTable';
+END;
+GO
+
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTBLFacade copies table into a schema that does not exist in the $(tSQLtFacade) database]
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX) = 'SomeRandomSchema'+CONVERT(NVARCHAR(MAX),CAST(NEWID() AS VARBINARY(MAX)),2);
+  DECLARE @cmd NVARCHAR(MAX);
+
+  SET @cmd = 'CREATE SCHEMA '+@SchemaName+';';
+  EXEC(@cmd);
+
+  SET @cmd = 'CREATE TABLE '+@SchemaName+'.SomeTable(a INT);';
+  EXEC(@cmd);
+
+  DECLARE @TableObjectId INT = OBJECT_ID(@SchemaName+'.SomeTable');
+  
+  EXEC Facade.CreateTBLFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+
+  DECLARE @RemoteObjectName NVARCHAR(MAX) = '$(tSQLtFacade).'+@SchemaName+'.SomeTable'; 
+  EXEC tSQLt.AssertObjectExists @ObjectName = @RemoteObjectName;
+END;
+GO
+
+
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTBLFacade copies all columns with their data types]
+AS
+BEGIN
+  CREATE TABLE dbo.SomeOtherTable(a INT IDENTITY(1,1), bb CHAR(1) NULL, ccc DATETIME NOT NULL, dddd NVARCHAR(MAX));
+
+  DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeOtherTable');
+  
+  EXEC Facade.CreateTBLFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+
+  SELECT 
+      C.name,
+      C.column_id,
+      C.system_type_id,
+      C.user_type_id,
+      C.max_length,
+      C.precision,
+      C.scale,
+      C.is_nullable,
+      C.is_identity
+    INTO #Actual FROM $(tSQLtFacade).sys.columns AS C WHERE C.object_id = OBJECT_ID('$(tSQLtFacade).dbo.SomeOtherTable');
+
+  SELECT 
+      C.name,
+      C.column_id,
+      C.system_type_id,
+      C.user_type_id,
+      C.max_length,
+      C.precision,
+      C.scale,
+      C.is_nullable,
+      C.is_identity
+    INTO #Expected FROM sys.columns AS C WHERE C.object_id = @TableObjectId;
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 /*------------------------
 Tests still to write:
 
@@ -230,3 +316,4 @@ SELECT * FROM dbo.randomtest
 
 
 ------------------------*/
+--ROLLBACK

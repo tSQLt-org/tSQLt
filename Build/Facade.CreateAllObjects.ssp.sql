@@ -44,10 +44,29 @@ BEGIN
 
   SET @RemoteStatement = 'EXEC('''+@CreateProcedureStatement+''');';
   EXEC @ExecInRemoteDb @RemoteStatement,N'';
-
-  RETURN;
 END;
 GO
+CREATE PROCEDURE Facade.CreateTBLFacade
+  @FacadeDbName NVARCHAR(MAX), 
+  @TableObjectId INT
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX) = QUOTENAME(OBJECT_SCHEMA_NAME(@TableObjectId));
+  DECLARE @TableName NVARCHAR(MAX) = QUOTENAME(OBJECT_NAME(@TableObjectId));
+  DECLARE @OrigTableFullName NVARCHAR(MAX) = @SchemaName+'.'+@TableName
+  DECLARE @CreateTableStatement NVARCHAR(MAX) = 
+     (SELECT CreateTableStatement FROM tSQLt.Private_CreateFakeTableStatement(@OrigTableFullName,@OrigTableFullName,1,1,1,1));
+
+  EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
+
+  DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
+  DECLARE @RemoteStatement NVARCHAR(MAX);
+
+  SET @RemoteStatement = 'EXEC('''+@CreateTableStatement+''');';
+  EXEC @ExecInRemoteDb @RemoteStatement,N'';
+END;
+GO
+
 CREATE VIEW Facade.[sys.procedures] AS SELECT * FROM sys.procedures AS P;
 GO
 CREATE PROCEDURE Facade.CreateSSPFacades
