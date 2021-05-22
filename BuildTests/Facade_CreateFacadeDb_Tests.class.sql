@@ -187,7 +187,7 @@ BEGIN
   SELECT ProcedureObjectId INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES(1001),(1003);
+  VALUES(1001);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -196,12 +196,16 @@ GO
 Tests still to write:
 
 -- Functions
--- Tables/views'
+-- Tables/views
 
 
 
 ---------------------------
+SELECT * FROM sys.types
 
+drop table dbo.randomtest
+SELECT CAST(NULL AS timestamp) [sysname] INTO dbo.randomtest
+SELECT * FROM dbo.randomtest
 
     SELECT O.name
       FROM sys.procedures O
