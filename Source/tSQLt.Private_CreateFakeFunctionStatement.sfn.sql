@@ -1,8 +1,8 @@
-IF OBJECT_ID('tSQLt.Private_CreateFunctionFacadeStatement') IS NOT NULL DROP FUNCTION tSQLt.Private_CreateFunctionFacadeStatement;
+IF OBJECT_ID('tSQLt.Private_CreateFakeFunctionStatement') IS NOT NULL DROP FUNCTION tSQLt.Private_CreateFakeFunctionStatement;
 GO
 ---Build+
 GO
-CREATE FUNCTION tSQLt.Private_CreateFunctionFacadeStatement(
+CREATE FUNCTION tSQLt.Private_CreateFakeFunctionStatement(
   @FunctionObjectId INT,
   @ReturnValue NVARCHAR(MAX)
 )
