@@ -22,6 +22,7 @@
 /tSQLtCLR/.vs/tSQLtCLR/v16/Server/sqlite3
 /Build_Artifact
 /tSQLtCLR/OfficialSigningKey/tSQLtOfficialSigningKey.b64.txt
+*.pfx
 .DS_Store
 /Build_Output
 /tSQLtCLR/OfficialSigningKey/KeyInfo.txt
