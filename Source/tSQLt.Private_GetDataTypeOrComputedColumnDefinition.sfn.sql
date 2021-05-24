@@ -1,12 +1,12 @@
 IF OBJECT_ID('tSQLt.Private_GetDataTypeOrComputedColumnDefinition') IS NOT NULL DROP FUNCTION tSQLt.Private_GetDataTypeOrComputedColumnDefinition;
 ---Build+
 GO
-CREATE FUNCTION tSQLt.Private_GetDataTypeOrComputedColumnDefinition(@UserTypeId INT, @MaxLength INT, @Precision INT, @Scale INT, @CollationName NVARCHAR(MAX), @ObjectId INT, @ColumnId INT, @ReturnDetails BIT, @IsNotNULL Bit)
+CREATE FUNCTION tSQLt.Private_GetDataTypeOrComputedColumnDefinition(@UserTypeId INT, @MaxLength INT, @Precision INT, @Scale INT, @CollationName NVARCHAR(MAX), @ObjectId INT, @ColumnId INT, @ReturnDetails BIT)
 RETURNS TABLE
 AS
 RETURN SELECT 
               COALESCE(cc.IsComputedColumn, 0) AS IsComputedColumn,
-              COALESCE(cc.ComputedColumnDefinition, GFTN.TypeName + CASE WHEN @IsNotNULL = 1 THEN ' NOT NULL' ELSE '' END ) AS ColumnDefinition
+              COALESCE(cc.ComputedColumnDefinition, GFTN.TypeName) AS ColumnDefinition
         FROM (SELECT @UserTypeId, @MaxLength, @Precision, @Scale, @CollationName, @ObjectId, @ColumnId, @ReturnDetails) 
              AS V(UserTypeId, MaxLength, Precision, Scale, CollationName, ObjectId, ColumnId, ReturnDetails)
        CROSS APPLY tSQLt.Private_GetFullTypeName(V.UserTypeId, V.MaxLength, V.Precision, V.Scale, V.CollationName) AS GFTN

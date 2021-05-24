@@ -56,7 +56,7 @@ BEGIN
   DECLARE @OrigTableFullName NVARCHAR(MAX) = @SchemaName+'.'+@TableName
   DECLARE @CreateTableStatement NVARCHAR(MAX) = 
      (SELECT CreateTableStatement FROM tSQLt.Private_CreateFakeTableStatement(@OrigTableFullName,@OrigTableFullName,1,1,1,1));
-
+  
   EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
 
   DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
@@ -81,5 +81,22 @@ BEGIN
          FOR XML PATH(''),TYPE
     ).value('.','NVARCHAR(MAX)');
   EXEC(@cmd);
+END;
+GO
+CREATE PROCEDURE Facade.CreateSFNFacade
+  @FacadeDbName NVARCHAR(MAX), 
+  @FunctionObjectId INT
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX) = QUOTENAME(OBJECT_SCHEMA_NAME(@FunctionObjectId));
+
+  EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
+
+  DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
+  DECLARE @RemoteStatement NVARCHAR(MAX) = (SELECT CreateStatement FROM tSQLt.Private_CreateFakeFunctionStatement(@FunctionObjectId, NULL));
+
+  SET @RemoteStatement = 'EXEC('''+REPLACE(@RemoteStatement,'''','''''')+''');';
+
+  EXEC @ExecInRemoteDb @RemoteStatement,N'';
 END;
 GO

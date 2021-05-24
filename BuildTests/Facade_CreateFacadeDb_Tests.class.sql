@@ -278,13 +278,130 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTBLFacade creates a facade table for a view in the $(tSQLtFacade) database]
+AS
+BEGIN
+  EXEC ('CREATE VIEW dbo.SomeRandomView AS SELECT CAST(1 AS INT) columnNameA;');
+
+  DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeRandomView');
+  
+  EXEC Facade.CreateTBLFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+  
+  SELECT 'Is a table.' AS resultColumn INTO #Actual
+  FROM $(tSQLtFacade).sys.tables T 
+	JOIN $(tSQLtFacade).sys.schemas S ON (T.schema_id = S.schema_id)
+  WHERE T.name = 'SomeRandomView' AND S.name = 'dbo';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+
+  INSERT INTO #Expected VALUES ('Is a table.');
+
+  EXEC tSQLt.AssertEqualsTable @Expected = N'#Expected', @Actual = N'#Actual';  
+END;
+GO
+
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade executes the statement returned from tSQLt.Private_CreateFakeFunctionStatement in the $(tSQLtFacade) database]
+AS
+BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt.Private_CreateFakeFunctionStatement',
+                          @FakeDataSource = N'SELECT ''CREATE FUNCTION dbo.aRandomFunction () RETURNS INT AS BEGIN RETURN 1; END;'' CreateStatement';
+
+  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(tSQLtFacade)', @FunctionObjectId = NULL;
+
+  SELECT 'Is a function.' AS resultColumn INTO #Actual
+    FROM $(tSQLtFacade).sys.objects O 
+	JOIN $(tSQLtFacade).sys.schemas S ON (O.schema_id = S.schema_id)
+   WHERE O.name = 'aRandomFunction' 
+	 AND S.name = 'dbo'
+	 AND O.type = 'FN';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+
+  INSERT INTO #Expected VALUES ('Is a function.');
+
+  EXEC tSQLt.AssertEqualsTable @Expected = N'#Expected', @Actual = N'#Actual';  
+END;
+GO
+CREATE FUNCTION Facade_CreateFacadeDb_Tests.[THROW @FunctionObjectId]
+(
+  @FunctionObjectId INT,
+  @ReturnValue NVARCHAR(MAX)
+)
+RETURNS TABLE
+AS
+RETURN SELECT 'RAISERROR (''@FunctionObjectId=%i'',16,1,' + CAST(@FunctionObjectId AS NVARCHAR(MAX)) + ');' CreateStatement;
+GO
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade passes the correct object id to tSQLt.Private_CreateFakeFunctionStatement]
+AS
+BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt.Private_CreateFakeFunctionStatement',
+                          @FakeFunctionName = 'Facade_CreateFacadeDb_Tests.[THROW @FunctionObjectId]';
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = N'@FunctionObjectId=4217';
+  
+  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(tSQLtFacade)', @FunctionObjectId = 4217;
+
+END;
+GO
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade creates schema if it doesn't already exist]
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX) = 'SomeRandomSchema'+CONVERT(NVARCHAR(MAX),CAST(NEWID() AS VARBINARY(MAX)),2);
+  DECLARE @FakeDataSourceStatement NVARCHAR(MAX) = N'SELECT ''CREATE FUNCTION ' + @SchemaName + '.aRandomFunction () RETURNS INT AS BEGIN RETURN 1; END;'' CreateStatement';
+  DECLARE @cmd NVARCHAR(MAX) = 'CREATE SCHEMA ' + @SchemaName; 
+  DECLARE @FunctionObjectId INT;
+
+  EXEC (@cmd); 
+  EXEC ('CREATE FUNCTION ' + @SchemaName + '.aRandomFunction () RETURNS INT AS BEGIN RETURN 1; END;');
+  SET @FunctionObjectId = OBJECT_ID(@SchemaName + '.aRandomFunction');
+
+  EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt.Private_CreateFakeFunctionStatement',
+                          @FakeDataSource = @FakeDataSourceStatement;
+
+  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(tSQLtFacade)', @FunctionObjectId = @FunctionObjectId;
+
+  SELECT 'Is a function.' AS resultColumn INTO #Actual
+    FROM $(tSQLtFacade).sys.objects O 
+	JOIN $(tSQLtFacade).sys.schemas S ON (O.schema_id = S.schema_id)
+   WHERE O.name = 'aRandomFunction' 
+	 AND S.name = @SchemaName
+	 AND O.type = 'FN';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+
+  INSERT INTO #Expected VALUES ('Is a function.');
+
+  EXEC tSQLt.AssertEqualsTable @Expected = N'#Expected', @Actual = N'#Actual';  END;
+GO
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacade works for schema with single quote]
+AS
+BEGIN
+  -- quote (with brackets) the schema name and use REPLACE(SCHEMANAMEGOESHERE,'''','''''')
+  DECLARE @SchemaName NVARCHAR(MAX) = 'SomeRandomSchema'''+CONVERT(NVARCHAR(MAX),CAST(NEWID() AS VARBINARY(MAX)),2);
+  DECLARE @cmd NVARCHAR(MAX);
+
+  SET @cmd = 'CREATE SCHEMA '+@SchemaName+';';
+  EXEC(@cmd);
+
+  SET @cmd = 'CREATE PROC '+@SchemaName+'.AnotherProc AS RETURN 42;'; 
+  EXEC(@cmd);
+  
+
+  DECLARE @ProcedureObjectId INT = OBJECT_ID(@SchemaName+'.AnotherProc');
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = @ProcedureObjectId;
+
+
+  DECLARE @RemoteProcedureName NVARCHAR(MAX) = '$(tSQLtFacade).'+@SchemaName+'.AnotherProc'; 
+  EXEC tSQLt.AssertObjectExists @ObjectName = @RemoteProcedureName;
+END;
+GO
+
+
+
 /*------------------------
 Tests still to write:
 
--- Functions
--- Tables/views
-
-
+- quotes in remote statements for schemas, prodedures, tables
 
 ---------------------------
 SELECT * FROM sys.types

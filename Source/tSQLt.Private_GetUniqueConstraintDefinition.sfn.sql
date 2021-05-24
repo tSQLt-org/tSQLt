@@ -48,7 +48,7 @@ RETURN
                        JOIN sys.columns AS C
                          ON IC.object_id = C.object_id
                         AND IC.column_id = C.column_id
-                      CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(C.user_type_id, C.max_length, C.precision, C.scale, C.collation_name, C.object_id, C.column_id, 0, 0) cc
+                      CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(C.user_type_id, C.max_length, C.precision, C.scale, C.collation_name, C.object_id, C.column_id, 0) cc
                       WHERE KC.unique_index_id = IC.index_id
                         AND KC.parent_object_id = IC.object_id
                         FOR XML PATH(''),TYPE
