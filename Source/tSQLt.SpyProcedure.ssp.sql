@@ -28,7 +28,6 @@ BEGIN
 
     EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId;
 
---    EXEC tSQLt.Private_CreateProcedureSpy @ProcedureObjectId, @ProcedureName, @LogTableName, @CommandToExecute;
     EXEC(@CreateLogTableStatement);
 
     EXEC(@CreateProcedureStatement);

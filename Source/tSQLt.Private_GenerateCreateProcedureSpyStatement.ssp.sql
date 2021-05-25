@@ -15,17 +15,15 @@ BEGIN
             @ProcParmTypeList NVARCHAR(MAX),
             @TableColTypeList NVARCHAR(MAX);
             
-    DECLARE @Seperator CHAR(1),
+    DECLARE @Separator CHAR(1),
             @ProcParmTypeListSeparater CHAR(1),
             @ParamName sysname,
             @TypeName sysname,
             @IsOutput BIT,
             @IsCursorRef BIT,
             @IsTableType BIT;
-            
-
       
-    SELECT @Seperator = '', @ProcParmTypeListSeparater = '', 
+    SELECT @Separator = '', @ProcParmTypeListSeparater = '', 
            @ProcParmList = '', @TableColList = '', @ProcParmTypeList = '', @TableColTypeList = '';
       
     DECLARE Parameters CURSOR FOR
@@ -41,12 +39,12 @@ BEGIN
     BEGIN
         IF @IsCursorRef = 0
         BEGIN
-            SELECT @ProcParmList = @ProcParmList + @Seperator + 
+            SELECT @ProcParmList = @ProcParmList + @Separator + 
                                    CASE WHEN @IsTableType = 1 
                                      THEN '(SELECT * FROM '+@ParamName+' FOR XML PATH(''row''),TYPE,ROOT('''+STUFF(@ParamName,1,1,'')+'''))' 
                                      ELSE @ParamName 
                                    END, 
-                   @TableColList = @TableColList + @Seperator + '[' + STUFF(@ParamName,1,1,'') + ']', 
+                   @TableColList = @TableColList + @Separator + '[' + STUFF(@ParamName,1,1,'') + ']', 
                    @ProcParmTypeList = @ProcParmTypeList + @ProcParmTypeListSeparater + @ParamName + ' ' + @TypeName + 
                                        CASE WHEN @IsTableType = 1 THEN ' READONLY' ELSE ' = NULL ' END+ 
                                        CASE WHEN @IsOutput = 1 THEN ' OUT' ELSE '' END, 
