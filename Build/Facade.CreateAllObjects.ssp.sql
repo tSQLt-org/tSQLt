@@ -66,25 +66,29 @@ BEGIN
   EXEC @ExecInRemoteDb @RemoteStatement,N'';
 END;
 GO
-CREATE VIEW Facade.[sys.tables] AS SELECT * FROM sys.tables AS T;
+CREATE VIEW Facade.[sys.tables] AS SELECT * FROM sys.tables;
 GO
-CREATE VIEW Facade.[sys.views] AS SELECT * FROM sys.views AS V;
+CREATE VIEW Facade.[sys.views] AS SELECT * FROM sys.views;
 GO
-
-CREATE VIEW Facade.[sys.procedures] AS SELECT * FROM sys.procedures AS P;
+CREATE VIEW Facade.[sys.procedures] AS SELECT * FROM sys.procedures;
+GO
+CREATE VIEW Facade.[sys.objects] AS SELECT * FROM sys.objects;
 GO
 CREATE PROCEDURE Facade.CreateSSPFacades
+  @FacadeDbName NVARCHAR(MAX)
 AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX) = 
     (
-      SELECT 'EXEC Facade.CreateSSPFacade @ProcedureObjectId = '+CAST(object_id AS NVARCHAR(MAX))+';'
+      SELECT 'EXEC Facade.CreateSSPFacade @FacadeDbName = @FacadeDbName, @ProcedureObjectId = '+CAST(object_id AS NVARCHAR(MAX))+';'
         FROM Facade.[sys.procedures]
        WHERE schema_id = SCHEMA_ID('tSQLt')
          AND name NOT LIKE 'Private%'
          FOR XML PATH(''),TYPE
     ).value('.','NVARCHAR(MAX)');
-  EXEC(@cmd);
+
+	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
+
 END;
 GO
 CREATE PROCEDURE Facade.CreateSFNFacade
@@ -108,8 +112,34 @@ CREATE PROCEDURE Facade.CreateTBLorVWFacades
   @FacadeDbName NVARCHAR(MAX)
 AS
 BEGIN
+	DECLARE @cmd NVARCHAR(MAX) = 
+ (
+   SELECT 'EXEC Facade.CreateTBLorVWFacade @FacadeDbName = @FacadeDbName, @TableObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
+     FROM (SELECT object_id, name, schema_id FROM Facade.[sys.tables] UNION ALL SELECT object_id, name, schema_id FROM Facade.[sys.views]) T
+    WHERE T.name NOT LIKE 'Private%'
+      AND T.schema_id = SCHEMA_ID('tSQLt')
+      FOR XML PATH (''),TYPE
+ ).value('.','NVARCHAR(MAX)');
+    
+	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
+
 	RETURN;
 END;
 GO
+CREATE PROCEDURE Facade.CreateSFNFacades
+  @FacadeDbName NVARCHAR(MAX)
+AS
+BEGIN
+	DECLARE @cmd NVARCHAR(MAX) = 
+ (
+   SELECT 'EXEC Facade.CreateSFNFacade @FacadeDbName = @FacadeDbName, @FunctionObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
+     FROM Facade.[sys.objects] O
+    WHERE O.name NOT LIKE 'Private%'
+      AND O.schema_id = SCHEMA_ID('tSQLt')
+      FOR XML PATH (''),TYPE
+ ).value('.','NVARCHAR(MAX)');
 
+	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
+END;
+GO
 

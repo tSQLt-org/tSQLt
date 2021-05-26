@@ -16,14 +16,14 @@ BEGIN
             @TableColTypeList NVARCHAR(MAX);
             
     DECLARE @Separator CHAR(1),
-            @ProcParmTypeListSeparater CHAR(1),
+            @ProcParmTypeListSeparator CHAR(1),
             @ParamName sysname,
             @TypeName sysname,
             @IsOutput BIT,
             @IsCursorRef BIT,
             @IsTableType BIT;
       
-    SELECT @Separator = '', @ProcParmTypeListSeparater = '', 
+    SELECT @Separator = '', @ProcParmTypeListSeparator = '', 
            @ProcParmList = '', @TableColList = '', @ProcParmTypeList = '', @TableColTypeList = '';
       
     DECLARE Parameters CURSOR FOR
@@ -45,7 +45,7 @@ BEGIN
                                      ELSE @ParamName 
                                    END, 
                    @TableColList = @TableColList + @Separator + '[' + STUFF(@ParamName,1,1,'') + ']', 
-                   @ProcParmTypeList = @ProcParmTypeList + @ProcParmTypeListSeparater + @ParamName + ' ' + @TypeName + 
+                   @ProcParmTypeList = @ProcParmTypeList + @ProcParmTypeListSeparator + @ParamName + ' ' + @TypeName + 
                                        CASE WHEN @IsTableType = 1 THEN ' READONLY' ELSE ' = NULL ' END+ 
                                        CASE WHEN @IsOutput = 1 THEN ' OUT' ELSE '' END, 
                    @TableColTypeList = @TableColTypeList + ',[' + STUFF(@ParamName,1,1,'') + '] ' + 
@@ -60,13 +60,13 @@ BEGIN
                                ELSE @TypeName
                           END + ' NULL';
 
-            SELECT @Seperator = ',';        
-            SELECT @ProcParmTypeListSeparater = ',';
+            SELECT @Separator = ',';        
+            SELECT @ProcParmTypeListSeparator = ',';
         END
         ELSE
         BEGIN
-            SELECT @ProcParmTypeList = @ProcParmTypeListSeparater + @ParamName + ' CURSOR VARYING OUTPUT';
-            SELECT @ProcParmTypeListSeparater = ',';
+            SELECT @ProcParmTypeList = @ProcParmTypeListSeparator + @ParamName + ' CURSOR VARYING OUTPUT';
+            SELECT @ProcParmTypeListSeparator = ',';
         END;
         
         FETCH NEXT FROM Parameters INTO @ParamName, @TypeName, @IsOutput, @IsCursorRef, @IsTableType;
