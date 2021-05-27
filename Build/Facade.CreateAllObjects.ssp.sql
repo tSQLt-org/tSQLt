@@ -136,10 +136,22 @@ BEGIN
      FROM Facade.[sys.objects] O
     WHERE O.name NOT LIKE 'Private%'
       AND O.schema_id = SCHEMA_ID('tSQLt')
+      AND O.type IN ('IF', 'TF', 'FS', 'FT', 'FN')
       FOR XML PATH (''),TYPE
  ).value('.','NVARCHAR(MAX)');
 
 	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
+END;
+GO
+CREATE PROCEDURE Facade.CreateAllFacadeObjects
+  @FacadeDbName NVARCHAR(MAX)
+AS
+BEGIN
+
+  EXEC Facade.CreateTBLorVWFacades @FacadeDbName = @FacadeDbName;
+  EXEC Facade.CreateSSPFacades @FacadeDbName = @FacadeDbName;
+  EXEC Facade.CreateSFNFacades @FacadeDbName = @FacadeDbName;
+
 END;
 GO
 

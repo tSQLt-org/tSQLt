@@ -1,4 +1,4 @@
-:SETVAR NewDbName tSQLtFacade
+:SETVAR NewDbName [tSQLtFa'cade]
 
 
 GO
