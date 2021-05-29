@@ -1,5 +1,4 @@
-:SETVAR NewDbName [tSQLtFa'cade]
-
+:SETVAR NewDbName tSQLtFacade
 
 GO
 IF(DB_ID('$(NewDbName)') IS NOT NULL)

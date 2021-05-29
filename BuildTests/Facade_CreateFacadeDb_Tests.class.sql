@@ -721,12 +721,24 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateAllFacadeObjects doesn't error]
+AS
+BEGIN
+
+  EXEC tSQLt.ExpectNoException;
+
+  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';
+
+  
+END;
+GO
 
 
 /*------------------------
 Tests still to write:
 
-- CreateAllFacadeObjects can handle quoted facade database names
+- Figure out Column, parameter, or variable #1: Cannot find data type tSQLt.AssertStringTable.[16,3]{AssertStringIn,1}
+- CreateAllFacadeObjects can handle quoted facade database names, eg '[tSQLtFacade]'
 
 EXEC Facade.CreateAllFacadeObjects @FacadeDbName = N'tSQLtFa''cade'
 
