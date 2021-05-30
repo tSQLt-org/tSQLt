@@ -2,6 +2,16 @@ EXEC tSQLt.DropClass 'Facade';
 GO
 CREATE SCHEMA Facade;
 GO
+CREATE VIEW Facade.[sys.tables] AS SELECT * FROM sys.tables;
+GO
+CREATE VIEW Facade.[sys.views] AS SELECT * FROM sys.views;
+GO
+CREATE VIEW Facade.[sys.procedures] AS SELECT * FROM sys.procedures;
+GO
+CREATE VIEW Facade.[sys.objects] AS SELECT * FROM sys.objects;
+GO
+CREATE VIEW Facade.[sys.types] AS SELECT * FROM sys.types;
+GO
 CREATE PROCEDURE Facade.CreateSchemaIfNotExists
   @FacadeDbName NVARCHAR(MAX), 
   @SchemaName NVARCHAR(MAX) 
@@ -66,14 +76,6 @@ BEGIN
   EXEC @ExecInRemoteDb @RemoteStatement,N'';
 END;
 GO
-CREATE VIEW Facade.[sys.tables] AS SELECT * FROM sys.tables;
-GO
-CREATE VIEW Facade.[sys.views] AS SELECT * FROM sys.views;
-GO
-CREATE VIEW Facade.[sys.procedures] AS SELECT * FROM sys.procedures;
-GO
-CREATE VIEW Facade.[sys.objects] AS SELECT * FROM sys.objects;
-GO
 CREATE PROCEDURE Facade.CreateSSPFacades
   @FacadeDbName NVARCHAR(MAX)
 AS
@@ -83,7 +85,7 @@ BEGIN
       SELECT 'EXEC Facade.CreateSSPFacade @FacadeDbName = @FacadeDbName, @ProcedureObjectId = '+CAST(object_id AS NVARCHAR(MAX))+';'
         FROM Facade.[sys.procedures]
        WHERE schema_id = SCHEMA_ID('tSQLt')
-         AND name NOT LIKE 'Private%'
+         AND UPPER(name) NOT LIKE 'PRIVATE%'
          FOR XML PATH(''),TYPE
     ).value('.','NVARCHAR(MAX)');
 
@@ -116,7 +118,7 @@ BEGIN
  (
    SELECT 'EXEC Facade.CreateTBLorVWFacade @FacadeDbName = @FacadeDbName, @TableObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
      FROM (SELECT object_id, name, schema_id FROM Facade.[sys.tables] UNION ALL SELECT object_id, name, schema_id FROM Facade.[sys.views]) T
-    WHERE T.name NOT LIKE 'Private%'
+    WHERE UPPER(T.name) NOT LIKE 'PRIVATE%'
       AND T.schema_id = SCHEMA_ID('tSQLt')
       FOR XML PATH (''),TYPE
  ).value('.','NVARCHAR(MAX)');
@@ -134,7 +136,7 @@ BEGIN
  (
    SELECT 'EXEC Facade.CreateSFNFacade @FacadeDbName = @FacadeDbName, @FunctionObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
      FROM Facade.[sys.objects] O
-    WHERE O.name NOT LIKE 'Private%'
+    WHERE UPPER(O.name) NOT LIKE 'PRIVATE%'
       AND O.schema_id = SCHEMA_ID('tSQLt')
       AND O.type IN ('IF', 'TF', 'FS', 'FT', 'FN')
       FOR XML PATH (''),TYPE
@@ -143,35 +145,29 @@ BEGIN
 	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
 END;
 GO
-CREATE PROCEDURE Facade.CreateAllFacadeObjects
-  @FacadeDbName NVARCHAR(MAX)
-AS
-BEGIN
-
-  EXEC Facade.CreateTBLorVWFacades @FacadeDbName = @FacadeDbName;
-  EXEC Facade.CreateSSPFacades @FacadeDbName = @FacadeDbName;
-  EXEC Facade.CreateSFNFacades @FacadeDbName = @FacadeDbName;
-
-END;
-GO
 CREATE PROCEDURE Facade.CreateTypeFacade 
   @FacadeDbName NVARCHAR(MAX),
-  @TypeId INT
+  @UserTypeId INT
 AS
 BEGIN
   DECLARE @TypeTableObjectId INT;
   DECLARE @TypeSchemaId INT;
-  SELECT @TypeTableObjectId = tt.type_table_object_id, @TypeSchemaId = tt.schema_id FROM sys.table_types tt WHERE tt.user_type_id = @TypeId;
+  SELECT @TypeTableObjectId = tt.type_table_object_id, @TypeSchemaId = tt.schema_id FROM sys.table_types tt WHERE tt.user_type_id = @UserTypeId;
+
+  IF (@TypeTableObjectId IS NULL)
+  BEGIN
+    RAISERROR ('CreateTypeFacade currently handles only TABLE_TYPEs', 16, 10);
+    RETURN;
+  END
 
   DECLARE @SchemaName NVARCHAR(MAX) = QUOTENAME(SCHEMA_NAME(@TypeSchemaId));
-  DECLARE @TypeName NVARCHAR(MAX) = QUOTENAME(TYPE_NAME(@TypeId));
+  DECLARE @TypeName NVARCHAR(MAX) = QUOTENAME(TYPE_NAME(@UserTypeId));
 
   DECLARE @FullTypeName NVARCHAR(MAX) = @SchemaName+'.'+@TypeName;
   DECLARE @CreateTableStatement NVARCHAR(MAX) = 
      (SELECT CreateTableTypeStatement FROM tSQLt.Private_CreateFakeTableStatement(@TypeTableObjectId,@FullTypeName,1,1,1,1));
   
-  --EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
-  SELECT @CreateTableStatement;
+  EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
 
   DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
   DECLARE @RemoteStatement NVARCHAR(MAX);
@@ -181,3 +177,32 @@ BEGIN
   
 END;
 GO
+CREATE PROCEDURE Facade.CreateTypeFacades 
+  @FacadeDbName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX) =
+  (
+    SELECT 'EXEC Facade.CreateTypeFacade @FacadeDbName = @FacadeDbName, @UserTypeId =  ' + CAST(t.user_type_id AS NVARCHAR(MAX)) + ';'
+      FROM Facade.[sys.types] t
+     WHERE t.schema_id = SCHEMA_ID('tSQLt')
+       AND UPPER(t.name) NOT LIKE ('PRIVATE%')
+       FOR XML PATH (''),TYPE
+  ).value('.','NVARCHAR(MAX)');
+
+ 	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
+END;
+GO
+CREATE PROCEDURE Facade.CreateAllFacadeObjects
+  @FacadeDbName NVARCHAR(MAX)
+AS
+BEGIN
+
+  EXEC Facade.CreateTypeFacades @FacadeDbName = @FacadeDbName;
+  EXEC Facade.CreateTBLorVWFacades @FacadeDbName = @FacadeDbName;
+  EXEC Facade.CreateSSPFacades @FacadeDbName = @FacadeDbName;
+  EXEC Facade.CreateSFNFacades @FacadeDbName = @FacadeDbName;
+
+END;
+GO
+
