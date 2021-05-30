@@ -721,7 +721,38 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateAllFacadeObjects doesn't error]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies a simple table type to the $(tSQLtFacade) database]
+AS
+BEGIN
+  CREATE TYPE dbo.SomeRandomType AS TABLE (a INT);
+
+  DECLARE @TypeId INT = TYPE_ID('dbo.SomeRandomType');
+  
+  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(tSQLtFacade)', @TypeId = @TypeId;
+
+  DECLARE @RemoteTypeId INT;
+  EXEC $(tSQLtFacade).sys.sp_executesql N'SET @TypeId = (SELECT TYPE_ID(''dbo.SomeRandomType''));',N'@TypeId INT OUTPUT', @RemoteTypeId OUT;
+
+  EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteTypeId, @Message = N'Remote Type not found. ';
+END;
+GO
+
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade errors with appropriate message if type is not a table_type]
+AS
+BEGIN
+  CREATE TYPE dbo.SomeRandomType FROM INT;
+
+  DECLARE @TypeId INT = TYPE_ID('dbo.SomeRandomType');
+  
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%CreateTypeFacade currently handles only TABLE_TYPEs%', @ExpectedSeverity = 16, @ExpectedState = 10;
+  
+
+  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(tSQLtFacade)', @TypeId = @TypeId;
+
+END;
+GO
+
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[-test CreateAllFacadeObjects doesn't error]
 AS
 BEGIN
 
@@ -733,6 +764,12 @@ BEGIN
 END;
 GO
 
+SELECT * 
+  FROM sys.columns c
+ CROSS APPLY tSQLt.Private_GetFullTypeName(c.system_type_id,c.max_length,c.precision,c.scale,c.collation_name) t
+ WHERE object_id = 1042102753
+
+SELECT * FROM sys.objects  WHERE object_id = 1042102753
 
 /*------------------------
 Tests still to write:
@@ -740,12 +777,24 @@ Tests still to write:
 - Figure out Column, parameter, or variable #1: Cannot find data type tSQLt.AssertStringTable.[16,3]{AssertStringIn,1}
 - CreateAllFacadeObjects can handle quoted facade database names, eg '[tSQLtFacade]'
 
-EXEC Facade.CreateAllFacadeObjects @FacadeDbName = N'tSQLtFa''cade'
+SELECT * FROM sys.table_types
+WHERE schema_id = SCHEMA_ID('tSQLt')
+  AND name not like 'Private%'
 
-SELECT * FROM sys.types 
 
-SELECT * FROM sys.sql_modules 
-WHERE UPPER(definition) LIKE ('%CREATE TABLE TYPE%')
+
+SELECT * FROM sys.types
+WHERE schema_id = SCHEMA_ID('tSQLt')
+  AND name not like 'Private%'
+  AND is_table_type = 0
+-----
+
+ SELECT * 
+   FROM sys.table_types t
+   JOIN sys.objects o
+     ON t.type_table_object_id = o.object_id
+   JOIN sys.columns c
+     ON t.type_table_object_id = c.object_id
 
 SELECT c.name,o.* 
   FROM sys.all_objects o
@@ -757,43 +806,6 @@ SELECT c.name,o.*
    AND o.is_ms_shipped = 1
  ORDER BY o.object_id,c.column_id
 
- SELECT * 
-   FROM sys.table_types t
-   JOIN sys.objects o
-     ON t.type_table_object_id = o.object_id
-   JOIN sys.columns c
-     ON t.type_table_object_id = c.object_id
-
-
-
-
----------------------------
-SELECT * FROM sys.types
-
-drop table dbo.randomtest
-SELECT CAST(NULL AS timestamp) [sysname] INTO dbo.randomtest
-SELECT * FROM dbo.randomtest
-
-    SELECT O.name
-      FROM sys.procedures O
-     WHERE 1=1
-       AND O.name NOT LIKE 'Private[_]%'
-       AND O.schema_id = SCHEMA_ID('tSQLt')
-     ORDER BY O.type, O.name
-
-    SELECT O.type,O.type_desc, O.name
-      FROM sys.objects O
-     WHERE 1=1
-       AND O.name NOT LIKE 'Private[_]%'
-       AND O.schema_id = SCHEMA_ID('tSQLt')
-     ORDER BY O.type, O.name
-
-    SELECT O.type,O.type_desc, COUNT(1) cnt 
-      FROM sys.objects O
-     WHERE 1=1
-       AND O.name NOT LIKE 'Private[_]%'
-       AND O.schema_id = SCHEMA_ID('tSQLt')
-     GROUP BY O.type, O.type_desc
 
 
 ------------------------*/

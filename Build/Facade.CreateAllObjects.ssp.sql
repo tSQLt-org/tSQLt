@@ -55,7 +55,7 @@ BEGIN
   DECLARE @TableName NVARCHAR(MAX) = QUOTENAME(OBJECT_NAME(@TableObjectId));
   DECLARE @OrigTableFullName NVARCHAR(MAX) = @SchemaName+'.'+@TableName
   DECLARE @CreateTableStatement NVARCHAR(MAX) = 
-     (SELECT CreateTableStatement FROM tSQLt.Private_CreateFakeTableStatement(@OrigTableFullName,@OrigTableFullName,1,1,1,1));
+     (SELECT CreateTableStatement FROM tSQLt.Private_CreateFakeTableStatement(@TableObjectId,@OrigTableFullName,1,1,1,1));
   
   EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
 
@@ -154,4 +154,30 @@ BEGIN
 
 END;
 GO
+CREATE PROCEDURE Facade.CreateTypeFacade 
+  @FacadeDbName NVARCHAR(MAX),
+  @TypeId INT
+AS
+BEGIN
+  DECLARE @TypeTableObjectId INT;
+  DECLARE @TypeSchemaId INT;
+  SELECT @TypeTableObjectId = tt.type_table_object_id, @TypeSchemaId = tt.schema_id FROM sys.table_types tt WHERE tt.user_type_id = @TypeId;
 
+  DECLARE @SchemaName NVARCHAR(MAX) = QUOTENAME(SCHEMA_NAME(@TypeSchemaId));
+  DECLARE @TypeName NVARCHAR(MAX) = QUOTENAME(TYPE_NAME(@TypeId));
+
+  DECLARE @FullTypeName NVARCHAR(MAX) = @SchemaName+'.'+@TypeName;
+  DECLARE @CreateTableStatement NVARCHAR(MAX) = 
+     (SELECT CreateTableTypeStatement FROM tSQLt.Private_CreateFakeTableStatement(@TypeTableObjectId,@FullTypeName,1,1,1,1));
+  
+  --EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
+  SELECT @CreateTableStatement;
+
+  DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
+  DECLARE @RemoteStatement NVARCHAR(MAX);
+
+  SET @RemoteStatement = 'EXEC(''' + REPLACE(@CreateTableStatement,'''','''''') + ''');';
+  EXEC @ExecInRemoteDb @RemoteStatement,N'';
+  
+END;
+GO

@@ -11,8 +11,9 @@ CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
 AS
 BEGIN
    DECLARE @cmd NVARCHAR(MAX) =
-     (SELECT CreateTableStatement FROM tSQLt.Private_CreateFakeTableStatement(@SchemaName+'.'+@TableName,@OrigTableFullName,@Identity,@ComputedColumns,@Defaults,0));
-   EXEC (@Cmd);
+     (SELECT CreateTableStatement 
+        FROM tSQLt.Private_CreateFakeTableStatement(OBJECT_ID(@OrigTableFullName), @SchemaName+'.'+@TableName,@Identity,@ComputedColumns,@Defaults,0));
+   EXEC (@cmd);
 END;
 ---Build-
 GO

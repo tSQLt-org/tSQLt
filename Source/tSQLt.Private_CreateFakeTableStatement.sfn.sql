@@ -3,8 +3,8 @@ GO
 ---Build+
 GO
 CREATE FUNCTION tSQLt.Private_CreateFakeTableStatement(
+  @OriginalTableObjectId INT,
   @FullFakeTableName NVARCHAR(MAX),
-  @OrigTableFullName NVARCHAR(MAX),
   @Identity BIT,
   @ComputedColumns BIT,
   @Defaults BIT,
@@ -13,7 +13,9 @@ CREATE FUNCTION tSQLt.Private_CreateFakeTableStatement(
 RETURNS TABLE
 AS
 RETURN
-  SELECT 'CREATE TABLE ' + @FullFakeTableName + '(' + STUFF(Cols,1,1,'') + ')' CreateTableStatement
+  SELECT 
+      'CREATE TABLE ' + @FullFakeTableName + '(' + STUFF(Cols,1,1,'') + ')' CreateTableStatement,
+      'CREATE TYPE ' + @FullFakeTableName + ' AS TABLE(' + STUFF(Cols,1,1,'') + ')' CreateTableTypeStatement
     FROM 
     (
       SELECT
@@ -32,7 +34,7 @@ RETURN
          CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(c.user_type_id, c.max_length, c.precision, c.scale, c.collation_name, c.object_id, c.column_id, @ComputedColumns) cc
          CROSS APPLY tSQLt.Private_GetDefaultConstraintDefinition(c.object_id, c.column_id, @Defaults) AS dc
          CROSS APPLY tSQLt.Private_GetIdentityDefinition(c.object_id, c.column_id, @Identity) AS id
-         WHERE object_id = OBJECT_ID(@OrigTableFullName)
+         WHERE object_id = @OriginalTableObjectId
          ORDER BY column_id
          FOR XML PATH(''), TYPE
       ).value('.', 'NVARCHAR(MAX)')
