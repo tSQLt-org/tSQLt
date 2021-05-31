@@ -1,0 +1,10 @@
+---Build+
+IF EXISTS (SELECT 1 FROM sys.assemblies WHERE name = 'tSQLtCLR')
+    DROP ASSEMBLY tSQLtCLR;
+GO
+
+CREATE SCHEMA tSQLt;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+---Build-

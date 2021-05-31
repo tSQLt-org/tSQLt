@@ -1,4 +1,6 @@
 tSQLt._Header.sql
+../Build/temp/TempDropClass.sql
+tSQLt.schema.sql
 tSQLt.DropClass.ssp.sql
 tSQLt.Private_HostPlatform.stub.sql
 tSQLt.Private_InstallationInfo.stub.sql

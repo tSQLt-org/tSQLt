@@ -558,6 +558,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Reset.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.schema.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.schema.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.SetSummaryError.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -639,6 +645,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ResetValidationServerBuildOrder.txt</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLtDropBuildOrder.txt">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLtDropBuildOrder.txt</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
