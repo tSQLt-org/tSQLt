@@ -612,6 +612,24 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.TestClass.user.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.TestClass.user.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.TestClasses.view.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.TestClasses.view.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Tests.view.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Tests.view.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLtCLR.mdl.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

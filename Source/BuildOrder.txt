@@ -1,7 +1,10 @@
 tSQLt._Header.sql
 ../Build/temp/TempDropClass.sql
 tSQLt.schema.sql
+tSQLt.TestClass.user.sql
 tSQLt.DropClass.ssp.sql
+tSQLt.TestClasses.view.sql
+tSQLt.Tests.view.sql
 tSQLt.Private_HostPlatform.stub.sql
 tSQLt.Private_InstallationInfo.stub.sql
 ../Build/output/tSQLt.Private_GetAssemblyKeyBytes.sql

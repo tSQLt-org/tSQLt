@@ -318,6 +318,12 @@
           <AssociatedConnUserName />
           <FullPath>TableToTextTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="TestClassesTest.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>TestClassesTest.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt_test.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

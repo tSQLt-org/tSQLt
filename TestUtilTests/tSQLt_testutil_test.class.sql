@@ -453,3 +453,21 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE tSQLt_testutil_test.[test tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses removes TestClass classifications]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA tSQLtTestDummyA AUTHORIZATION [tSQLt.TestClass];');
+  EXEC ('CREATE SCHEMA tSQLtTestDummyB AUTHORIZATION [tSQLt.TestClass];');
+  EXEC ('CREATE SCHEMA tSQLtTestDummyC AUTHORIZATION [tSQLt.TestClass];');
+  EXEC tSQLt.NewTestClass 'tSQLtTestDummyD';
+  EXEC tSQLt.NewTestClass 'tSQLtTestDummyE';
+
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+  SELECT Name
+    INTO #Actual
+    FROM tSQLt.TestClasses;
+    
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+END;
+GO
