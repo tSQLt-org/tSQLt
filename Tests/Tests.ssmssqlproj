@@ -336,6 +336,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLtclr_test.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="UninstallTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>UninstallTests.class.sql</FullPath>
+        </FileNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">

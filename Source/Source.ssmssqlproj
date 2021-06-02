@@ -630,6 +630,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Tests.view.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Uninstall.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Uninstall.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLtCLR.mdl.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
