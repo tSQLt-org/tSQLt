@@ -931,3 +931,19 @@ BEGIN
   EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';
 END;
 GO
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateAllFacadeObjects creates the tSQLt.TestClass user]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSFNFacades';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSSPFacades';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTBLorVWFacades';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTypeFacades';
+
+  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';
+
+  DECLARE @RemoteDatabasePrincipalId INT;
+  EXEC $(tSQLtFacade).sys.sp_executesql N'SET @RemoteDatabasePrincipalId = USER_ID(''tSQLt.TestClass'');',N'@RemoteDatabasePrincipalId INT OUTPUT', @RemoteDatabasePrincipalId OUT;
+
+  EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteDatabasePrincipalId, @Message = N'Remote Database Principal Id not found. ';
+END;
+GO

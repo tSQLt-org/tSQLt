@@ -203,6 +203,9 @@ BEGIN
   EXEC Facade.CreateSSPFacades @FacadeDbName = @FacadeDbName;
   EXEC Facade.CreateSFNFacades @FacadeDbName = @FacadeDbName;
 
+  DECLARE @ExecuteInFacadeDb NVARCHAR(MAX) = @FacadeDbName + '.sys.sp_executesql';
+  EXEC @ExecuteInFacadeDb N'CREATE USER [tSQLt.TestClass] WITHOUT LOGIN;', N'';
+
 END;
 GO
 
