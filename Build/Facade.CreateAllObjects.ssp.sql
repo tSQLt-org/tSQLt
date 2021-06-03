@@ -56,7 +56,23 @@ BEGIN
   EXEC @ExecInRemoteDb @RemoteStatement,N'';
 END;
 GO
-CREATE PROCEDURE Facade.CreateTBLorVWFacade
+CREATE PROCEDURE Facade.CreateSSPFacades
+  @FacadeDbName NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX) = 
+    (
+      SELECT 'EXEC Facade.CreateSSPFacade @FacadeDbName = @FacadeDbName, @ProcedureObjectId = '+CAST(object_id AS NVARCHAR(MAX))+';'
+        FROM Facade.[sys.procedures]
+       WHERE schema_id = SCHEMA_ID('tSQLt')
+         AND UPPER(name) NOT LIKE 'PRIVATE%'
+         FOR XML PATH(''),TYPE
+    ).value('.','NVARCHAR(MAX)');
+
+	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
+END;
+GO
+CREATE PROCEDURE Facade.CreateTableFacade
   @FacadeDbName NVARCHAR(MAX), 
   @TableObjectId INT
 AS
@@ -76,22 +92,32 @@ BEGIN
   EXEC @ExecInRemoteDb @RemoteStatement,N'';
 END;
 GO
-CREATE PROCEDURE Facade.CreateSSPFacades
+CREATE PROCEDURE Facade.CreateTableFacades
   @FacadeDbName NVARCHAR(MAX)
 AS
 BEGIN
-  DECLARE @cmd NVARCHAR(MAX) = 
-    (
-      SELECT 'EXEC Facade.CreateSSPFacade @FacadeDbName = @FacadeDbName, @ProcedureObjectId = '+CAST(object_id AS NVARCHAR(MAX))+';'
-        FROM Facade.[sys.procedures]
-       WHERE schema_id = SCHEMA_ID('tSQLt')
-         AND UPPER(name) NOT LIKE 'PRIVATE%'
-         FOR XML PATH(''),TYPE
-    ).value('.','NVARCHAR(MAX)');
-
+	DECLARE @cmd NVARCHAR(MAX) = 
+ (
+   SELECT 'EXEC Facade.CreateTableFacade @FacadeDbName = @FacadeDbName, @TableObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
+     FROM (SELECT object_id, name, schema_id FROM Facade.[sys.tables] UNION ALL SELECT object_id, name, schema_id FROM Facade.[sys.views]) T
+    WHERE UPPER(T.name) NOT LIKE 'PRIVATE%'
+      AND T.schema_id = SCHEMA_ID('tSQLt')
+      FOR XML PATH (''),TYPE
+ ).value('.','NVARCHAR(MAX)');
+    
 	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
 
+	RETURN;
 END;
+GO
+CREATE PROCEDURE Facade.CreateViewFacade
+  @FacadeDbName NVARCHAR(MAX),
+  @ViewObjectId INT
+AS
+BEGIN
+  SELECT * FROM  tSQLt.Private_CreateFakeFunctionStatement(@ViewObjectId, NULL)
+  RETURN;
+END
 GO
 CREATE PROCEDURE Facade.CreateSFNFacade
   @FacadeDbName NVARCHAR(MAX), 
@@ -108,24 +134,6 @@ BEGIN
   SET @RemoteStatement = 'EXEC('''+REPLACE(@RemoteStatement,'''','''''')+''');';
 
   EXEC @ExecInRemoteDb @RemoteStatement,N'';
-END;
-GO
-CREATE PROCEDURE Facade.CreateTBLorVWFacades
-  @FacadeDbName NVARCHAR(MAX)
-AS
-BEGIN
-	DECLARE @cmd NVARCHAR(MAX) = 
- (
-   SELECT 'EXEC Facade.CreateTBLorVWFacade @FacadeDbName = @FacadeDbName, @TableObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
-     FROM (SELECT object_id, name, schema_id FROM Facade.[sys.tables] UNION ALL SELECT object_id, name, schema_id FROM Facade.[sys.views]) T
-    WHERE UPPER(T.name) NOT LIKE 'PRIVATE%'
-      AND T.schema_id = SCHEMA_ID('tSQLt')
-      FOR XML PATH (''),TYPE
- ).value('.','NVARCHAR(MAX)');
-    
-	EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
-
-	RETURN;
 END;
 GO
 CREATE PROCEDURE Facade.CreateSFNFacades
@@ -199,7 +207,7 @@ AS
 BEGIN
 
   EXEC Facade.CreateTypeFacades @FacadeDbName = @FacadeDbName;
-  EXEC Facade.CreateTBLorVWFacades @FacadeDbName = @FacadeDbName;
+  EXEC Facade.CreateTableFacades @FacadeDbName = @FacadeDbName;
   EXEC Facade.CreateSSPFacades @FacadeDbName = @FacadeDbName;
   EXEC Facade.CreateSFNFacades @FacadeDbName = @FacadeDbName;
 

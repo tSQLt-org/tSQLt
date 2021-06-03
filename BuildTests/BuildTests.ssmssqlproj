@@ -12,6 +12,18 @@
           <AssociatedConnUserName />
           <FullPath>Facade_CreateFacadeDb_Tests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Facade_CreateTableFacades_Tests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Facade_CreateTableFacades_Tests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Facade_CreateViewFacades_Tests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Facade_CreateViewFacades_Tests.class.sql</FullPath>
+        </FileNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
