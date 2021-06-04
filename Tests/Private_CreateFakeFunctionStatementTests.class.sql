@@ -194,3 +194,31 @@ BEGIN
   EXEC tSQLt.AssertEqualsString @Expected = @Expected, @Actual = @Actual;
 END;
 GO
+CREATE PROCEDURE Private_CreateFakeFunctionStatementTests.[test returns type only select statement]
+AS
+BEGIN
+  EXEC('CREATE FUNCTION Private_CreateFakeFunctionStatementTests.ASimpleTVF(@P1 BIGINT,@P2 DATE,@P3 CHAR(17),@P4 BIT) RETURNS TABLE AS RETURN SELECT CAST(1 AS SMALLINT) C1, CAST(NULL AS DATETIME) C2, CAST(NULL AS XML)  C3;');
+  DECLARE @FunctionObjectId INT = OBJECT_ID('Private_CreateFakeFunctionStatementTests.ASimpleTVF');
+  
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT TypeOnlySelectStatement FROM tSQLt.Private_CreateFakeFunctionStatement(@FunctionObjectId,NULL));
+
+  DECLARE @Expected NVARCHAR(MAX) = 'SELECT TOP(0) CAST(NULL AS [sys].[smallint]) AS [C1],CAST(NULL AS [sys].[datetime]) AS [C2],CAST(NULL AS [sys].[xml]) AS [C3]';
+
+  EXEC tSQLt.AssertEqualsString @Expected = @Expected, @Actual = @Actual;
+END;
+GO
+CREATE PROCEDURE Private_CreateFakeFunctionStatementTests.[test also returns type only select statement for views]
+AS
+BEGIN
+  EXEC('CREATE VIEW Private_CreateFakeFunctionStatementTests.ASimpleView AS SELECT CAST(1 AS BIGINT) C1, CAST(NULL AS NVARCHAR(17)) C2, CAST(NULL AS FLOAT)  C3;');
+  DECLARE @ViewObjectId INT = OBJECT_ID('Private_CreateFakeFunctionStatementTests.ASimpleView');
+  
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT TypeOnlySelectStatement FROM tSQLt.Private_CreateFakeFunctionStatement(@ViewObjectId,NULL));
+
+  DECLARE @Expected NVARCHAR(MAX) = 'SELECT TOP(0) CAST(NULL AS [sys].[bigint]) AS [C1],CAST(NULL AS [sys].[nvarchar](17)) AS [C2],CAST(NULL AS [sys].[float]) AS [C3]';
+
+  EXEC tSQLt.AssertEqualsString @Expected = @Expected, @Actual = @Actual;
+
+END;
+GO
+
