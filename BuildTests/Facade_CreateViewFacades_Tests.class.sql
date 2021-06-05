@@ -163,14 +163,11 @@ GO
 CREATE PROCEDURE Facade_CreateViewFacades_Tests.[test CreateViewFacade works for view names with single quote]
 AS
 BEGIN
-  CREATE TABLE dbo.[SomeR'andomTable] (a INT);
+  EXEC ('CREATE VIEW dbo.[SomeRa''ndomView] AS SELECT CAST(1 AS INT) a;');
+  DECLARE @ViewObjectId INT = OBJECT_ID('dbo.[SomeRa''ndomView]');
 
-  DECLARE @TableObjectId INT = OBJECT_ID('dbo.[SomeR''andomTable]');
+  EXEC Facade.CreateViewFacade @FacadeDbName = '$(tSQLtFacade)', @ViewObjectId = @ViewObjectId;
 
-  EXEC Facade.CreateViewFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
-
-  --EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.[SomeR''andomTable]';
-
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.[SomeRa''ndomView]';
 END;
 GO

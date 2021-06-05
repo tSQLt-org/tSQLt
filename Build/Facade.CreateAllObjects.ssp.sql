@@ -99,7 +99,7 @@ BEGIN
 	DECLARE @cmd NVARCHAR(MAX) = 
  (
    SELECT 'EXEC Facade.CreateTableFacade @FacadeDbName = @FacadeDbName, @TableObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
-     FROM (SELECT object_id, name, schema_id FROM Facade.[sys.tables] UNION ALL SELECT object_id, name, schema_id FROM Facade.[sys.views]) T
+     FROM Facade.[sys.tables] T
     WHERE UPPER(T.name) NOT LIKE 'PRIVATE%'
       AND T.schema_id = SCHEMA_ID('tSQLt')
       FOR XML PATH (''),TYPE

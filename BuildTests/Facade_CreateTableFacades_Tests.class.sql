@@ -198,28 +198,6 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacades also works for views]
-AS
-BEGIN
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTableFacade';
-  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.tables]';
-  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.views]';
-  EXEC('INSERT INTO Facade.[sys.views](object_id,schema_id,name) VALUES (1001,SCHEMA_ID(''tSQLt''),''aRandomView'');');
-  EXEC('INSERT INTO Facade.[sys.views](object_id,schema_id,name) VALUES (1002,SCHEMA_ID(''tSQLt''),''bRandomView'');');
-  EXEC('INSERT INTO Facade.[sys.views](object_id,schema_id,name) VALUES (1003,SCHEMA_ID(''dbo''),''cRandomView'');');
-  EXEC('INSERT INTO Facade.[sys.views](object_id,schema_id,name) VALUES (1004,SCHEMA_ID(''tSQLt''),''PrivateRandomView'');');
-  EXEC('INSERT INTO Facade.[sys.views](object_id,schema_id,name) VALUES (1005,SCHEMA_ID(''tSQLt''),''PrIVateRandomView'');');
-  EXEC('INSERT INTO Facade.[sys.views](object_id,schema_id,name) VALUES (1006,SCHEMA_ID(''tSQLt''),''PRIVATERandomView'');');
-
-  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
-
-  SELECT TableObjectId INTO #Actual FROM Facade.[CreateTableFacade_SpyProcedureLog];
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected
-  VALUES(1001),(1002);
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
 CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade works for table names with single quote]
 AS
 BEGIN
