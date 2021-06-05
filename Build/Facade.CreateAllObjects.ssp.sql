@@ -115,10 +115,46 @@ CREATE PROCEDURE Facade.CreateViewFacade
   @ViewObjectId INT
 AS
 BEGIN
-  SELECT * FROM  tSQLt.Private_CreateFakeFunctionStatement(@ViewObjectId, NULL)
+  DECLARE @SchemaName NVARCHAR(MAX) = QUOTENAME(OBJECT_SCHEMA_NAME(@ViewObjectId));
+  DECLARE @ViewName NVARCHAR(MAX) = QUOTENAME(OBJECT_NAME(@ViewObjectId));
+  DECLARE @OrigViewFullName NVARCHAR(MAX) = @SchemaName+'.'+@ViewName
+  DECLARE @CreateViewStatement NVARCHAR(MAX);
+
+  SELECT @CreateViewStatement = 
+      'CREATE VIEW ' + @OrigViewFullName + 
+      ' AS ' + 
+      TypeOnlySelectStatement 
+    FROM  tSQLt.Private_CreateFakeFunctionStatement(@ViewObjectId, NULL);
+
+  EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
+    
+  DECLARE @ExecInRemoteDb NVARCHAR(MAX) = QUOTENAME(@FacadeDbName)+'.sys.sp_executesql';
+  DECLARE @RemoteStatement NVARCHAR(MAX);
+
+  SET @RemoteStatement = 'EXEC(''' + REPLACE(@CreateViewStatement,'''','''''') + ''');'; /* Wrapping this in an EXEC makes sure it is executed in its own "batch". */
+  
+  EXEC @ExecInRemoteDb @RemoteStatement,N'';
   RETURN;
-END
+END;
 GO
+CREATE PROCEDURE Facade.CreateViewFacades
+  @FacadeDbName NVARCHAR(MAX)
+AS
+BEGIN
+	 DECLARE @cmd NVARCHAR(MAX) = 
+  (
+    SELECT 'EXEC Facade.CreateViewFacade @FacadeDbName = @FacadeDbName, @ViewObjectId = ' + CAST(object_id AS NVARCHAR(MAX)) + ';'
+      FROM Facade.[sys.views] V
+     WHERE UPPER(V.name) NOT LIKE 'PRIVATE%'
+       AND V.schema_id = SCHEMA_ID('tSQLt')
+       FOR XML PATH (''),TYPE
+  ).value('.','NVARCHAR(MAX)');
+    
+	 EXEC sys.sp_executesql @cmd, N'@FacadeDbName NVARCHAR(MAX)', @FacadeDbName;
+  RETURN;
+END;
+GO
+
 CREATE PROCEDURE Facade.CreateSFNFacade
   @FacadeDbName NVARCHAR(MAX), 
   @FunctionObjectId INT
