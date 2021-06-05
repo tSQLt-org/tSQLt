@@ -6,6 +6,12 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="Facade_BuildAndRunTests.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Facade_BuildAndRunTests.sql</FullPath>
+        </FileNode>
         <FileNode Name="Facade_CreateFacadeDb_Tests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

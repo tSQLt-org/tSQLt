@@ -302,19 +302,6 @@ BEGIN
   EXEC tSQLt.AssertObjectExists @ObjectName = @RemoteProcedureName;
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTBLorVWFacade works for table names with single quote]
-AS
-BEGIN
-  CREATE TABLE dbo.[SomeR'andomTable] (a INT);
-
-  DECLARE @TableObjectId INT = OBJECT_ID('dbo.[SomeR''andomTable]');
-
-  EXEC Facade.CreateTBLorVWFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
-
-  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.[SomeR''andomTable]';
-
-END;
-GO
 CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade works for function names with single quote]
 AS
 BEGIN
@@ -355,23 +342,6 @@ BEGIN
   EXEC Facade.CreateSSPFacades @FacadeDbName = '$(tSQLtFacade)';
 
   SELECT FacadeDbName INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)');
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTBLorVWFacades passes @FacadeDbName to CreateTBLorVWFacade]
-AS
-BEGIN
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTBLorVWFacade';
-  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.tables]';
-  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.views]';
-  EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''AProc'');');
-
-  EXEC Facade.CreateTBLorVWFacades @FacadeDbName = '$(tSQLtFacade)';
-
-  SELECT FacadeDbName INTO #Actual FROM Facade.[CreateTBLorVWFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
   VALUES('$(tSQLtFacade)');
@@ -684,7 +654,8 @@ AS
 BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSFNFacades';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSSPFacades';
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTBLorVWFacades';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTableFacades';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateViewFacades';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTypeFacades';
 
   EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';
@@ -697,12 +668,14 @@ BEGIN
     UNION ALL
     SELECT FacadeDbName, 'SSP' AS [Procedure] FROM Facade.[CreateSSPFacades_SpyProcedureLog]
     UNION ALL
-    SELECT FacadeDbName, 'TBLorVW' AS [Procedure] FROM Facade.[CreateTBLorVWFacades_SpyProcedureLog]
+    SELECT FacadeDbName, 'TBL' AS [Procedure] FROM Facade.[CreateTableFacades_SpyProcedureLog]
+    UNION ALL
+    SELECT FacadeDbName, 'VW' AS [Procedure] FROM Facade.[CreateViewFacades_SpyProcedureLog]
   ) SPL;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)','UDT'),('$(tSQLtFacade)','SFN'), ('$(tSQLtFacade)','SSP'), ('$(tSQLtFacade)','TBLorVW');
+  VALUES('$(tSQLtFacade)','UDT'),('$(tSQLtFacade)','SFN'), ('$(tSQLtFacade)','SSP'), ('$(tSQLtFacade)','TBL'), ('$(tSQLtFacade)','VW');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -720,7 +693,8 @@ AS
 BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSFNFacades';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSSPFacades';
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTBLorVWFacades';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTableFacades';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateViewFacades';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTypeFacades';
 
   EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';

@@ -92,10 +92,10 @@ BEGIN
 
   EXEC Facade.CreateViewFacades @FacadeDbName = '$(tSQLtFacade)';
 
-  SELECT ViewObjectId INTO #Actual FROM Facade.[CreateViewFacade_SpyProcedureLog];
+  SELECT FacadeDbName,ViewObjectId INTO #Actual FROM Facade.[CreateViewFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES(1001);
+  VALUES('$(tSQLtFacade)', 1001);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -111,10 +111,10 @@ BEGIN
 
   EXEC Facade.CreateViewFacades @FacadeDbName = '$(tSQLtFacade)';
 
-  SELECT ViewObjectId INTO #Actual FROM Facade.[CreateViewFacade_SpyProcedureLog];
+  SELECT FacadeDbName,ViewObjectId INTO #Actual FROM Facade.[CreateViewFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES(1001),(1002),(1003);
+  VALUES('$(tSQLtFacade)', 1001),('$(tSQLtFacade)', 1002),('$(tSQLtFacade)', 1003);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -157,5 +157,20 @@ BEGIN
   INSERT INTO #Expected
   VALUES(1001),(1002);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROCEDURE Facade_CreateViewFacades_Tests.[test CreateViewFacade works for view names with single quote]
+AS
+BEGIN
+  CREATE TABLE dbo.[SomeR'andomTable] (a INT);
+
+  DECLARE @TableObjectId INT = OBJECT_ID('dbo.[SomeR''andomTable]');
+
+  EXEC Facade.CreateViewFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+
+  --EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.[SomeR''andomTable]';
+
+  EXEC tSQLt.Fail 'TODO';
 END;
 GO

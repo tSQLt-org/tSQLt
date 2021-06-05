@@ -220,3 +220,33 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade works for table names with single quote]
+AS
+BEGIN
+  CREATE TABLE dbo.[SomeR'andomTable] (a INT);
+
+  DECLARE @TableObjectId INT = OBJECT_ID('dbo.[SomeR''andomTable]');
+
+  EXEC Facade.CreateTableFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.[SomeR''andomTable]';
+
+END;
+GO
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacades passes @FacadeDbName to CreateTableFacade]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTableFacade';
+  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.tables]';
+  EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.views]';
+  EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''AProc'');');
+
+  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
+
+  SELECT FacadeDbName INTO #Actual FROM Facade.[CreateTableFacade_SpyProcedureLog];
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('$(tSQLtFacade)');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO

@@ -244,6 +244,7 @@ BEGIN
 
   EXEC Facade.CreateTypeFacades @FacadeDbName = @FacadeDbName;
   EXEC Facade.CreateTableFacades @FacadeDbName = @FacadeDbName;
+  EXEC Facade.CreateViewFacades @FacadeDbName = @FacadeDbName;
   EXEC Facade.CreateSSPFacades @FacadeDbName = @FacadeDbName;
   EXEC Facade.CreateSFNFacades @FacadeDbName = @FacadeDbName;
 
