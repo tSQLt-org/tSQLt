@@ -7,7 +7,7 @@ RETURNS TABLE
 AS
 RETURN
   SELECT SkipTestFunction.*
-    FROM (SELECT PSV.HostPlatform FROM tSQLt.Private_SqlVersion() AS PSV WHERE PSV.HostPlatform <> @HostPlatform) AV
+    FROM (SELECT I.HostPlatform FROM tSQLt.Info() AS I WHERE I.HostPlatform <> @HostPlatform) AV
    CROSS APPLY tSQLt.[@tSQLt:SkipTest]('HostPlatform is required to be '''+
                                        @HostPlatform +
                                        ''', but is '''+
