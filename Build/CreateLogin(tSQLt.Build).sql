@@ -9,21 +9,25 @@ CREATE PROCEDURE #ForceDropDatabase
 @db_name NVARCHAR(MAX)
 AS
 BEGIN
+  SET @db_name = PARSENAME(@db_name,1);
+  DECLARE @cmd NVARCHAR(MAX);
   IF(DB_ID(@db_name)IS NOT NULL)
   BEGIN
     BEGIN TRY
-    EXEC('
+    SET @cmd = '
     USE master;
-    ALTER DATABASE '+@db_name+' SET ONLINE WITH ROLLBACK IMMEDIATE;
-    ALTER DATABASE '+@db_name+' SET RESTRICTED_USER WITH ROLLBACK IMMEDIATE;
-    USE '+@db_name+';
-    ALTER DATABASE '+@db_name+' SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    ');
+    ALTER DATABASE '+QUOTENAME(@db_name)+' SET ONLINE WITH ROLLBACK IMMEDIATE;
+    ALTER DATABASE '+QUOTENAME(@db_name)+' SET RESTRICTED_USER WITH ROLLBACK IMMEDIATE;
+    USE '+QUOTENAME(@db_name)+';
+    ALTER DATABASE '+QUOTENAME(@db_name)+' SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    ';
+    EXEC(@cmd);
     END TRY BEGIN CATCH END CATCH;
-    EXEC('
+    SET @cmd = '
     USE master;
-    DROP DATABASE '+@db_name+';
-    ');
+    DROP DATABASE '+QUOTENAME(@db_name)+';
+    ';
+    EXEC(@cmd);
   END;
 END
 GO

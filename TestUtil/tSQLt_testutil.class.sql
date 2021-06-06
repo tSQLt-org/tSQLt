@@ -159,29 +159,48 @@ BEGIN
   DECLARE @TestClassName NVARCHAR(MAX);
   DECLARE @TestProcName NVARCHAR(MAX);
 
-  DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
+  DECLARE testsWithExtendedProperty CURSOR LOCAL FAST_FORWARD FOR
    SELECT DISTINCT s.name AS testClassName
      FROM sys.extended_properties ep
      JOIN sys.schemas s
        ON ep.major_id = s.schema_id
     WHERE ep.name = N'tSQLt.TestClass';
 
-  OPEN tests;
+  OPEN testsWithExtendedProperty;
   
-  FETCH NEXT FROM tests INTO @TestClassName;
+  FETCH NEXT FROM testsWithExtendedProperty INTO @TestClassName;
   WHILE @@FETCH_STATUS = 0
   BEGIN
     EXEC sp_dropextendedproperty @name = 'tSQLt.TestClass',
                                  @level0type = 'SCHEMA',
                                  @level0name = @TestClassName;
     
-    FETCH NEXT FROM tests INTO @TestClassName;
+    FETCH NEXT FROM testsWithExtendedProperty INTO @TestClassName;
   END;
   
-  CLOSE tests;
-  DEALLOCATE tests;
+  CLOSE testsWithExtendedProperty;
+  DEALLOCATE testsWithExtendedProperty;
+
+  DECLARE testsWithSchemaClassification CURSOR LOCAL FAST_FORWARD FOR
+   SELECT DISTINCT s.name AS testClassName
+     FROM sys.schemas s
+    WHERE s.principal_id = USER_ID('tSQLt.TestClass');
+
+  OPEN testsWithSchemaClassification;
+  
+  FETCH NEXT FROM testsWithSchemaClassification INTO @TestClassName;
+  WHILE @@FETCH_STATUS = 0
+  BEGIN
+    DECLARE @cmd NVARCHAR(MAX) = 'ALTER AUTHORIZATION ON SCHEMA::'+QUOTENAME(@TestClassName)+' TO dbo;';
+    EXEC(@cmd);
+    FETCH NEXT FROM testsWithSchemaClassification INTO @TestClassName;
+  END;
+  
+  CLOSE testsWithSchemaClassification;
+  DEALLOCATE testsWithSchemaClassification;
 END;
 GO
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 

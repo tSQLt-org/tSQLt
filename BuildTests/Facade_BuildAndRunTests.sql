@@ -1,0 +1,12 @@
+--:r ../Build/Facade.CreateDatabase.
+--GO
+--:r ../Build/Facade.CreateAllObjects.ssp.sql
+--GO
+--:r Facade_CreateFacadeDb_Tests.class.sql
+--GO
+--:r Facade_CreateTableFacades_Tests.class.sql
+--GO
+--:r Facade_CreateViewFacades_Tests.class.sql
+--GO
+--EXEC tSQLt.RunAll;
+--GO

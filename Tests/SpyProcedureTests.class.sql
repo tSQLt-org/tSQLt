@@ -670,3 +670,67 @@ BEGIN
     
 END;
 GO
+CREATE PROC SpyProcedureTests.[test Private_GenerateCreateProcedureSpyStatement does not create log table when @LogTableName is NULL]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;');
+
+    DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.OriginalInnerProcedure');
+
+    DECLARE @CreateProcedureStatement NVARCHAR(MAX);
+    DECLARE @CreateLogTableStatement NVARCHAR(MAX);
+
+    EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
+           @ProcedureObjectId = @ProcedureObjectId,
+           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @LogTableName = NULL,
+           @CommandToExecute = NULL,
+           @CreateProcedureStatement = @CreateProcedureStatement OUT,
+           @CreateLogTableStatement = @CreateLogTableStatement OUT;
+
+    EXEC tSQLt.AssertEqualsString @Expected = NULL, @Actual = @CreateLogTableStatement;     
+END;
+GO
+GO
+CREATE PROC SpyProcedureTests.[test Private_CreateProcedureSpy does create spy when @LogTableName is NULL]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;');
+
+    DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.OriginalInnerProcedure');
+
+    DECLARE @CreateProcedureStatement NVARCHAR(MAX);
+    DECLARE @CreateLogTableStatement NVARCHAR(MAX);
+
+    EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
+           @ProcedureObjectId = @ProcedureObjectId,
+           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @LogTableName = NULL,
+           @CommandToExecute = NULL,
+           @CreateProcedureStatement = @CreateProcedureStatement OUT,
+           @CreateLogTableStatement = @CreateLogTableStatement OUT;
+
+    EXEC(@CreateProcedureStatement);
+
+    EXEC tSQLt.AssertObjectExists @ObjectName = 'dbo.SpiedInnerProcedure';     
+
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works with CLR procedures]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @expectedCommand NVARCHAR(MAX), @actualCommand NVARCHAR(MAX) AS EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].AssertResultSetsHaveSameMetaData;');
+    
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcedure';
+
+    EXEC dbo.InnerProcedure @expectedCommand = 'Select 1 [Int]', @actualCommand = 'Select ''c'' [char]';
+
+    SELECT expectedCommand, actualCommand INTO #Actual FROM dbo.InnerProcedure_SpyProcedureLog;
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected
+    VALUES('Select 1 [Int]', 'Select ''c'' [char]');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
