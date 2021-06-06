@@ -13,7 +13,7 @@
 
  <target
    name="package.create.tSQLt"
-   depends="init, init.tSQLtCLR, package.copy.files, package.create.tSQLtDrop, package.construct.tsqlt, package.set.build.version, package.create.PrepareServer, package.create.example, package.create.artifacts"
+   depends="init, init.tSQLtCLR, package.copy.files, package.create.tSQLtDrop, package.construct.tsqlt, package.set.build.version, package.create.PrepareServer, package.create.example, exec.powershell.build"
    />
 
  <target
@@ -311,21 +311,12 @@
   </exec>
  </target>
 
- <target name="package.create.artifacts">
-  <delete file="output/tSQLt.zip" />
-  <delete file="output/ReadMe.txt" />
-  <delete file="output/Version.txt" />
-  <zip zipfile="output/tSQLt.zip">
-   <fileset dir="temp">
-    <include name="ReleaseNotes.txt"/>
-    <include name="License.txt"/>
-    <include name="tSQLt.class.sql"/>
-    <include name="Example.sql"/>
-    <include name="PrepareServer.sql"/>
-   </fileset>
-  </zip>
-  <copy file="temp/Version.txt" tofile="output/Version.txt"/>
-  <copy file="temp/ReleaseNotes.txt" tofile="output/ReadMe.txt"/>
+ <target name="exec.powershell.build">
+  <exec dir="." executable="powershell" timeout="5000" failonerror="true"
+          outputproperty="output/build.ps1.out" errorproperty="output/build.ps1.error">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File build.ps1" />
+  </exec>
  </target>
 
  <!--=======================================================================-->
