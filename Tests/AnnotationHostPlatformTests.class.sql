@@ -1,15 +1,5 @@
 EXEC tSQLt.NewTestClass 'AnnotationHostPlatformTests';
 GO
-CREATE FUNCTION AnnotationHostPlatformTests.[SomePlatform]()
-RETURNS TABLE
-AS
-RETURN SELECT NULL AS ProductVersion, NULL AS Edition, 'SomePlatform' AS HostPlatform;
-GO
-CREATE FUNCTION AnnotationHostPlatformTests.[Platform13]()
-RETURNS TABLE
-AS
-RETURN SELECT NULL AS ProductVersion, NULL AS Edition, 'Platform13' AS HostPlatform;
-GO
 CREATE PROCEDURE AnnotationHostPlatformTests.[test allows test to execute if actual host platform is equal to the provided one]
 AS
 BEGIN
@@ -19,8 +9,8 @@ BEGIN
 CREATE PROCEDURE MyInnerTests.[test should execute] AS RAISERROR(''test executed'',16,10);
   ');
 
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationHostPlatformTests.[SomePlatform]';
-
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_HostPlatform';
+  EXEC('INSERT INTO tSQLt.Private_HostPlatform(host_platform) VALUES (''SomePlatform'');');
   
   EXEC tSQLt_testutil.AssertTestErrors
        @TestName = 'MyInnerTests.[test should execute]',
@@ -36,7 +26,8 @@ BEGIN
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
 
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationHostPlatformTests.[SomePlatform]';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_HostPlatform';
+  EXEC('INSERT INTO tSQLt.Private_HostPlatform(host_platform) VALUES (''SomePlatform'');');
 
   
   EXEC tSQLt_testutil.AssertTestSkipped
@@ -52,7 +43,8 @@ BEGIN
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
 
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationHostPlatformTests.[SomePlatform]';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_HostPlatform';
+  EXEC('INSERT INTO tSQLt.Private_HostPlatform(host_platform) VALUES (''SomePlatform'');');
 
   
   EXEC tSQLt_testutil.AssertTestSkipped
@@ -69,7 +61,8 @@ BEGIN
 CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
   ');
 
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationHostPlatformTests.[Platform13]';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_HostPlatform';
+  EXEC('INSERT INTO tSQLt.Private_HostPlatform(host_platform) VALUES (''Platform13'');');
 
   
   EXEC tSQLt_testutil.AssertTestSkipped

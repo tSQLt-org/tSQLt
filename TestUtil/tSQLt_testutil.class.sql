@@ -359,6 +359,19 @@ BEGIN
    EXEC tSQLt.Fail 'Expected to find ',@Pattern,' in ',@Table,' but didn''t. Table was empty.';
  END;
 END;
+GO
+CREATE PROCEDURE tSQLt_testutil.WaitForMS
+  @milliseconds INT
+AS
+BEGIN
+  --WAITFOR DELAY might return significantly earlier than one would expect. Hence this workaround...
+  DECLARE @EndTime DATETIME2 = DATEADD(MILLISECOND,@milliseconds,SYSDATETIME());
+  WHILE(SYSDATETIME()<@EndTime)
+  BEGIN
+    WAITFOR DELAY '00:00:00.010';
+  END;
+END;
+GO
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
