@@ -1,5 +1,6 @@
+---Build-
 :SETVAR NewDbName tSQLtFacade
-
+---Build+
 GO
 IF(DB_ID('$(NewDbName)') IS NOT NULL)
 BEGIN

@@ -1,5 +1,19 @@
 <#
-Step 1 is to replace the body of the  <target name="package.create.artifacts"> dba "exec.powershell.build" from tSQLt.build.xml
+Step # is to replace the body of the  <target name="package.create.artifacts"> dba "exec.powershell.build" from tSQLt.build.xml
+#>
+
+
+
+
+
+
+
+
+
+
+
+<#
+Step # is to replace the body of the  <target name="package.create.artifacts"> dba "exec.powershell.build" from tSQLt.build.xml
 #>
 
 # Delete files which might have been generated from previous builds
@@ -15,3 +29,4 @@ Get-ChildItem -Path "temp/*" -Include $toBeZipped | Compress-Archive @compress
 
 Copy-Item "temp/ReleaseNotes.txt" -Destination "output/ReadMe.txt";
 Copy-Item "temp/Version.txt" -Destination "output/";
+Copy-Item "temp/tSQLt.class.sql" -Destination "output/";

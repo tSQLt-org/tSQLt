@@ -54,18 +54,6 @@
           <AssociatedConnUserName />
           <FullPath>ExecuteResetValidationServer.sql</FullPath>
         </FileNode>
-        <FileNode Name="Facade.CreateAllObjects.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Facade.CreateAllObjects.ssp.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Facade.CreateDatabase.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Facade.CreateDatabase.sql</FullPath>
-        </FileNode>
         <FileNode Name="GetFailedTestCount.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

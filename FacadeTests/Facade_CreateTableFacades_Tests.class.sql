@@ -1,4 +1,6 @@
+---Build-
 :SETVAR tSQLtFacade tSQLtFacade
+---Build+
 GO
 EXEC tSQLt.NewTestClass 'Facade_CreateTableFacades_Tests';
 GO
