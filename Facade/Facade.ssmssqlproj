@@ -12,21 +12,15 @@
           <AssociatedConnUserName />
           <FullPath>Facade.CreateAllObjects.ssp.sql</FullPath>
         </FileNode>
-        <FileNode Name="Facade.CreateDatabase.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Facade.CreateDatabase.sql</FullPath>
-        </FileNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
       <Items>
-        <FileNode Name="build.ps1">
+        <FileNode Name="buildFacadeScripts.ps1">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>build.ps1</FullPath>
+          <FullPath>buildFacadeScripts.ps1</FullPath>
         </FileNode>
         <FileNode Name="BuildOrder.txt">
           <AssociatedConnectionMoniker />

@@ -1,5 +1,4 @@
----Build-
-:SETVAR tSQLtFacade tSQLtFacade
+:SETVAR FacadeTargetDb tSQLtFacade
 ---Build+
 GO
 EXEC tSQLt.NewTestClass 'Facade_CreateFacadeDb_Tests';
@@ -12,7 +11,7 @@ BEGIN
   EXEC('CREATE PROC dbo.AProc AS RETURN;'); 
   DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.AProc');
   
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = @ProcedureObjectId;
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(FacadeTargetDb)', @ProcedureObjectId = @ProcedureObjectId;
 
   SELECT 
       ProcedureObjectId,
@@ -35,7 +34,7 @@ BEGIN
   EXEC('CREATE PROC dbo.AProc AS RETURN;'); 
   DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.AProc');
   
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = @ProcedureObjectId;
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(FacadeTargetDb)', @ProcedureObjectId = @ProcedureObjectId;
 
   SELECT 
       LogTableName,
@@ -50,17 +49,17 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacade executes @CreateProcedureStatement from Private_GenerateCreateProcedureSpyStatement in $(tSQLtFacade)]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacade executes @CreateProcedureStatement from Private_GenerateCreateProcedureSpyStatement in $(FacadeTargetDb)]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 
          @ProcedureName = 'tSQLt.Private_GenerateCreateProcedureSpyStatement', 
          @CommandToExecute='SET @CreateProcedureStatement = ''CREATE PROCEDURE dbo.AProc AS RETURN;'';';
 
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = NULL;
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(FacadeTargetDb)', @ProcedureObjectId = NULL;
 
   DECLARE @Actual NVARCHAR(MAX);
-  SELECT @Actual = definition FROM $(tSQLtFacade).sys.sql_modules WHERE object_id = OBJECT_ID('$(tSQLtFacade).dbo.AProc');
+  SELECT @Actual = definition FROM $(FacadeTargetDb).sys.sql_modules WHERE object_id = OBJECT_ID('$(FacadeTargetDb).dbo.AProc');
   
   EXEC tSQLt.AssertEqualsString @Expected = 'CREATE PROCEDURE dbo.AProc AS RETURN;', @Actual = @Actual;
 END;
@@ -69,14 +68,14 @@ CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacade works for oth
 AS
 BEGIN
   EXEC('CREATE SCHEMA SomeOtherSchemaForFacadeTests;');
-  EXEC $(tSQLtFacade).sys.sp_executesql N'EXEC(''CREATE SCHEMA SomeOtherSchemaForFacadeTests;'');',N'';
+  EXEC $(FacadeTargetDb).sys.sp_executesql N'EXEC(''CREATE SCHEMA SomeOtherSchemaForFacadeTests;'');',N'';
 
   EXEC('CREATE PROC SomeOtherSchemaForFacadeTests.AnotherProc AS RETURN 42;'); 
   DECLARE @ProcedureObjectId INT = OBJECT_ID('SomeOtherSchemaForFacadeTests.AnotherProc');
   
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = @ProcedureObjectId;
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(FacadeTargetDb)', @ProcedureObjectId = @ProcedureObjectId;
 
-  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).SomeOtherSchemaForFacadeTests.AnotherProc';
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(FacadeTargetDb).SomeOtherSchemaForFacadeTests.AnotherProc';
 END;
 GO
 CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacade works for other schema that does NOT exist in the facade db]
@@ -93,10 +92,10 @@ BEGIN
   
 
   DECLARE @ProcedureObjectId INT = OBJECT_ID(@SchemaName+'.AnotherProc');
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = @ProcedureObjectId;
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(FacadeTargetDb)', @ProcedureObjectId = @ProcedureObjectId;
 
 
-  DECLARE @RemoteProcedureName NVARCHAR(MAX) = '$(tSQLtFacade).'+@SchemaName+'.AnotherProc'; 
+  DECLARE @RemoteProcedureName NVARCHAR(MAX) = '$(FacadeTargetDb).'+@SchemaName+'.AnotherProc'; 
   EXEC tSQLt.AssertObjectExists @ObjectName = @RemoteProcedureName;
 END;
 GO
@@ -115,7 +114,7 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSSPFacade';
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.procedures]';
 
-  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   EXEC tSQLt.AssertEmptyTable @TableName = 'Facade.[CreateSSPFacade_SpyProcedureLog]';
 END;
@@ -127,7 +126,7 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.procedures]';
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''AProc'');');
 
-  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT ProcedureObjectId INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -146,7 +145,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1002,SCHEMA_ID(''tSQLt''),''AProc2'');');
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1003,SCHEMA_ID(''tSQLt''),''AProc3'');');
 
-  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT ProcedureObjectId INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -165,7 +164,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1002,SCHEMA_ID(''dbo''),''AProc2'');');
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1003,SCHEMA_ID(''tSQLt''),''AProc3'');');
 
-  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT ProcedureObjectId INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -186,7 +185,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1004,SCHEMA_ID(''tSQLt''),''PrIVateProc3'');');
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1005,SCHEMA_ID(''tSQLt''),''PRIVATEProc3'');');
 
-  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT ProcedureObjectId INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -197,17 +196,17 @@ END;
 GO
 
 
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade executes the statement returned from tSQLt.Private_CreateFakeFunctionStatement in the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade executes the statement returned from tSQLt.Private_CreateFakeFunctionStatement in the $(FacadeTargetDb) database]
 AS
 BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt.Private_CreateFakeFunctionStatement',
                           @FakeDataSource = N'SELECT ''CREATE FUNCTION dbo.aRandomFunction () RETURNS INT AS BEGIN RETURN 1; END;'' CreateStatement';
 
-  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(tSQLtFacade)', @FunctionObjectId = NULL;
+  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(FacadeTargetDb)', @FunctionObjectId = NULL;
 
   SELECT 'Is a function.' AS resultColumn INTO #Actual
-    FROM $(tSQLtFacade).sys.objects O 
-	JOIN $(tSQLtFacade).sys.schemas S ON (O.schema_id = S.schema_id)
+    FROM $(FacadeTargetDb).sys.objects O 
+	JOIN $(FacadeTargetDb).sys.schemas S ON (O.schema_id = S.schema_id)
    WHERE O.name = 'aRandomFunction' 
 	 AND S.name = 'dbo'
 	 AND O.type = 'FN';
@@ -236,7 +235,7 @@ BEGIN
 
   EXEC tSQLt.ExpectException @ExpectedMessage = N'@FunctionObjectId=4217';
   
-  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(tSQLtFacade)', @FunctionObjectId = 4217;
+  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(FacadeTargetDb)', @FunctionObjectId = 4217;
 
 END;
 GO
@@ -255,11 +254,11 @@ BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt.Private_CreateFakeFunctionStatement',
                           @FakeDataSource = @FakeDataSourceStatement;
 
-  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(tSQLtFacade)', @FunctionObjectId = @FunctionObjectId;
+  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(FacadeTargetDb)', @FunctionObjectId = @FunctionObjectId;
 
   SELECT 'Is a function.' AS resultColumn INTO #Actual
-    FROM $(tSQLtFacade).sys.objects O 
-	JOIN $(tSQLtFacade).sys.schemas S ON (O.schema_id = S.schema_id)
+    FROM $(FacadeTargetDb).sys.objects O 
+	JOIN $(FacadeTargetDb).sys.schemas S ON (O.schema_id = S.schema_id)
    WHERE O.name = 'aRandomFunction' 
 	 AND S.name = @SchemaName
 	 AND O.type = 'FN';
@@ -283,9 +282,9 @@ BEGIN
   EXEC(@cmd);
   
   DECLARE @ProcedureObjectId INT = OBJECT_ID(@SchemaName+'.AnotherProc');
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = @ProcedureObjectId;
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(FacadeTargetDb)', @ProcedureObjectId = @ProcedureObjectId;
 
-  DECLARE @RemoteProcedureName NVARCHAR(MAX) = '$(tSQLtFacade).'+@SchemaName+'.AnotherProc'; 
+  DECLARE @RemoteProcedureName NVARCHAR(MAX) = '$(FacadeTargetDb).'+@SchemaName+'.AnotherProc'; 
   EXEC tSQLt.AssertObjectExists @ObjectName = @RemoteProcedureName;
 END;
 GO
@@ -298,9 +297,9 @@ BEGIN
   EXEC(@cmd);
   
   DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.[Anothe''rProc]');
-  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(tSQLtFacade)', @ProcedureObjectId = @ProcedureObjectId;
+  EXEC Facade.CreateSSPFacade @FacadeDbName = '$(FacadeTargetDb)', @ProcedureObjectId = @ProcedureObjectId;
 
-  DECLARE @RemoteProcedureName NVARCHAR(MAX) = '$(tSQLtFacade).dbo.[Anothe''rProc]'; 
+  DECLARE @RemoteProcedureName NVARCHAR(MAX) = '$(FacadeTargetDb).dbo.[Anothe''rProc]'; 
   EXEC tSQLt.AssertObjectExists @ObjectName = @RemoteProcedureName;
 END;
 GO
@@ -316,11 +315,11 @@ BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt.Private_CreateFakeFunctionStatement',
                           @FakeDataSource = @FakeDataSourceStatement;
 
-  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(tSQLtFacade)', @FunctionObjectId = @FunctionObjectId;
+  EXEC Facade.CreateSFNFacade @FacadeDbName = '$(FacadeTargetDb)', @FunctionObjectId = @FunctionObjectId;
 
   SELECT 'Is a function.' AS resultColumn INTO #Actual
-    FROM $(tSQLtFacade).sys.objects O 
-	JOIN $(tSQLtFacade).sys.schemas S ON (O.schema_id = S.schema_id)
+    FROM $(FacadeTargetDb).sys.objects O 
+	JOIN $(FacadeTargetDb).sys.schemas S ON (O.schema_id = S.schema_id)
    WHERE O.name = 'aRando''mFunction' 
 	 AND S.name = 'dbo'
 	 AND O.type = 'FN';
@@ -341,12 +340,12 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.procedures]';
   EXEC('INSERT INTO Facade.[sys.procedures](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''AProc'');');
 
-  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSSPFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName INTO #Actual FROM Facade.[CreateSSPFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)');
+  VALUES('$(FacadeTargetDb)');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -356,7 +355,7 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateSFNFacade';
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.objects]';
 
-  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   EXEC tSQLt.AssertEmptyTable @TableName = 'Facade.[CreateSFNFacade_SpyProcedureLog]';
 END;
@@ -368,12 +367,12 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.objects]';
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1001,SCHEMA_ID(''tSQLt''),''aRandomFunction'',''FN'');');
 
-  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName, FunctionObjectId INTO #Actual FROM Facade.[CreateSFNFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)', 1001);
+  VALUES('$(FacadeTargetDb)', 1001);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 
 END;
@@ -387,12 +386,12 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1002,SCHEMA_ID(''tSQLt''),''bRandomFunction'',''FN'');');
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1003,SCHEMA_ID(''tSQLt''),''cRandomFunction'',''FN'');');
 
-  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName, FunctionObjectId INTO #Actual FROM Facade.[CreateSFNFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)', 1001), ('$(tSQLtFacade)', 1002), ('$(tSQLtFacade)', 1003);
+  VALUES('$(FacadeTargetDb)', 1001), ('$(FacadeTargetDb)', 1002), ('$(FacadeTargetDb)', 1003);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 
 END;
@@ -408,7 +407,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1004,SCHEMA_ID(''tSQLt''),''PRIVATERandomFunction'',''FN'');');
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1005,SCHEMA_ID(''tSQLt''),''cRandomFunction'',''FN'');');
 
-  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FunctionObjectId INTO #Actual FROM Facade.[CreateSFNFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -427,7 +426,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1002,SCHEMA_ID(''tSQLt''),''bRandomFunction'',''FN'');');
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1003,SCHEMA_ID(''dbo''),''cRandomFunction'',''FN'');');
 
-  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FunctionObjectId INTO #Actual FROM Facade.[CreateSFNFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -450,7 +449,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1006,SCHEMA_ID(''tSQLt''),''fRandomObject'',''P'');');
   EXEC('INSERT INTO Facade.[sys.objects](object_id,schema_id,name,type)VALUES (1007,SCHEMA_ID(''tSQLt''),''gRandomObject'',''SN'');');
 
-  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateSFNFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FunctionObjectId INTO #Actual FROM Facade.[CreateSFNFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -460,17 +459,17 @@ BEGIN
 
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies a simple table type to the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies a simple table type to the $(FacadeTargetDb) database]
 AS
 BEGIN
   CREATE TYPE dbo.SomeRandomType AS TABLE (a INT);
 
   DECLARE @UserTypeId INT = TYPE_ID('dbo.SomeRandomType');
   
-  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(tSQLtFacade)', @UserTypeId = @UserTypeId;
+  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(FacadeTargetDb)', @UserTypeId = @UserTypeId;
 
   DECLARE @RemoteTypeId INT;
-  EXEC $(tSQLtFacade).sys.sp_executesql N'SET @TypeId = (SELECT TYPE_ID(''dbo.SomeRandomType''));',N'@TypeId INT OUTPUT', @RemoteTypeId OUT;
+  EXEC $(FacadeTargetDb).sys.sp_executesql N'SET @TypeId = (SELECT TYPE_ID(''dbo.SomeRandomType''));',N'@TypeId INT OUTPUT', @RemoteTypeId OUT;
 
   EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteTypeId, @Message = N'Remote Type not found. ';
 END;
@@ -483,7 +482,7 @@ BEGIN
   
   EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%CreateTypeFacade currently handles only TABLE_TYPEs%', @ExpectedSeverity = 16, @ExpectedState = 10;
   
-  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(tSQLtFacade)', @UserTypeId = @UserTypeId;
+  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(FacadeTargetDb)', @UserTypeId = @UserTypeId;
 END;
 GO
 
@@ -491,21 +490,21 @@ CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade works for ot
 AS
 BEGIN
   EXEC('CREATE SCHEMA SomeOtherSchemaForFacadeTests;');
-  EXEC $(tSQLtFacade).sys.sp_executesql N'EXEC(''CREATE SCHEMA SomeOtherSchemaForFacadeTests;'');',N'';
+  EXEC $(FacadeTargetDb).sys.sp_executesql N'EXEC(''CREATE SCHEMA SomeOtherSchemaForFacadeTests;'');',N'';
 
   CREATE TYPE SomeOtherSchemaForFacadeTests.SomeRandomType AS TABLE (a INT);
 
   DECLARE @UserTypeId INT = TYPE_ID('SomeOtherSchemaForFacadeTests.SomeRandomType');
   
-  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(tSQLtFacade)', @UserTypeId = @UserTypeId;
+  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(FacadeTargetDb)', @UserTypeId = @UserTypeId;
 
   DECLARE @RemoteTypeId INT;
-  EXEC $(tSQLtFacade).sys.sp_executesql N'SET @TypeId = (SELECT TYPE_ID(''SomeOtherSchemaForFacadeTests.SomeRandomType''));',N'@TypeId INT OUTPUT', @RemoteTypeId OUT;
+  EXEC $(FacadeTargetDb).sys.sp_executesql N'SET @TypeId = (SELECT TYPE_ID(''SomeOtherSchemaForFacadeTests.SomeRandomType''));',N'@TypeId INT OUTPUT', @RemoteTypeId OUT;
 
   EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteTypeId, @Message = N'Remote Type not found. ';
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type into a schema that does not exist in the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type into a schema that does not exist in the $(FacadeTargetDb) database]
 AS
 BEGIN
   DECLARE @SchemaName NVARCHAR(MAX) = 'SomeRandomSchema'+CONVERT(NVARCHAR(MAX),CAST(NEWID() AS VARBINARY(MAX)),2);
@@ -518,28 +517,28 @@ BEGIN
   EXEC(@cmd);
 
   DECLARE @UserTypeId INT = TYPE_ID(@SchemaName + '.SomeRandomType');
-  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(tSQLtFacade)', @UserTypeId = @UserTypeId;
+  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(FacadeTargetDb)', @UserTypeId = @UserTypeId;
 
   DECLARE @RemoteTypeId INT;
   SET @cmd = 'SET @TypeId = (SELECT TYPE_ID(''' + @SchemaName + '.SomeRandomType''));';
-  EXEC $(tSQLtFacade).sys.sp_executesql @cmd,N'@TypeId INT OUTPUT', @RemoteTypeId OUT;
+  EXEC $(FacadeTargetDb).sys.sp_executesql @cmd,N'@TypeId INT OUTPUT', @RemoteTypeId OUT;
 
   EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteTypeId, @Message = N'Remote Type not found. ';
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type with multiple columns to the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type with multiple columns to the $(FacadeTargetDb) database]
 AS
 BEGIN
   CREATE TYPE dbo.SomeRandomType AS TABLE (a INT, bb NVARCHAR(MAX), ccc DATETIME2);
 
   DECLARE @UserTypeId INT = TYPE_ID('dbo.SomeRandomType');
   
-  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(tSQLtFacade)', @UserTypeId = @UserTypeId;
+  EXEC Facade.CreateTypeFacade @FacadeDbName = '$(FacadeTargetDb)', @UserTypeId = @UserTypeId;
 
   DECLARE @LocalTypeTableObjectId INT = (SELECT t.type_table_object_id FROM sys.table_types t WHERE t.user_type_id = @UserTypeId);
  
   DECLARE @RemoteTypeTableObjectId INT;
-  EXEC $(tSQLtFacade).sys.sp_executesql N'SET @RemoteTypeTableObjectId = (SELECT t.type_table_object_id FROM sys.table_types t WHERE t.user_type_id = TYPE_ID(''dbo.SomeRandomType''));',N'@RemoteTypeTableObjectId INT OUTPUT', @RemoteTypeTableObjectId OUT;
+  EXEC $(FacadeTargetDb).sys.sp_executesql N'SET @RemoteTypeTableObjectId = (SELECT t.type_table_object_id FROM sys.table_types t WHERE t.user_type_id = TYPE_ID(''dbo.SomeRandomType''));',N'@RemoteTypeTableObjectId INT OUTPUT', @RemoteTypeTableObjectId OUT;
 
   SELECT 
       C.name,
@@ -551,7 +550,7 @@ BEGIN
       C.scale,
       C.is_nullable,
       C.is_identity
-    INTO #Actual FROM $(tSQLtFacade).sys.columns AS C WHERE C.object_id = @RemoteTypeTableObjectId;
+    INTO #Actual FROM $(FacadeTargetDb).sys.columns AS C WHERE C.object_id = @RemoteTypeTableObjectId;
 
   SELECT 
       C.name,
@@ -574,7 +573,7 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTypeFacade';
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.types]';
 
-  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   EXEC tSQLt.AssertEmptyTable @TableName = 'Facade.[CreateTypeFacade_SpyProcedureLog]';
 END;
@@ -586,12 +585,12 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.types]';
   EXEC ('INSERT INTO Facade.[sys.types] (user_type_id, schema_id, name) VALUES (101, SCHEMA_ID(''tSQLt''),''aType'');');
 
-  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName, UserTypeId INTO #Actual FROM Facade.[CreateTypeFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)', 101);
+  VALUES('$(FacadeTargetDb)', 101);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -604,12 +603,12 @@ BEGIN
   EXEC ('INSERT INTO Facade.[sys.types] (user_type_id, schema_id, name) VALUES (102, SCHEMA_ID(''tSQLt''),''bType'');');
   EXEC ('INSERT INTO Facade.[sys.types] (user_type_id, schema_id, name) VALUES (103, SCHEMA_ID(''tSQLt''),''cType'');');
 
-  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName, UserTypeId INTO #Actual FROM Facade.[CreateTypeFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)', 101),('$(tSQLtFacade)', 102),('$(tSQLtFacade)', 103);
+  VALUES('$(FacadeTargetDb)', 101),('$(FacadeTargetDb)', 102),('$(FacadeTargetDb)', 103);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -622,12 +621,12 @@ BEGIN
   EXEC ('INSERT INTO Facade.[sys.types] (user_type_id, schema_id, name) VALUES (102, SCHEMA_ID(''dbo''),''bType'');');
   EXEC ('INSERT INTO Facade.[sys.types] (user_type_id, schema_id, name) VALUES (103, SCHEMA_ID(''tSQLt''),''cType'');');
 
-  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName, UserTypeId INTO #Actual FROM Facade.[CreateTypeFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)', 101),('$(tSQLtFacade)', 103);
+  VALUES('$(FacadeTargetDb)', 101),('$(FacadeTargetDb)', 103);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -642,12 +641,12 @@ BEGIN
   EXEC ('INSERT INTO Facade.[sys.types] (user_type_id, schema_id, name) VALUES (104, SCHEMA_ID(''tSQLt''),''PRIVATEType'');');
   EXEC ('INSERT INTO Facade.[sys.types] (user_type_id, schema_id, name) VALUES (105, SCHEMA_ID(''tSQLt''),''PrIVateType'');');
 
-  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTypeFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName, UserTypeId INTO #Actual FROM Facade.[CreateTypeFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)', 101),('$(tSQLtFacade)', 102);
+  VALUES('$(FacadeTargetDb)', 101),('$(FacadeTargetDb)', 102);
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -660,7 +659,7 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateViewFacades';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTypeFacades';
 
-  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT * INTO #Actual FROM
   (
@@ -677,7 +676,7 @@ BEGIN
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)','UDT'),('$(tSQLtFacade)','SFN'), ('$(tSQLtFacade)','SSP'), ('$(tSQLtFacade)','TBL'), ('$(tSQLtFacade)','VW');
+  VALUES('$(FacadeTargetDb)','UDT'),('$(FacadeTargetDb)','SFN'), ('$(FacadeTargetDb)','SSP'), ('$(FacadeTargetDb)','TBL'), ('$(FacadeTargetDb)','VW');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -687,7 +686,7 @@ AS
 BEGIN
   EXEC tSQLt.ExpectNoException;
 
-  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(FacadeTargetDb)';
 END;
 GO
 CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateAllFacadeObjects creates the tSQLt.TestClass user]
@@ -699,10 +698,10 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateViewFacades';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'Facade.CreateTypeFacades';
 
-  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateAllFacadeObjects @FacadeDbName = '$(FacadeTargetDb)';
 
   DECLARE @RemoteDatabasePrincipalId INT;
-  EXEC $(tSQLtFacade).sys.sp_executesql N'SET @RemoteDatabasePrincipalId = USER_ID(''tSQLt.TestClass'');',N'@RemoteDatabasePrincipalId INT OUTPUT', @RemoteDatabasePrincipalId OUT;
+  EXEC $(FacadeTargetDb).sys.sp_executesql N'SET @RemoteDatabasePrincipalId = USER_ID(''tSQLt.TestClass'');',N'@RemoteDatabasePrincipalId INT OUTPUT', @RemoteDatabasePrincipalId OUT;
 
   EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteDatabasePrincipalId, @Message = N'Remote Database Principal Id not found. ';
 END;

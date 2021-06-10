@@ -1,7 +1,5 @@
-../Build/temp/FacadeHeader1.ps1
-Facade.CreateDatabase.sql
-../Build/temp/FacadeHeader2.ps1
-Facade.CreateDatabase.sql
+../Build/temp/CreateSourceDb.sql
+../Build/temp/CreateTargetDb.sql
 ../Build/temp/FacadeHeader3.ps1
 ../Build/output/tSQLt.class.sql
 Facade.CreateAllObjects.ssp.sql

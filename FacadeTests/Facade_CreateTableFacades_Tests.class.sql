@@ -1,36 +1,35 @@
----Build-
-:SETVAR tSQLtFacade tSQLtFacade
+:SETVAR FacadeTargetDb tSQLtFacade
 ---Build+
 GO
 EXEC tSQLt.NewTestClass 'Facade_CreateTableFacades_Tests';
 GO
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies a simple table to the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies a simple table to the $(FacadeTargetDb) database]
 AS
 BEGIN
   CREATE TABLE dbo.SomeRandomTable(a INT);
 
   DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeRandomTable');
   
-  EXEC Facade.CreateTableFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+  EXEC Facade.CreateTableFacade @FacadeDbName = '$(FacadeTargetDb)', @TableObjectId = @TableObjectId;
 
-  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.SomeRandomTable';
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(FacadeTargetDb).dbo.SomeRandomTable';
 END;
 GO
 
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies another table to the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies another table to the $(FacadeTargetDb) database]
 AS
 BEGIN
   CREATE TABLE dbo.SomeOtherTable(a INT);
 
   DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeOtherTable');
   
-  EXEC Facade.CreateTableFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+  EXEC Facade.CreateTableFacade @FacadeDbName = '$(FacadeTargetDb)', @TableObjectId = @TableObjectId;
 
-  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.SomeOtherTable';
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(FacadeTargetDb).dbo.SomeOtherTable';
 END;
 GO
 
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies table into a schema that does not exist in the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies table into a schema that does not exist in the $(FacadeTargetDb) database]
 AS
 BEGIN
   DECLARE @SchemaName NVARCHAR(MAX) = 'SomeRandomSchema'+CONVERT(NVARCHAR(MAX),CAST(NEWID() AS VARBINARY(MAX)),2);
@@ -44,9 +43,9 @@ BEGIN
 
   DECLARE @TableObjectId INT = OBJECT_ID(@SchemaName+'.SomeTable');
   
-  EXEC Facade.CreateTableFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+  EXEC Facade.CreateTableFacade @FacadeDbName = '$(FacadeTargetDb)', @TableObjectId = @TableObjectId;
 
-  DECLARE @RemoteObjectName NVARCHAR(MAX) = '$(tSQLtFacade).'+@SchemaName+'.SomeTable'; 
+  DECLARE @RemoteObjectName NVARCHAR(MAX) = '$(FacadeTargetDb).'+@SchemaName+'.SomeTable'; 
   EXEC tSQLt.AssertObjectExists @ObjectName = @RemoteObjectName;
 END;
 GO
@@ -59,7 +58,7 @@ BEGIN
 
   DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeOtherTable');
   
-  EXEC Facade.CreateTableFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+  EXEC Facade.CreateTableFacade @FacadeDbName = '$(FacadeTargetDb)', @TableObjectId = @TableObjectId;
 
   SELECT 
       C.name,
@@ -71,7 +70,7 @@ BEGIN
       C.scale,
       C.is_nullable,
       C.is_identity
-    INTO #Actual FROM $(tSQLtFacade).sys.columns AS C WHERE C.object_id = OBJECT_ID('$(tSQLtFacade).dbo.SomeOtherTable');
+    INTO #Actual FROM $(FacadeTargetDb).sys.columns AS C WHERE C.object_id = OBJECT_ID('$(FacadeTargetDb).dbo.SomeOtherTable');
 
   SELECT 
       C.name,
@@ -90,18 +89,18 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade creates a facade table for a view in the $(tSQLtFacade) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade creates a facade table for a view in the $(FacadeTargetDb) database]
 AS
 BEGIN
   EXEC ('CREATE VIEW dbo.SomeRandomView AS SELECT CAST(1 AS INT) columnNameA;');
 
   DECLARE @TableObjectId INT = OBJECT_ID('dbo.SomeRandomView');
   
-  EXEC Facade.CreateTableFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+  EXEC Facade.CreateTableFacade @FacadeDbName = '$(FacadeTargetDb)', @TableObjectId = @TableObjectId;
   
   SELECT 'Is a table.' AS resultColumn INTO #Actual
-  FROM $(tSQLtFacade).sys.tables T 
-	JOIN $(tSQLtFacade).sys.schemas S ON (T.schema_id = S.schema_id)
+  FROM $(FacadeTargetDb).sys.tables T 
+	JOIN $(FacadeTargetDb).sys.schemas S ON (T.schema_id = S.schema_id)
   WHERE T.name = 'SomeRandomView' AND S.name = 'dbo';
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -119,7 +118,7 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.tables]';
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.views]';
 
-  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTableFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   EXEC tSQLt.AssertEmptyTable @TableName = 'Facade.[CreateTableFacade_SpyProcedureLog]';
 END;
@@ -132,7 +131,7 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.views]';
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''aRandomTable'');');
 
-  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTableFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT TableObjectId INTO #Actual FROM Facade.[CreateTableFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -151,7 +150,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name) VALUES (1002,SCHEMA_ID(''tSQLt''),''bRandomTable'');');
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name) VALUES (1003,SCHEMA_ID(''tSQLt''),''cRandomTable'');');
 
-  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTableFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT TableObjectId INTO #Actual FROM Facade.[CreateTableFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -172,7 +171,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name) VALUES (1004,SCHEMA_ID(''tSQLt''),''PRIVATERandomTable'');');
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name) VALUES (1005,SCHEMA_ID(''tSQLt''),''cRandomTable'');');
 
-  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTableFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT TableObjectId INTO #Actual FROM Facade.[CreateTableFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -191,7 +190,7 @@ BEGIN
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name) VALUES (1002,SCHEMA_ID(''tSQLt''),''bRandomTable'');');
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name) VALUES (1003,SCHEMA_ID(''dbo''),''cRandomTable'');');
 
-  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTableFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT TableObjectId INTO #Actual FROM Facade.[CreateTableFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -207,9 +206,9 @@ BEGIN
 
   DECLARE @TableObjectId INT = OBJECT_ID('dbo.[SomeR''andomTable]');
 
-  EXEC Facade.CreateTableFacade @FacadeDbName = '$(tSQLtFacade)', @TableObjectId = @TableObjectId;
+  EXEC Facade.CreateTableFacade @FacadeDbName = '$(FacadeTargetDb)', @TableObjectId = @TableObjectId;
 
-  EXEC tSQLt.AssertObjectExists @ObjectName = '$(tSQLtFacade).dbo.[SomeR''andomTable]';
+  EXEC tSQLt.AssertObjectExists @ObjectName = '$(FacadeTargetDb).dbo.[SomeR''andomTable]';
 
 END;
 GO
@@ -221,12 +220,12 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'Facade.[sys.views]';
   EXEC('INSERT INTO Facade.[sys.tables](object_id,schema_id,name)VALUES (1001,SCHEMA_ID(''tSQLt''),''AProc'');');
 
-  EXEC Facade.CreateTableFacades @FacadeDbName = '$(tSQLtFacade)';
+  EXEC Facade.CreateTableFacades @FacadeDbName = '$(FacadeTargetDb)';
 
   SELECT FacadeDbName INTO #Actual FROM Facade.[CreateTableFacade_SpyProcedureLog];
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('$(tSQLtFacade)');
+  VALUES('$(FacadeTargetDb)');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO

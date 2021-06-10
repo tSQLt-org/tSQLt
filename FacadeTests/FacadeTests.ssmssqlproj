@@ -34,11 +34,11 @@
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
       <Items>
-        <FileNode Name="build.ps1">
+        <FileNode Name="buildFacadeTests.ps1">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>build.ps1</FullPath>
+          <FullPath>buildFacadeTests.ps1</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
