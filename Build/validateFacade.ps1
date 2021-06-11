@@ -32,4 +32,7 @@ Set-Location './output';
 $CallSqlCmd = '&"'+$SqlCmdPath+'\sqlcmd.exe" -S "'+$ServerName+'" '+$Login+' -I -i ExecuteFacadeTests.sql -v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt"';
 Invoke-Expression $CallSqlCmd;
 
+Log-Output "Oh no! We have no test results. They need to be captured."; 
+throw 
+
 Pop-Location;
