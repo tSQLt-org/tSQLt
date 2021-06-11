@@ -333,7 +333,7 @@ stages:
         ScriptType: 'InlineScript'
         Inline: |
           Set-Location $(Pipeline.Workspace)/tSQLt
-          .("CI/CommonFunctionsAndMethods.ps1")
+          .("Build/CommonFunctionsAndMethods.ps1")
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
 
@@ -491,7 +491,7 @@ stages:
           $HiddenVmRGName = $DTLDetails.HiddenVmRGName;
     
           Set-Location $(Build.Repository.LocalPath)
-          .("CI/CommonFunctionsAndMethods.ps1")
+          .("Build/CommonFunctionsAndMethods.ps1")
     
           $DTLDetails|Out-String|Log-Output;
           

@@ -15,12 +15,13 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPassword
 );
 
-$scriptpath = $MyInvocation.MyCommand.Path
-$dir = Split-Path $scriptpath
-Log-Output "FileLocation: $dir"
+$scriptpath = $MyInvocation.MyCommand.Path;
+$dir = Split-Path $scriptpath;
+$parentDir = Split-Path $dir;
 
-.($dir+"\CommonFunctionsAndMethods.ps1")
-
+.($parentDir+"\Build\CommonFunctionsAndMethods.ps1");
+Log-Output "Script Directory: $dir";
+Log-Output "Parent Directory: $parentDir";
 
 Log-Output "<->1<-><-><-><-><-><-><-><-><-><-><-><-><->";
 Log-Output "Parameters:";
@@ -33,6 +34,7 @@ Log-Output "UserName:    ", $env:UserName
 Log-Output "UserDomain:  ", $env:UserDomain
 Log-Output "ComputerName:", $env:ComputerName
 Log-Output "<->3<-><-><-><-><-><-><-><-><-><-><-><-><->";
+
 
 #####################
 $DTLName = ("$NamePreFix" + (Get-Date).tostring('yyyyMMdd') + "_" + $SQLVersionEdition + "_" + $BuildId)

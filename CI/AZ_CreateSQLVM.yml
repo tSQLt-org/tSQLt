@@ -64,7 +64,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
       Set-Location $(Build.Repository.LocalPath)
-      .("CI/CommonFunctionsAndMethods.ps1")
+      .("Build/CommonFunctionsAndMethods.ps1")
 
       Log-Output '==========================================================';
       Log-Output '==========================================================';
@@ -118,7 +118,7 @@ steps:
       $VerbosePreference = "Continue";
 
       Set-Location $(Build.Repository.LocalPath)
-      .("CI/CommonFunctionsAndMethods.ps1")
+      .("Build/CommonFunctionsAndMethods.ps1")
 
       $ShutDownTimeUTC = (Get-Date).toUniversalTime().AddHours(2).toString("HH:mm")
 

@@ -106,6 +106,18 @@
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
       <Items>
+        <FileNode Name="build.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>build.ps1</FullPath>
+        </FileNode>
+        <FileNode Name="buildAndZipFacade.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>buildAndZipFacade.ps1</FullPath>
+        </FileNode>
         <FileNode Name="BuildHelper.exe">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -118,11 +130,23 @@
           <AssociatedConnUserName />
           <FullPath>ChangeSigningKey_ReadMe.txt</FullPath>
         </FileNode>
+        <FileNode Name="CommonFunctionsAndMethods.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>CommonFunctionsAndMethods.ps1</FullPath>
+        </FileNode>
         <FileNode Name="CreateAssemblyGenerator.exe">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>CreateAssemblyGenerator.exe</FullPath>
+        </FileNode>
+        <FileNode Name="Import-PfxCert.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Import-PfxCert.ps1</FullPath>
         </FileNode>
         <FileNode Name="Install the tSQLt build.docx">
           <AssociatedConnectionMoniker />
@@ -141,18 +165,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>LocalBuild.bat</FullPath>
-        </FileNode>
-        <FileNode Name="localNBuild.bat">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>localNBuild.bat</FullPath>
-        </FileNode>
-        <FileNode Name="localNDeploy.bat">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>localNDeploy.bat</FullPath>
         </FileNode>
         <FileNode Name="NewRelease.doc">
           <AssociatedConnectionMoniker />
@@ -184,12 +196,6 @@
           <AssociatedConnUserName />
           <FullPath>SourceForgePrivateKey.ppk</FullPath>
         </FileNode>
-        <FileNode Name="SqlLoginNbuild.bat">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>SqlLoginNbuild.bat</FullPath>
-        </FileNode>
         <FileNode Name="tSQLt.build.xml">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -202,29 +208,29 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.buildCLR.xml</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt.copybuild.xml">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>tSQLt.copybuild.xml</FullPath>
-        </FileNode>
         <FileNode Name="tSQLt.experiments.build.xml">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.experiments.build.xml</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt.local_build_output.build">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>tSQLt.local_build_output.build</FullPath>
-        </FileNode>
         <FileNode Name="tSQLt.validatebuild.xml">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.validatebuild.xml</FullPath>
+        </FileNode>
+        <FileNode Name="validateFacade.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>validateFacade.ps1</FullPath>
+        </FileNode>
+        <FileNode Name="Version.txt">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Version.txt</FullPath>
         </FileNode>
         <FileNode Name="VersionInfo.vbs">
           <AssociatedConnectionMoniker />

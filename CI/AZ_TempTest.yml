@@ -255,7 +255,7 @@ stages:
         ScriptType: 'InlineScript'
         Inline: |
           Set-Location $(Build.Repository.LocalPath)
-          .("CI/CommonFunctionsAndMethods.ps1")
+          .("Build/CommonFunctionsAndMethods.ps1")
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
 

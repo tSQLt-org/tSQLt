@@ -34,15 +34,6 @@ CALL "%~1\bin\ant" -buildfile Build\tSQLt.build.xml || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
-ECHO : Copying BUILD           :
-ECHO +-------------------------+
-ECHO :- THIS STEP IS OPTIONAL -:
-ECHO +-------------------------+
-IF "%~7"=="-v" @ECHO ON
-CALL "%~1\bin\ant" -buildfile Build\tSQLt.copybuild.xml || goto :error
-@ECHO OFF
-
-ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
 IF "%~7"=="-v" @ECHO ON
