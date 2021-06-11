@@ -8,7 +8,7 @@
 
  <target
    name="all"
-   depends="validate.parameters, package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLt.tests, teamcity"
+   depends="validate.parameters, package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLtFacade, package.create.tSQLt.tests, teamcity"
    />
 
  <target
@@ -460,4 +460,18 @@
    </fileset>
   </zip>
  </target>
+
+
+ <!--=======================================================================-->
+ <!--========                 Build Facade Objects                 =========-->
+ <!--=======================================================================-->
+
+ <target name="package.create.tSQLtFacade">
+  <exec dir="." executable="powershell" timeout="5000" failonerror="true"
+          outputproperty="output/buildAndZipFacade.ps1.out" errorproperty="output/buildAndZipFacade.ps1.error">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File buildAndZipFacade.ps1" />
+  </exec>
+ </target>
 </project>
+

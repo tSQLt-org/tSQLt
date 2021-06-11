@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
- <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Example, report.SQL.Version" />
+ <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Facade, validate.Example, report.SQL.Version" />
 
  <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, reset.server, prepare.server, deploy.tSQLt, deploy.Example" />
 
@@ -502,4 +502,18 @@
 
  </target>
 
+ <!--=======================================================================-->
+ <!--========                 Validate Facade Objects              =========-->
+ <!--=======================================================================-->
+
+ <target name="validate.Facade">
+  <exec dir="." executable="powershell" timeout="5000" failonerror="true"
+          outputproperty="output/validateFacade.ps1.out" errorproperty="output/validateFacade.ps1.error">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File validateFacade.ps1" />
+  </exec>
+ </target>
+
 </project>
+
+

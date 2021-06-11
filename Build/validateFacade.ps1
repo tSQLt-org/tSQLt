@@ -1,0 +1,1 @@
+Write-Host "validate facade ps1"
