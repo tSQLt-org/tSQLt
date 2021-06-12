@@ -3,7 +3,7 @@
 GO
 EXEC tSQLt.NewTestClass 'Facade_CreateTableFacades_Tests';
 GO
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies a simple table to the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies a simple table to the facade db]
 AS
 BEGIN
   CREATE TABLE dbo.SomeRandomTable(a INT);
@@ -16,7 +16,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies another table to the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies another table to the facade db]
 AS
 BEGIN
   CREATE TABLE dbo.SomeOtherTable(a INT);
@@ -29,7 +29,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies table into a schema that does not exist in the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade copies table into a schema that does not exist in the facade db]
 AS
 BEGIN
   DECLARE @SchemaName NVARCHAR(MAX) = 'SomeRandomSchema'+CONVERT(NVARCHAR(MAX),CAST(NEWID() AS VARBINARY(MAX)),2);
@@ -89,7 +89,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade creates a facade table for a view in the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateTableFacades_Tests.[test CreateTableFacade creates a facade table for a view in the facade db]
 AS
 BEGIN
   EXEC ('CREATE VIEW dbo.SomeRandomView AS SELECT CAST(1 AS INT) columnNameA;');

@@ -49,7 +49,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacade executes @CreateProcedureStatement from Private_GenerateCreateProcedureSpyStatement in $(FacadeTargetDb)]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSSPFacade executes @CreateProcedureStatement from Private_GenerateCreateProcedureSpyStatement in facade db]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure 
@@ -196,7 +196,7 @@ END;
 GO
 
 
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade executes the statement returned from tSQLt.Private_CreateFakeFunctionStatement in the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateSFNFacade executes the statement returned from tSQLt.Private_CreateFakeFunctionStatement in the facade db]
 AS
 BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = N'tSQLt.Private_CreateFakeFunctionStatement',
@@ -459,7 +459,7 @@ BEGIN
 
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies a simple table type to the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies a simple table type to the facade db]
 AS
 BEGIN
   CREATE TYPE dbo.SomeRandomType AS TABLE (a INT);
@@ -504,7 +504,7 @@ BEGIN
   EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteTypeId, @Message = N'Remote Type not found. ';
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type into a schema that does not exist in the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type into a schema that does not exist in the facade db]
 AS
 BEGIN
   DECLARE @SchemaName NVARCHAR(MAX) = 'SomeRandomSchema'+CONVERT(NVARCHAR(MAX),CAST(NEWID() AS VARBINARY(MAX)),2);
@@ -526,7 +526,7 @@ BEGIN
   EXEC tSQLt.AssertNotEquals @Expected=NULL, @Actual = @RemoteTypeId, @Message = N'Remote Type not found. ';
 END;
 GO
-CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type with multiple columns to the $(FacadeTargetDb) database]
+CREATE PROCEDURE Facade_CreateFacadeDb_Tests.[test CreateTypeFacade copies table type with multiple columns to the facade db]
 AS
 BEGIN
   CREATE TYPE dbo.SomeRandomType AS TABLE (a INT, bb NVARCHAR(MAX), ccc DATETIME2);
