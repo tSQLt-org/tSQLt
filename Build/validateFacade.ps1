@@ -29,10 +29,22 @@ Expand-Archive -Path "./output/tSQLtFacade.zip" -DestinationPath "./output";
 Push-Location;
 Set-Location './output';
 
-$CallSqlCmd = '&"'+$SqlCmdPath+'\sqlcmd.exe" -S "'+$ServerName+'" '+$Login+' -I -i ExecuteFacadeTests.sql -v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt"';
-Invoke-Expression $CallSqlCmd;
+$CallSqlCmd = '&"'+$SqlCmdPath+'\sqlcmd.exe" -S "'+$ServerName+'" '+$Login+' -b -I -i ExecuteFacadeTests.sql -v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt";';
+#$CallSqlCmd = '&"'+$SqlCmdPath+'\sqlcmd.exe" -S "'+$ServerName+'" '+$Login+' -I -b -Q "RAISERROR 50001" -v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt";';
+$CallSqlCmd;
+#$CallSqlCmd = $CallSqlCmd + ';if($LASTEXITCODE -ne 0){throw "error during execution";}'
+Invoke-Expression $CallSqlCmd -ErrorAction Stop;
 
-Log-Output "Oh no! We have no test results. They need to be captured."; 
-throw 
+<#
+- don't use DB names in test names
+- SQLCMD with a severity 15 error is not reporting an error
+- does a RAISERROR prevent the next batch from being executed
+- 
+#>
+throw "stuff"
+
+Set-Location '..';
+$CallSqlCmd = '&"'+$SqlCmdPath+'\sqlcmd.exe" -S "'+$ServerName+'" '+$Login+' -I -i GetTestResults.sql -d "'+$DatabaseName+'_src" -o "output/TestResults_Facade.xml"';
+Invoke-Expression $CallSqlCmd;
 
 Pop-Location;
