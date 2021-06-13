@@ -6,10 +6,11 @@ CREATE FUNCTION tSQLt.Private_SplitSqlVersion(@ProductVersion NVARCHAR(128))
 RETURNS TABLE
 AS
 RETURN
-  SELECT PARSENAME(@ProductVersion,4) Major,
-         PARSENAME(@ProductVersion,3) Minor, 
-         PARSENAME(@ProductVersion,2) Build,
-         PARSENAME(@ProductVersion,1) Revision;
+SELECT REVERSE(PARSENAME(X.RP,1)) Major,
+       REVERSE(PARSENAME(X.RP,2)) Minor, 
+       REVERSE(PARSENAME(X.RP,3)) Build,
+       REVERSE(PARSENAME(X.RP,4)) Revision
+  FROM (SELECT REVERSE(@ProductVersion)) AS X(RP);
 GO
 ---Build-
 GO
