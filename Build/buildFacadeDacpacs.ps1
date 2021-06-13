@@ -19,7 +19,7 @@ $dir = Split-Path $scriptpath
 Log-Output "FileLocation: $dir"
 
 # Delete files which might have been generated from previous builds
-$facadeFiles = @("FacadeScript.sql", "ExecuteFacadeScript.sql", "FacadeTests.sql", "ExecuteFacadeTests.sql");
+$facadeFiles = @("FacadeScript.sql", "ExecuteFacadeScript.sql", "FacadeTests.sql", "ExecuteFacadeTests.sql", "tSQLtFacade.*.dacpac");
 Get-ChildItem -Path "output/*" -Include $facadeFiles | Remove-Item;
 
 Expand-Archive -Path "./output/tSQLtFacade.zip" -DestinationPath "./output";
@@ -32,7 +32,7 @@ Exec-SqlFile -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -File
 
 Pop-Location;
 <# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
-$SqlConnectionString = "Data Source="+$ServerName+";"+$Login+";Connect Timeout=60;Initial Catalog="+$DatabaseName+"_tgt";
-& $env:SQLPACKAGE_HOME\sqlpackage.exe /a:Extract /scs:"$SqlConnectionString" /tf:tSQLtFacade.2019.dacpac /p:DacApplicationName=tSQLtFacade.2019 /p:IgnoreExtendedProperties=true /p:DacMajorVersion=42 /p:DacMinorVersion=17 /p:ExtractUsageProperties=false
+$AuthenticationString = $Login.trim() -replace '^((\s*([-]U\s+)(?<user>\w+)\s*)|(\s*([-]P\s+)(?<password>\S+)\s*))+$', 'User Id=${user};Password="${password}";'
+$SqlConnectionString = "Data Source="+$ServerName+";"+$AuthenticationString+";Connect Timeout=60;Initial Catalog="+$DatabaseName+"_tgt";
+& $env:SQLPACKAGE_HOME\sqlpackage.exe /a:Extract /scs:"$SqlConnectionString" /tf:"output/tSQLtFacade.2018.dacpac" /p:DacApplicationName=tSQLtFacade.2019 /p:IgnoreExtendedProperties=true /p:DacMajorVersion=42 /p:DacMinorVersion=17 /p:ExtractUsageProperties=false
 
-throw "This is so weird, and it shouldn't be running scripts and nothing works. :("
