@@ -208,6 +208,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.buildCLR.xml</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.copybuild.xml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.copybuild.xml</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.experiments.build.xml">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
