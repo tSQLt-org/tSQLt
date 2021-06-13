@@ -35,4 +35,4 @@ Exec-SqlFile -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -File
 
 Pop-Location;
 
-throw "where are our dacpacs?? oh no! See line 2"
+throw "where are our dacpacs?? oh no! See buildFacadeDacpacs.ps1 in the Build directory. Yay!"
