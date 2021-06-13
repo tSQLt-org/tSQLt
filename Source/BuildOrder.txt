@@ -46,6 +46,7 @@ tSQLt.ExpectException.ssp.sql
 tSQLt.ExpectNoException.ssp.sql
 tSQLt.Private_SqlVersion.sfn.sql
 tSQLt.Private_SplitSqlVersion.sfn.sql
+tSQLt.FriendlySQLServerVersion.sfn.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_Init.ssp.sql
 tSQLt.Private_HostPlatform.svw.sql
