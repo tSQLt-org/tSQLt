@@ -35,4 +35,4 @@ Exec-SqlFile -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -File
 
 Pop-Location;
 
-throw "where are our dacpacs?? oh no! See buildFacadeDacpacs.ps1 in the Build directory. Yay!"
+throw "we still need to validate the dacpac (see line 2 and 3), so this should still fail"

@@ -106,17 +106,11 @@
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
       <Items>
-        <FileNode Name="build.ps1">
+        <FileNode Name="Build.ps1">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>build.ps1</FullPath>
-        </FileNode>
-        <FileNode Name="buildAndZipFacade.ps1">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>buildAndZipFacade.ps1</FullPath>
+          <FullPath>Build.ps1</FullPath>
         </FileNode>
         <FileNode Name="BuildHelper.exe">
           <AssociatedConnectionMoniker />
@@ -141,6 +135,24 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>CreateAssemblyGenerator.exe</FullPath>
+        </FileNode>
+        <FileNode Name="FacadeBuildDacpac.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>FacadeBuildDacpac.ps1</FullPath>
+        </FileNode>
+        <FileNode Name="FacadeBuildScript.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>FacadeBuildScript.ps1</FullPath>
+        </FileNode>
+        <FileNode Name="FacadeValidate.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>FacadeValidate.ps1</FullPath>
         </FileNode>
         <FileNode Name="Import-PfxCert.ps1">
           <AssociatedConnectionMoniker />
@@ -225,12 +237,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.validatebuild.xml</FullPath>
-        </FileNode>
-        <FileNode Name="validateFacade.ps1">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>validateFacade.ps1</FullPath>
         </FileNode>
         <FileNode Name="Version.txt">
           <AssociatedConnectionMoniker />

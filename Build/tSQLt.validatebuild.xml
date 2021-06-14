@@ -509,7 +509,7 @@
  <target name="validate.Facade">
   <exec dir="." executable="powershell" timeout="60000" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />
-      <arg line="-File validateFacade.ps1" />
+      <arg line="-File FacadeValidate.ps1" />
       <arg line="-ServerName &quot;${db.server}&quot;" />
       <arg line="-DatabaseName &quot;${db.name}&quot;" />
       <arg line="-Login &quot;${db.login}&quot;" />
