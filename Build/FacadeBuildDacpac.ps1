@@ -29,9 +29,14 @@ Expand-Archive -Path "./output/tSQLtFacade.zip" -DestinationPath "./output";
 
 Set-Location './output';
 
-$AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt"'
-Exec-SqlFile -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeScript.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
+$SourceDatabaseName = $DatabaseName+"_src";
+$AdditionalParameters = '-v FacadeSourceDb="'+$SourceDatabaseName+'" FacadeTargetDb="'+$DatabaseName+'_tgt"'
+Exec-SqlFileOrQuery -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
 
+$QueryString = "DECLARE @FriendlyVersion NVARCHAR(128) = (SELECT FriendlyVersion FROM tSQLt.FriendlySQLServerVersion(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128)))); PRINT @FriendlyVersion;";
+
+$resultSet = Exec-SqlFileOrQuery -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -Query $QueryString -DatabaseName $SourceDatabaseName;
+$resultSet;
 throw "We still need to get the FriendlySQLServerVersion out of SQL Server (and the path for the output also maybe is wrong very currently)"
 
 <# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
