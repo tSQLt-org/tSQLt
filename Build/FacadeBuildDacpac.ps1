@@ -12,12 +12,14 @@ Execute on a target server the Facade scripts
 EXEC Facade.CreateAllFacadeObjects
 #>
 
-$scriptpath = $MyInvocation.MyCommand.Path
-$dir = Split-Path $scriptpath
+$ServerNameTrimmed = $ServerName.Trim();
 
-.($dir+"\CommonFunctionsAndMethods.ps1")
+$scriptpath = $MyInvocation.MyCommand.Path;
+$dir = Split-Path $scriptpath;
 
-Log-Output "FileLocation: $dir"
+.($dir+"\CommonFunctionsAndMethods.ps1");
+
+Log-Output "FileLocation: $dir";
 Push-Location;
 Set-Location $dir;
 
@@ -31,17 +33,39 @@ Set-Location './output';
 
 $SourceDatabaseName = $DatabaseName+"_src";
 $AdditionalParameters = '-v FacadeSourceDb="'+$SourceDatabaseName+'" FacadeTargetDb="'+$DatabaseName+'_tgt"'
-Exec-SqlFileOrQuery -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $Login -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
 
 $QueryString = "DECLARE @FriendlyVersion NVARCHAR(128) = (SELECT FriendlyVersion FROM tSQLt.FriendlySQLServerVersion(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128)))); PRINT @FriendlyVersion;";
 
-$resultSet = Exec-SqlFileOrQuery -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -Query $QueryString -DatabaseName $SourceDatabaseName;
-$resultSet;
-throw "We still need to get the FriendlySQLServerVersion out of SQL Server (and the path for the output also maybe is wrong very currently)"
+$resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $Login -SqlCmdPath $SqlCmdPath -Query $QueryString -DatabaseName $SourceDatabaseName;
+Log-Output "Friendly SQL Server Version: $resultSet";
 
 <# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
-$AuthenticationString = $Login.trim() -replace '^((\s*([-]U\s+)(?<user>\w+)\s*)|(\s*([-]P\s+)(?<password>\S+)\s*))+$', 'User Id=${user};Password="${password}";'
-$SqlConnectionString = "Data Source="+$ServerName+";"+$AuthenticationString+";Connect Timeout=60;Initial Catalog="+$DatabaseName+"_tgt";
-& "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$SqlConnectionString" /tf:"output/tSQLtFacade.2018.dacpac" /p:DacApplicationName=tSQLtFacade.2019 /p:IgnoreExtendedProperties=true /p:DacMajorVersion=42 /p:DacMinorVersion=17 /p:ExtractUsageProperties=false
+$FacadeFileName = "tSQLtFacade."+$resultSet.Trim()+".dacpac";
+
+
+<# 
+  ☹️
+  This is so questionable, but it looks like sqlpackage cannot handle valid connection strings that use a valid server alias.
+  The following snippet is meant to spelunk through the registry and extract the actual server from the alias.
+  ☹️
+ #>
+$resolvedServerName = $ServerNameTrimmed;
+$serverAlias = Get-Item -Path HKLM:\SOFTWARE\Microsoft\MSSQLServer\Client\ConnectTo
+if ($serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
+    $aliasValue = $serverAlias.GetValue($ServerNameTrimmed)
+    if ($aliasValue -match "DBMSSOCN[,](.*)"){
+        $resolvedServerName = $Matches[1];
+    }
+}
+
+$DacpacApplicationName = "tSQLtFacade."+$resultSet.Trim();
+
+$AuthenticationString = $Login.trim() -replace '^((\s*([-]U\s+)(?<user>\w+)\s*)|(\s*([-]P\s+)(?<password>\S+)\s*))+$', 'User Id=${user};Password="${password}"'
+$SqlConnectionString = "Data Source="+$resolvedServerName+";"+$AuthenticationString+";Connect Timeout=60;Initial Catalog="+$DatabaseName+"_tgt";
+& "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$SqlConnectionString" /tf:"$FacadeFileName" /p:DacApplicationName="$DacpacApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
+if($LASTEXITCODE -ne 0) {
+    throw "error during execution of dacpac " + $FacadeFileName;
+}
 
 Pop-Location;
