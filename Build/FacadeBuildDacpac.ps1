@@ -11,8 +11,6 @@ Execute on a target server the Facade scripts
 
 EXEC Facade.CreateAllFacadeObjects
 #>
-"GotHere";
-
 
 $ServerNameTrimmed = $ServerName.Trim();
 $LoginTrimmed = $Login.Trim("'").Trim();
@@ -37,14 +35,11 @@ Set-Location './output';
 $SourceDatabaseName = $DatabaseName+"_src";
 $AdditionalParameters = '-v FacadeSourceDb="'+$SourceDatabaseName+'" FacadeTargetDb="'+$DatabaseName+'_tgt"'
 
-"GotHere";
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
 $QueryString = "DECLARE @FriendlyVersion NVARCHAR(128) = (SELECT FriendlyVersion FROM tSQLt.FriendlySQLServerVersion(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128)))); PRINT @FriendlyVersion;";
-"GotHere";
 
 $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -Query $QueryString -DatabaseName $SourceDatabaseName;
 Log-Output "Friendly SQL Server Version: $resultSet";
-"GotHere";
 
 <# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
 $FacadeFileName = "tSQLtFacade."+$resultSet.Trim()+".dacpac";
@@ -67,6 +62,7 @@ if ($serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
 
 $DacpacApplicationName = "tSQLtFacade."+$resultSet.Trim();
 
+<# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
 if ($LoginTrimmed -match '((.*[-]U)|(.*[-]P))+.*'){
     $AuthenticationString = $LoginTrimmed -replace '^((\s*([-]U\s+)(?<user>\w+)\s*)|(\s*([-]P\s+)(?<password>\S+)\s*))+$', 'User Id=${user};Password="${password}"'  
 }
