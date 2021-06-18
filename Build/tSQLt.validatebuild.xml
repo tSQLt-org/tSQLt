@@ -22,6 +22,9 @@
   <antcall target="validate.parameter">
    <param name="parameter.name" value="sqlcmd.path" />
   </antcall>
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="sqlpackage.path" />
+  </antcall>
  </target>
 
  <target name="hello" description="announcement">
@@ -38,6 +41,7 @@
   <echo message="db.name: ${db.name}" />
   <echo message="db.login: ${db.login}" />
   <echo message="sqlcmd.path: ${sqlcmd.path}" />
+  <echo message="sqlpackage.path: ${sqlpackage.path}" />
 
  </target>
 
@@ -514,6 +518,7 @@
       <arg line="-DatabaseName &quot;${db.name}&quot;" />
       <arg line="-Login &quot;${db.login}&quot;" />
       <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
+      <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
   </exec>
  </target>
 

@@ -60,7 +60,7 @@ ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
-CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login="%DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" || goto :error
+CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login="%DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

@@ -28,23 +28,30 @@ Get-ChildItem -Path "output/*" -Include $facadeFiles | Remove-Item;
 Expand-Archive -Path "./output/tSQLtFacade.zip" -DestinationPath "./output";
 
 Push-Location;
+
+$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $DatabaseName;
+$FacadeFileName = "output/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
+
+$DacpacDatabaseName = $DatabaseName+"_dacpac";
+$AdditionalParameters = '-v NewDbName="'+$DacpacDatabaseName+'"';
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "CreateBuildDb.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
+
+$SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $DacpacDatabaseName;
+& "$SqlPackagePath\sqlpackage.exe" /a:Publish /tcs:"$SqlConnectionString" /sf:"$FacadeFileName"
+if($LASTEXITCODE -ne 0) {
+    throw "error during execution of dacpac " + $FacadeFileName;
+}
+
 Set-Location './output';
 
 $AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt"'
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
 
 Set-Location '..';
+
 $SourceDatabaseName = $DatabaseName+"_src";
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters '-o "output/TestResults_Facade.xml"';
 
-$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $SourceDatabaseName;
-$FacadeFileName = "output/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
-
-$SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $DatabaseName+"_dacpac";
-& "$SqlPackagePath\sqlpackage.exe" /a:Publish /tcs:"$SqlConnectionString" /sf:"$FacadeFileName"
-if($LASTEXITCODE -ne 0) {
-    throw "error during execution of dacpac " + $FacadeFileName;
-}
 
 Pop-Location;
 
