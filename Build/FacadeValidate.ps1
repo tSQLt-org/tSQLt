@@ -1,5 +1,5 @@
 <#
-- validate that the dacpac is correct by installing tSQLt on one database; installing the database on another database; get the list of names from sys.objects where the name is not Private%; assert that it is the same list
+- validate that the dacpac is correct by installing tSQLt on one database; installing the dacpac on another database; get the list of names from sys.objects where the name is not Private%; assert that it is the same list
 -- makesure that the database principal exists, [tSQLt.TestClasses] (maybe)
 -- 
 #>
@@ -35,4 +35,4 @@ Exec-SqlFileOrQuery -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPat
 
 Pop-Location;
 
-throw "we still need to validate the dacpac (see line 2 and 3), so this should still fail"
+throw "we still need to validate the dacpac (see line 2 and 3), so this should still fail, also -E doesn't work awesome"
