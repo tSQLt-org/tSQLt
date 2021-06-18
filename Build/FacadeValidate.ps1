@@ -31,45 +31,16 @@ Push-Location;
 Set-Location './output';
 
 $AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt"'
-Exec-SqlFileOrQuery -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
 
 Set-Location '..';
 $SourceDatabaseName = $DatabaseName+"_src";
-Exec-SqlFileOrQuery -ServerName $ServerName -Login $Login -SqlCmdPath $SqlCmdPath -FileName "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters '-o "output/TestResults_Facade.xml"';
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters '-o "output/TestResults_Facade.xml"';
 
-$QueryString = "DECLARE @FriendlyVersion NVARCHAR(128) = (SELECT FriendlyVersion FROM tSQLt.FriendlySQLServerVersion(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128)))); PRINT @FriendlyVersion;";
-$resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -Query $QueryString -DatabaseName $SourceDatabaseName;
-Log-Output "Friendly SQL Server Version: $resultSet";
+$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $SourceDatabaseName;
+$FacadeFileName = "output/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 
-$FacadeFileName = "output/tSQLtFacade."+$resultSet.Trim()+".dacpac";
-<# 
-  ☹️
-  This is so questionable, but it looks like sqlpackage cannot handle valid connection strings that use a valid server alias.
-  The following snippet is meant to spelunk through the registry and extract the actual server from the alias.
-  ☹️
- #>
- $resolvedServerName = $ServerNameTrimmed;
- $serverAlias = Get-Item -Path HKLM:\SOFTWARE\Microsoft\MSSQLServer\Client\ConnectTo
- if ($serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
-     $aliasValue = $serverAlias.GetValue($ServerNameTrimmed)
-     if ($aliasValue -match "DBMSSOCN[,](.*)"){
-         $resolvedServerName = $Matches[1];
-     }
- }
- 
-<# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
-if ($LoginTrimmed -match '((.*[-]U)|(.*[-]P))+.*'){
-    $AuthenticationString = $LoginTrimmed -replace '^((\s*([-]U\s+)(?<user>\w+)\s*)|(\s*([-]P\s+)(?<password>\S+)\s*))+$', 'User Id=${user};Password="${password}"'  
-}
-elseif ($LoginTrimmed -eq "-E"){
-    $AuthenticationString = "Integrated Security=SSPI;";
-}
-else{
-    throw $LoginTrimmed + " is not supported here."
-}
-
-$SqlConnectionString = "Data Source="+$resolvedServerName+";"+$AuthenticationString+";Connect Timeout=60;Initial Catalog="+$DatabaseName+"_dacpac";
-$SqlConnectionString;
+$SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $DatabaseName+"_dacpac";
 & "$SqlPackagePath\sqlpackage.exe" /a:Publish /tcs:"$SqlConnectionString" /sf:"$FacadeFileName"
 if($LASTEXITCODE -ne 0) {
     throw "error during execution of dacpac " + $FacadeFileName;
