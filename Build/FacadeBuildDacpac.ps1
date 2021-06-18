@@ -15,7 +15,7 @@ EXEC Facade.CreateAllFacadeObjects
 
 
 $ServerNameTrimmed = $ServerName.Trim();
-$LoginTrimmed = $Login.Trim();
+$LoginTrimmed = $Login.Trim("'").Trim();
 
 $scriptpath = $MyInvocation.MyCommand.Path;
 $dir = Split-Path $scriptpath;
@@ -67,10 +67,10 @@ if ($serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
 
 $DacpacApplicationName = "tSQLtFacade."+$resultSet.Trim();
 
-if ($LoginTrimmed -match '((.*[-]U)|(.*[-]P))+.*)'){
+if ($LoginTrimmed -match '((.*[-]U)|(.*[-]P))+.*'){
     $AuthenticationString = $LoginTrimmed -replace '^((\s*([-]U\s+)(?<user>\w+)\s*)|(\s*([-]P\s+)(?<password>\S+)\s*))+$', 'User Id=${user};Password="${password}"'  
 }
-elseif ($LoginTrimmed -eq '-E'){
+elseif ($LoginTrimmed -eq "-E"){
     $AuthenticationString = "Integrated Security=SSPI;";
 }
 else{
