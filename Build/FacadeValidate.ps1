@@ -44,7 +44,7 @@ if($LASTEXITCODE -ne 0) {
 
 Set-Location './output';
 
-$AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt"'
+$AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt" DacpacTargetDb="'+$DacpacDatabaseName+'"';
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
 
 Set-Location '..';
@@ -54,5 +54,3 @@ Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdP
 
 
 Pop-Location;
-
-throw "we still need to validate the dacpac (see line 2 and 3), so this should still fail, also -E doesn't work awesome"
