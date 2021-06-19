@@ -105,3 +105,34 @@ function Get-FriendlySQLServerVersion {
   Log-Output "Friendly SQL Server Version: $resultSet";
   $resultSet.Trim();
 }
+
+function Update-Archive {
+  param (
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String] $ArchiveName,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String[]] $FileNamesToInclude
+  )
+  <# Create directory to unpack compressed file #>
+  $ArchiveDirectory = $ArchiveName + "." + (Get-Date -Format "yyyy-MM-dd-HHmm");
+  New-Item -ItemType Directory -Path ".\$ArchiveDirectory";
+
+  <# Unpack compressed file into newly created directory #>
+  Expand-Archive -LiteralPath $ArchiveName -DestinationPath $ArchiveDirectory;
+
+  <# Rename original archive file #>
+  $NewArchiveName = $ArchiveName + ".original";
+  Rename-Item -Path $ArchiveName -NewName $NewArchiveName;
+
+  <# Copy files to include into the archive directory #>
+  foreach ($FileName in $FileNamesToInclude) {
+    Copy-Item $FileName -Destination $ArchiveDirectory;    
+  }
+
+  <# Compress files #>
+  $compress = @{
+    Path = $ArchiveDirectory
+    CompressionLevel = "Fastest"
+    DestinationPath = $ArchiveName
+    }
+  Compress-Archive @compress
+}
+

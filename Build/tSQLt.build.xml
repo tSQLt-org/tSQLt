@@ -311,6 +311,10 @@
   </exec>
  </target>
 
+ <!--=======================================================================-->
+ <!--========    Powershell currently creates tSQLt.zip            =========-->
+ <!--=======================================================================-->
+
  <target name="exec.powershell.build">
   <exec dir="." executable="powershell" timeout="5000" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />

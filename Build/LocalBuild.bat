@@ -50,6 +50,12 @@ CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -Serve
 @ECHO OFF
 
 ECHO +-------------------------+
+ECHO : Repackage zip file      :
+ECHO +-------------------------+
+CALL "throw" || goto :error
+
+
+ECHO +-------------------------+
 ECHO : Copying BUILD           :
 ECHO +-------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
