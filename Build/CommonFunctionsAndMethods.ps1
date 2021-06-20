@@ -122,7 +122,7 @@ function Update-Archive {
   $NewArchiveName = $ArchiveName + ".original";
   Rename-Item -Path $ArchiveName -NewName $NewArchiveName;
 
-  <# Copy files to include into the archive directory #>
+  <# Copy new files to include into the archive directory #>
   foreach ($FileName in $FileNamesToInclude) {
     Copy-Item $FileName -Destination $ArchiveDirectory;    
   }
@@ -136,3 +136,11 @@ function Update-Archive {
   Compress-Archive @compress
 }
 
+function Remove-DirectoryQuietly {
+  param (
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String] $Path
+  )
+  if (Test-Path -Path $Path) {
+    Remove-Item -Path $Path -Recurse -Force
+  }
+}

@@ -5,7 +5,7 @@ $dir = Split-Path $scriptpath;
 #Log-Output "FileLocation: $dir";
 Set-Location $dir;
 
-../Build/BuildHelper.exe "*.class.sql" "../Build/output/FacadeTests.sql" "---Build"
+../Build/BuildHelper.exe "*.class.sql" "../Build/temp/tSQLtBuild/Facade/FacadeTests.sql" "---Build"
 
 $executeFacadeTests = @"
     :r FacadeScript.sql
@@ -16,6 +16,6 @@ $executeFacadeTests = @"
     GO
 "@;
 
-Set-Content "../Build/output/ExecuteFacadeTests.sql" $executeFacadeTests;
+Set-Content "../Build/temp/tSQLtBuild/Facade/ExecuteFacadeTests.sql" $executeFacadeTests;
 
 Pop-Location;

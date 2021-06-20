@@ -1,14 +1,11 @@
-# Delete files which might have been generated from previous builds
-$facadeFiles = @("FacadeScript.sql", "ExecuteFacadeScript.sql", "FacadeTests.sql", "ExecuteFacadeTests.sql", "tSQLtFacade.zip");
-Get-ChildItem -Path "output/*" -Include $facadeFiles | Remove-Item;
+New-Item -ItemType "directory" -Path "temp/tSQLtBuild/Facade";
 
 ../Facade/buildFacadeScripts.ps1
 ../FacadeTests/buildFacadeTests.ps1
 
 $compress = @{
     CompressionLevel = "Optimal"
-    DestinationPath = "output/tSQLtFacade.zip"
+    DestinationPath = "output/tSQLtBuild/tSQLtFacade.zip"
     }
-Get-ChildItem -Path "output/*" -Include $facadeFiles | Compress-Archive @compress
-
+Get-ChildItem -Path "temp/tSQLtBuild/Facade/*" -Include $facadeFiles | Compress-Archive @compress
 

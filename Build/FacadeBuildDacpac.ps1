@@ -12,25 +12,33 @@ Execute on a target server the Facade scripts
 EXEC Facade.CreateAllFacadeObjects
 #>
 
-$ServerNameTrimmed = $ServerName.Trim();
-$LoginTrimmed = $Login.Trim("'").Trim();
-
 $scriptpath = $MyInvocation.MyCommand.Path;
 $dir = Split-Path $scriptpath;
 
 .($dir+"\CommonFunctionsAndMethods.ps1");
 
+$OutputPath = $dir + "/output/DacpacBuild/";
+$TempPath = $dir + "/temp/DacpacBuild/";
+
+<# Clean #>
+Remove-DirectoryQuietly -Path $TempPath;
+Remove-DirectoryQuietly -Path $OutputPath;
+
+<# Init #>
+New-Item -ItemType "directory" -Path $TempPath;
+New-Item -ItemType "directory" -Path $OutputPath;
+
+$ServerNameTrimmed = $ServerName.Trim();
+$LoginTrimmed = $Login.Trim("'").Trim();
+
+
 Log-Output "FileLocation: $dir";
 Push-Location;
 Set-Location $dir;
 
-# Delete files which might have been generated from previous builds
-$facadeFiles = @("FacadeScript.sql", "ExecuteFacadeScript.sql", "FacadeTests.sql", "ExecuteFacadeTests.sql", "tSQLtFacade.*.dacpac");
-Get-ChildItem -Path "output/*" -Include $facadeFiles | Remove-Item;
+Expand-Archive -Path "./output/tSQLtBuild/tSQLtFacade.zip" -DestinationPath $TempPath;
 
-Expand-Archive -Path "./output/tSQLtFacade.zip" -DestinationPath "./output";
-
-Set-Location './output';
+Set-Location $TempPath;
 
 $SourceDatabaseName = $DatabaseName+"_src";
 $AdditionalParameters = '-v FacadeSourceDb="'+$SourceDatabaseName+'" FacadeTargetDb="'+$DatabaseName+'_tgt"'
@@ -47,5 +55,7 @@ $SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -L
 if($LASTEXITCODE -ne 0) {
     throw "error during execution of dacpac " + $FacadeFileName;
 }
+
+Copy-Item -Path $FacadeFileName -Destination $OutputPath;
 
 Pop-Location;

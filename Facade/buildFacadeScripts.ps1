@@ -8,13 +8,13 @@ Set-Location $dir;
 
 $createBuildDb = Get-Content "../Build/CreateBuildDb.sql";
 
-Set-Content "../Build/temp/CreateSourceDb.sql" $createBuildDb.Replace('$(NewDbName)', '$(FacadeSourceDb)');
-Set-Content "../Build/temp/CreateTargetDb.sql" $createBuildDb.Replace('$(NewDbName)', '$(FacadeTargetDb)');
+Set-Content "../Build/temp/tSQLtBuild/Facade/CreateSourceDb.sql" $createBuildDb.Replace('$(NewDbName)', '$(FacadeSourceDb)');
+Set-Content "../Build/temp/tSQLtBuild/Facade/CreateTargetDb.sql" $createBuildDb.Replace('$(NewDbName)', '$(FacadeTargetDb)');
 
 $facadeHeader3 = 'USE $(FacadeSourceDb);'
-Set-Content "../Build/temp/FacadeHeader3.ps1" $facadeHeader3;
+Set-Content "../Build/temp/tSQLtBuild/Facade/FacadeHeader3.ps1" $facadeHeader3;
 
-../Build/BuildHelper.exe "BuildOrder.txt" "../Build/output/FacadeScript.sql"
+../Build/BuildHelper.exe "BuildOrder.txt" "../Build/temp/tSQLtBuild/Facade/FacadeScript.sql"
 
 $executeFacadeScript = @'
     :r FacadeScript.sql
@@ -23,6 +23,6 @@ $executeFacadeScript = @'
     GO
 '@;
 
-Set-Content "../Build/output/ExecuteFacadeScript.sql" $executeFacadeScript;
+Set-Content "../Build/temp/tSQLtBuild/Facade/ExecuteFacadeScript.sql" $executeFacadeScript;
 
 Pop-Location;

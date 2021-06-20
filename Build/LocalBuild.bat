@@ -49,6 +49,8 @@ CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
 CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login "%DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
 @ECHO OFF
 
+CALL "throw we need to create the facade test results and what happened to TestResults_TestUtil.xml in Azure?" || goto :error
+
 ECHO +-------------------------+
 ECHO : Repackage zip file      :
 ECHO +-------------------------+
