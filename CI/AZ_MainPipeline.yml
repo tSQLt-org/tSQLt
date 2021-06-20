@@ -406,7 +406,7 @@ stages:
         options: '-Ddb.version="$(SQLVersion)" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
         targets: 'all'
         publishJUnitResults: true
-        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/?(Example)TestResults*.xml'
+        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
         testRunTitle: '$(SQLVersionEdition)'
         javaHomeOption: 'JDKVersion'
         

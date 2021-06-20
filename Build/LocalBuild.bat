@@ -69,12 +69,23 @@ IF "%VerboseOutput%"=="ON" @ECHO ON
 CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login="%DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" || goto :error
 @ECHO OFF
 
+
+ECHO +-------------------------+
+ECHO : Zip all tests results   :
+ECHO +-------------------------+
+IF "%VerboseOutput%"=="ON" @ECHO ON
+CALL "throw we need to create the facade test results and what happened to TestResults_TestUtil.xml in Azure?" || goto :error
+@ECHO OFF
+
+
+
 ECHO +-------------------------+
 ECHO :     BUILD SUCCEEDED     :
 ECHO +-------------------------+
 goto :EOF
 
 :error
+@ECHO OFF
 ECHO +-------------------------+
 ECHO :  !!! BUILD FAILED !!!   :
 ECHO +-------------------------+

@@ -492,7 +492,7 @@
 
   <antcall target="execute.sql.tests">
    <param name="execute.sql.database" value="tSQLt_Example" />
-   <param name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
+   <param name="execute.sql.outputfile" value="output/TestResults_Example.xml" />
    <param name="execute.sql.testcasefilename" value="ExampleDB" />
    <param name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
   </antcall>
