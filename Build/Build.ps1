@@ -3,7 +3,7 @@
 $toBeZipped = @("ReleaseNotes.txt", "License.txt", "tSQLt.class.sql", "Example.sql", "PrepareServer.sql");
 $compress = @{
     CompressionLevel = "Optimal"
-    DestinationPath = "output/tSQLtBuild/tSQLt.zip"
+    DestinationPath = "output/tSQLtBuild/tSQLtFiles.zip"
     }
 Get-ChildItem -Path "temp/tSQLtBuild/*" -Include $toBeZipped | Compress-Archive @compress
 

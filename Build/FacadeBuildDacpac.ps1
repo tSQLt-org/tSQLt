@@ -25,8 +25,8 @@ Remove-DirectoryQuietly -Path $TempPath;
 Remove-DirectoryQuietly -Path $OutputPath;
 
 <# Init #>
-New-Item -ItemType "directory" -Path $TempPath;
-New-Item -ItemType "directory" -Path $OutputPath;
+$tempDir = New-Item -ItemType "directory" -Path $TempPath;
+$outputDir = New-Item -ItemType "directory" -Path $OutputPath;
 
 $ServerNameTrimmed = $ServerName.Trim();
 $LoginTrimmed = $Login.Trim("'").Trim();

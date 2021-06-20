@@ -118,6 +118,12 @@
           <AssociatedConnUserName />
           <FullPath>BuildHelper.exe</FullPath>
         </FileNode>
+        <FileNode Name="BuildtSQLtZip.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>BuildtSQLtZip.ps1</FullPath>
+        </FileNode>
         <FileNode Name="ChangeSigningKey_ReadMe.txt">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

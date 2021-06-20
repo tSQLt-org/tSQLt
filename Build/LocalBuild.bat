@@ -49,13 +49,15 @@ CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
 CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login "%DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
 @ECHO OFF
 
-CALL "throw we need to create the facade test results and what happened to TestResults_TestUtil.xml in Azure?" || goto :error
-
 ECHO +-------------------------+
 ECHO : Repackage zip file      :
 ECHO +-------------------------+
-CALL "throw" || goto :error
+IF "%VerboseOutput%"=="ON" @ECHO ON
+CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
+CALL "powershell.exe" -File Build\BuildtSQLtZip.ps1 -ErrorAction Stop || goto :error
+@ECHO OFF
 
+CALL "throw we need to create the facade test results and what happened to TestResults_TestUtil.xml in Azure?" || goto :error
 
 ECHO +-------------------------+
 ECHO : Copying BUILD           :
