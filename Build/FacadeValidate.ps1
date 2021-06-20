@@ -25,12 +25,12 @@ Log-Output "FileLocation: $dir"
 $facadeFiles = @("FacadeScript.sql", "ExecuteFacadeScript.sql", "FacadeTests.sql", "ExecuteFacadeTests.sql");
 Get-ChildItem -Path "output/*" -Include $facadeFiles | Remove-Item;
 
-Expand-Archive -Path "./output/tSQLtFacade.zip" -DestinationPath "./output";
+Expand-Archive -Path "./output/tSQLtBuild/tSQLtFacade.zip" -DestinationPath "./temp/Validate";
 
 Push-Location;
 
 $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $DatabaseName;
-$FacadeFileName = "output/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
+$FacadeFileName = "temp/Validate/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 
 $DacpacDatabaseName = $DatabaseName+"_dacpac";
 $AdditionalParameters = '-v NewDbName="'+$DacpacDatabaseName+'"';
@@ -42,7 +42,7 @@ if($LASTEXITCODE -ne 0) {
     throw "error during execution of dacpac " + $FacadeFileName;
 }
 
-Set-Location './output';
+Set-Location './output/Validate';
 
 $AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt" DacpacTargetDb="'+$DacpacDatabaseName+'"';
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;

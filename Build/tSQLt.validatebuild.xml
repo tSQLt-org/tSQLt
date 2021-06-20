@@ -81,13 +81,17 @@
  <!--========               initialize artifact files              =========-->
  <!--=======================================================================-->
 
- <target name="init" description="prepare directories for tSQLt build">
-  <delete dir="temp"/>
-  <mkdir dir="temp"/>
-  <mkdir dir="output" />
+ <target name="clean" description="delete directories">
+  <delete dir="temp/Validate"/>
+  <delete dir="output/Validate"/>
+ </target> 
 
-  <unzip src="../Build_Artifact/tSQLt.zip" dest="temp" />
-  <unzip src="../Build_Artifact/tSQLt.tests.zip" dest="temp" />
+ <target name="init" description="prepare directories for tSQLt build">
+  <mkdir dir="temp/Validate"/>
+  <mkdir dir="output/Validate" />
+
+  <unzip src="../Build_Artifact/tSQLt.zip" dest="temp/Validate/tSQLt/" />
+  <unzip src="../Build_Artifact/tSQLt.tests.zip" dest="temp/Validate/tSQLt.tests" />
 
   <property name="execute.sql.elevated" value="false" />
   <property name="deployandrun.tests.elevated" value="false" />
@@ -99,7 +103,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
    <param name="execute.sql.caller" value="true" />
-   <param name="execute.sql.filename" value="temp/ResetValidationServer.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/ResetValidationServer.sql" />
   </antcall>
 
  </target>
@@ -109,7 +113,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/PrepareServer.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/PrepareServer.sql" />
   </antcall>
 
  </target>
@@ -122,62 +126,56 @@
  </target>
 
  <target name="create.tSQLt.scripts.AllTests.Main">
-  <delete file="temp/AllTests.Main.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/AllTests.Main.sql" />
-   <param name="append.source" value="temp/AllTests.sql" />
+   <param name="append.target" value="temp/Validate/AllTests.Main.sql" />
+   <param name="append.source" value="temp/Validate/AllTests.sql" />
   </antcall>
  </target>
  
  <target name="create.tSQLt.scripts" description="generate build execution utility scripts">
-  <delete file="temp/temp_prepare_server.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_prepare_server.sql" />
-   <param name="append.source" value="temp/CreateBuildDb.sql" />
+   <param name="append.target" value="temp/Validate/temp_prepare_server.sql" />
+   <param name="append.source" value="temp/Validate/CreateBuildDb.sql" />
   </antcall>
 
-  <delete file="temp/temp_executeas.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas.sql" />
-   <param name="append.source" value="temp/ExecuteAs(tSQLt.Build).sql" />
+   <param name="append.target" value="temp/Validate/temp_executeas.sql" />
+   <param name="append.source" value="temp/Validate/ExecuteAs(tSQLt.Build).sql" />
   </antcall>
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas.sql" />
-   <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
-  </antcall>
-
-  <delete file="temp/temp_executeas_sa.sql" />
-  <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas_sa.sql" />
-   <param name="append.source" value="temp/ExecuteAs(tSQLt.Build.SA).sql" />
-  </antcall>
-  <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas_sa.sql" />
-   <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+   <param name="append.target" value="temp/Validate/temp_executeas.sql" />
+   <param name="append.source" value="temp/Validate/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
   </antcall>
 
-  <delete file="temp/temp_executeas_caller.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas_caller.sql" />
-   <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+   <param name="append.target" value="temp/Validate/temp_executeas_sa.sql" />
+   <param name="append.source" value="temp/Validate/ExecuteAs(tSQLt.Build.SA).sql" />
+  </antcall>
+  <antcall target="append.file">
+   <param name="append.target" value="temp/Validate/temp_executeas_sa.sql" />
+   <param name="append.source" value="temp/Validate/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+  </antcall>
+
+  <antcall target="append.file">
+   <param name="append.target" value="temp/Validate/temp_executeas_caller.sql" />
+   <param name="append.source" value="temp/Validate/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
   </antcall>  
   <antcall target="create.tSQLt.scripts.AllTests.Main" />
 
  </target>
 
  <target name="create.Example.scripts" description="generate database creation scripts for example">
-  <delete file="temp/temp_create_example.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_create_example.sql" />
-   <param name="append.source" value="temp/Example.sql" />
+   <param name="append.target" value="temp/Validate/temp_create_example.sql" />
+   <param name="append.source" value="temp/Validate/Example.sql" />
   </antcall>
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_create_example.sql" />
-   <param name="append.source" value="temp/TestUtil.sql" />
+   <param name="append.target" value="temp/Validate/temp_create_example.sql" />
+   <param name="append.source" value="temp/Validate/TestUtil.sql" />
   </antcall>
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_create_example.sql" />
-   <param name="append.source" value="temp/TestThatExamplesAreDeployed.sql" />
+   <param name="append.target" value="temp/Validate/temp_create_example.sql" />
+   <param name="append.source" value="temp/Validate/TestThatExamplesAreDeployed.sql" />
   </antcall>
 
  </target>
@@ -189,19 +187,19 @@
  <target name="execute.sql.statement_or_file.permissions.caller" if="execute.sql.statement_or_file.permissions.caller">
   <echo message="--> execute.sql.statement_or_file.caller" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas_caller.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/temp_executeas_caller.sql" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.permissions.elevated" if="execute.sql.statement_or_file.permissions.elevated">
   <echo message="--> execute.sql.statement_or_file.elevated" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/temp_executeas_sa.sql" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.permissions.default" if="execute.sql.statement_or_file.permissions.default">
   <echo message="--> execute.sql.statement_or_file.default" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/temp_executeas.sql" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.with.permissions">
@@ -237,7 +235,7 @@
   </condition>
 
   <antcall target="execute.sql.statement_or_file.with.permissions">
-   <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/temp_executeas.sql" />
    <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; ${db.login}" />
   </antcall>
  </target>
@@ -310,7 +308,7 @@
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.outputfile" value="${execute.sql.outputfile}" />
-   <param name="execute.sql.filename" value="temp/GetTestResults.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/GetTestResults.sql" />
    <param name="execute.sql.statement" value="" />
   </antcall>
 
@@ -327,12 +325,12 @@
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
-   <param name="execute.sql.filename" value="temp/temp_prepare_server.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/temp_prepare_server.sql" />
   </antcall>
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.filename" value="temp/tSQLt.class.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.class.sql" />
   </antcall>
  </target>
 
@@ -370,31 +368,31 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/Drop(master.tSQLt_testutil).sql" />
   </antcall>
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Install(master.tSQLt_testutil).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/Install(master.tSQLt_testutil).sql" />
   </antcall>
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(tSQLtAssemblyKey)(Pre2017).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/Drop(tSQLtAssemblyKey)(Pre2017).sql" />
   </antcall>
 
   <!-- run bootstrap tests -->
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.filename" value="temp/BootStrapTest.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/BootStrapTest.sql" />
   </antcall>
 
   <!-- Install TestUtil -->
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.filename" value="temp/TestUtil.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/TestUtil.sql" />
   </antcall>
 
   <!-- Set SummaryError Off, PrepMultiRun -->
@@ -407,21 +405,21 @@
   <!-- run TestUtil tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
-   <param name="deployandrun.tests.filename" value="temp/TestUtilTests.sql" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/TestUtilTests.sql" />
    <param name="deployandrun.tests.outputfile" value="output/TestResults_TestUtil.xml" />
   </antcall>
 
   <!-- run non-specific tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.Main.sql" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/AllTests.Main.sql" />
    <param name="deployandrun.tests.outputfile" value="output/TestResults.xml" />
   </antcall>
 
   <!-- run SA tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="true" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.SA.sql" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/AllTests.SA.sql" />
    <param name="deployandrun.tests.outputfile" value="output/TestResults_SA.xml" />
   </antcall>
 
@@ -429,13 +427,13 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Install(tSQLtAssemblyKey).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/Install(tSQLtAssemblyKey).sql" />
   </antcall>
 
   <!-- EAKE Tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="true" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
    <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
   </antcall>
 
@@ -443,13 +441,13 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/EnableExternalAccess.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/EnableExternalAccess.sql" />
   </antcall>
 
   <!-- EA Tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS.sql" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/AllTests.EXTERNAL_ACCESS.sql" />
    <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS.xml" />
   </antcall>
 
@@ -464,7 +462,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/Drop(master.tSQLt_testutil).sql" />
   </antcall>
 
  </target>
@@ -475,7 +473,7 @@
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
-   <param name="execute.sql.filename" value="temp/temp_create_example.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/temp_create_example.sql" />
   </antcall>
  </target>
 
