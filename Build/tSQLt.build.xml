@@ -434,8 +434,10 @@
     <include name="GetTestResults.sql"/>
     <include name="GetFailedTestCount.sql"/>
     <include name="TestThatExamplesAreDeployed.sql"/>
-    <include name="PrepareServer.sql"/>
+   </fileset>
+   <fileset dir="temp/tSQLtBuild">
     <include name="ResetValidationServer.sql"/>
+    <include name="PrepareServer.sql"/>
    </fileset>
   </zip>
  </target>

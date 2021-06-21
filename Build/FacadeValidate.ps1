@@ -11,9 +11,6 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlPackagePath
 );
 
-$ServerNameTrimmed = $ServerName.Trim();
-$LoginTrimmed = $Login.Trim("'").Trim();
-
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
 
@@ -21,16 +18,19 @@ $dir = Split-Path $scriptpath
 
 Log-Output "FileLocation: $dir"
 
-# Delete files which might have been generated from previous builds
-$facadeFiles = @("FacadeScript.sql", "ExecuteFacadeScript.sql", "FacadeTests.sql", "ExecuteFacadeTests.sql");
-Get-ChildItem -Path "output/*" -Include $facadeFiles | Remove-Item;
+$TempPath = $dir + "/temp/Validate";
+$FacadeFilesPath = $TempPath + "/Facade";
+$TestResultsPath = $TempPath + "/TestResults/TestResults_Facade.xml";
 
-Expand-Archive -Path "./output/tSQLtBuild/tSQLtFacade.zip" -DestinationPath "./temp/Validate";
+$ServerNameTrimmed = $ServerName.Trim();
+$LoginTrimmed = $Login.Trim("'").Trim();
+
+Expand-Archive -Path "./output/tSQLtBuild/tSQLtFacade.zip" -DestinationPath $FacadeFilesPath;
 
 Push-Location;
 
 $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $DatabaseName;
-$FacadeFileName = "temp/Validate/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
+$FacadeFileName = $TempPath + "/tSQLt/Facade/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 
 $DacpacDatabaseName = $DatabaseName+"_dacpac";
 $AdditionalParameters = '-v NewDbName="'+$DacpacDatabaseName+'"';
@@ -42,15 +42,16 @@ if($LASTEXITCODE -ne 0) {
     throw "error during execution of dacpac " + $FacadeFileName;
 }
 
-Set-Location './output/Validate';
+Set-Location $FacadeFilesPath;
 
 $AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt" DacpacTargetDb="'+$DacpacDatabaseName+'"';
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
 
-Set-Location '..';
+Set-Location '../tSQLt.tests';
 
+$AdditionalParameters = '-o "'+$TestResultsPath+'"';
 $SourceDatabaseName = $DatabaseName+"_src";
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters '-o "output/TestResults_Facade.xml"';
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 
 
 Pop-Location;
