@@ -57,9 +57,9 @@ CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
 CALL "powershell.exe" -File Build\BuildtSQLtZip.ps1 -ErrorAction Stop || goto :error
 @ECHO OFF
 
-ECHO +-------------------------+
-ECHO : Copying BUILD           :
-ECHO +-------------------------+
+ECHO +----------------------------+
+ECHO : Create Build Debug Project :
+ECHO +----------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
 CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.copybuild.xml || goto :error
 @ECHO OFF
