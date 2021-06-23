@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
- <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Facade, validate.Example, report.SQL.Version" />
+ <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Facade, validate.Example, zip.testresults, report.SQL.Version" />
 
  <target name="deploy.all" depends="clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, reset.server, prepare.server, deploy.tSQLt, deploy.Example" />
 
