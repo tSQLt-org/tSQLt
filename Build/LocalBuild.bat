@@ -27,6 +27,8 @@ ECHO VerboseOutput: "%VerboseOutput%"
 REM CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path="%NET4Home%" -verbose || goto :error
 REM goto :EOF
 
+CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
+
 ECHO +-------------------------+
 ECHO : Starting CLR BUILD      :
 ECHO +-------------------------+
@@ -45,7 +47,6 @@ ECHO +-------------------------+
 ECHO : Creating tSQLt Facade   :
 ECHO +-------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
-CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
 @REM -----------------------------------------------------------------------------This space character is utterly important! --------------v
 CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
 @ECHO OFF
@@ -54,7 +55,6 @@ ECHO +-------------------------+
 ECHO : Repackage zip file      :
 ECHO +-------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
-CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
 CALL "powershell.exe" -File Build\BuildtSQLtZip.ps1 -ErrorAction Stop || goto :error
 @ECHO OFF
 
@@ -62,7 +62,7 @@ ECHO +----------------------------+
 ECHO : Create Build Debug Project :
 ECHO +----------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
-CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.copybuild.xml || goto :error
+CALL "powershell.exe" -File Build\CreateDebugSSMSProject.ps1 -ErrorAction Stop || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

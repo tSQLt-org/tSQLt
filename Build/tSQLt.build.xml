@@ -437,7 +437,6 @@
    </fileset>
    <fileset dir="temp/tSQLtBuild">
     <include name="ResetValidationServer.sql"/>
-    <include name="PrepareServer.sql"/>
    </fileset>
   </zip>
  </target>
