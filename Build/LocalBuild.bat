@@ -46,7 +46,8 @@ ECHO : Creating tSQLt Facade   :
 ECHO +-------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
 CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
-CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login "%DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
+@REM -----------------------------------------------------------------------------This space character is utterly important! --------------v
+CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
@@ -68,7 +69,8 @@ ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
-CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login="%DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" || goto :error
+@REM -----------------------------------------------------------------------------This space character is utterly important! ----v
+CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

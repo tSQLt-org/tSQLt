@@ -49,7 +49,7 @@ $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerName
 $FacadeFileName = "tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 $DacpacApplicationName = "tSQLtFacade."+$FriendlySQLServerVersion;
 $TargetDatabaseName = $DatabaseName+"_tgt";
-$SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $TargetDatabaseName;
+$SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $TargetDatabaseName;
 
 & "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$SqlConnectionString" /tf:"$FacadeFileName" /p:DacApplicationName="$DacpacApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
 if($LASTEXITCODE -ne 0) {
