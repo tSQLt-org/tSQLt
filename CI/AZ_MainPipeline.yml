@@ -275,6 +275,7 @@ stages:
 
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+      SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
 
     steps:
     - checkout: self
@@ -398,7 +399,39 @@ stages:
         script: |
           $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(FQDNAndPort)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }    
-    
+
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+
+
+##-## CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
+
+    - task: PowerShell@2
+      name: FacadeBuildDacpac
+      env:
+        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      inputs:
+        targetType: 'inline'
+        script: |
+          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$(FQDNAndPort)" -DatabaseName "%DBName%" -Login " -U $env:USER_NAME -P $env:PASSWORD" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
+
+
+##-## CALL "powershell.exe" -File Build\BuildtSQLtZip.ps1 -ErrorAction Stop || goto :error
+
+
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+
+
     - task: Ant@1
       name: Run_tSQLt_validatebuild_xml
       inputs:
