@@ -158,7 +158,7 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLtBuild";
+          $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLtBuild\";
           $artifactPath = ($basePath+"Artifact\");
           New-Item -Path $artifactPath  -ItemType directory -Force
           $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip","tSQLtSnippets(SQLPrompt).zip")|%{$basePath+$_});
