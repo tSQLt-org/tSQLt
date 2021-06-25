@@ -20,7 +20,7 @@ $outputDir = New-Item -ItemType "directory" -Path $OutputPath;
 
 <# Copy files to temp path #>
 Expand-Archive -Path ($dir + "/output/tSQLtBuild/tSQLtFiles.zip") -DestinationPath $TempPath;
-Get-ChildItem -Path ($dir + "/temp/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadePath;
+Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadePath;
 
 $compress = @{
     CompressionLevel = "Optimal"
