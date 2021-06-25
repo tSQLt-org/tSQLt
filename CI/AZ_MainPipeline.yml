@@ -142,7 +142,7 @@ stages:
         buildType: 'current'
         artifactName: 'tSQLtClrDlls'
         itemPattern: '*.zip'
-        targetPath: '$(Build.SourcesDirectory)\Build\output\tSQLtCLR'
+        targetPath: '$(Build.SourcesDirectory)\Build\output\CLRBuild'
 
     - task: Ant@1
       displayName: 'Ant -debug Build/tSQLt.build.xml'
@@ -158,7 +158,7 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLt";
+          $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLtBuild";
           $artifactPath = ($basePath+"Artifact\");
           New-Item -Path $artifactPath  -ItemType directory -Force
           $ArtifactFiles = (@("Version.txt","tSQLt.zip","tSQLt.tests.zip","tSQLtSnippets(SQLPrompt).zip")|%{$basePath+$_});
@@ -167,7 +167,7 @@ stages:
 
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/Build/output/tSQLt/Artifact'
+        targetPath: '$(Build.SourcesDirectory)/Build/output/tSQLtBuild/Artifact'
         artifact: 'tSQLtAndTests'
         publishLocation: 'pipeline'
 
@@ -425,10 +425,11 @@ stages:
           "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
           New-Item -Path $artifactPath  -ItemType directory -Force
           "== == == == == == == == == == == == == == == == == "
-          (Get-ChildItem $basePath -recurse)|Out-File  -FilePath $artifactPath+"dir.txt"
-          (Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName; 
+          ##(Get-ChildItem $basePath -recurse)|Out-File  -FilePath $artifactPath+"dir.txt"
+          ##(Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName; 
           "==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-"
-          (Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $artifactPath -recurse -PassThru
+          ##(Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $artifactPath -recurse -PassThru
+          Expand-Archive -Path "$basePath\tSQLt\Build\output\Validate\TestResults.zip" -DestinationPath $artifactPath
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
           "=== === === === === === === === === === === === ==="
 
