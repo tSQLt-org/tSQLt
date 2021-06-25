@@ -161,7 +161,7 @@ stages:
           $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLtBuild\";
           $artifactPath = ($basePath+"Artifact\");
           New-Item -Path $artifactPath  -ItemType directory -Force
-          $ArtifactFiles = (@("Version.txt","tSQLtFiles.zip","tSQLt.tests.zip","tSQLtSnippets(SQLPrompt).zip")|%{$basePath+$_});
+          $ArtifactFiles = (@("ReadMe.txt","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt")| ForEach-Object { $basePath + $_ });
           $ArtifactFiles|Copy-Item -Verbose -Destination $artifactPath;
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
