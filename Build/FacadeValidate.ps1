@@ -34,7 +34,7 @@ $FacadeFileName = $TempPath + "/tSQLt/Facade/tSQLtFacade."+$FriendlySQLServerVer
 
 $DacpacDatabaseName = $DatabaseName+"_dacpac";
 $AdditionalParameters = '-v NewDbName="'+$DacpacDatabaseName+'"';
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "CreateBuildDb.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "CreateBuildDb.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 
 $SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $DacpacDatabaseName;
 & "$SqlPackagePath\sqlpackage.exe" /a:Publish /tcs:"$SqlConnectionString" /sf:"$FacadeFileName"
@@ -45,13 +45,13 @@ if($LASTEXITCODE -ne 0) {
 Set-Location $FacadeFilesPath;
 
 $AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt" DacpacTargetDb="'+$DacpacDatabaseName+'"';
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "ExecuteFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
 
 Set-Location '../tSQLt.tests';
 
 $AdditionalParameters = '-o "'+$TestResultsPath+'"';
 $SourceDatabaseName = $DatabaseName+"_src";
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileName "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 
 
 Pop-Location;

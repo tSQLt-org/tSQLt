@@ -8,7 +8,7 @@
 
  <target
    name="all"
-   depends="clean, validate.parameters, package.create.tSQLt, package.create.SQLPromptSnippets, package.create.tSQLtFacade, package.create.tSQLt.tests, print.version"
+   depends="clean, validate.parameters, package.create.tSQLt, package.create.SQLPromptSnippets,  package.create.tSQLt.tests, package.create.tSQLtFacade, print.version"
    />
 
  <target
