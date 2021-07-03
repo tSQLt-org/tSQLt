@@ -321,7 +321,7 @@
  <!--=======================================================================-->
 
  <target name="exec.powershell.build">
-  <exec dir="." executable="powershell" timeout="5000" failonerror="true">
+  <exec dir="." executable="powershell" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />
       <arg line="-File Build.ps1" />
   </exec>
@@ -472,7 +472,7 @@
  <!--=======================================================================-->
 
  <target name="package.create.tSQLtFacade">
-  <exec dir="." executable="powershell" timeout="5000" failonerror="true">
+  <exec dir="." executable="powershell" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />
       <arg line="-File FacadeBuildScript.ps1" />
   </exec>

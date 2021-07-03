@@ -510,7 +510,7 @@
  <!--=======================================================================-->
 
  <target name="validate.Facade">
-  <exec dir="." executable="powershell" timeout="60000" failonerror="true">
+  <exec dir="." executable="powershell" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />
       <arg line="-File FacadeValidate.ps1" />
       <arg line="-ServerName &quot;${db.server}&quot;" />
@@ -526,7 +526,7 @@
  <!--=======================================================================-->
 
  <target name="zip.testresults">
-  <exec dir="." executable="powershell" timeout="60000" failonerror="true">
+  <exec dir="." executable="powershell" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />
       <arg line="-File BuildTestResultsZip.ps1" />
   </exec>
