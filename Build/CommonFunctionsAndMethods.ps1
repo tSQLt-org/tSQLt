@@ -69,7 +69,7 @@ Function Get-SqlConnectionString
   #>
   $resolvedServerName = $ServerNameTrimmed;
   $serverAlias = Get-Item -Path HKLM:\SOFTWARE\Microsoft\MSSQLServer\Client\ConnectTo -ErrorAction SilentlyContinue;
-  if ($null -ne $serverAlias && $serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
+  if ($null -ne $serverAlias -And $serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
       $aliasValue = $serverAlias.GetValue($ServerNameTrimmed)
       if ($aliasValue -match "DBMSSOCN[,](.*)"){
           $resolvedServerName = $Matches[1];
@@ -87,7 +87,7 @@ Function Get-SqlConnectionString
       throw $LoginTrimmed + " is not supported here."
   }
 
-  $SqlConnectionString = "Data Source="+$resolvedServerName+";"+$AuthenticationString+";Connect Timeout=60;Initial Catalog="+$DatabaseName;
+  $SqlConnectionString = "Data Source="+$resolvedServerName+";"+$AuthenticationString+";Connect Timeout=60;Initial Catalog="+$DatabaseName+";TrustServerCertificate=true;";
   $SqlConnectionString;
 }
 
