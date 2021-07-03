@@ -69,7 +69,7 @@ Function Get-SqlConnectionString
   #>
   $resolvedServerName = $ServerNameTrimmed;
   $serverAlias = Get-Item -Path HKLM:\SOFTWARE\Microsoft\MSSQLServer\Client\ConnectTo -ErrorAction SilentlyContinue;
-  if ($serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
+  if ($null -ne $serverAlias && $serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
       $aliasValue = $serverAlias.GetValue($ServerNameTrimmed)
       if ($aliasValue -match "DBMSSOCN[,](.*)"){
           $resolvedServerName = $Matches[1];
