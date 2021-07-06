@@ -40,7 +40,7 @@ ECHO +-------------------------+
 ECHO : Starting tSQLt BUILD    :
 ECHO +-------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
-CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.build.xml || goto :error
+CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.build.xml -Dcommit.id="--> LOCALBUILD <--" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

@@ -6,24 +6,32 @@ $dir = Split-Path $scriptpath;
 
 $OutputPath = $dir + "/output/tSQLt/";
 $TempPath = $dir + "/temp/tSQLt/";
-$FacadePath = $TempPath + "/Facade/";
+$PublicOutputPath = OutputPath + "public/";
+$PublicTempPath = $TempPath + "public/";
+$ValidationOutputPath = $OutputPath + "validation/";
+$FacadePath = $PublicTempPath + "/Facade/";
 $tSQLtFilesZipPath = $dir + "/output/tSQLtBuild/tSQLtFiles.zip";
+$PublicOutputFiles = @($dir + "/output/tSQLtBuild/ReadMe.txt", $dir + "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip");
+$ValidationOutputFiles = @($dir + "/output/tSQLtBuild/Version.txt", $dir + "/output/tSQLtBuild/CommitId.txt", $dir + "output/tSQLtBuild/tSQLt.tests.zip"); 
 
 <# Clean #>
 Remove-DirectoryQuietly -Path $TempPath;
 Remove-DirectoryQuietly -Path $OutputPath;
 
-<# Init #>
-$tempDir = New-Item -ItemType "directory" -Path $TempPath;
+<# Init directories, capturing the return values in a variable so that they don't print. #>
+$publicOutputDir = New-Item -ItemType "directory" -Path $PublicOutputPath;
 $facadeDir = New-Item -ItemType "directory" -Path $FacadePath;
-$outputDir = New-Item -ItemType "directory" -Path $OutputPath;
+$validationOutputDir = New-Item -ItemType "directory" -Path $ValidationOutputPath;
 
 <# Copy files to temp path #>
-Expand-Archive -Path ($dir + "/output/tSQLtBuild/tSQLtFiles.zip") -DestinationPath $TempPath;
+Expand-Archive -Path ($tSQLtFilesZipPath) -DestinationPath $PublicTempPath;
 Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadePath;
 
 $compress = @{
     CompressionLevel = "Optimal"
-    DestinationPath = $OutputPath + "/tSQLt.zip"
+    DestinationPath = $PublicOutputPath + "/tSQLt.zip"
 }
-Get-ChildItem -Path $TempPath | Compress-Archive @compress
+Get-ChildItem -Path $PublicTempPath | Compress-Archive @compress
+
+<# ------------------------------------------------------------------------------ #>
+

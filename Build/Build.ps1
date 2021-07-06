@@ -1,4 +1,6 @@
-
+Param( 
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $CommitId
+);
 
 $toBeZipped = @("ReleaseNotes.txt", "License.txt", "tSQLt.class.sql", "Example.sql", "PrepareServer.sql");
 $compress = @{
@@ -11,3 +13,8 @@ Copy-Item "temp/tSQLtBuild/ReleaseNotes.txt" -Destination "output/tSQLtBuild/Rea
 Copy-Item "temp/tSQLtBuild/Version.txt" -Destination "output/tSQLtBuild/";
 Copy-Item "temp/tSQLtBuild/tSQLt.class.sql" -Destination "output/tSQLtBuild/";
 
+<#--=======================================================================-->
+<!--========                 Write CommitId.txt                   =========-->
+<!--=======================================================================-#>
+
+Set-Content -Path "output/tSQLtBuild/CommitId.txt" -Value $CommitId;

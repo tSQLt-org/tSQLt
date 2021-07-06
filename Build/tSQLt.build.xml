@@ -3,7 +3,10 @@
  <description>Build tSQLt</description>
 
  <target name="validate.parameters" description="">
-  <!-- no parameters at this point-->
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="commit.id" />
+  </antcall>
+
  </target>
 
  <target
@@ -324,6 +327,7 @@
   <exec dir="." executable="powershell" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />
       <arg line="-File Build.ps1" />
+      <arg line="-CommitId &quot;${commit.id}&quot;" />
   </exec>
  </target>
 
