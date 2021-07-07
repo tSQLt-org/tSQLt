@@ -92,7 +92,7 @@
   <mkdir dir="output/Validate" />
 
   <unzip src="./output/tSQLt/public/tSQLt.zip" dest="temp/Validate/tSQLt/" />
-  <unzip src="./output/tSQLt/validation/tSQLt.tests.zip" dest="temp/Validate/tSQLt.tests" />
+  <unzip src="./output/tSQLt/validation/tSQLt.tests.zip" dest="temp/Validate/tSQLt.tests/" />
 
   <property name="execute.sql.elevated" value="false" />
   <property name="deployandrun.tests.elevated" value="false" />
