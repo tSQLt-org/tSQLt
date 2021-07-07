@@ -18,3 +18,7 @@ Copy-Item "temp/tSQLtBuild/tSQLt.class.sql" -Destination "output/tSQLtBuild/";
 <!--=======================================================================-#>
 
 Set-Content -Path "output/tSQLtBuild/CommitId.txt" -Value $CommitId;
+
+"#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-"
+Get-Content -Path "output/tSQLtBuild/CommitId.txt"
+"#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-"
