@@ -12,7 +12,7 @@ $ValidationOutputPath = $OutputPath + "validation/";
 $FacadePath = $PublicTempPath + "/Facade/";
 $tSQLtFilesZipPath = $dir + "/output/tSQLtBuild/tSQLtFiles.zip";
 $PublicOutputFiles = @(($dir + "/output/tSQLtBuild/ReadMe.txt"), ($dir + "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip"));
-$ValidationOutputFiles = @(($dir + "/output/tSQLtBuild/Version.txt"), ($dir + "/output/tSQLtBuild/CommitId.txt"), ($dir + "/output/tSQLtBuild/tSQLt.tests.zip")); 
+$ValidationOutputFiles = @(($dir + "/output/tSQLtBuild/Version.txt"), ($dir + "/output/tSQLtBuild/CommitId.txt"), ($dir + "/output/tSQLtBuild/tSQLt.tests.zip"), ($dir + "/output/tSQLtBuild/tSQLtFacade.zip")); 
 
 <# Clean #>
 Remove-DirectoryQuietly -Path $TempPath;

@@ -25,7 +25,7 @@ $TestResultsPath = $TempPath + "/TestResults/TestResults_Facade.xml";
 $ServerNameTrimmed = $ServerName.Trim();
 $LoginTrimmed = $Login.Trim("'").Trim();
 
-Expand-Archive -Path "./output/tSQLtBuild/tSQLtFacade.zip" -DestinationPath $FacadeFilesPath;
+Expand-Archive -Path "./output/tSQLt/validation/tSQLtFacade.zip" -DestinationPath $FacadeFilesPath;
 
 Push-Location;
 
