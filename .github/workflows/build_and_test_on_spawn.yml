@@ -105,6 +105,8 @@ jobs:
           if-no-files-found: error
           name: tSQLtBuildArtifact
           path: "${{ env.artifact_dir }}\\"
+          retention-days: 5
+
 
 # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
   build-facades:
@@ -197,8 +199,7 @@ jobs:
           if-no-files-found: error
           name: dacpacs
           path: "${{ env.dacpac_artifact_dir }}\\"
-
-
+          retention-days: 5
 
 
 # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
@@ -250,6 +251,7 @@ jobs:
           if-no-files-found: error
           name: tSQLtPublic
           path: "${{ env.tsqlt_public_artifact_dir }}\\"
+          retention-days: 90
 
       - name: create tSQLt validation artifact
         uses: actions/upload-artifact@v2
@@ -257,6 +259,7 @@ jobs:
           if-no-files-found: error
           name: tSQLtValidation
           path: "${{ env.tsqlt_validation_artifact_dir }}\\"
+          retention-days: 5
 
 # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
   test-tSQLt-and-facade:
@@ -362,9 +365,7 @@ jobs:
           if-no-files-found: error
           name: jUnitTests-${{ matrix.data-image }}
           path: "${{ env.test_artifact_dir }}\\"
-
-
-
+          retention-days: 90
 
 
 # # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
