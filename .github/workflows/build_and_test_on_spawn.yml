@@ -7,7 +7,7 @@ name: Build and Test tSQLt on Spawn
 on:
   push:
     branches:
-      - image-pipeline
+      - tSQLtFacadeBuild
   workflow_dispatch: 
     inputs:
       spawnDataImages:
@@ -71,19 +71,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it. 
       # But this is misleading, because this variable is only really helpful as ${{ github.workspace }}
-      - name: Checkout self
-        uses: actions/checkout@v2
-        with:
-          path: cicd
-
       - name: Checkout tSQLt
         uses: actions/checkout@v2
         with:
-          repository: tSQLt-org/tSQLt
-          ref: tSQLtFacadeBuild # OH BY THE WAY, #MDP --> order actually matters. If the ref does not appear here, checkout ignores it. No error. Very helpful.
           path: tSQLt
-          token: ${{ secrets.my_pat }}
-          # Why do we need a token here? It's a public repository.
 
       # documentation: This is just what you need to do...
       - name: create and install unofficial pfx file for signing dlls
@@ -133,19 +124,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-
-      - name: Checkout self
-        uses: actions/checkout@v2
-        with:
-          path: cicd
-
       - name: Checkout tSQLt
         uses: actions/checkout@v2
         with:
-          repository: tSQLt-org/tSQLt
-          ref: tSQLtFacadeBuild # OH BY THE WAY, #MDP --> order actually matters. If the ref does not appear here, checkout ignores it. No error. Very helpful.
           path: tSQLt
-          token: ${{ secrets.my_pat }}
 
       - name: load namespace variables into env
         id: create-vars
@@ -233,18 +215,10 @@ jobs:
       TSQLT_VALIDATION_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\tSQLt\validation
 
     steps:
-      - name: Checkout self
-        uses: actions/checkout@v2
-        with:
-          path: cicd
-
       - name: Checkout tSQLt
         uses: actions/checkout@v2
         with:
-          repository: tSQLt-org/tSQLt
-          ref: tSQLtFacadeBuild # OH BY THE WAY, #MDP --> order actually matters. If the ref does not appear here, checkout ignores it. No error. Very helpful.
           path: tSQLt
-          token: ${{ secrets.my_pat }}
 
       - name: download tSQLtBuildArtifact artifact
         uses: actions/download-artifact@v2
@@ -304,19 +278,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-
-      - name: Checkout self
-        uses: actions/checkout@v2
-        with:
-          path: cicd
-
       - name: Checkout tSQLt
         uses: actions/checkout@v2
         with:
-          repository: tSQLt-org/tSQLt
-          ref: tSQLtFacadeBuild # OH BY THE WAY, #MDP --> order actually matters. If the ref does not appear here, checkout ignores it. No error. Very helpful.
           path: tSQLt
-          token: ${{ secrets.my_pat }}
 
       - name: download public tSQLt artifact
         uses: actions/download-artifact@v2
