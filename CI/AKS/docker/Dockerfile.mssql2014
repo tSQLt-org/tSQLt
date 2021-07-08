@@ -1,0 +1,45 @@
+# Adapted from: https://github.com/Microsoft/mssql-docker/blob/master/windows/mssql-server-windows-developer/dockerfile
+#
+#
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+LABEL maintainer "Liz B & Sebastian M"
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Continue'; $ProgressPreference = 'SilentlyContinue';"]
+
+WORKDIR /
+
+# Install chocolatey via powershell
+ENV chocolateyUseWindowsCompression false
+RUN powershell -Command Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+RUN choco feature disable --name showDownloadProgress
+
+# MSSQL 2014 Download links
+ENV exe "http://download.microsoft.com/download/7/9/F/79F4584A-A957-436B-8534-3397F33790A6/SQLServer2014SP3-FullSlipstream-x64-ENU.exe"
+ENV box "http://download.microsoft.com/download/7/9/F/79F4584A-A957-436B-8534-3397F33790A6/SQLServer2014SP3-FullSlipstream-x64-ENU.box"
+ENV ACCEPT_EULA="Y"
+
+COPY /sxs /sources/sxs
+
+RUN Invoke-WebRequest -Uri $env:box -OutFile SQL.box ; \
+    Invoke-WebRequest -Uri $env:exe -OutFile SQL.exe ; \
+    Install-WindowsFeature -Name NET-Framework-Features -Source C:\sources\sxs -Verbose ; \
+    Start-Process -Wait -FilePath .\SQL.exe -ArgumentList /qs, /x:setup ; \
+    .\setup\setup.exe /q /ACTION=Install /INSTANCENAME=MSSQLSERVER /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\System' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS ; \
+	Remove-Item -Recurse -Force SQL.exe, SQL.box, setup, sources; \
+    Get-Service MSSQLSERVER ; 
+
+RUN stop-service MSSQLSERVER ; \
+        set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql12.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value '' ; \
+        set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql12.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433 ; \
+        set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql12.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2 ;
+HEALTHCHECK CMD [ "sqlcmd", "-Q", "select 1" ]
+ 
+COPY start.ps1 /
+RUN net user /add LOCAL_SQLSRVR
+RUN powershell -Command Add-LocalGroupMember -Group "Administrators" -Member "LOCAL_SQLSRVR"
+USER LOCAL_SQLSRVR
+CMD .\start -ACCEPT_EULA $env:ACCEPT_EULA -sqlsrvrlogin "LOCAL_SQLSRVR" -Verbose *> start_script.log
+
+# Install-WindowsFeature NET-Framework-Core
+# Get-WindowsFeature -Name "NET-*"
+# CMD while ($true) { Write-Output Sleep; Start-Sleep -Seconds 2 }

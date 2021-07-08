@@ -1,0 +1,78 @@
+# This is the workflow to setup the environment for Data Platform CI/CD pipelines
+# 
+# AZURE: Before this workflow will run successfully you must do the following
+# 1. Run manualPrep.ps1 in the Azure Portal and follow the instructions to set up the AZ_SP_CRED_<projectName> secret in GitHub (Settings > Secrets > "New repository secret"). 
+# 2. Set up the SSH_PASSPHRASE secret in Settings > Secrets > "New repository secret"
+
+name: Set Up CI/CD Environment
+
+on:
+  workflow_dispatch: 
+    inputs:
+      projectName:
+        description: 'Project Name'     
+        required: true
+        default: 'db_cicd_project'
+      linuxNodePoolDefaultVMSize:
+        description: 'Linux Node Pool Default VM Size'     
+        required: true
+        default: 'Standard_D2_v2'
+      windowsNodePoolDefaultVMSize:
+        description: 'Windows Node Pool Default VM Size'     
+        required: true
+        default: 'Standard_D3_v2'
+      kubernetesVersion:
+        description: 'Kubernetes Version'     
+        required: true
+        default: '1.19.6'
+
+jobs:
+  build:
+    name: Setup Azure Environment
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_NAME: ${{ github.event.inputs.projectName }}
+      LINUX_NODEPOOL_DEFAULT_VM_SIZE: ${{ github.event.inputs.linuxNodePoolDefaultVMSize }}
+      WINDOWS_NODEPOOL_DEFAULT_VM_SIZE: ${{ github.event.inputs.windowsNodePoolDefaultVMSize }}
+      KUBERNETES_VERSION: ${{ github.event.inputs.kubernetesVersion }}
+      AZ_SERVICE_PRINCIPAL_CREDENTIALS: ${{ secrets[format('AZ_SP_CRED_{0}', github.event.inputs.projectName)] }}
+      SSH_PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: decode az sp cred
+        id: cred-decode
+        shell: pwsh
+        run: |
+          $decodedCreds = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("${{ env.AZ_SERVICE_PRINCIPAL_CREDENTIALS}}"))
+          Write-Host ('::set-output name=az_sp_creds::'+$decodedCreds);
+
+      # documentation: https://github.com/azure/login#configure-azure-credentials
+      # TODO: set up a service principal which has permission only on the resource group and associated resources it creates
+      # MDP: This task can be replaced with Connect-AzAccount via service principal (https://docs.microsoft.com/en-us/powershell/azure/authenticate-azureps?view=azps-5.3.0). However for most pipelines, which would use azure powershell more than once, this is an anti-pattern.
+      # TODO: measure difference in performance between using this task and Connect-AzAccount in the next task
+      - name: login via az module
+        uses: azure/login@v1
+        with:
+          creds: ${{ steps.cred-decode.outputs.az_sp_creds }}
+          enable-azpssession: true 
+
+      # documentation: https://github.com/marketplace/actions/azure-powershell-action
+      - name: run azure powershell script
+        uses: azure/powershell@v1
+        with:
+          azpsversion: 'latest'
+          errorActionPreference: 'continue'
+          inlineScript: |
+            $Parameters = @{
+              projectName = "$env:PROJECT_NAME";
+              azServicePrincipalCredentials = '${{ steps.cred-decode.outputs.az_sp_creds }}';
+              sshPassphrase = "$env:SSH_PASSPHRASE";
+              linuxNodePoolDefaultVMSize = "$env:LINUX_NODEPOOL_DEFAULT_VM_SIZE"
+              windowsNodePoolDefaultVMSize = "$env:WINDOWS_NODEPOOL_DEFAULT_VM_SIZE"
+              kubernetesVersion = "$env:KUBERNETES_VERSION"
+              debugOn = $false;
+            }; 
+            ./envSetup/setup.ps1 @Parameters; 
