@@ -19,7 +19,11 @@ $dir = Split-Path $scriptpath
 .($dir+"\CommonFunctionsAndMethods.ps1")
 
 
-Log-Output "<-> START 1 <-><-><-><-><-><-><-><-><-><-><-><-><->";
+Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->";
+Log-Output "<->                                             <->";
+Log-Output "<->                  START 1                    <->";
+Log-Output "<->                                             <->";
+Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Log-Output "Parameters:";
 Log-Output "NamePreFix:", $NamePreFix;
 Log-Output "Location:", $Location;
@@ -84,6 +88,8 @@ Log-Output "DONE: Creating VNet";
 Log-Output "Creating PIP";
 # Create a public IP address and specify a DNS name
 $Pip = New-AzPublicIpAddress -ResourceGroupName $ResourceGroupName -Location $Location -AllocationMethod Static -IdleTimeoutInMinutes 4 -Name $PipName;
+$FQDN = $Pip.IpAddress;
+Log-Output "FQDN: ", $FQDN;
 Log-Output "DONE: Creating PIP";
 
 Log-Output "Creating NSG";
@@ -130,7 +136,27 @@ Log-Output "*-**-*";
 
 # Create the VM
 New-AzVM -ResourceGroupName $ResourceGroupName -Location $Location -VM $VMConfig;
+$VM = (Get-AzResource -Name $VMName -ResourceType Microsoft.Compute/virtualMachines -ResourceGroupName $ResourceGroupName);
+$VmResourceId = $VM.ResourceId;
+Log-Output "VmResourceId: ", $VmResourceId;
 
 Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName | Select IpAddress;
 
 Log-Output "DONE: Creating VM";
+Log-Output 'Applying SqlVM Config'
+
+##Set-PSDebug -Trace 1;
+$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir\CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
+$SQLVM|Out-String|Log-Output;
+
+Log-Output 'Done: Applying SqlVM Config'
+Log-Output 'Prep SQL Server for tSQLt Build'
+
+
+$DS = Invoke-Sqlcmd -InputFile "$dir\GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet
+$DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
+
+$ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
+Log-Output "Actual SQL Version:",$ActualSQLVersion;
+
+Log-Output 'Done: Prep SQL Server for tSQLt Build';
