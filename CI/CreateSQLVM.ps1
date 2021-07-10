@@ -160,3 +160,12 @@ $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
 Log-Output "Actual SQL Version:",$ActualSQLVersion;
 
 Log-Output 'Done: Prep SQL Server for tSQLt Build';
+
+Return @{
+    "VmName"="$VmName";
+    "ResourceGroupName"="$ResourceGroupName";
+    "SQLVmFQDN"="$FQDN";              ##[vmname].[region].cloudapp.azure.com
+    "SQLVmPort"="$SQLPort";                   ##1433
+    "SQLVersionEdition"="$SQLVersionEdition"; ##2012Ent
+    "SQLVersion"="$SQLVersion";               ##2012
+};
