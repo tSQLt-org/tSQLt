@@ -14,9 +14,9 @@ Param(
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
-"FileLocation: $dir"
 
 .($dir+"/CommonFunctionsAndMethods.ps1")
+Log-Output "FileLocation: ", $dir;
 
 
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->";
@@ -135,12 +135,12 @@ $VMConfig = New-AzVMConfig -VMName $VMName -VMSize $Size -Priority "Spot" |
 Log-Output "*-**-*";
 
 # Create the VM
-New-AzVM -ResourceGroupName $ResourceGroupName -Location $Location -VM $VMConfig;
+$VMInfo = New-AzVM -ResourceGroupName $ResourceGroupName -Location $Location -VM $VMConfig;
 $VM = (Get-AzResource -Name $VMName -ResourceType Microsoft.Compute/virtualMachines -ResourceGroupName $ResourceGroupName);
 $VmResourceId = $VM.ResourceId;
 Log-Output "VmResourceId: ", $VmResourceId;
 
-Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName | Select IpAddress;
+$PiPInfo = Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName;
 
 Log-Output "DONE: Creating VM";
 Log-Output 'Applying SqlVM Config'

@@ -492,6 +492,5 @@ stages:
           Set-Location $(Build.Repository.LocalPath)
           .("CI/CommonFunctionsAndMethods.ps1")
     
-          $VMDetails|Out-String|Log-Output;
-          
-          Stop-AzVM -Name "$VmName" -ResourceGroupName $ResourceGroupName -Force|Out-String|Log-Output;
+          $VMDetails | Out-String | Log-Output;
+          Remove-ResourceGroup -ResourceGroupName ResourceGroupName -BuildId $(Build.BuildId)
