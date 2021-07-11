@@ -167,55 +167,9 @@ steps:
     FailOnStandardError: true
     ScriptType: 'InlineScript'
     Inline: |
-      $RemoveResourceGroup = {
-            param($OrgRGN)
-            Write-Output "---------------------------------------------------------------------------------------------------------------";
-            Write-Output ("[{0}]Start processing delete for {1}" -f ((get-date).toString("O")), ($OrgRGN))
-            $MyRG = (Get-AzResourceGroup -name "$OrgRGN")
-            if(("RemovalBy" -in $myRG.tags.keys) -and (![string]::isnullorempty($myRG.tags.RemovalBy)))
-            {
-              $MyRG = $null;
-            }
-            if($MyRG -ne $null)
-            {
-              $Tags = @{};
-              Write-Output ("Add Tag to {0}" -f $OrgRGN);
-              $Tags = $MyRG.Tags;
-              $Tags.remove("RemovalBy");
-              $Tags += @{"RemovalBy"="$(Build.BuildId)"};
-              $MyRG|Set-AzResourceGroup -Tags $Tags;
-              Start-Sleep 10;
-              Write-Output ("Confirming Tags are still in place for {0}" -f $OrgRGN);
-              $MyRG = $MyRG|Get-AZResourceGroup| Where-Object {$_.Tags.RemovalBy -eq "$(Build.BuildId)"};
-              $MyRG.Tags|FT;
-              if($MyRG -ne $null)
-              {
-                Write-Output "Removing Locks"
-                Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName | ForEach-Object{
-                  Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName | ForEach-Object{
-                    Write-Output ("{0} -> {1}" -f $_.ResourceType, $_.ResourceName);
-                    $_ | Remove-AzResourceLock -Force 
-                  }
-                }
-                Get-AzResource -ResourceGroupName $MyRG.ResourceGroupName -ResourceType  "microsoft.devtestlab/labs" | ForEach-Object{
-                  Write-Output ("Removing DTL {0}" -f $_.Name);
-                  $_ | Remove-AzResource -Force;
-                }
-                Write-Output ("Removing RG {0}" -f $OrgRGN);
-                $MyRG | Remove-AzResourceGroup -Force;
-              }
-              else
-              {
-                Write-Output "Tags where changed by other thread"
-              }
-            }        
-            else
-            {
-              Write-Output "processing skipped"
-            }
-            Write-Output ("[{0}]Done processing delete for {1}" -f ((get-date).toString("O")), ($OrgRGN))
-            Write-Output "---------------------------------------------------------------------------------------------------------------";
-      }
+      Set-Location $(Build.Repository.LocalPath)
+      .("CI/CommonFunctionsAndMethods.ps1")
+    
       $ThreadHash = @{};
       $RGs = (ConvertFrom-JSON $env:SerializedListOfRGs);
       Write-Host ("Deleting {0} ResourceGroups" -f $RGs.count)
@@ -227,8 +181,10 @@ steps:
           Write-Host ("Deleting ResourceGroup {0}" -f $ResourceGroupName)
           if($ResourceGroupName -ne $null)
           {
-            Write-Host ("BeginInvoke RemoveResourceGroup({0})" -f $ResourceGroupName);
-            $PSInstance = [powershell]::Create().AddScript($RemoveResourceGroup).AddArgument($ResourceGroupName);
+            Write-Host ("BeginInvoke Remove-ResourceGroup({0})" -f $ResourceGroupName);
+            $PSInstance = [powershell]::Create().AddCommand("Remove-ResourceGroup");
+            $PSInstance.AddParameter("ResourceGroupName", $ResourceGroupName);
+            $PSInstance.AddParameter("BuildId", "$(Build.BuildId)");
             $PSinstance.RunspacePool = $RunspacePool;
             $Handle = $PSInstance.BeginInvoke();
             $ThreadHash.Add($ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
@@ -242,7 +198,7 @@ steps:
       $ThreadHash.GetEnumerator() | ForEach-Object{
           $Key = $_.Key;
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
-          Write-Host ("EndInvoke RemoveResourceGroup({0})" -f $Key);
+          Write-Host ("EndInvoke Remove-ResourceGroup({0})" -f $Key);
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
           $Streams = $PSInstance.Streams;
@@ -259,7 +215,7 @@ steps:
             $Errors.add($Key);
             $Streams.Error|%{Write-Host "##vso[task.logissue type=error]$Key -> $_";}
           }
-          Write-Host ("Done RemoveResourceGroup({0})" -f $Key);
+          Write-Host ("Done Remove-ResourceGroup({0})" -f $Key);
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
       }
       if($Errors.count -ne 0)
@@ -267,8 +223,6 @@ steps:
         $Errors|%{Write-Host ("##vso[task.logissue type=error]Error while removing ResourceGroup {0}" -f $_);}
         throw("Errors encounterd while deleting resource group(s). See prior error messages.");
       }
-      #Start-Job -InputObject $_ -ScriptBlock { } 
-      #Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"} | ForEach-Object { $_ | Remove-AzResourceGroup -Force } 
 
 - task: AzurePowerShell@4
   name: AssertDeleteSuccessful
