@@ -1,4 +1,4 @@
-<# USAGE: ./CreateSQLVM.ps1 -Location "East US 2" -Size "Standard_D2as_v4" -NamePreFix "test" -BuildId "001" -VMAdminName "azureAdminName" -VMAdminPwd "aoeihag;ladjfalkj23" -SQLVersionEdition "2017" -SQLPort "41433" -SQLUserName "tSQLt_sa" -SQLPwd "aoeihag;ladjfalkj46" #>
+<# USAGE: ./CreateSQLVM.ps1 -Location "East US 2" -Size "Standard_D2as_v4" -NamePreFix "test" -VMAdminName "azureAdminName" -VMAdminPwd "aoeihag;ladjfalkj23" -SQLVersionEdition "2017" -SQLPort "41433" -SQLUserName "tSQLt_sa" -SQLPwd "aoeihag;ladjfalkj46" -BuildId "001" #>
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Location,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Size,
@@ -16,7 +16,7 @@ $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
 "FileLocation: $dir"
 
-.($dir+"\CommonFunctionsAndMethods.ps1")
+.($dir+"/CommonFunctionsAndMethods.ps1")
 
 
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->";
@@ -146,14 +146,14 @@ Log-Output "DONE: Creating VM";
 Log-Output 'Applying SqlVM Config'
 
 ##Set-PSDebug -Trace 1;
-$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir\CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
+$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
 $SQLVM|Out-String|Log-Output;
 
 Log-Output 'Done: Applying SqlVM Config'
 Log-Output 'Prep SQL Server for tSQLt Build'
 
 
-$DS = Invoke-Sqlcmd -InputFile "$dir\GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet
+$DS = Invoke-Sqlcmd -InputFile "$dir/GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet
 $DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
@@ -167,5 +167,4 @@ Return @{
     "SQLVmFQDN"="$FQDN";              ##[vmname].[region].cloudapp.azure.com
     "SQLVmPort"="$SQLPort";                   ##1433
     "SQLVersionEdition"="$SQLVersionEdition"; ##2012Ent
-    "SQLVersion"="$SQLVersion";               ##2012
 };
