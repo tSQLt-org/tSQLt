@@ -494,4 +494,4 @@ stages:
     
           $VMDetails|Out-String|Log-Output;
           
-          Stop-AzVM -Name "$VmName" -ResourceGroupName "$ResourceGroupName" -Force|Out-String|Log-Output;
+          Stop-AzVM -Name "$VmName" -ResourceGroupName $ResourceGroupName -Force|Out-String|Log-Output;
