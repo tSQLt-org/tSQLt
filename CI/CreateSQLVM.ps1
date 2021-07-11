@@ -127,7 +127,7 @@ $VMCredentials = New-Object System.Management.Automation.PSCredential ($VMAdminN
 Log-Output "*-**-*";
 
 # Create a virtual machine configuration
-$VMConfig = New-AzVMConfig -VMName $VMName -VMSize $Size |
+$VMConfig = New-AzVMConfig -VMName $VMName -VMSize $Size -Priority "Spot" |
    Set-AzVMOperatingSystem -Windows -ComputerName $VMName -Credential $VMCredentials -ProvisionVMAgent -EnableAutoUpdate |
    Set-AzVMSourceImage -PublisherName "MicrosoftSQLServer" -Offer $SQLVersionEditionInfo.offer -Skus $SQLVersionEditionInfo.sku -Version $SQLVersionEditionInfo.version |
    Add-AzVMNetworkInterface -Id $Interface.Id
