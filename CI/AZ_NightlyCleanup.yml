@@ -183,7 +183,7 @@ steps:
           {
             Write-Host ("BeginInvoke Remove-ResourceGroup({0})" -f $ResourceGroupName);
             $PSInstance = [powershell]::Create().AddScript({.("$(Build.Repository.LocalPath)\CI\CommonFunctionsAndMethods.ps1")});
-            $PSInstance.AddCommand("Remove-ResourceGroup");
+            $PSInstance.AddStatement().AddCommand("Remove-ResourceGroup");
             $PSInstance.AddParameter("ResourceGroupName", $ResourceGroupName);
             $PSInstance.AddParameter("BuildId", "$(Build.BuildId)");
             $PSinstance.RunspacePool = $RunspacePool;
