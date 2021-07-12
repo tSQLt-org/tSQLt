@@ -181,8 +181,8 @@ steps:
           Write-Host ("Deleting ResourceGroup {0}" -f $ResourceGroupName)
           if($ResourceGroupName -ne $null)
           {
-            Write-Host ("BeginInvoke Remove-ResourceGroup({0})" -f $ResourceGroupName);
-            $PSInstance = [powershell]::Create().AddScript({.("$(Build.Repository.LocalPath)\CI\CommonFunctionsAndMethods.ps1")});
+            Write-Host ("BeginInvoke Remove-ResourceGroup -ResourceGroupName {0} -BuildId" -f $ResourceGroupName, $(Build.BuildId));
+            $PSInstance = [powershell]::Create().AddScript({.("$(Build.Repository.LocalPath)\CI\Remove-ResourceGroup.ps1")});
             $PSInstance.AddStatement().AddCommand("Remove-ResourceGroup");
             $PSInstance.AddParameter("ResourceGroupName", $ResourceGroupName);
             $PSInstance.AddParameter("BuildId", "$(Build.BuildId)");
@@ -199,7 +199,7 @@ steps:
       $ThreadHash.GetEnumerator() | ForEach-Object{
           $Key = $_.Key;
           Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
-          Write-Host ("EndInvoke Remove-ResourceGroup({0})" -f $Key);
+          Write-Host ("START: EndInvoke Remove-ResourceGroup({0})" -f $Key);
           $PsInstance = $_.Value.PsInstance;
           $PSInstance.EndInvoke($_.Value.Handle);
           $Streams = $PSInstance.Streams;
