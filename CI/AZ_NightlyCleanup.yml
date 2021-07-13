@@ -182,8 +182,9 @@ steps:
           if($ResourceGroupName -ne $null)
           {
             Write-Host ("BeginInvoke Remove-ResourceGroup -ResourceGroupName {0} -BuildId" -f $ResourceGroupName, $(Build.BuildId));
+            $scriptBlock = [scriptBlock]::Create("Log-Output -I '$ResourceGroupName'");
             $PSInstance = [powershell]::Create().AddScript({.("$(Build.Repository.LocalPath)\CI\Remove-ResourceGroup-test.ps1");});
-            $PSInstance.AddScript({Log-Output -I $ResourceGroupName});
+            $PSInstance.AddScript($scriptBlock);
             $PSinstance.RunspacePool = $RunspacePool;
             $Handle = $PSInstance.BeginInvoke();
             $ThreadHash.Add($ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
