@@ -58,11 +58,23 @@
           <AssociatedConnUserName />
           <FullPath>AZ_TempTest.yml</FullPath>
         </FileNode>
+        <FileNode Name="AZ_ValidateARMTemplates.yml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>AZ_ValidateARMTemplates.yml</FullPath>
+        </FileNode>
         <FileNode Name="AZ_ValidateBuild.yml">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AZ_ValidateBuild.yml</FullPath>
+        </FileNode>
+        <FileNode Name="CommonFunctionsAndMethods.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>CommonFunctionsAndMethods.ps1n</FullPath>
         </FileNode>
         <FileNode Name="ContributorWithAuthorizationDelete.json">
           <AssociatedConnectionMoniker />
@@ -76,47 +88,11 @@
           <AssociatedConnUserName />
           <FullPath>CreateSqlVirtualMachineTemplate.json</FullPath>
         </FileNode>
-        <FileNode Name="CreateVMTemplate.json">
+        <FileNode Name="CreateSQLVM.ps1">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>CreateVMTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="CreateVNetTemplate.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>CreateVNetTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="CreateDevTestLabTemplate.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>CreateDevTestLabTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="DSCTemplate.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>DSCTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="GetLabVMParams.ps1">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>GetLabVMParams.ps1</FullPath>
-        </FileNode>
-        <FileNode Name="SQL2008SP3_ARM_parms.txt">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>SQL2008SP3_ARM_parms.txt</FullPath>
-        </FileNode>
-        <FileNode Name="SQLServer.arm">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>SQLServer.arm</FullPath>
+          <FullPath>CreateSQLVM.ps1</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

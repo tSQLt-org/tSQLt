@@ -382,6 +382,3 @@ jobs:
 #         run: |
 #           Write-Host ('#TODO');
 #       # documentation: https://github.com/azure/login#configure-azure-credentials
-
-
-
