@@ -10,6 +10,10 @@ pool:
 variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
+  - name: VMSize
+    value: Standard_F4s_v2 #Standard_D2s_v3, Standard_B2s
+  - name: VMLocation
+    value: 'East US 2'
 
 resources:
   repositories:
@@ -197,11 +201,6 @@ stages:
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Pipeline.Workspace)\tmp'
 
-    - task: AzureKeyVault@1
-      inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-        KeyVaultName: 'tSQLtSigningKey'
-
     - task: PowerShell@2
       name: StoreInArtifactRepo
       env:
@@ -320,11 +319,11 @@ stages:
     - task: AzurePowerShell@4
       name: CreateVMAndMore
       env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+        SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        SQL_PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
         CONTACT_EMAIL: $(NotificationEmail)
-        LABVMSHUTDOWNNOTIFICATIONEMAIL: $(NotificationEmail)
-        LABVMSHUTDOWNNOTIFICATIONURL: $(tSQLt-Slack-CI-Pipeline-WebHook)
+        VM_USER_NAME: $(tSQLt-AdminForCIVM-UserName)
+        VM_PASSWORD: $(tSQLt-AdminForCIVM-Password)
         SQLPORTMINIMUM: $(SqlPortMinimum)
         SQLPORTMAXIMUM: $(SqlPortMaximum)
       inputs:
@@ -340,31 +339,33 @@ stages:
 
           Log-Output '==========================================================';
           Log-Output '==========================================================';
-          Log-Output 'Executing CreateVM.ps1';
+          Log-Output 'Executing CreateSQLVM.ps1';
           Log-Output '==========================================================';
           Log-Output '==========================================================';
           $Parameters = @{
+            Location="$(VMLocation)";
+            Size="$(VMSize)"
             NamePreFix="$(NamePreFix)";
             BuildId="$(Build.BuildId)";
+            VMAdminName="$env:VM_USER_NAME";
+            VMAdminPwd="$env:VM_PASSWORD";
             SQLVersionEdition="$(SQLVersionEdition)";
             SQLPort="$SqlPort";
-            LabShutdownNotificationEmail="$env:LABVMSHUTDOWNNOTIFICATIONEMAIL";
-            LabShutdownNotificationURL="$env:LABVMSHUTDOWNNOTIFICATIONURL";
-            SQLUserName="$env:USER_NAME";
-            SQLPassword="$env:PASSWORD";
+            SQLUserName="$env:SQL_USER_NAME";
+            SQLPwd="$env:SQL_PASSWORD";
           }; 
-          $DTLDetails = .'CI/CreateVM.ps1' @Parameters
+          $VMDetails = .'CI/CreateSQLVM.ps1' @Parameters
     
           Log-Output '==========================================================';
           Log-Output '==========================================================';
-          Log-Output 'Done: Executing CreateVM.ps1';
+          Log-Output 'Done: Executing CreateSQLVM.ps1';
           Log-Output '==========================================================';
           Log-Output '==========================================================';
               
-          $SerializedDTLDetails=(ConvertTo-JSON -InputObject $DTLDetails -Compress);
+          $SerializedVMDetails=(ConvertTo-JSON -InputObject $VMDetails -Compress);
           
-          $SerializedDTLDetails
-          Write-Host "##vso[task.setvariable variable=SerializedDTLDetails;isOutput=true]$SerializedDTLDetails"
+          $SerializedVMDetails
+          Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails"
     
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
@@ -374,19 +375,17 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host '$(CreateVMAndMore.SerializedDTLDetails)';
+          Write-Host '$(CreateVMAndMore.SerializedVMDetails)';
 
-          $DTLDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedDTLDetails)');
+          $VMDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedVMDetails)');
           #-----------------------------------------------------------------------#
           # IMPORTANT (and, you've got to be kidding me):                         #
           # The space below is absolutely required to make the ANT Task work.     #
-          #--------------------------------------|--------------------------------#
-          $FQDNAndPort = $DTLDetails.SQLVmFQDN+", "+$DTLDetails.SQLVmPort;
-          #--------------------------------------|--------------------------------#
+          #---------------------------------------|-------------------------------#
+          $FQDNAndPort = $VMDetails.SQLVmFQDN + ", " + $VMDetails.SQLVmPort;
+          #---------------------------------------|-------------------------------#
           #-----------------------------------------------------------------------#
-          $SQLVersion = $DTLDetails.SQLVersion;
           Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
-          Write-Host "##vso[task.setvariable variable=SQLVersion]$SQLVersion"
 
     - task: PowerShell@2
       name: PrintSQLVersionInfo
@@ -403,7 +402,7 @@ stages:
       name: Run_tSQLt_validatebuild_xml
       inputs:
         buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: '-Ddb.version="$(SQLVersion)" -Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
+        options: '-Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/?(Example)TestResults*.xml'
@@ -476,7 +475,7 @@ stages:
 ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
       
     - task: AzurePowerShell@4
-      name: ShutdownVM
+      name: DeleteAzureResources
       condition: always()
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
@@ -484,15 +483,14 @@ stages:
         ScriptType: 'InlineScript'
         Inline: |
 
-          Write-Host '$(CreateVMAndMore.SerializedDTLDetails)'
+          Write-Host '$(CreateVMAndMore.SerializedVMDetails)'
 
-          $DTLDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedDTLDetails)');
-          $HiddenVmName = $DTLDetails.HiddenVmName;
-          $HiddenVmRGName = $DTLDetails.HiddenVmRGName;
+          $VMDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedVMDetails)');
+          $VmName = $VMDetails.VmName;
+          $ResourceGroupName = $VMDetails.ResourceGroupName;
     
           Set-Location $(Build.Repository.LocalPath)
           .("CI/CommonFunctionsAndMethods.ps1")
     
-          $DTLDetails|Out-String|Log-Output;
-          
-          Stop-AzVM -Name "$HiddenVmName" -ResourceGroupName "$HiddenVmRGName" -Force|Out-String|Log-Output;
+          $VMDetails | Out-String | Log-Output;
+          Remove-ResourceGroup -ResourceGroupName $ResourceGroupName -BuildId $(Build.BuildId)
