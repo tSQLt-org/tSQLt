@@ -410,6 +410,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+          Set-Location $(Pipeline.Workspace)/tSQLt
           .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$(FQDNAndPort)" -DatabaseName "%DBName%" -Login " -U $env:USER_NAME -P $env:PASSWORD" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
 
 
