@@ -151,7 +151,7 @@ stages:
     - task: Ant@1
       displayName: 'Ant -debug Build/tSQLt.build.xml'
       inputs:
-        buildFile: Build/tSQLt.build.xml
+        buildFile: Build/tSQLt.build.xml all -D"commit.id"="$(Build.BuildId)"
         options: '-debug '
         targets: all
         publishJUnitResults: false

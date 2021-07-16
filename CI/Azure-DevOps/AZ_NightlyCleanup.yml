@@ -14,13 +14,13 @@ schedules:
     displayName: Scheduled NOON cleanup #Remove When Finished#
     branches:
       include:
-      - CITesting
+      - main
     always: true
   - cron: "0 6,7,8,9,10 * * *"
     displayName: Nightly cleanup
     branches:
      include:
-      - CITesting
+      - main
     always: true
 
 variables:
