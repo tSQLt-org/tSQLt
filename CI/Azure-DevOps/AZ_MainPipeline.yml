@@ -318,7 +318,7 @@ stages:
           Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
 
     - task: AzurePowerShell@4
-      name: CreateVMAndMore
+      name: CreateSQLVM
       env:
         SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
         SQL_PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
@@ -355,7 +355,7 @@ stages:
             SQLUserName="$env:SQL_USER_NAME";
             SQLPwd="$env:SQL_PASSWORD";
           }; 
-          $VMDetails = .'CI/CreateSQLVM.ps1' @Parameters
+          $VMDetails = .'CI/Azure-DevOps/CreateSQLVM.ps1' @Parameters
     
           Log-Output '==========================================================';
           Log-Output '==========================================================';
