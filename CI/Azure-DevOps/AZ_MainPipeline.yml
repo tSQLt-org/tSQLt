@@ -376,9 +376,9 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host '$(CreateVMAndMore.SerializedVMDetails)';
+          Write-Host '$(CreateSQLVMEnvironment.SerializedVMDetails)';
 
-          $VMDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedVMDetails)');
+          $VMDetails = (ConvertFrom-JSON '$(CreateSQLVMEnvironment.SerializedVMDetails)');
           #-----------------------------------------------------------------------#
           # IMPORTANT (and, you've got to be kidding me):                         #
           # The space below is absolutely required to make the ANT Task work.     #
@@ -510,9 +510,9 @@ stages:
         ScriptType: 'InlineScript'
         Inline: |
 
-          Write-Host '$(CreateVMAndMore.SerializedVMDetails)'
+          Write-Host '$(CreateSQLVMEnvironment.SerializedVMDetails)'
 
-          $VMDetails = (ConvertFrom-JSON '$(CreateVMAndMore.SerializedVMDetails)');
+          $VMDetails = (ConvertFrom-JSON '$(CreateSQLVMEnvironment.SerializedVMDetails)');
           $VmName = $VMDetails.VmName;
           $ResourceGroupName = $VMDetails.ResourceGroupName;
     
