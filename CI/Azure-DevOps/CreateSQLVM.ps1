@@ -12,11 +12,13 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPwd
 );
 
-$scriptpath = $MyInvocation.MyCommand.Path
-$dir = Split-Path $scriptpath
+$scriptpath = $MyInvocation.MyCommand.Path;
+$dir = Split-Path $scriptpath;
+$projectDir = Split-Path (Split-Path $dir);
 
-.($dir+"/CommonFunctionsAndMethods.ps1")
+.($projectDir+"\Build\CommonFunctionsAndMethods.ps1")
 Log-Output "FileLocation: ", $dir;
+Log-Output "Project Location: ", $projectDir;
 
 
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->";
