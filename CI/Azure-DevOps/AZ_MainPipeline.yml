@@ -402,6 +402,15 @@ stages:
 
     ##-## CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
 
+    - task: DownloadPipelineArtifact@2
+      name: DownloadPipelineArtifact
+      inputs:
+        buildType: 'current'
+        artifactName: 'tSQLtAndTests'
+        targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/tSQLtBuild'
+
+
+
     - task: PowerShell@2
       name: FacadeBuildDacpac
       env:
