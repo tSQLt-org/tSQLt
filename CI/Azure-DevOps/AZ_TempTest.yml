@@ -49,13 +49,24 @@ stages:
     #     myvar: A
     #   b:
     #     myvar: B
-  - job: runner
+  - job: assigner
     dependsOn: generator
     strategy:
       matrix: $[ dependencies.generator.outputs['mtrx.legs'] ]
     steps:
     - script: echo $(myvar) # echos A or B depending on which leg is running
+    
     - script: echo $(Agent.JobName)
+
+    - task: PowerShell@2
+      name: assignFQDN
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          $fqdn = "fqdn://$(Agent.JobName)";
+          Write-Host "##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn;
+
     
 - stage: matrixRead
   dependsOn: matrixSetup
@@ -64,6 +75,25 @@ stages:
     strategy:
       matrix: $[ stageDependencies.matrixSetup.generator.outputs['mtrx.legs'] ]
     steps:
+    - task: PowerShell@2
+      name: inspectEnv
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Get-Item -Path Env:*;
+
+
+    - task: PowerShell@2
+      name: readAllFQDN
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "--------------------------------------------------";
+          Write-Host "$[ stageDependencies.matrixSetup]";
+          Write-Host "--------------------------------------------------";
+
     - script: echo $(myvar) # echos A or B depending on which leg is running
     - script: echo $(Agent.JobName)
 
