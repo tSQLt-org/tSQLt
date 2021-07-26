@@ -58,7 +58,6 @@ stages:
   dependsOn: matrixSetup
   jobs:
   - job: runner
-    dependsOn: generator
     strategy:
       matrix: $[ stageDependencies.matrixSetup.generator.outputs['mtrx.legs'] ]
     steps:
