@@ -91,12 +91,11 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
+          $(System.JobName)
           Write-Host "--------------------------------------------------";
-          Write-Host "$[stageDependencies.matrixSetup.assigner.a.outputs]";
+          Write-Host "$[stageDependencies.matrixSetup.assigner.assignFQDN.outputs]";
           Write-Host "--------------------------------------------------";
-          Write-Host "$[stageDependencies.matrixSetup.assigner.outputs]";
-          Write-Host "--------------------------------------------------";
-          Write-Host "$[stageDependencies.matrixSetup.assigner]";
+          Write-Host "$[stageDependencies.matrixSetup.assigner.a.assignFQDN.outputs]";
           Write-Host "--------------------------------------------------";
 
 
