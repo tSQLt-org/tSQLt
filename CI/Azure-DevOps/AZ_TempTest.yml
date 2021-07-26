@@ -95,8 +95,6 @@ stages:
           Write-Host "--------------------------------------------------";
           Write-Host "$[stageDependencies.matrixSetup.assigner.assignFQDN.outputs]";
           Write-Host "--------------------------------------------------";
-          Write-Host "$[stageDependencies.matrixSetup.assigner.a.assignFQDN.outputs]";
-          Write-Host "--------------------------------------------------";
 
 
     - script: echo $(myvar) # echos A or B depending on which leg is running
