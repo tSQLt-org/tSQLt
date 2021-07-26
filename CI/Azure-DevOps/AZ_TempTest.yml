@@ -1,6 +1,8 @@
 name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 
-trigger: none
+trigger:
+- tSQLtFacadeBuild
+
 pr: none
 schedules:
   - cron: 0 12 24 3 *
@@ -53,6 +55,7 @@ stages:
       matrix: $[ dependencies.generator.outputs['mtrx.legs'] ]
     steps:
     - script: echo $(myvar) # echos A or B depending on which leg is running
+    - script: echo $(Agent.JobName)
     
 - stage: matrixRead
   dependsOn: matrixSetup
@@ -62,6 +65,7 @@ stages:
       matrix: $[ stageDependencies.matrixSetup.generator.outputs['mtrx.legs'] ]
     steps:
     - script: echo $(myvar) # echos A or B depending on which leg is running
+    - script: echo $(Agent.JobName)
 
 - stage: A
   condition: false
