@@ -74,6 +74,7 @@ stages:
   - job: runner
     variables:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
+      aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['a.assignFQDN.fqdn']
     strategy:
       matrix: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
     steps:
@@ -98,12 +99,21 @@ stages:
 
     - task: PowerShell@2
       condition: always()
-      name: readAllFQDN6
+      name: readAllFQDN2
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |
           Write-Host "$(testVar)";
+
+    - task: PowerShell@2
+      condition: always()
+      name: readAllFQDN3
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "$(aTestFQDNVar)";
 
 
 - stage: A
