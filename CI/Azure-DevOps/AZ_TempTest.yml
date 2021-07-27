@@ -74,7 +74,8 @@ stages:
   - job: runner
     variables:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
-      aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['a.assignFQDN.fqdn']
+      aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['a.assignFQDN.fqdn']]
+      
     strategy:
       matrix: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
     steps:
