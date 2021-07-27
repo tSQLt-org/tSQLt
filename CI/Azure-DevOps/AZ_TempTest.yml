@@ -72,8 +72,10 @@ stages:
   dependsOn: matrixSetup
   jobs:
   - job: runner
+    variables:
+      testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
     strategy:
-      matrix: $[ stageDependencies.matrixSetup.generator.outputs['mtrx.legs'] ]
+      matrix: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
     steps:
     - task: PowerShell@2
       name: inspectEnv  
@@ -96,48 +98,12 @@ stages:
 
     - task: PowerShell@2
       condition: always()
-      name: readAllFQDN2
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          Write-Host "$(stageDependencies.matrixSetup.assigner.assignFQDN.outputs)";
-
-    - task: PowerShell@2
-      condition: always()
-      name: readAllFQDN3
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          Write-Host "$(stageDependencies.matrixSetup.assigner.assignFQDN.a.outputs)";
-
-    - task: PowerShell@2
-      condition: always()
-      name: readAllFQDN4
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          Write-Host "$(stageDependencies.matrixSetup.assigner.a.assignFQDN.outputs)";
-
-    - task: PowerShell@2
-      condition: always()
-      name: readAllFQDN5
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          Write-Host "$(stageDependencies.matrixSetup.generator.outputs)";
-
-    - task: PowerShell@2
-      condition: always()
       name: readAllFQDN6
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Write-Host "$(stageDependencies.matrixSetup.generator.outputs['mtrx.legs'])";
+          Write-Host "$(testVar)";
 
 
 - stage: A
