@@ -75,7 +75,8 @@ stages:
     variables:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
       aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['a.assignFQDN.fqdn']]
-      
+      https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
+
     strategy:
       matrix: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
     steps:
