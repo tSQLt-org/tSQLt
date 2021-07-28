@@ -81,6 +81,10 @@ stages:
     variables:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
       aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['SQL2008R2.assignFQDN.fqdn']]
+      propertyDereferenceSyntaxVarFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN.fqdn]
+      propertyDereferenceSyntaxVarAssignFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN]
+      propertyDereferenceSyntaxVarSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
+      propertyDereferenceSyntaxVarOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
       extraVar: SQL2016.assignFQDN.fqdn
       starVar: $[variables[*]]
       # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
@@ -99,14 +103,20 @@ stages:
     steps:
 
     - task: PowerShell@2
-      name: someName
+      condition: always()
+      name: propertyDereferenceSyntaxVarFQDN
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Write-Host "$(variables)"
+          Write-Host "$(propertyDereferenceSyntaxVarFQDN)"
+          Write-Host "$(propertyDereferenceSyntaxVarAssignFQDN)"
+          Write-Host "$(propertyDereferenceSyntaxVarSQL2008R2)"
+          Write-Host "$(propertyDereferenceSyntaxVarOutputs)"
+
 
     - task: PowerShell@2
+      condition: always()
       name: starVar
       inputs:
         targetType: 'inline'
@@ -115,6 +125,7 @@ stages:
           Write-Host "$(starVar)"
 
     - task: PowerShell@2
+      condition: always()
       name: inspectEnv  
       inputs:
         targetType: 'inline'
@@ -125,6 +136,7 @@ stages:
 
     - task: PowerShell@2
       name: inspectMatrixEnv
+      condition: always()
       inputs:
         targetType: 'inline'
         failOnStderr: true
