@@ -105,15 +105,6 @@ stages:
 
     - task: PowerShell@2
       condition: always()
-      name: starVar
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          Write-Host "$(starVar)"
-
-    - task: PowerShell@2
-      condition: always()
       name: inspectEnv  
       inputs:
         targetType: 'inline'
@@ -164,7 +155,7 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $myJsonObject = ConvertFrom-JSON -InputObject "$(propDerefSyntaxVOutputs)" -AsHashtable;
+          $myJsonObject = ConvertFrom-JSON -InputObject @"$(propDerefSyntaxVOutputs)"@ -AsHashtable;
           Write-Host $myJsonObject["SQL2008R2.assignFQDN.fqdn"];
 
 - stage: A
