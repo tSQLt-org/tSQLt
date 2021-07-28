@@ -158,27 +158,27 @@ stages:
         script: |
           Write-Host "$(aTestFQDNVar)";
 
-    - task: PowerShell@2
-      condition: always()
-      name: readAllFQDN4
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          Write-Host "$env:anotherTestVar";
-      env:
-        anotherTestVar: ${{ stageDependencies.matrixSetup.assigner.outputs['SQL2012.assignFQDN.fqdn'] }}
+    # - task: PowerShell@2
+    #   condition: always()
+    #   name: readAllFQDN4
+    #   inputs:
+    #     targetType: 'inline'
+    #     failOnStderr: true
+    #     script: |
+    #       Write-Host "$env:anotherTestVar";
+    #   env:
+    #     anotherTestVar: ${{ stageDependencies.matrixSetup.assigner.outputs['SQL2012.assignFQDN.fqdn'] }}
 
-    - task: PowerShell@2
-      condition: always()
-      name: readAllFQDN5
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          Write-Host "$env:anotherTestVarX";
-      env:
-        anotherTestVarX: ${{ stageDependencies.matrixSetup.assigner.outputs['$(extraVar)'] }}
+    # - task: PowerShell@2
+    #   condition: always()
+    #   name: readAllFQDN5
+    #   inputs:
+    #     targetType: 'inline'
+    #     failOnStderr: true
+    #     script: |
+    #       Write-Host "$env:anotherTestVarX";
+    #   env:
+    #     anotherTestVarX: ${{ stageDependencies.matrixSetup.assigner.outputs['$(extraVar)'] }}
 
 
 - stage: A
