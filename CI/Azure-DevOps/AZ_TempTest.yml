@@ -81,10 +81,10 @@ stages:
     variables:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
       aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['SQL2008R2.assignFQDN.fqdn']]
-      propertyDereferenceSyntaxVarFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN.fqdn]
-      # propertyDereferenceSyntaxVarAssignFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN]
-      # propertyDereferenceSyntaxVarSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
-      # propertyDereferenceSyntaxVarOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
+      propDerefSyntaxVFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN.fqdn]
+      propDerefSyntaxVAssignFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN]
+      # propDerefSyntaxVSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
+      # propDerefSyntaxVOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
       extraVar: SQL2016.assignFQDN.fqdn
       starVar: $[variables[*]]
       # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
@@ -104,15 +104,39 @@ stages:
 
     - task: PowerShell@2
       condition: always()
-      name: propertyDereferenceSyntaxVarFQDN
+      name: propertyDereferenceSyntax1
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Write-Host "$(propertyDereferenceSyntaxVarFQDN)"
-          Write-Host "$(propertyDereferenceSyntaxVarAssignFQDN)"
-          Write-Host "$(propertyDereferenceSyntaxVarSQL2008R2)"
-          Write-Host "$(propertyDereferenceSyntaxVarOutputs)"
+          Write-Host "$(propDerefSyntaxVFQDN)"
+
+    - task: PowerShell@2
+      condition: always()
+      name: propertyDereferenceSyntax2
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "$(propDerefSyntaxVAssignFQDN)"
+
+    - task: PowerShell@2
+      condition: always()
+      name: propertyDereferenceSyntax3
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "$(propDerefSyntaxVSQL2008R2)"
+
+    - task: PowerShell@2
+      condition: always()
+      name: propertyDereferenceSyntax4
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "$(propDerefSyntaxVOutputs)"
 
 
     - task: PowerShell@2
