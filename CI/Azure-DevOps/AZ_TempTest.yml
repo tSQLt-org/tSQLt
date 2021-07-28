@@ -83,8 +83,8 @@ stages:
       aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['SQL2008R2.assignFQDN.fqdn']]
       propDerefSyntaxVFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN.fqdn]
       propDerefSyntaxVAssignFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN]
-      # propDerefSyntaxVSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
-      # propDerefSyntaxVOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
+      propDerefSyntaxVSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
+      propDerefSyntaxVOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
       extraVar: SQL2016.assignFQDN.fqdn
       starVar: $[variables[*]]
       # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
@@ -155,8 +155,7 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Get-Item -Path Env:*;
-          # SYSTEM_JOBNAME "a"
+          Get-ChildItem Env: | Sort Name;
 
     - task: PowerShell@2
       name: inspectMatrixEnv
