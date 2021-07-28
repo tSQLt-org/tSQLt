@@ -82,6 +82,7 @@ stages:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
       aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['SQL2008R2.assignFQDN.fqdn']]
       extraVar: SQL2016.assignFQDN.fqdn
+      starVar: $[variables[*]]
       # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
 
 
@@ -96,6 +97,23 @@ stages:
     strategy:
       matrix: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
     steps:
+
+    - task: PowerShell@2
+      name: someName
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "$(variables)"
+
+    - task: PowerShell@2
+      name: starVar
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "$(starVar)"
+
     - task: PowerShell@2
       name: inspectEnv  
       inputs:
