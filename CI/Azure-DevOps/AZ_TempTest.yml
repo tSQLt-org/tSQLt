@@ -52,7 +52,7 @@ stages:
     #     myvar: B
 
     - bash: |
-        echo "##vso[task.setVariable variable=legs;isOutput=true]{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2014':{'SQLVersionEdition':'2014'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
+        echo "##vso[task.setVariable variable=legs;isOutput=true]{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2019':{'SQLVersionEdition':'2019'},}"
       name: mtrx
 
   - job: assigner
@@ -82,9 +82,9 @@ stages:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
       aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['SQL2008R2.assignFQDN.fqdn']]
       propertyDereferenceSyntaxVarFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN.fqdn]
-      propertyDereferenceSyntaxVarAssignFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN]
-      propertyDereferenceSyntaxVarSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
-      propertyDereferenceSyntaxVarOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
+      # propertyDereferenceSyntaxVarAssignFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN]
+      # propertyDereferenceSyntaxVarSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
+      # propertyDereferenceSyntaxVarOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
       extraVar: SQL2016.assignFQDN.fqdn
       starVar: $[variables[*]]
       # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
