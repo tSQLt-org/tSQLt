@@ -84,7 +84,7 @@ stages:
       propDerefSyntaxVFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN.fqdn]
       propDerefSyntaxVAssignFQDN: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2.assignFQDN]
       propDerefSyntaxVSQL2008R2: $[stageDependencies.matrixSetup.assigner.outputs.SQL2008R2]
-      propDerefSyntaxVOutputs: $[stageDependencies.matrixSetup.assigner.outputs]
+      propDerefSyntaxVOutputs: $[convertToJson(stageDependencies.matrixSetup.assigner.outputs)]
       extraVar: SQL2016.assignFQDN.fqdn
       starVar: $[variables[*]]
       # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
