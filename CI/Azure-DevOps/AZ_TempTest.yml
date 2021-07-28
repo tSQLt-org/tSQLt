@@ -147,9 +147,9 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Write-Host $(anotherTestVar);
+          Write-Host "$env:anotherTestVar";
       env:
-        anotherTestVarx: $[stageDependencies.matrixSetup.assigner.outputs['SQL2012.assignFQDN.fqdn']]
+        anotherTestVar: $[stageDependencies.matrixSetup.assigner.outputs['SQL2012.assignFQDN.fqdn']]
 
     - task: PowerShell@2
       condition: always()
@@ -158,9 +158,9 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Write-Host $(anotherTestVar);
+          Write-Host "$env:anotherTestVarX";
       env:
-        anotherTestVar: $[stageDependencies.matrixSetup.assigner.outputs['$(extraVar)']]
+        anotherTestVarX: $[stageDependencies.matrixSetup.assigner.outputs['$(extraVar)']]
 
 
 - stage: A
