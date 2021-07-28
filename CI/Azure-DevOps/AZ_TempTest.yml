@@ -42,13 +42,19 @@ stages:
   jobs:
   - job: generator
     steps:
-    - bash: echo "##vso[task.setVariable variable=legs;isOutput=true]{'a':{'myvar':'A'}, 'b':{'myvar':'B'}}"
-      name: mtrx
+
+    # - bash: echo "##vso[task.setVariable variable=legs;isOutput=true]{'a':{'myvar':'A'}, 'b':{'myvar':'B'}}"
+    #   name: mtrx
     # This expands to the matrix
     #   a:
     #     myvar: A
     #   b:
     #     myvar: B
+
+    - bash: |
+        echo "##vso[task.setVariable variable=legs;isOutput=true]{'2008R2':{'SQLVersionEdition':'2008R2Std'},'2012':{'SQLVersionEdition':'2012Ent'},'2014':{'SQLVersionEdition':'2014'},'2016':{'SQLVersionEdition':'2016'},'2017':{'SQLVersionEdition':'2017'},'2019':{'SQLVersionEdition':'2019'},}"
+      name: mtrx
+
   - job: assigner
     dependsOn: generator
     strategy:
@@ -74,8 +80,18 @@ stages:
   - job: runner
     variables:
       testVar: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
-      aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['a.assignFQDN.fqdn']]
-      https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
+      aTestFQDNVar: $[stageDependencies.matrixSetup.assigner.outputs['2008R2.assignFQDN.fqdn']]
+      extraVar: 2016.assignFQDN.fqdn
+      # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops#functions
+
+
+
+      # |  A  |  B  |
+      # |  VA |  VB |
+      #    |  X  |
+      # |  A  |  B  |
+      # |  VA |  VB |
+
 
     strategy:
       matrix: $[stageDependencies.matrixSetup.generator.outputs['mtrx.legs']]
@@ -89,6 +105,13 @@ stages:
           Get-Item -Path Env:*;
           # SYSTEM_JOBNAME "a"
 
+    - task: PowerShell@2
+      name: inspectMatrixEnv
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host "$(myvar)";  # echos A or B depending on which leg is running
 
     - task: PowerShell@2
       condition: always()
@@ -116,6 +139,28 @@ stages:
         failOnStderr: true
         script: |
           Write-Host "$(aTestFQDNVar)";
+
+    - task: PowerShell@2
+      condition: always()
+      name: readAllFQDN4
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host $(anotherTestVar);
+      env:
+        anotherTestVar: $[stageDependencies.matrixSetup.assigner.outputs['2012.assignFQDN.fqdn']]
+
+    - task: PowerShell@2
+      condition: always()
+      name: readAllFQDN5
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Write-Host $(anotherTestVar);
+      env:
+        anotherTestVar: $[stageDependencies.matrixSetup.assigner.outputs['$(extraVar)']]
 
 
 - stage: A
