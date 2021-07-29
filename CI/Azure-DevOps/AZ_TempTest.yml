@@ -155,7 +155,7 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $myJsonObject = ConvertFrom-JSON -InputObject @"$(propDerefSyntaxVOutputs)"@ -AsHashtable;
+          $myJsonObject = ConvertFrom-JSON -AsHashtable -InputObject @"$(propDerefSyntaxVOutputs)"@;
           Write-Host $myJsonObject["SQL2008R2.assignFQDN.fqdn"];
 
 - stage: A
