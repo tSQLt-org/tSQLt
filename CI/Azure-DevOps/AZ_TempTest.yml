@@ -158,7 +158,28 @@ stages:
           $myJsonObject = ConvertFrom-JSON -InputObject @'
           $(propDerefSyntaxVOutputs)
           '@;
-          Write-Host $myJsonObject["SQL2008R2.assignFQDN.fqdn"];
+          Write-Host $myJsonObject;
+
+
+    - task: PowerShell@2
+      condition: always()
+      name: pickTheRightFQDN2
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          $jsonString = @'
+            {
+              "SQL2008R2.assignFQDN.fqdn":  "+fqdn://SQL2008R2",
+              "SQL2019.assignFQDN.fqdn":  "+fqdn://SQL2019",
+              "SQL2012.assignFQDN.fqdn":  "+fqdn://SQL2012",
+              "SQL2016.assignFQDN.fqdn":  "+fqdn://SQL2016"
+            }
+          '@;
+          $myJsonObject = ConvertFrom-JSON -InputObject $jsonString;
+          $blueString = "SQL2012.assignFQDN.fqdn";
+          Write-Host $myJsonObject;
+          Write-Host $myJsonObject.$blueString;
 
 - stage: A
   condition: false
