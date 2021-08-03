@@ -71,7 +71,7 @@ stages:
         failOnStderr: true
         script: |
           $fqdn = "fqdn://$(System.JobName)";
-          Write-Host "##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn;
+          Write-Host ("##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn);
 
     
 - stage: matrixRead
@@ -162,12 +162,22 @@ stages:
           Write-Host "====================================================";
           Write-Host $inputObject;
 
-          $myJsonString = $inputObject -replace "(\n\s*)([^:]+):\s*(.*)((?<!,),?\s*(?=\n))", '$1"$2":"$3"$4';
+          # Looks like
+          # {
+          #   "SQL2008R2.assignFQDN.fqdn": " +fqdn://SQL2008R2",
+          #   "SQL2019.assignFQDN.fqdn": " +fqdn://SQL2019",
+          #   "SQL2012.assignFQDN.fqdn": " +fqdn://SQL2012",
+          #   "SQL2016.assignFQDN.fqdn": " +fqdn://SQL2016"
+          # }
 
-          Write-Host "====================================================";
-          Write-Host $myJsonString;
+          # $myJsonString = $inputObject -replace "(\n\s*)([^:]+):\s*(.*)((?<!,),?\s*(?=\n))", '$1"$2":"$3"$4';
+
+          # Write-Host "====================================================";
+          # Write-Host $myJsonString;
           
-          $myJsonObject = ConvertFrom-JSON -InputObject $myJsonString;
+          # $myJsonObject = ConvertFrom-JSON -InputObject $myJsonString;
+
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
 
           Write-Host "====================================================";
           Write-Host $myJsonObject;
