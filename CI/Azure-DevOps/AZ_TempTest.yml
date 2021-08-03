@@ -155,10 +155,20 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $myJsonObject = ConvertFrom-JSON -InputObject @'
+          $inputObject = @'
           $(propDerefSyntaxVOutputs)
           '@;
+
+          $myJsonString = $inputObject -replace "(\n\s*)([^:]+):\s*(.*)((?<!,),?\s*(?=\n))", '$1"$2":"$3"$4';
+          
+          $myJsonObject = ConvertFrom-JSON -InputObject $myJsonString;
+
+          Write-Host $myJsonString;
           Write-Host $myJsonObject;
+
+          $blueString = "SQL2012.assignFQDN.fqdn";
+          Write-Host $myJsonObject;
+          Write-Host $myJsonObject.$blueString;
 
 
     - task: PowerShell@2
