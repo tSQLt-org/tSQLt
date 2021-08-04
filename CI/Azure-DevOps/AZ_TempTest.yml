@@ -35,7 +35,6 @@ variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
   - name: VMMatrix
-#    value: "{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2014':{'SQLVersionEdition':'2014'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
     value: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
 
 stages:
@@ -59,8 +58,8 @@ stages:
       name: mtrx
 
   - job: assignerFromVariables
-    strategy:
-      matrix: $(VMMatrix)
+    # strategy:
+    #   matrix: $(VMMatrix)
     steps:
     - script: echo $(SQLVersionEdition) # echos A or B depending on which leg is running
     

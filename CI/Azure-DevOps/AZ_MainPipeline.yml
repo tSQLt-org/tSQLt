@@ -14,6 +14,9 @@ variables:
     value: Standard_F4s_v2 #Standard_D2s_v3, Standard_B2s
   - name: VMLocation
     value: 'East US 2'
+  - name: VMMatrix
+#    value: "{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2014':{'SQLVersionEdition':'2014'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
+    value: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
 
 resources:
   repositories:
@@ -22,53 +25,103 @@ resources:
     name: tSQLt/tmp6
     endpoint: GitHub-tSQLt-Robot
   
-  
 stages:
+
+- stage: Create_VMs
+
+  jobs:
+  - job: Create_VM
+    strategy:
+      matrix: $(VMMatrix) # SQLVersionEdition is the matrix variable we care about
+
+    steps:
+    - checkout: self
+      clean: true
+      lfs: false
+      path: tSQLt
+
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        KeyVaultName: 'tSQLtSigningKey'
+
+    - task: AzurePowerShell@4
+      name: CreateSQLVMEnvironment
+      env:
+        SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        SQL_PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+        CONTACT_EMAIL: $(NotificationEmail)
+        VM_USER_NAME: $(tSQLt-AdminForCIVM-UserName)
+        VM_PASSWORD: $(tSQLt-AdminForCIVM-Password)
+        SQLPORTMINIMUM: $(SqlPortMinimum)
+        SQLPORTMAXIMUM: $(SqlPortMaximum)
+      inputs:
+        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azurePowerShellVersion: 'LatestVersion'
+        ScriptType: 'InlineScript'
+        Inline: |
+          Set-Location $(Pipeline.Workspace)/tSQLt
+          .("Build/CommonFunctionsAndMethods.ps1")
+
+          $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
+          $SQLUserName = "$env:SQL_USER_NAME";
+          $SQLPwd = "$env:SQL_PASSWORD"; #TODO, randomize password, instead of taking it directly from the key vault
+
+          Log-Output '==========================================================';
+          Log-Output 'Executing CreateSQLVM.ps1';
+          Log-Output '==========================================================';
+          $Parameters = @{
+            Location="$(VMLocation)";
+            Size="$(VMSize)"
+            NamePreFix="$(NamePreFix)";
+            BuildId="$(Build.BuildId)";
+            VMAdminName="$env:VM_USER_NAME";
+            VMAdminPwd="$env:VM_PASSWORD";
+            SQLVersionEdition="$(SQLVersionEdition)";
+            SQLPort="$SqlPort";
+            SQLUserName="$SQLUserName";
+            SQLPwd="$SQLPwd";
+          }; 
+          $VMDetails = .'CI/Azure-DevOps/CreateSQLVM.ps1' @Parameters
+    
+          Log-Output '==========================================================';
+          Log-Output 'Done: Executing CreateSQLVM.ps1';
+          Log-Output '==========================================================';
+              
+          $SerializedVMDetails=(ConvertTo-JSON -InputObject $VMDetails -Compress);
+          
+          $SerializedVMDetails;
+          # $SerializedVMDetails required to delete VMs at the end of the pipeline
+
+          #-----------------------------------------------------------------------#
+          # IMPORTANT (and, you've got to be kidding me):                         #
+          # The space below is absolutely required to make the ANT Task work.     #
+          #---------------------------------------|-------------------------------#
+          $FQDNAndPort = $VMDetails.SQLVmFQDN + ", " + $VMDetails.SQLVmPort;
+          #---------------------------------------|-------------------------------#
+          #-----------------------------------------------------------------------#
+
+          Write-Host "##vso[task.setvariable variable=SQLUserName]$SQLUserName"
+          Write-Host "##vso[task.setvariable variable=SQLPwd]$SQLPwd"
+          Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
+          Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
+
+
+    - task: PowerShell@2
+      name: PrintSQLVersionInfo
+      env:
+        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      inputs:
+        targetType: 'inline'
+        script: |
+          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(FQDNAndPort)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+          $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
+
+
 - stage: Build_tSQLt
 
   jobs:
-  - job: Check_If_Built_Already
-    steps:
-    - checkout: tSQLtArtifacts
-      clean: true
-      fetchDepth: 1
-      lfs: false
-      persistCredentials: true
-      path: tSQLtArtifacts
-
-    - task: PowerShell@2
-      name: list_remote_branch
-      inputs:
-        targetType: 'inline'
-        failOnStderr: false
-        script: |
-          $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "git failed!"}};          
-          
-          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
-          
-          Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
-          try{
-
-            $remoteURL = git config remote.origin.url
-            $CheckIfGitOk.invoke($?);
-            
-            $branch = (git ls-remote --heads $remoteURL $(ArtifactBranchName))
-            $CheckIfGitOk.invoke($?);
-
-            if( -not [string]::IsNullOrEmpty($branch) )
-            {
-              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]true";
-              Write-Host "Build Branch Found";
-            }
-            else
-            {
-              Write-Host "##vso[task.setvariable variable=BuiltAlready;isOutput=true]false";
-              Write-Host "Build Branch NOT Found";
-            };
-          }catch{
-            throw "git failed. See prior errors.";
-          } 
-          git status
 
   - job: CompileCLR
     dependsOn: Check_If_Built_Already
@@ -253,9 +306,39 @@ stages:
   ###############################################################################
   ###############################################################################
 
+- stage: Build_Dacpacs
+  dependsOn: Build_tSQLt, Create_VMs
+
+  jobs:
+  - job: Build_Dacpac
+    strategy:
+      matrix: $(VMMatrix) # SQLVersionEdition is the matrix variable we care about
+
+    variables:
+      SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+      SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
+
+    steps:
+    - checkout: self
+      clean: true
+      lfs: false
+      path: tSQLt
+
+    - task: PowerShell@2
+      name: FacadeBuildDacpac
+      env:
+        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      inputs:
+        targetType: 'inline'
+        script: |
+          Set-Location $(Pipeline.Workspace)/tSQLt
+          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$(FQDNAndPort)" -DatabaseName "dacpacDB" -Login " -U $env:USER_NAME -P $env:PASSWORD" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
+
+
 - stage: Validate
   displayName: ValidateAll
-  dependsOn: Build_tSQLt
+  dependsOn: Build_Dacpacs
   variables:
     NamePreFix: 'tSQLtCI_'
 
@@ -263,14 +346,7 @@ stages:
 
   - job: Validate
     strategy:
-      matrix: {
-        '2008R2':{'SQLVersionEdition':'2008R2Std'},
-        '2012':{'SQLVersionEdition':'2012Ent'},
-        '2014':{'SQLVersionEdition':'2014'},
-        '2016':{'SQLVersionEdition':'2016'},
-        '2017':{'SQLVersionEdition':'2017'},
-        '2019':{'SQLVersionEdition':'2019'}, 
-         }
+      matrix: $(VMMatrix) # SQLVersionEdition is the matrix variable we care about
 
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
@@ -400,8 +476,6 @@ stages:
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }    
 
 
-    ##-## CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
-
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
       inputs:
@@ -410,28 +484,8 @@ stages:
         targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/tSQLtBuild'
 
 
-
-    - task: PowerShell@2
-      name: FacadeBuildDacpac
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-      inputs:
-        targetType: 'inline'
-        script: |
-          Set-Location $(Pipeline.Workspace)/tSQLt
-          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$(FQDNAndPort)" -DatabaseName "%DBName%" -Login " -U $env:USER_NAME -P $env:PASSWORD" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
-
-
     ##-## CALL "powershell.exe" -File Build\BuildtSQLtZip.ps1 -ErrorAction Stop || goto :error
 
-
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
 
     - task: Ant@1
