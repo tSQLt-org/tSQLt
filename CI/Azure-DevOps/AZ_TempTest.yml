@@ -21,7 +21,6 @@ schedules:
 pool:
   vmImage: 'vs2017-win2016'
 
-
 parameters:
 - name: SQLCMDPath
   type: string
@@ -30,17 +29,21 @@ parameters:
   type: string
   default: 'NULL'
 
-
 variables:
   - name: NamePreFix
     value: 'tSQLtCI_DevTestLab_'
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
+  - name: VMMatrix
+#    value: "{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2014':{'SQLVersionEdition':'2014'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
+    value: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
 
 stages:
 - stage: matrixSetup
   jobs:
   - job: generator
+    condition: false
+
     steps:
 
     # - bash: echo "##vso[task.setVariable variable=legs;isOutput=true]{'a':{'myvar':'A'}, 'b':{'myvar':'B'}}"
@@ -54,6 +57,23 @@ stages:
     - bash: |
         echo "##vso[task.setVariable variable=legs;isOutput=true]{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2019':{'SQLVersionEdition':'2019'},}"
       name: mtrx
+
+  - job: assignerFromVariables
+    strategy:
+      matrix: $(VMMatrix)
+    steps:
+    - script: echo $(SQLVersionEdition) # echos A or B depending on which leg is running
+    
+    - script: echo $(Agent.JobName)
+
+    - task: PowerShell@2
+      name: assignFQDN
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          $fqdn = "fqdn://$(System.JobName)";
+          Write-Host ("##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn);
 
   - job: assigner
     dependsOn: generator
@@ -72,9 +92,9 @@ stages:
         script: |
           $fqdn = "fqdn://$(System.JobName)";
           Write-Host ("##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn);
-
     
 - stage: matrixRead
+  condition: false
   dependsOn: matrixSetup
   jobs:
   - job: runner
@@ -162,49 +182,14 @@ stages:
           Write-Host "====================================================";
           Write-Host $inputObject;
 
-          # Looks like
-          # {
-          #   "SQL2008R2.assignFQDN.fqdn": " +fqdn://SQL2008R2",
-          #   "SQL2019.assignFQDN.fqdn": " +fqdn://SQL2019",
-          #   "SQL2012.assignFQDN.fqdn": " +fqdn://SQL2012",
-          #   "SQL2016.assignFQDN.fqdn": " +fqdn://SQL2016"
-          # }
-
-          # $myJsonString = $inputObject -replace "(\n\s*)([^:]+):\s*(.*)((?<!,),?\s*(?=\n))", '$1"$2":"$3"$4';
-
-          # Write-Host "====================================================";
-          # Write-Host $myJsonString;
-          
-          # $myJsonObject = ConvertFrom-JSON -InputObject $myJsonString;
-
           $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
 
           Write-Host "====================================================";
           Write-Host $myJsonObject;
 
           $blueString = "SQL2012.assignFQDN.fqdn";
-          Write-Host $myJsonObject;
-          Write-Host $myJsonObject.$blueString;
 
-
-    - task: PowerShell@2
-      condition: always()
-      name: pickTheRightFQDN2
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          $jsonString = @'
-            {
-              "SQL2008R2.assignFQDN.fqdn":  "+fqdn://SQL2008R2",
-              "SQL2019.assignFQDN.fqdn":  "+fqdn://SQL2019",
-              "SQL2012.assignFQDN.fqdn":  "+fqdn://SQL2012",
-              "SQL2016.assignFQDN.fqdn":  "+fqdn://SQL2016"
-            }
-          '@;
-          $myJsonObject = ConvertFrom-JSON -InputObject $jsonString;
-          $blueString = "SQL2012.assignFQDN.fqdn";
-          Write-Host $myJsonObject;
+          Write-Host "====================================================";
           Write-Host $myJsonObject.$blueString;
 
 - stage: A
