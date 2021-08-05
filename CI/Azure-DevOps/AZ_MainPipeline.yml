@@ -10,8 +10,15 @@ pool:
 parameters: # TODO, these don't work for scheduled pipelines, not even the defaults. Fix it. Hint: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/runtime-parameters?view=azure-devops&tabs=script#check-for-an-empty-parameter-object
   - name: VMMatrix
     type: object
-#    default: [{"name":"SQL2008R2",'SQLVersionEdition':'2008R2Std'},{"name":"SQL2012",'SQLVersionEdition':'2012Ent'},{"name":"SQL2014",'SQLVersionEdition':'2014'},{"name":"SQL2016",'SQLVersionEdition':'2016'},{"name":"SQLSQL2017",'SQLVersionEdition':'2017'},{"name":"SQL2019",'SQLVersionEdition':'2019'}]
-    default: [{"name":"SQL2016",'SQLVersionEdition':'2016'},{"name":"SQLSQL2017",'SQLVersionEdition':'2017'},{"name":"SQL2019",'SQLVersionEdition':'2019'}]
+#    default: [{"name":"SQL2008R2",'SQLVersionEdition':'2008R2Std'},{"name":"SQL2012",'SQLVersionEdition':'2012Ent'},{"name":"SQL2014",'SQLVersionEdition':'2014'},{"name":"SQL2016",'SQLVersionEdition':'2016'},{"name":"SQL2017",'SQLVersionEdition':'2017'},{"name":"SQL2019",'SQLVersionEdition':'2019'}]
+#    default: [{"name":"SQL2016",'SQLVersionEdition':'2016'},{"name":"SQL2017",'SQLVersionEdition':'2017'},{"name":"SQL2019",'SQLVersionEdition':'2019'}]
+    default:
+    - name: SQL2016
+      SQLVersionEdition: 2016
+    - name: SQL2017
+      SQLVersionEdition: 2017
+    - name: SQL2019
+      SQLVersionEdition: 2019
 
 
 variables:
