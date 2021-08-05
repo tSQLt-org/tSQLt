@@ -314,7 +314,9 @@ stages:
   ###############################################################################
 
 - stage: Build_Dacpacs
-  dependsOn: Build_tSQLt, Create_VMs
+  dependsOn:
+  - Build_tSQLt
+  - Create_VMs
 
   jobs:
   - job: Build_Dacpac
