@@ -34,7 +34,7 @@ parameters:
 - name: VMMatrix
   type: object
 #   #default: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
-  default: ["S3","S4","S5"]
+  default: [{"name":"S3"},{"name":"S4"},{"name":"S5"}]
 #  VMMatrix: ["S3","S4","S5"]
 
 
@@ -85,7 +85,7 @@ stages:
       matrix: 
         ${{ each job in parameters.jobs }}:
           ${{ each version in parameters.VMMatrix }}:
-            ${{ format('XXX{0}', version) }}:
+            ${{ format('XXX{0}', version.name) }}:
               myvar: A
 
     steps:
