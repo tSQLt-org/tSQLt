@@ -22,16 +22,18 @@ pool:
   vmImage: 'vs2017-win2016'
 
 parameters:
-- name: SQLCMDPath
-  type: string
-  default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
-- name: RequestingBuildId
-  type: string
-  default: 'NULL'
-- name: VMMatrix
-  type: string
-  #default: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
-  default: ["S3","S4","S5"]
+# - name: SQLCMDPath
+#   type: string
+#   default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+# - name: RequestingBuildId
+#   type: string
+#   default: 'NULL'
+# - name: VMMatrix
+#   type: string
+#   #default: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
+#   default: '["S3","S4","S5"]'
+  VMMatrix: ["S3","S4","S5"]
+
 
 # parameters:
 #   jobs: []
@@ -80,7 +82,7 @@ stages:
       matrix: 
         ${{ each version in parameters.VMMatrix }}:
           ${{ format('{0}', version) }}:
-          
+
     steps:
     - script: echo $(SQLVersionEdition) # echos A or B depending on which leg is running
     
