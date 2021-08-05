@@ -58,8 +58,8 @@ stages:
       name: mtrx
 
   - job: assignerFromVariables
-    # strategy:
-    #   matrix: $(VMMatrix)
+    strategy:
+      matrix: ${{ VMMatrix }}
     steps:
     - script: echo $(SQLVersionEdition) # echos A or B depending on which leg is running
     
