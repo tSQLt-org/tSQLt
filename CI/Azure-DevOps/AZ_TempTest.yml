@@ -29,7 +29,6 @@ parameters:
   type: string
   default: 'NULL'
 - name: jobs
-  type: job
   default: []
 - name: VMMatrix
   type: object
