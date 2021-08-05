@@ -132,7 +132,6 @@ stages:
   jobs:
 
   - job: CompileCLR
-    dependsOn: Check_If_Built_Already
     condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['list_remote_branch.BuiltAlready'], 'false'))
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
