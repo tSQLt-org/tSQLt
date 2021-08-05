@@ -30,7 +30,7 @@ parameters:
   default: 'NULL'
 - name: jobs
   type: object
-  default: []
+  default: ["A"]
 - name: VMMatrix
   type: object
 #   #default: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
