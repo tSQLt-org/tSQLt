@@ -28,13 +28,10 @@ parameters:
 - name: RequestingBuildId
   type: string
   default: 'NULL'
-- name: jobs
-  type: object
-  default: ["A"]
 - name: VMMatrix
   type: object
 #   #default: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
-  default: [{"name":"S3"},{"name":"S4"},{"name":"S5"}]
+  default: [{"name":"S3",'SQLVersionEdition':'2016'},{"name":"S4",'SQLVersionEdition':'2017'},{"name":"S5",'SQLVersionEdition':'2019'}]
 #  VMMatrix: ["S3","S4","S5"]
 
 
@@ -85,7 +82,7 @@ stages:
       matrix: 
         ${{ each version in parameters.VMMatrix }}:
           ${{ format('XXX{0}', version.name) }}:
-            myvar: A
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     steps:
     - script: echo $(SQLVersionEdition) # echos A or B depending on which leg is running
