@@ -7,6 +7,13 @@ pr: none
 pool:
   vmImage: 'vs2017-win2016'
 
+parameters: # TODO, these don't work for scheduled pipelines, not even the defaults. Fix it. Hint: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/runtime-parameters?view=azure-devops&tabs=script#check-for-an-empty-parameter-object
+  - name: VMMatrix
+    type: object
+#    default: [{"name":"SQL2008R2",'SQLVersionEdition':'2008R2Std'},{"name":"SQL2012",'SQLVersionEdition':'2012Ent'},{"name":"SQL2014",'SQLVersionEdition':'2014'},{"name":"SQL2016",'SQLVersionEdition':'2016'},{"name":"SQLSQL2017",'SQLVersionEdition':'2017'},{"name":"SQL2019",'SQLVersionEdition':'2019'}]
+    default: [{"name":"SQL2016",'SQLVersionEdition':'2016'},{"name":"SQLSQL2017",'SQLVersionEdition':'2017'},{"name":"SQL2019",'SQLVersionEdition':'2019'}]
+
+
 variables:
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
@@ -14,9 +21,7 @@ variables:
     value: Standard_F4s_v2 #Standard_D2s_v3, Standard_B2s
   - name: VMLocation
     value: 'East US 2'
-  - name: VMMatrix
-#    value: "{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2014':{'SQLVersionEdition':'2014'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
-    value: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
+
 
 resources:
   repositories:
@@ -32,7 +37,10 @@ stages:
   jobs:
   - job: Create_VM
     strategy:
-      matrix: $(VMMatrix) # SQLVersionEdition is the matrix variable we care about
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     steps:
     - checkout: self
@@ -312,7 +320,10 @@ stages:
   jobs:
   - job: Build_Dacpac
     strategy:
-      matrix: $(VMMatrix) # SQLVersionEdition is the matrix variable we care about
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
@@ -346,7 +357,10 @@ stages:
 
   - job: Validate
     strategy:
-      matrix: $(VMMatrix) # SQLVersionEdition is the matrix variable we care about
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'

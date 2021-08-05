@@ -30,24 +30,7 @@ parameters:
   default: 'NULL'
 - name: VMMatrix
   type: object
-#   #default: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
   default: [{"name":"S3",'SQLVersionEdition':'2016'},{"name":"S4",'SQLVersionEdition':'2017'},{"name":"S5",'SQLVersionEdition':'2019'}]
-#  VMMatrix: ["S3","S4","S5"]
-
-
-# parameters:
-#   jobs: []
-#   pythonVersions: ["3.7", "3.6", "3.5", "2.7"],
-#   operatingSystems: ["....."]
-
-# jobs:
-# - job: xxx
-#   strategy:
-#     matrix:
-#       ${{ each job in parameters.jobs }}:
-#         ${{ each py in parameters.pythonVersions }}:
-#             ${{ each os in parameters.operatingSystems }}:
-#               ${{ format('{0}{1}', py, os) }}:
 
 
 
