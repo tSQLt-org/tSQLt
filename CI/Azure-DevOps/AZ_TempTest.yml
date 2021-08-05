@@ -28,14 +28,15 @@ parameters:
 - name: RequestingBuildId
   type: string
   default: 'NULL'
+- name: VMMatrix
+  type: string
+  default: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
 
 variables:
   - name: NamePreFix
     value: 'tSQLtCI_DevTestLab_'
   - name: ArtifactBranchName
     value: tSQLt$(Build.SourceVersion)
-  - name: VMMatrix
-    value: "{'SQL2016':{'SQLVersionEdition':'2016'},'SQL2017':{'SQLVersionEdition':'2017'},'SQL2019':{'SQLVersionEdition':'2019'},}"
 
 stages:
 - stage: matrixSetup
@@ -59,7 +60,7 @@ stages:
 
   - job: assignerFromVariables
     strategy:
-      matrix: ${{ VMMatrix }}
+      matrix: ${{ parameters.VMMatrix }}
     steps:
     - script: echo $(SQLVersionEdition) # echos A or B depending on which leg is running
     
