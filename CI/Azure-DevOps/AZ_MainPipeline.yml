@@ -330,7 +330,7 @@ stages:
 
     steps:
     - task: PowerShell@2
-      name: Print A Thing
+      name: PrintAThing
       env:
         USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
         PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
