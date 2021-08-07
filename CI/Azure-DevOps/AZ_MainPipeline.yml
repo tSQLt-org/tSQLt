@@ -84,7 +84,8 @@ stages:
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
           $SQLUserName = "$env:SQL_USER_NAME";
-          $SQLPwd = "$env:SQL_PASSWORD"; #TODO, randomize password, instead of taking it directly from the key vault
+          # $SQLPwd = "$env:SQL_PASSWORD"; #TODO, randomize password, instead of taking it directly from the key vault
+          $SQLPwd = "somethingrandom";
 
           Log-Output '==========================================================';
           Log-Output 'Executing CreateSQLVM.ps1';
@@ -121,8 +122,7 @@ stages:
           #-----------------------------------------------------------------------#
 
           Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
-          # Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
-          Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]justkidding"
+          Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
           Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
           Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
@@ -135,7 +135,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(FQDNAndPort)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
+          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
 
 
