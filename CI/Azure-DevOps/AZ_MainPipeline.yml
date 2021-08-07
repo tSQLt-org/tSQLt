@@ -30,6 +30,8 @@ variables:
     value: 'East US 2'
   - name: NamePreFix
     value: 'tSQLtCI_'
+  - name: buildDatabase
+    value: 'tSQLtCI'
 
 resources:
   repositories:
@@ -328,6 +330,7 @@ stages:
 
   jobs:
   - job: Build_Dacpac
+
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
@@ -337,7 +340,8 @@ stages:
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
       SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
-
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
+        
     steps:
     - checkout: self
       clean: true
@@ -353,7 +357,22 @@ stages:
         targetType: 'inline'
         script: |
           Set-Location $(Pipeline.Workspace)/tSQLt
-          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$(FQDNAndPort)" -DatabaseName "dacpacDB" -Login " -U $env:USER_NAME -P $env:PASSWORD" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
+
+          $inputObject = @'
+          $(databaseAccessDetails)
+          '@;
+
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
+
+          $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
+          $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
+          $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
+
+          $SQLUserName = $myJsonObject.$SQLUserNameKey;
+          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+
+          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
 
 
 - stage: Validate
@@ -514,7 +533,7 @@ stages:
       name: Run_tSQLt_validatebuild_xml
       inputs:
         buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: '-Ddb.server="$(FQDNAndPort)" -Ddb.name=tSQLt_dev -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
+        options: '-Ddb.server="$(FQDNAndPort)" -Ddb.name=$(buildDatabase) -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
