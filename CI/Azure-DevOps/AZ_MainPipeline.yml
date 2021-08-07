@@ -139,7 +139,7 @@ stages:
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
 
 
-- stage: Build_tSQLt
+- stage: Build_tSQLt_Part1
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
 
   jobs:
@@ -250,8 +250,98 @@ stages:
   ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
   ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
+  ###############################################################################
+  ###############################################################################
+  ###############################################################################
+
+- stage: Build_tSQLt_Part2
+  dependsOn:
+  - Build_tSQLt_Part1
+  - Create_VMs
+
+  jobs:
+  - job: Build_Dacpac
+
+    strategy:
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
+
+    variables:
+      SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+      SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
+        
+    steps:
+    - checkout: self
+      clean: true
+      lfs: false
+      path: tSQLt
+
+    - task: PowerShell@2
+      name: FacadeBuildDacpac
+      env:
+        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      inputs:
+        targetType: 'inline'
+        script: |
+          Set-Location $(Pipeline.Workspace)/tSQLt
+
+          $inputObject = @'
+          $(databaseAccessDetails)
+          '@;
+
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
+
+          $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
+          $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
+          $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
+
+          $SQLUserName = $myJsonObject.$SQLUserNameKey;
+          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+
+          Write-Host "====================================================";
+          Write-Host "inputObject length: " $inputObject.length;
+
+          Write-Host "====================================================";
+          Write-Host "inputObject: " $inputObject;
+
+          if ($null -eq $myJsonObject) {
+            Write-Host "myJsonObject is null"
+          }
+          Write-Host "====================================================";
+          Write-Host $myJsonObject;
+
+          Write-Host "====================================================";
+          Write-Host $(System.JobName);
+
+          Write-Host "====================================================";
+          Write-Host $FQDNAndPortKey; 
+
+          Write-Host "====================================================";
+          Write-Host $FQDNAndPort; 
+
+          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
+
+  - job: Package_Artifact
+
+    steps:
+    - task: PowerShell@2
+      name: Print A Thing
+      env:
+        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Please package the artifact and get rid of the write-host";
+          1/0;
+
   - job: PublishArtifactToRepo
-    dependsOn: BuildSQLScripts
+    dependsOn: Package_Artifact
 
     steps:
     - checkout: tSQLtArtifacts
@@ -321,83 +411,12 @@ stages:
           git status
     
     
-  ###############################################################################
-  ###############################################################################
-  ###############################################################################
 
-- stage: Build_Dacpacs
-  dependsOn:
-  - Build_tSQLt
-  - Create_VMs
-
-  jobs:
-  - job: Build_Dacpac
-
-    strategy:
-      matrix:
-        ${{ each version in parameters.VMMatrix }}:
-          ${{ format('{0}', version.name) }}:
-            SQLVersionEdition: ${{ version.SQLVersionEdition }}
-
-    variables:
-      SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
-      SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
-      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
-        
-    steps:
-    - checkout: self
-      clean: true
-      lfs: false
-      path: tSQLt
-
-    - task: PowerShell@2
-      name: FacadeBuildDacpac
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-      inputs:
-        targetType: 'inline'
-        script: |
-          Set-Location $(Pipeline.Workspace)/tSQLt
-
-          $inputObject = @'
-          $(databaseAccessDetails)
-          '@;
-
-          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
-
-          $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
-          $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
-          $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
-
-          $SQLUserName = $myJsonObject.$SQLUserNameKey;
-          $SQLPwd = $myJsonObject.$SQLPwdKey;
-          $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
-
-          Write-Host "====================================================";
-          Write-Host "inputObject length: " $inputObject.length;
-
-          if ($null -eq $myJsonObject) {
-            Write-Host "myJsonObject is null"
-          }
-          Write-Host "====================================================";
-          Write-Host $myJsonObject;
-
-          Write-Host "====================================================";
-          Write-Host $(System.JobName);
-
-          Write-Host "====================================================";
-          Write-Host $FQDNAndPortKey; 
-
-          Write-Host "====================================================";
-          Write-Host $FQDNAndPort; 
-
-          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
 
 
 - stage: Validate
   displayName: ValidateAll
-  dependsOn: Build_Dacpacs
+  dependsOn: Build_tSQLt_Part2
 
   jobs:
 
@@ -533,7 +552,7 @@ stages:
     ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
 - stage: Delete_Resources
-  displayName: ValidateAll
+  displayName: Delete Pipeline Resources
   dependsOn:
   - Create_VMs
   - Validate
@@ -573,6 +592,7 @@ stages:
           $VMDetails = (ConvertFrom-JSON '$SerializedVMDetails');
           $VmName = $VMDetails.VmName;
           $ResourceGroupName = $VMDetails.ResourceGroupName;
+          
     
           Set-Location $(Build.Repository.LocalPath)
           .("Build/CommonFunctionsAndMethods.ps1")
