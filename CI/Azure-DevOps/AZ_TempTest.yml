@@ -43,23 +43,6 @@ variables:
 stages:
 - stage: matrixSetup
   jobs:
-  - job: generator
-    condition: false
-
-    steps:
-
-    # - bash: echo "##vso[task.setVariable variable=legs;isOutput=true]{'a':{'myvar':'A'}, 'b':{'myvar':'B'}}"
-    #   name: mtrx
-    # This expands to the matrix
-    #   a:
-    #     myvar: A
-    #   b:
-    #     myvar: B
-
-    - bash: |
-        echo "##vso[task.setVariable variable=legs;isOutput=true]{'SQL2008R2':{'SQLVersionEdition':'2008R2Std'},'SQL2012':{'SQLVersionEdition':'2012Ent'},'SQL2016':{'SQLVersionEdition':'2016'},'SQL2019':{'SQLVersionEdition':'2019'},}"
-      name: mtrx
-
   - job: assignerFromVariables
     strategy:
       matrix: 
@@ -91,25 +74,22 @@ stages:
         artifact: 'testFiles_$(System.JobName)'
         publishLocation: 'pipeline'
 
-
-  - job: assigner
-    dependsOn: generator
-    strategy:
-      matrix: $[ dependencies.generator.outputs['mtrx.legs'] ]
+  - job: readFiles
     steps:
-    - script: echo $(SQLVersionEdition) # echos A or B depending on which leg is running
-    
-    - script: echo $(Agent.JobName)
+    - task: DownloadPipelineArtifact@2
+      name: DownloadPipelineArtifact
+      inputs:
+        buildType: 'current'
+        targetPath: '$(Pipeline.Workspace)\tmp'
+        patterns: '**/XXX*.txt'
 
     - task: PowerShell@2
-      name: assignFQDN
+      name: ReadTmp
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $fqdn = "fqdn://$(System.JobName)";
-          Write-Host ("##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn);
-
+          Get-ChildItem -Path "$(Pipeline.Workspace)\tmp";
     
 - stage: matrixRead
   condition: false
