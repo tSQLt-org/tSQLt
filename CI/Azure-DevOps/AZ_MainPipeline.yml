@@ -120,7 +120,8 @@ stages:
           #-----------------------------------------------------------------------#
 
           Write-Host "##vso[task.setvariable variable=SQLUserName]$SQLUserName"
-          Write-Host "##vso[task.setvariable variable=SQLPwd]$SQLPwd"
+          # Write-Host "##vso[task.setvariable variable=SQLPwd]$SQLPwd"
+          Write-Host "##vso[task.setvariable variable=SQLPwd]justkidding"
           Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
           Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
@@ -378,6 +379,8 @@ stages:
           if ($null -eq $myJsonObject) {
             Write-Host "myJsonObject is null"
           }
+          Write-Host "====================================================";
+          Write-Host $myJsonObject;
 
           Write-Host "====================================================";
           Write-Host $(System.JobName);
@@ -394,7 +397,6 @@ stages:
 - stage: Validate
   displayName: ValidateAll
   dependsOn: Build_Dacpacs
-
 
   jobs:
 
@@ -414,11 +416,6 @@ stages:
       clean: true
       lfs: false
       path: tSQLt
-
-    - task: AzureKeyVault@1
-      inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-        KeyVaultName: 'tSQLtSigningKey'
 
     - checkout: tSQLtArtifacts
       clean: true
@@ -457,11 +454,6 @@ stages:
         buildType: 'current'
         artifactName: 'tSQLtAndTests'
         targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/tSQLtBuild'
-
-
-    ##-## CALL "powershell.exe" -File Build\BuildtSQLtZip.ps1 -ErrorAction Stop || goto :error
-
-
 
     - task: Ant@1
       name: Run_tSQLt_validatebuild_xml
