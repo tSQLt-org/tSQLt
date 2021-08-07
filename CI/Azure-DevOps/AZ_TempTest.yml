@@ -80,13 +80,14 @@ stages:
         script: |
           $fqdn = "fqdn://$(System.JobName)";
           Write-Host ("##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn);
-          Set-Location -Path $(Build.SourcesDirectory)
+          New-Item -Path "$(Build.SourcesDirectory)" -Name "artifactFiles" -ItemType "directory"
+          Set-Location -Path "$(Build.SourcesDirectory)/artifactFiles";
           $FileName = "$(System.JobName).txt";
           Set-Content -Path $FileName -Value $fqdn;
 
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.SourcesDirectory)'
+        targetPath: '$(Build.SourcesDirectory)/artifactFiles'
         artifact: 'testFiles_$(System.JobName)'
         publishLocation: 'pipeline'
 
