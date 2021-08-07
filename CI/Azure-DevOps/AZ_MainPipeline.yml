@@ -43,6 +43,7 @@ resources:
 stages:
 
 - stage: Create_VMs
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
 
   jobs:
   - job: Create_VM
@@ -119,10 +120,10 @@ stages:
           #---------------------------------------|-------------------------------#
           #-----------------------------------------------------------------------#
 
-          Write-Host "##vso[task.setvariable variable=SQLUserName]$SQLUserName"
-          # Write-Host "##vso[task.setvariable variable=SQLPwd]$SQLPwd"
-          Write-Host "##vso[task.setvariable variable=SQLPwd]justkidding"
-          Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
+          Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
+          # Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
+          Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]justkidding"
+          Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
           Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
 
@@ -139,11 +140,11 @@ stages:
 
 
 - stage: Build_tSQLt
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
 
   jobs:
 
   - job: CompileCLR
-    condition: and(succeeded(),eq(dependencies.Check_If_Built_Already.outputs['list_remote_branch.BuiltAlready'], 'false'))
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
 
