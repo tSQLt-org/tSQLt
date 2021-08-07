@@ -108,10 +108,8 @@ stages:
           Log-Output 'Done: Executing CreateSQLVM.ps1';
           Log-Output '==========================================================';
               
-          $SerializedVMDetails=(ConvertTo-JSON -InputObject $VMDetails -Compress);
-          
-          $SerializedVMDetails;
-          # $SerializedVMDetails required to delete VMs at the end of the pipeline
+          # $SerializedVMDetails=(ConvertTo-JSON -InputObject $VMDetails -Compress);
+          # $SerializedVMDetails;
 
           #-----------------------------------------------------------------------#
           # IMPORTANT (and, you've got to be kidding me):                         #
@@ -121,10 +119,13 @@ stages:
           #---------------------------------------|-------------------------------#
           #-----------------------------------------------------------------------#
 
+          $ResourceGroupName = $VMDetails.ResourceGroupName;
           Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
           Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
           Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
-          Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
+          Write-Host "##vso[task.setvariable variable=ResourceGroupName;isOutput=true]$ResourceGroupName";
+
+          # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
 
     - task: PowerShell@2
@@ -582,20 +583,12 @@ stages:
           $inputObject = @'
           $(databaseAccessDetails)
           '@;
-
           $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
-
-          $SerializedVMDetailsKey = "$(System.JobName).CreateSQLVMEnvironment.SerializedVMDetails";
-
-          $SerializedVMDetails = $myJsonObject.$SerializedVMDetailsKey;
-
-          $VMDetails = (ConvertFrom-JSON '$SerializedVMDetails');
-          $VmName = $VMDetails.VmName;
-          $ResourceGroupName = $VMDetails.ResourceGroupName;
-          
+          $ResourceGroupNameKey = "$(System.JobName).CreateSQLVMEnvironment.ResourceGroupName";
+          $ResourceGroupName = $myJsonObject.$ResourceGroupNameKey;          
     
           Set-Location $(Build.Repository.LocalPath)
           .("Build/CommonFunctionsAndMethods.ps1")
     
-          $VMDetails | Out-String | Log-Output;
+          $ResourceGroupName | Log-Output;
           Remove-ResourceGroup -ResourceGroupName $ResourceGroupName -BuildId $(Build.BuildId)
