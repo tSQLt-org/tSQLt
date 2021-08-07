@@ -372,6 +372,22 @@ stages:
           $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
 
+          Write-Host "====================================================";
+          Write-Host "inputObject length: " $inputObject.length;
+
+          if ($null -eq $myJsonObject) {
+            Write-Host "myJsonObject is null"
+          }
+
+          Write-Host "====================================================";
+          Write-Host $(System.JobName);
+
+          Write-Host "====================================================";
+          Write-Host $FQDNAndPortKey; 
+
+          Write-Host "====================================================";
+          Write-Host $FQDNAndPort; 
+
           .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
 
 
@@ -433,88 +449,6 @@ stages:
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
           Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
-
-    - task: AzurePowerShell@4
-      name: CreateSQLVMEnvironment
-      env:
-        SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        SQL_PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-        CONTACT_EMAIL: $(NotificationEmail)
-        VM_USER_NAME: $(tSQLt-AdminForCIVM-UserName)
-        VM_PASSWORD: $(tSQLt-AdminForCIVM-Password)
-        SQLPORTMINIMUM: $(SqlPortMinimum)
-        SQLPORTMAXIMUM: $(SqlPortMaximum)
-      inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
-        azurePowerShellVersion: 'LatestVersion'
-        ScriptType: 'InlineScript'
-        Inline: |
-          Set-Location $(Pipeline.Workspace)/tSQLt
-          .("Build/CommonFunctionsAndMethods.ps1")
-
-          $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
-
-
-          Log-Output '==========================================================';
-          Log-Output '==========================================================';
-          Log-Output 'Executing CreateSQLVM.ps1';
-          Log-Output '==========================================================';
-          Log-Output '==========================================================';
-          $Parameters = @{
-            Location="$(VMLocation)";
-            Size="$(VMSize)"
-            NamePreFix="$(NamePreFix)";
-            BuildId="$(Build.BuildId)";
-            VMAdminName="$env:VM_USER_NAME";
-            VMAdminPwd="$env:VM_PASSWORD";
-            SQLVersionEdition="$(SQLVersionEdition)";
-            SQLPort="$SqlPort";
-            SQLUserName="$env:SQL_USER_NAME";
-            SQLPwd="$env:SQL_PASSWORD";
-          }; 
-          $VMDetails = .'CI/Azure-DevOps/CreateSQLVM.ps1' @Parameters
-    
-          Log-Output '==========================================================';
-          Log-Output '==========================================================';
-          Log-Output 'Done: Executing CreateSQLVM.ps1';
-          Log-Output '==========================================================';
-          Log-Output '==========================================================';
-              
-          $SerializedVMDetails=(ConvertTo-JSON -InputObject $VMDetails -Compress);
-          
-          $SerializedVMDetails
-          Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails"
-    
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-
-    - task: PowerShell@2
-      name: GetVariablesInPlace
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host '$(CreateSQLVMEnvironment.SerializedVMDetails)';
-
-          $VMDetails = (ConvertFrom-JSON '$(CreateSQLVMEnvironment.SerializedVMDetails)');
-          #-----------------------------------------------------------------------#
-          # IMPORTANT (and, you've got to be kidding me):                         #
-          # The space below is absolutely required to make the ANT Task work.     #
-          #---------------------------------------|-------------------------------#
-          $FQDNAndPort = $VMDetails.SQLVmFQDN + ", " + $VMDetails.SQLVmPort;
-          #---------------------------------------|-------------------------------#
-          #-----------------------------------------------------------------------#
-          Write-Host "##vso[task.setvariable variable=FQDNAndPort]$FQDNAndPort"
-
-    - task: PowerShell@2
-      name: PrintSQLVersionInfo
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-      inputs:
-        targetType: 'inline'
-        script: |
-          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(FQDNAndPort)" -Username "$env:USER_NAME" -Password "$env:PASSWORD" -As DataSet
-          $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }    
 
 
     - task: DownloadPipelineArtifact@2
@@ -604,20 +538,46 @@ stages:
           }  
 
     ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-      
+
+- stage: Delete_Resources
+  displayName: ValidateAll
+  dependsOn:
+  - Create_VMs
+  - Validate
+  condition: always()
+
+  jobs:
+
+  - job: Delete_VM
+
+    strategy:
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
+
+    variables:
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
+        
+    tasks:
     - task: AzurePowerShell@4
-      name: DeleteAzureResources
-      condition: always()
+      name: DeleteAzureVM
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         azurePowerShellVersion: 'LatestVersion'
         ScriptType: 'InlineScript'
         Inline: |
+          $inputObject = @'
+          $(databaseAccessDetails)
+          '@;
 
-          Write-Host '$(CreateSQLVMEnvironment.SerializedVMDetails)'
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
 
-          $VMDetails = (ConvertFrom-JSON '$(CreateSQLVMEnvironment.SerializedVMDetails)');
+          $SerializedVMDetailsKey = "$(System.JobName).CreateSQLVMEnvironment.SerializedVMDetails";
+
+          $SerializedVMDetails = $myJsonObject.$SerializedVMDetailsKey;
+
+          $VMDetails = (ConvertFrom-JSON '$SerializedVMDetails');
           $VmName = $VMDetails.VmName;
           $ResourceGroupName = $VMDetails.ResourceGroupName;
     
