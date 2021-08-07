@@ -411,9 +411,6 @@ stages:
           } 
           git status
     
-    
-
-
 
 - stage: Validate
   displayName: ValidateAll
