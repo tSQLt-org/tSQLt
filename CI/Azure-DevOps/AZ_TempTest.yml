@@ -82,7 +82,7 @@ stages:
           Write-Host ("##vso[task.setVariable variable=fqdn;isOutput=true]"+$fqdn);
           Set-Location -Path $(Build.SourcesDirectory)
           $FileName = "$(System.JobName).txt";
-          Set-Content -Path $FileName -InputObject $fqdn;
+          Set-Content -Path $FileName -Value $fqdn;
 
     - task: PublishPipelineArtifact@1
       inputs:
@@ -90,7 +90,7 @@ stages:
         artifact: 'testFiles'
         publishLocation: 'pipeline'
 
-        
+
   - job: assigner
     dependsOn: generator
     strategy:
