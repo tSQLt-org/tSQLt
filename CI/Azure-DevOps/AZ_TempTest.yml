@@ -87,7 +87,7 @@ stages:
     - task: PublishPipelineArtifact@1
       inputs:
         targetPath: '$(Build.SourcesDirectory)'
-        artifact: 'testFiles'
+        artifact: 'testFiles_$(System.JobName)'
         publishLocation: 'pipeline'
 
 
