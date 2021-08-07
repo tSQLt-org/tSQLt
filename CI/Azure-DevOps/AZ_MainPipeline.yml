@@ -28,7 +28,8 @@ variables:
     value: Standard_F4s_v2 #Standard_D2s_v3, Standard_B2s
   - name: VMLocation
     value: 'East US 2'
-
+  - name: NamePreFix
+    value: 'tSQLtCI_'
 
 resources:
   repositories:
@@ -358,8 +359,7 @@ stages:
 - stage: Validate
   displayName: ValidateAll
   dependsOn: Build_Dacpacs
-  variables:
-    NamePreFix: 'tSQLtCI_'
+
 
   jobs:
 
