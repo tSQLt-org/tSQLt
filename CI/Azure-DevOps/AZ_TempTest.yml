@@ -89,7 +89,7 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Get-ChildItem -Path "$(Pipeline.Workspace)\tmp";
+          Get-ChildItem -Path "$(Pipeline.Workspace)\tmp" -Recurse;
     
 - stage: matrixRead
   condition: false
