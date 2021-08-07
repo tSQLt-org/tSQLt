@@ -75,6 +75,9 @@ stages:
         publishLocation: 'pipeline'
 
   - job: readFiles
+    dependsOn:
+    - assignerFromVariables
+    
     steps:
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
