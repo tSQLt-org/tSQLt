@@ -559,7 +559,7 @@ stages:
     variables:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
         
-    tasks:
+    steps:
     - task: AzurePowerShell@4
       name: DeleteAzureVM
       inputs:
