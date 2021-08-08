@@ -32,6 +32,16 @@ variables:
     value: 'tSQLtCI_'
   - name: buildDatabase
     value: 'tSQLtCI'
+  - name: CLR_ARTIFACT_DIR
+    value: $(Build.SourcesDirectory)\tSQLt\Build\output\CLRBuild
+  - name: TSQLTFILES_ARTIFACT_DIR
+    value: $(Build.SourcesDirectory)\tSQLt\Build\output\tSQLtBuild
+  - name: DACPAC_ARTIFACT_DIR
+    value: $(Build.SourcesDirectory)\tSQLt\Build\output\DacpacBuild
+  - name: TSQLT_ARTIFACT_DIR
+    value: $(Build.SourcesDirectory)\tSQLt\Build\output\tSQLt
+
+
 
 resources:
   repositories:
@@ -198,6 +208,7 @@ stages:
         verbose: true
 
     - task: PublishPipelineArtifact@1
+      name: PublishtCLRArtifact
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
         artifact: 'tSQLtClrDlls'
@@ -219,7 +230,7 @@ stages:
         buildType: 'current'
         artifactName: 'tSQLtClrDlls'
         itemPattern: '*.zip'
-        targetPath: '$(Build.SourcesDirectory)\Build\output\CLRBuild'
+        targetPath: '$(CLR_ARTIFACT_DIR)'
 
     - task: Ant@1
       displayName: 'Ant -debug Build/tSQLt.build.xml'
@@ -243,17 +254,11 @@ stages:
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
+      name: PublishtSQLtFilesArtifact
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/Build/output/tSQLtBuild/Artifact'
-        artifact: 'tSQLtAndTests'
+        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
+        artifact: 'tSQLtFilesArtifact'
         publishLocation: 'pipeline'
-
-  ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-  ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-
-  ###############################################################################
-  ###############################################################################
-  ###############################################################################
 
 - stage: Build_tSQLt_Part2
   dependsOn:
@@ -280,11 +285,15 @@ stages:
       lfs: false
       path: tSQLt
 
+    - task: DownloadPipelineArtifact@2
+      name: DownloadtSQLtFilesArtifact
+      inputs:
+        buildType: 'current'
+        artifactName: 'tSQLtFilesArtifact'
+        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
+
     - task: PowerShell@2
       name: FacadeBuildDacpac
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
       inputs:
         targetType: 'inline'
         script: |
@@ -304,37 +313,43 @@ stages:
           $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
 
-          Write-Host "====================================================";
-          Write-Host "inputObject length: " $inputObject.length;
-
-          Write-Host "====================================================";
-          Write-Host "inputObject: " $inputObject;
-
-          if ($null -eq $myJsonObject) {
-            Write-Host "myJsonObject is null"
-          }
-          Write-Host "====================================================";
-          Write-Host $myJsonObject;
-
-          Write-Host "====================================================";
-          Write-Host $(System.JobName);
-
-          Write-Host "====================================================";
-          Write-Host $FQDNAndPortKey; 
-
-          Write-Host "====================================================";
-          Write-Host $FQDNAndPort; 
-
           .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
 
-  - job: Package_Artifact
+    - task: PublishPipelineArtifact@1
+      name: PublishtSQLtDacpacArtifact
+      inputs:
+        targetPath: '$(DACPAC_ARTIFACT_DIR)'
+        artifact: 'tSQLtDacpacArtifact_$(System.JobName)'
+        publishLocation: 'pipeline'
+
+  - job: Package_tSQLt_Artifact
 
     steps:
+
+    - task: DownloadPipelineArtifact@2
+      name: DownloadtSQLtFilesArtifact
+      inputs:
+        buildType: 'current'
+        artifactName: 'tSQLtFilesArtifact'
+        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
+
+    - task: DownloadPipelineArtifact@2
+      name: DownloadtSQLtDacpacArtifact
+      inputs:
+        buildType: 'current'
+        patterns: '**/tSQLtFacade.*.dacpac'
+        targetPath: '$(DACPAC_ARTIFACT_DIR)'
+
+    - task: PowerShell@2
+      name: ReadDirectory
+      inputs:
+        targetType: 'inline'
+        failOnStderr: true
+        script: |
+          Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
+
     - task: PowerShell@2
       name: PrintAThing
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
       inputs:
         targetType: 'inline'
         script: |
