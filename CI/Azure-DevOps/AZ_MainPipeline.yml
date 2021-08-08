@@ -129,6 +129,7 @@ stages:
           #---------------------------------------|-------------------------------#
           #-----------------------------------------------------------------------#
 
+          #TODO refactor such that the resourcegroupname is created in a previous step, so that it can be used by the delete job, even if this one is cancelled/failed.
           $ResourceGroupName = $VMDetails.ResourceGroupName;
           Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
           Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
