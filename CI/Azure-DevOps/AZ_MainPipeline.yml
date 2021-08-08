@@ -323,9 +323,9 @@ stages:
         publishLocation: 'pipeline'
 
   - job: Package_tSQLt_Artifact
+    dependsOn: Build_Dacpac
 
     steps:
-
     - task: DownloadPipelineArtifact@2
       name: DownloadtSQLtFilesArtifact
       inputs:
@@ -357,7 +357,7 @@ stages:
           1/0;
 
   - job: PublishArtifactToRepo
-    dependsOn: Package_Artifact
+    dependsOn: Package_tSQLt_Artifact
 
     steps:
     - checkout: tSQLtArtifacts
