@@ -74,6 +74,14 @@ stages:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         KeyVaultName: 'tSQLtSigningKey'
 
+    - task: PowerShell@2
+      name: CreateResourceGroupName
+      inputs:
+        targetType: 'inline'
+        script: |
+          $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + $(SQLVersionEdition) + "_" + $(Build.BuildId));
+          Write-Host "##vso[task.setvariable variable=ResourceGroupName;isOutput=true]$ResourceGroupName"
+
     - task: AzurePowerShell@4
       name: CreateSQLVMEnvironment
       env:
@@ -103,7 +111,7 @@ stages:
           $Parameters = @{
             Location="$(VMLocation)";
             Size="$(VMSize)"
-            NamePreFix="$(NamePreFix)";
+            ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
             BuildId="$(Build.BuildId)";
             VMAdminName="$env:VM_USER_NAME";
             VMAdminPwd="$env:VM_PASSWORD";
@@ -597,7 +605,7 @@ stages:
           $(databaseAccessDetails)
           '@;
           $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
-          $ResourceGroupNameKey = "$(System.JobName).CreateSQLVMEnvironment.ResourceGroupName";
+          $ResourceGroupNameKey = "$(System.JobName).CreateResourceGroupName.ResourceGroupName";
           $ResourceGroupName = $myJsonObject.$ResourceGroupNameKey;          
     
           Set-Location $(Build.Repository.LocalPath)

@@ -1,8 +1,8 @@
-<# USAGE: ./CreateSQLVM.ps1 -Location "East US 2" -Size "Standard_D2as_v4" -NamePreFix "test" -VMAdminName "azureAdminName" -VMAdminPwd "aoeihag;ladjfalkj23" -SQLVersionEdition "2017" -SQLPort "41433" -SQLUserName "tSQLt_sa" -SQLPwd "aoeihag;ladjfalkj46" -BuildId "001" #>
+<# USAGE: ./CreateSQLVM.ps1 -Location "East US 2" -Size "Standard_D2as_v4" -ResourceGroupName "myTestResourceGroup" -VMAdminName "azureAdminName" -VMAdminPwd "aoeihag;ladjfalkj23" -SQLVersionEdition "2017" -SQLPort "41433" -SQLUserName "tSQLt_sa" -SQLPwd "aoeihag;ladjfalkj46" -BuildId "001" #>
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Location,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Size,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $NamePreFix,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ResourceGroupName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $BuildId,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $VMAdminName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String] $VMAdminPwd,
@@ -27,7 +27,7 @@ Log-Output "<->                  START 1                    <->";
 Log-Output "<->                                             <->";
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Log-Output "Parameters:";
-Log-Output "NamePreFix:", $NamePreFix;
+Log-Output "ResourceGroupName:", $ResourceGroupName;
 Log-Output "Location:", $Location;
 Log-Output "Size:", $Size;
 Log-Output "BuildId:", $BuildId;
@@ -35,22 +35,19 @@ Log-Output "SQLVersionEdition:", $SQLVersionEdition;
 Log-Output "SQLPort:", $SQLPort;
 Log-Output "<-> END 1 <-><-><-><-><-><-><-><-><-><-><-><-><->";
 
-$ResourceBaseName = ("$NamePreFix" + (Get-Date).tostring('yyyyMMdd') + "_" + $SQLVersionEdition + "_" + $BuildId);
-$ResourceGroupName = $ResourceBaseName+'_RG';
-$VNetName = $ResourceBaseName+'_VNet';
-$SubnetName = $ResourceBaseName + '_Subnet'
+$VNetName = $ResourceGroupName+'_VNet';
+$SubnetName = $ResourceGroupName + '_Subnet'
 $VMName = ("V{0}-{1}###############" -f $BuildId,$SQLVersionEdition).substring(0,15).replace('#','')
-$PipName = $ResourceBaseName + '_' + $(Get-Random);
-$NsgName = $ResourceBaseName + '_nsg';
-$InterfaceName = $ResourceBaseName + '_nic';
+$PipName = $ResourceGroupName + '_' + $(Get-Random);
+$NsgName = $ResourceGroupName + '_nsg';
+$InterfaceName = $ResourceGroupName + '_nic';
 
 
 
-#[string] $ResourceGroupName, [string] $ResourceBaseName, [string] $VMName, [string] $VNetName, [string] $DTLVNetSubnetName
+#[string] $ResourceGroupName, [string] $ResourceGroupName, [string] $VMName, [string] $VNetName, [string] $DTLVNetSubnetName
 Log-Output "<-> START 2 <-><-><-><-><-><-><-><-><-><-><-><-><->";
 Log-Output "Names:";
-Log-Output "ResourceBaseName:    ", $ResourceBaseName;
-Log-Output "ResourceGroupName:  ", $ResourceGroupName;
+Log-Output "ResourceGroupName:    ", $ResourceGroupName;
 Log-Output "VMName:  ", $VMName;
 Log-Output "VNetName:  ", $VNetName;
 Log-Output "SubnetName:  ", $SubnetName;
