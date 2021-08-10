@@ -32,14 +32,16 @@ variables:
     value: 'tSQLtCI_'
   - name: buildDatabase
     value: 'tSQLtCI'
+  - name: TSQLT_REPO_DIR
+    value: 'tSQLt'
   - name: CLR_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\Build\output\CLRBuild
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\CLRBuild
   - name: TSQLTFILES_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\Build\output\tSQLtBuild
+    value: $(Build.SourcesDirectory)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild
   - name: DACPAC_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\Build\output\DacpacBuild
+    value: $(Build.SourcesDirectory)\$(TSQLT_REPO_DIR)\Build\output\DacpacBuild
   - name: TSQLT_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\Build\output\tSQLt
+    value: $(Build.SourcesDirectory)\$(TSQLT_REPO_DIR)\Build\output\tSQLt
 
 
 
@@ -67,7 +69,7 @@ stages:
     - checkout: self
       clean: true
       lfs: false
-      path: tSQLt
+      path: $(TSQLT_REPO_DIR)
 
     - task: AzureKeyVault@1
       inputs:
@@ -173,14 +175,24 @@ stages:
 
     steps:
 
-    - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+    - checkout: self
       clean: true
       lfs: false
+      path: $(TSQLT_REPO_DIR)
 
     - task: AzureKeyVault@1
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         KeyVaultName: 'tSQLtSigningKey'
+
+    - task: PowerShell@2
+      name: Print_CLR_Artifact_Dir
+      inputs:
+        targetType: 'inline'
+        script: |
+          $directoryPath = "$(CLR_ARTIFACT_DIR)";
+          Write-Host $directoryPath;
+          Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse
 
     - task: PowerShell@2
       name: Install_tSQLt_OfficialSigningKey
@@ -233,6 +245,7 @@ stages:
     - checkout: self
       clean: true
       lfs: false
+      path: $(TSQLT_REPO_DIR)
 
     - task: DownloadPipelineArtifact@2
       inputs:
@@ -292,7 +305,7 @@ stages:
     - checkout: self
       clean: true
       lfs: false
-      path: tSQLt
+      path: $(TSQLT_REPO_DIR)
 
     - task: DownloadPipelineArtifact@2
       name: DownloadtSQLtFilesArtifact
@@ -457,7 +470,7 @@ stages:
     - checkout: self
       clean: true
       lfs: false
-      path: tSQLt
+      path: $(TSQLT_REPO_DIR)
 
     - checkout: tSQLtArtifacts
       clean: true
