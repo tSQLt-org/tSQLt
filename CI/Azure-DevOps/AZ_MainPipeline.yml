@@ -33,13 +33,13 @@ variables:
   - name: buildDatabase
     value: 'tSQLtCI'
   - name: CLR_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\tSQLt\Build\output\CLRBuild
+    value: $(Build.SourcesDirectory)\Build\output\CLRBuild
   - name: TSQLTFILES_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\tSQLt\Build\output\tSQLtBuild
+    value: $(Build.SourcesDirectory)\Build\output\tSQLtBuild
   - name: DACPAC_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\tSQLt\Build\output\DacpacBuild
+    value: $(Build.SourcesDirectory)\Build\output\DacpacBuild
   - name: TSQLT_ARTIFACT_DIR
-    value: $(Build.SourcesDirectory)\tSQLt\Build\output\tSQLt
+    value: $(Build.SourcesDirectory)\Build\output\tSQLt
 
 
 
@@ -217,7 +217,7 @@ stages:
         verbose: true
 
     - task: PublishPipelineArtifact@1
-      name: PublishtCLRArtifact
+      name: PublishCLRArtifact
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
         artifact: 'tSQLtClrDlls'
