@@ -351,14 +351,15 @@ stages:
       inputs:
         buildType: 'current'
         patterns: '**/tSQLtFacade.*.dacpac'
-        targetPath: '$(DACPAC_ARTIFACT_DIR)'
+        targetPath: '$(Pipeline.Workspace)/dacpacArtifactTmp'
 
     - task: PowerShell@2
-      name: ReadDirectory
+      name: CopyDacpacsToOutputDir
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |
+          Copy-Item -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Destination "$(DACPAC_ARTIFACT_DIR)" -Filter *.dacpac -Recurse -Container:$false
           Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
 
     - task: PowerShell@2
