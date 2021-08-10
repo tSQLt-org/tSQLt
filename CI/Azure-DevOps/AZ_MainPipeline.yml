@@ -363,17 +363,19 @@ stages:
           Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
 
     - task: PowerShell@2
-      name: PrintAThing
+      name: BuildtSQLtZip
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host "Please package the artifact and get rid of the write-host";
-          1/0;
+          Set-Location $(Pipeline.Workspace)/tSQLt
+          .\Build\BuildtSQLtZip.ps1
+          Get-ChildItem -Recurse;
 
-  - job: PublishArtifactToRepo
-    dependsOn: Package_tSQLt_Artifact
 
-    steps:
+  # # - job: PublishArtifactToRepo
+  # #   dependsOn: Package_tSQLt_Artifact
+
+  #   steps:
     - checkout: tSQLtArtifacts
       clean: true
       lfs: false
@@ -386,12 +388,12 @@ stages:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         KeyVaultName: 'tSQLtSigningKey'
 
-    - task: DownloadPipelineArtifact@2
-      name: DownloadPipelineArtifact
-      inputs:
-        buildType: 'current'
-        artifactName: 'tSQLtAndTests'
-        targetPath: '$(Pipeline.Workspace)\tmp'
+    # - task: DownloadPipelineArtifact@2
+    #   name: DownloadPipelineArtifact
+    #   inputs:
+    #     buildType: 'current'
+    #     artifactName: 'tSQLtFiles'
+    #     targetPath: '$(Pipeline.Workspace)\tmp'
 
     - task: PowerShell@2
       name: StoreInArtifactRepo
@@ -425,7 +427,7 @@ stages:
             git rm -r *.*
             $CheckIfGitOk.invoke($?);
 
-            Copy-Item -Path "$(Pipeline.Workspace)\tmp\*" -Verbose
+            Copy-Item -Path "$(TSQLT_ARTIFACT_DIR)\*" -Verbose
 
             git add *.*
             $CheckIfGitOk.invoke($?);
