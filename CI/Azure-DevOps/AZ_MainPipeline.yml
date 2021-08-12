@@ -44,6 +44,10 @@ variables:
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\DacpacBuild
   - name: TSQLT_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt
+  - name: TSQLT_PUBLIC_ARTIFACT_DIR
+    value: $(TSQLT_ARTIFACT_DIR)\public
+  - name: TSQLT_VALIDATION_ARTIFACT_DIR
+    value: $(TSQLT_ARTIFACT_DIR)\validation
 
 
 
@@ -424,7 +428,7 @@ stages:
             git rm -r *.*
             $CheckIfGitOk.invoke($?);
 
-            Copy-Item -Path "$(TSQLT_ARTIFACT_DIR)\*" -Verbose
+            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Verbose
 
             git add *.*
             $CheckIfGitOk.invoke($?);
@@ -439,7 +443,13 @@ stages:
           } 
           Write-Host "Is it here?";
           git status
-    
+
+    - task: PublishPipelineArtifact@1
+      name: PublishtSQLtValidationArtifact
+      inputs:
+        targetPath: '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
+        artifact: 'tSQLtValidationArtifact'
+        publishLocation: 'pipeline'
 
 - stage: Validate
   displayName: ValidateAll
