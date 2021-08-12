@@ -405,6 +405,7 @@ stages:
 
           Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
+          Write-Host "But where is my code?";
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
             git config --global user.name "$env:GITHUB_USERNAME"
@@ -436,6 +437,7 @@ stages:
           }catch{
             throw "Git Failed. See prior errors.";
           } 
+          Write-Host "Is it here?";
           git status
     
 
