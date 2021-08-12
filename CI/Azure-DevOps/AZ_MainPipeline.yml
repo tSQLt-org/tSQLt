@@ -34,6 +34,8 @@ variables:
     value: 'tSQLtCI'
   - name: TSQLT_REPO_DIR
     value: 'tSQLt'
+  - name: ARTIFACT_REPO_DIR
+    value: 'tSQLtArtifactRepo'
   - name: CLR_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\CLRBuild
   - name: TSQLTFILES_ARTIFACT_DIR
@@ -382,19 +384,12 @@ stages:
       lfs: false
       fetchDepth: 1
       persistCredentials: true
-      path: tSQLtArtifacts
+      path: $(ARTIFACT_REPO_DIR)
 
     - task: AzureKeyVault@1
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         KeyVaultName: 'tSQLtSigningKey'
-
-    # - task: DownloadPipelineArtifact@2
-    #   name: DownloadPipelineArtifact
-    #   inputs:
-    #     buildType: 'current'
-    #     artifactName: 'tSQLtFiles'
-    #     targetPath: '$(Pipeline.Workspace)\tmp'
 
     - task: PowerShell@2
       name: StoreInArtifactRepo
@@ -408,7 +403,7 @@ stages:
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
@@ -472,7 +467,7 @@ stages:
       lfs: false
       fetchDepth: 1
       persistCredentials: true
-      path: tSQLtArtifacts
+      path: $(ARTIFACT_REPO_DIR)
   
     - task: PowerShell@2
       name: GetArtifact
@@ -481,7 +476,7 @@ stages:
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Set-Location "$(Pipeline.Workspace)/tSQLtArtifacts";
+          Set-Location "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)";
           $ArtifactTargetPath= '$(Pipeline.Workspace)/tSQLt/Build_Artifact'
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)");
 
@@ -558,7 +553,7 @@ stages:
           
           $TagName = "$(SQLVersionEdition)_$(Build.BuildId)"
 
-          Set-Location "$(Pipeline.Workspace)\tSQLtArtifacts\";
+          Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
 
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
