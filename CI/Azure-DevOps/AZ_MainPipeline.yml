@@ -99,7 +99,7 @@ stages:
         azurePowerShellVersion: 'LatestVersion'
         ScriptType: 'InlineScript'
         Inline: |
-          Set-Location $(Pipeline.Workspace)/tSQLt
+          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
           .("Build/CommonFunctionsAndMethods.ps1")
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
@@ -310,7 +310,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          Set-Location $(Pipeline.Workspace)/tSQLt
+          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
 
           $inputObject = @'
           $(databaseAccessDetails)
@@ -339,6 +339,12 @@ stages:
     dependsOn: Build_Dacpac
 
     steps:
+
+    - checkout: self
+      clean: true
+      lfs: false
+      path: $(TSQLT_REPO_DIR)
+
     - task: DownloadPipelineArtifact@2
       name: DownloadtSQLtFilesArtifact
       inputs:
@@ -367,15 +373,10 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          Set-Location $(Pipeline.Workspace)/tSQLt
+          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
           .\Build\BuildtSQLtZip.ps1
           Get-ChildItem -Recurse;
 
-
-  # # - job: PublishArtifactToRepo
-  # #   dependsOn: Package_tSQLt_Artifact
-
-  #   steps:
     - checkout: tSQLtArtifacts
       clean: true
       lfs: false
