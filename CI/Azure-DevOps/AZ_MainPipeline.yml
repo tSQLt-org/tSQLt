@@ -42,12 +42,12 @@ variables:
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild
   - name: DACPAC_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\DacpacBuild
-  - name: TSQLT_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt
   - name: TSQLT_PUBLIC_ARTIFACT_DIR
-    value: $(TSQLT_ARTIFACT_DIR)\public
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\public
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
-    value: $(TSQLT_ARTIFACT_DIR)\validation
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
+  - name: TEST_ARTIFACT_DIR
+    value: TBD <-- this should error
 
 
 
@@ -409,7 +409,6 @@ stages:
 
           Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
-          Write-Host "But where is my code?";
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
             git config --global user.name "$env:GITHUB_USERNAME"
@@ -441,7 +440,6 @@ stages:
           }catch{
             throw "Git Failed. See prior errors.";
           } 
-          Write-Host "Is it here?";
           git status
 
     - task: PublishPipelineArtifact@1
@@ -489,7 +487,7 @@ stages:
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
           Set-Location "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)";
-          $ArtifactTargetPath= '$(Pipeline.Workspace)/tSQLt/Build_Artifact'
+          $ArtifactTargetPath= '$(TSQLT_PUBLIC_ARTIFACT_DIR)'
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)");
 
           try{
@@ -509,8 +507,8 @@ stages:
       name: DownloadPipelineArtifact
       inputs:
         buildType: 'current'
-        artifactName: 'tSQLtAndTests'
-        targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/tSQLtBuild'
+        artifactName: 'tSQLtValidationArtifact'
+        targetPath: '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
 
     - task: Ant@1
       name: Run_tSQLt_validatebuild_xml
@@ -543,6 +541,7 @@ stages:
           "==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-"
           ##(Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $artifactPath -recurse -PassThru
           Expand-Archive -Path "$basePath\tSQLt\Build\output\Validate\TestResults.zip" -DestinationPath $artifactPath
+
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
           "=== === === === === === === === === === === === ==="
 
