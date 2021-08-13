@@ -47,7 +47,7 @@ variables:
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
   - name: TEST_ARTIFACT_DIR
-    value: TBD <-- this should error
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\Validate
 
 
 
@@ -451,7 +451,9 @@ stages:
 
 - stage: Validate
   displayName: ValidateAll
-  dependsOn: Build_tSQLt_Part2
+  dependsOn:
+  - Build_tSQLt_Part2
+  - Create_VMs
 
   jobs:
 
@@ -465,6 +467,7 @@ stages:
     variables:
       SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
       SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]        
 
     steps:
     - checkout: self
@@ -510,11 +513,35 @@ stages:
         artifactName: 'tSQLtValidationArtifact'
         targetPath: '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
 
+
+    - task: PowerShell@2
+      name: SetupVariables
+      inputs:
+        targetType: 'inline'
+        script: |
+          $inputObject = @'
+          $(databaseAccessDetails)
+          '@;
+
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
+
+          $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
+          $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
+          $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
+
+          $SQLUserName = $myJsonObject.$SQLUserNameKey;
+          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+
+          Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
+          Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
+          Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
+
     - task: Ant@1
       name: Run_tSQLt_validatebuild_xml
       inputs:
         buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: '-Ddb.server="$(FQDNAndPort)" -Ddb.name=$(buildDatabase) -Ddb.login="-U $(tSQLt-UserForCIEnvironment-UserName) -P $(tSQLt-UserForCIEnvironment-Password)" -Dsqlcmd.path="$(SQLCMDPath)"'
+        options: '-Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.name=$(buildDatabase) -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -Dsqlcmd.path="$(SQLCMDPath)" -D"sqlpackage.path"="$(SQLPackagePath)"'
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
