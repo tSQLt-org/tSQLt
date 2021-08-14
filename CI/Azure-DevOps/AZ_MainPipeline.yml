@@ -542,7 +542,7 @@ stages:
       inputs:
         buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
 #        options: '-Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -D"sqlpackage.path"="$(SQLPackagePath)" -D"sqlcmd.path"="$(SQLCMDPath)" -Ddb.name=$(buildDatabase)'
-        options: -Ddb.server=$(SetupVariables.FQDNAndPort) -Ddb.login='-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)' -Dsqlpackage.path=$(SQLPackagePath) -Dsqlcmd.path=$(SQLCMDPath) -Ddb.name=$(buildDatabase)
+        options: -Ddb.server='$(SetupVariables.FQDNAndPort)' -Ddb.login='-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)' -Dsqlpackage.path='$(SQLPackagePath)' -Dsqlcmd.path='$(SQLCMDPath)' -Ddb.name='$(buildDatabase)'
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
