@@ -41,9 +41,33 @@ variables:
     value: tSQLt$(Build.SourceVersion)
 
 stages:
+- stage: antTaskTesting
+  jobs:
+  - job: antTaskTest1
+    steps:
+
+    - checkout: self
+      clean: true
+      lfs: false
+      path: tSQLt
+
+    - task: Ant@1
+      name: Run_tSQLt_validatebuild_xml
+      inputs:
+        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
+        options: -Ddb.server=\"23.101.159.131, 55271\" -Ddb.login=\"-U tSQLt_External -P somethingrandom\" -Dsqlpackage.path=\"C:\Program Files\Microsoft SQL Server\150\DAC\bin\\" -Dsqlcmd.path=\"C:\Program Files\Microsoft SQL Server\110\Tools\Binn\" -Ddb.name=\"tSQLtCI\"
+        targets: 'all'
+        publishJUnitResults: true
+        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
+        testRunTitle: 'mssql2010'
+        javaHomeOption: 'JDKVersion'
+
+
 - stage: matrixSetup
+
   jobs:
   - job: assignerFromVariables
+    condition: false
     strategy:
       matrix: 
         ${{ each version in parameters.VMMatrix }}:
