@@ -43,7 +43,8 @@ variables:
 stages:
 - stage: antTaskTesting
   jobs:
-  - job: antTaskTest1
+
+  - job: antTaskTest2
     steps:
 
     - checkout: self
@@ -56,32 +57,7 @@ stages:
       name: Run_tSQLt_validatebuild_xml1
       inputs:
         buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: -Ddb.server="""23.101.159.131, 55271""" -Ddb.login="""-U tSQLt_External -P somethingrandom""" -Dsqlpackage.path="""C:\Program Files\Microsoft SQL Server\150\DAC\bin\""" -Dsqlcmd.path="""C:\Program Files\Microsoft SQL Server\110\Tools\Binn""" -Ddb.name="""tSQLtCI"""
-        targets: 'all'
-        publishJUnitResults: true
-        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
-        testRunTitle: 'mssql2010'
-        javaHomeOption: 'JDKVersion'
-
-    - task: Ant@1
-      condition: always()
-      name: Run_tSQLt_validatebuild_xml2
-      inputs:
-        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: -Ddb.server=&quot23.101.159.131, 55271&quot -Ddb.login=&quot-U tSQLt_External -P somethingrandom&quot -Dsqlpackage.path=&quotC:\Program Files\Microsoft SQL Server\150\DAC\bin\&quot -Dsqlcmd.path=&quotC:\Program Files\Microsoft SQL Server\110\Tools\Binn&quot -Ddb.name=&quottSQLtCI&quot
-        targets: 'all'
-        publishJUnitResults: true
-        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
-        testRunTitle: 'mssql2010'
-        javaHomeOption: 'JDKVersion'
-
-
-    - task: Ant@1
-      condition: always()
-      name: Run_tSQLt_validatebuild_xml3
-      inputs:
-        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: -Ddb.server=""23.101.159.131, 55271"" -Ddb.login=""-U tSQLt_External -P somethingrandom"" -Dsqlpackage.path=""C:\Program Files\Microsoft SQL Server\150\DAC\bin\"" -Dsqlcmd.path=""C:\Program Files\Microsoft SQL Server\110\Tools\Binn"" -Ddb.name=""tSQLtCI""
+        options: -Dsqlpackage.path="""C:\Program Files\Microsoft SQL Server\150\DAC\bin\""" -Dsqlcmd.path="""C:\Program Files\Microsoft SQL Server\110\Tools\Binn""" -Ddb.server="""23.101.159.131, 55271""" -Ddb.login="""-U tSQLt_External -P somethingrandom"""  -Ddb.name="""tSQLtCI"""
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
@@ -93,51 +69,12 @@ stages:
       name: Run_tSQLt_validatebuild_xml4
       inputs:
         buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: -Ddb.server="'"23.101.159.131, 55271"'" -Ddb.login="'"-U tSQLt_External -P somethingrandom"'" -Dsqlpackage.path="'"C:\Program Files\Microsoft SQL Server\150\DAC\bin\"'" -Dsqlcmd.path="'"C:\Program Files\Microsoft SQL Server\110\Tools\Binn"'" -Ddb.name="'"tSQLtCI"'"
+        options: -Ddb.server='"'23.101.159.131, 55271'"' -Ddb.login='"'-U tSQLt_External -P somethingrandom'"' -Dsqlpackage.path='"'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'"' -Dsqlcmd.path='"'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'"' -Ddb.name='"'tSQLtCI'"'
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
         testRunTitle: 'mssql2010'
         javaHomeOption: 'JDKVersion'
-
-    - task: Ant@1
-      condition: always()
-      name: Run_tSQLt_validatebuild_xml5
-      inputs:
-        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: '-Ddb.server="""23.101.159.131, 55271""" -Ddb.login="""-U tSQLt_External -P somethingrandom""" -Dsqlpackage.path="""C:\Program Files\Microsoft SQL Server\150\DAC\bin\""" -Dsqlcmd.path="""C:\Program Files\Microsoft SQL Server\110\Tools\Binn""" -Ddb.name="""tSQLtCI"""'
-        targets: 'all'
-        publishJUnitResults: true
-        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
-        testRunTitle: 'mssql2010'
-        javaHomeOption: 'JDKVersion'
-
-    - task: Ant@1
-      condition: always()
-      name: Run_tSQLt_validatebuild_xml6
-      inputs:
-        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: '-Ddb.server=&quot23.101.159.131, 55271&quot -Ddb.login=&quot-U tSQLt_External -P somethingrandom&quot -Dsqlpackage.path=&quotC:\Program Files\Microsoft SQL Server\150\DAC\bin\&quot -Dsqlcmd.path=&quotC:\Program Files\Microsoft SQL Server\110\Tools\Binn&quot -Ddb.name=&quottSQLtCI&quot'
-        targets: 'all'
-        publishJUnitResults: true
-        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
-        testRunTitle: 'mssql2010'
-        javaHomeOption: 'JDKVersion'
-
-
-    - task: Ant@1
-      condition: always()
-      name: Run_tSQLt_validatebuild_xml7
-      inputs:
-        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-        options: '-Ddb.server=""23.101.159.131, 55271"" -Ddb.login=""-U tSQLt_External -P somethingrandom"" -Dsqlpackage.path=""C:\Program Files\Microsoft SQL Server\150\DAC\bin\"" -Dsqlcmd.path=""C:\Program Files\Microsoft SQL Server\110\Tools\Binn"" -Ddb.name=""tSQLtCI""'
-        targets: 'all'
-        publishJUnitResults: true
-        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
-        testRunTitle: 'mssql2010'
-        javaHomeOption: 'JDKVersion'
-
-
 
 - stage: matrixSetup
 
