@@ -54,7 +54,7 @@ stages:
       inputs:
         script: |
           cd $(Pipeline.Workspace)/tSQLt
-          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="SQLInstanceName%" -Ddb.name=DBName% -Ddb.login=" DBLogin%" -Dsqlcmd.path="SQLCMDPath%" -Dsqlpackage.path="SQLPackagePath%" || goto :error
+          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="SQLInstanceName" -Ddb.name=DBName -Ddb.login="DBLogin" -Dsqlcmd.path="SQLCMDPath" -Dsqlpackage.path="SQLPackagePath"
 
 - stage: antTaskTesting
   condition: false
