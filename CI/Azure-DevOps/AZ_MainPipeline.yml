@@ -48,7 +48,10 @@ variables:
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
   - name: TEST_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\Validate
-
+  - name: SQLCMDPath
+    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+  - name: SQLPackagePath
+    value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
 
 
 resources:
@@ -294,8 +297,6 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
-      SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
-      SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
         
     steps:
@@ -465,8 +466,6 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
-      SQLCMDPath: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
-      SQLPackagePath: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin\'
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]        
 
     steps:
@@ -537,24 +536,23 @@ stages:
           Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
           Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
 
-    - task: Ant@1
-      condition: false
-      name: Run_tSQLt_validatebuild_xml
-      inputs:
-        buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
-#        options: '-Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -D"sqlpackage.path"="$(SQLPackagePath)" -D"sqlcmd.path"="$(SQLCMDPath)" -Ddb.name=$(buildDatabase)'
-        options: -Ddb.server='"'$(SetupVariables.FQDNAndPort)'"' -Ddb.login='"'-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)'"' -Dsqlpackage.path='"'$(SQLPackagePath)'"' -Dsqlcmd.path='"'$(SQLCMDPath)'"' -Ddb.name='"'$(buildDatabase)'"'
-        targets: 'all'
-        publishJUnitResults: true
-        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
-        testRunTitle: '$(SQLVersionEdition)'
-        javaHomeOption: 'JDKVersion'
-
     - task: CmdLine@2
+      name: tSQLt.validatebuild.xml
       inputs:
         script: |
           cd $(Pipeline.Workspace)/tSQLt
-          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.name="$(buildDatabase)" -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -Dsqlcmd.path="$(SQLCMDPath)" -Dsqlpackage.path="$(SQLPackagePath)"
+          SET SQLInstanceName=$(SetupVariables.FQDNAndPort)
+          SET DBName=$(buildDatabase)
+          SET DBLogin=-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)
+          SET SQLCMDPath=$(SQLCMDPath)
+          SET SQLPackagePath=$(SQLPackagePath)
+          echo %SQLInstanceName%
+          echo %DBName%
+          echo %SQLCMDPath%
+          echo %SQLPackagePath%
+          # ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.name="$(buildDatabase)" -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -Dsqlcmd.path="$(SQLCMDPath)" -Dsqlpackage.path="%SQLPackagePath%"
+          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%"
+
 
     - task: PublishTestResults@2
       condition: always()
@@ -569,39 +567,6 @@ stages:
         #buildConfiguration: # Optional
         publishRunAttachments: true # Optional
 
-    - task: PowerShell@2
-      name: CreateTestResultArtifact
-      inputs:
-        targetType: 'inline'
-        failOnStderr: true
-        script: |
-          "---------------------------------------------------"
-          $basePath = "$(Pipeline.Workspace)";
-          $basePath;
-          "==================================================="
-          $artifactPath = "$basePath\tSQLt\Build\output\TestResults\";
-          $artifactPath;
-          "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
-          New-Item -Path $artifactPath  -ItemType directory -Force
-          "== == == == == == == == == == == == == == == == == "
-          ##(Get-ChildItem $basePath -recurse)|Out-File  -FilePath $artifactPath+"dir.txt"
-          ##(Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName; 
-          "==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-"
-          ##(Get-ChildItem $basePath -recurse -include "*TestResults*.xml").FullName|Copy-Item -Destination $artifactPath -recurse -PassThru
-          Expand-Archive -Path "$basePath\tSQLt\Build\output\Validate\TestResults.zip" -DestinationPath $artifactPath
-
-          Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
-          "=== === === === === === === === === === === === ==="
-
-    - task: PublishPipelineArtifact@1
-      name: PublishTestResultArtifact
-      inputs:
-        targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/TestResults'
-        artifact: 'TestResults_$(SQLVersionEdition)'
-        publishLocation: 'pipeline'
-    
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
 
     - task: PowerShell@2
       name: TagArtifact
