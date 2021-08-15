@@ -51,10 +51,22 @@ stages:
       path: tSQLt
 
     - task: CmdLine@2
+      name: tSQLtValidateBuild
       inputs:
         script: |
           cd $(Pipeline.Workspace)/tSQLt
-          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="SQLInstanceName" -Ddb.name=DBName -Ddb.login="DBLogin" -Dsqlcmd.path="SQLCMDPath" -Dsqlpackage.path="SQLPackagePath"
+          SET SQLInstanceName=23.102.101.198, 49290
+          SET DBName=tSQLtCI
+          SET DBLogin=-U somethinguser -P somethingpwd
+          SET SQLCMDPath=C:\Program Files\Microsoft SQL Server\110\Tools\Binn
+          SET SQLPackagePath=C:\Program Files\Microsoft SQL Server\150\DAC\bin
+          echo %SQLInstanceName%
+          echo %DBName%
+          echo %SQLCMDPath%
+          echo %SQLPackagePath%
+          type %0
+          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%"
+
 
 - stage: antTaskTesting
   condition: false

@@ -550,7 +550,6 @@ stages:
           echo %DBName%
           echo %SQLCMDPath%
           echo %SQLPackagePath%
-          # ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.name="$(buildDatabase)" -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -Dsqlcmd.path="$(SQLCMDPath)" -Dsqlpackage.path="%SQLPackagePath%"
           ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%"
 
 
