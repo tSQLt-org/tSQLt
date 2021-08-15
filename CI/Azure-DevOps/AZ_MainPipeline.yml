@@ -538,18 +538,37 @@ stages:
           Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
 
     - task: Ant@1
+      condition: false
       name: Run_tSQLt_validatebuild_xml
       inputs:
         buildFile: '$(Pipeline.Workspace)/tSQLt/Build/tSQLt.validatebuild.xml'
 #        options: '-Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -D"sqlpackage.path"="$(SQLPackagePath)" -D"sqlcmd.path"="$(SQLCMDPath)" -Ddb.name=$(buildDatabase)'
         options: -Ddb.server='"'$(SetupVariables.FQDNAndPort)'"' -Ddb.login='"'-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)'"' -Dsqlpackage.path='"'$(SQLPackagePath)'"' -Dsqlcmd.path='"'$(SQLCMDPath)'"' -Ddb.name='"'$(buildDatabase)'"'
-
         targets: 'all'
         publishJUnitResults: true
         testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml'
         testRunTitle: '$(SQLVersionEdition)'
         javaHomeOption: 'JDKVersion'
-        
+
+    - task: CmdLine@2
+      inputs:
+        script: |
+          cd $(Pipeline.Workspace)/tSQLt
+          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="$(SetupVariables.FQDNAndPort)" -Ddb.name="$(buildDatabase)" -Ddb.login="-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)" -Dsqlcmd.path="$(SQLCMDPath)" -Dsqlpackage.path="$(SQLPackagePath)"
+
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
+        testResultsFiles: '$(Pipeline.Workspace)/tSQLt/**/TestResults*.xml' 
+        #searchFolder: '$(System.DefaultWorkingDirectory)' # Optional
+        #mergeTestResults: false # Optional
+        #failTaskOnFailedTests: false # Optional
+        testRunTitle: '$(SQLVersionEdition)' # Optional
+        buildPlatform: '$(SQLVersionEdition)' # Optional
+        #buildConfiguration: # Optional
+        publishRunAttachments: true # Optional
+
     - task: PowerShell@2
       name: CreateTestResultArtifact
       inputs:
