@@ -537,7 +537,7 @@ stages:
           Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
 
     - task: CmdLine@2
-      name: tSQLt.validatebuild.xml
+      name: tSQLtValidateBuild
       inputs:
         script: |
           cd $(Pipeline.Workspace)/tSQLt
