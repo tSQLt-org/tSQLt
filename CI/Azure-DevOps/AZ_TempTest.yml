@@ -54,6 +54,7 @@ stages:
       name: tSQLtValidateBuild
       inputs:
         script: |
+          ECHO ON
           cd $(Pipeline.Workspace)/tSQLt
           SET SQLInstanceName=23.102.101.198, 49290
           SET DBName=tSQLtCI
