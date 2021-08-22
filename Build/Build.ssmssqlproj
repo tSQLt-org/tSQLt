@@ -130,11 +130,11 @@
           <AssociatedConnUserName />
           <FullPath>ChangeSigningKey_ReadMe.txt</FullPath>
         </FileNode>
-        <FileNode Name="CreateAssemblyGenerator.exe">
+        <FileNode Name="CreateAssemblyGenerator.ps1">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>CreateAssemblyGenerator.exe</FullPath>
+          <FullPath>CreateAssemblyGenerator.ps1</FullPath>
         </FileNode>
         <FileNode Name="Install the tSQLt build.docx">
           <AssociatedConnectionMoniker />
