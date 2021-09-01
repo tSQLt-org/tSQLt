@@ -540,7 +540,7 @@ stages:
       name: tSQLtValidateBuild
       inputs:
         script: |
-          cd $(Pipeline.Workspace)/tSQLt
+          cd /d $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)
           ECHO ON
           SET SQLInstanceName=$(SetupVariables.FQDNAndPort)
           SET DBName=$(buildDatabase)
@@ -552,7 +552,8 @@ stages:
           echo %SQLCMDPath%
           echo %SQLPackagePath%
           type %0
-          ant -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" || goto :error
+
+          Build\LocalValidateBuild.bat "." "." "%SQLCMDPath%" "%SQLInstanceName%" tSQLt_Dev " %DBLogin%" "%SQLPackagePath%" -v || goto :error
           :error
 
 
