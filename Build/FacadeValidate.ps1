@@ -18,19 +18,19 @@ $dir = Split-Path $scriptpath
 
 Log-Output "FileLocation: $dir"
 
-$TempPath = $dir + "/temp/Validate";
-$FacadeFilesPath = $TempPath + "/Facade";
-$TestResultsPath = $TempPath + "/TestResults/TestResults_Facade.xml";
+$TempPath = $dir + "\temp\Validate";
+$FacadeFilesPath = $TempPath + "\Facade";
+$TestResultsPath = $TempPath + "\TestResults|TestResults_Facade.xml";
 
 $ServerNameTrimmed = $ServerName.Trim();
 $LoginTrimmed = $Login.Trim("'").Trim();
 
-Expand-Archive -Path "./output/tSQLt/validation/tSQLtFacade.zip" -DestinationPath $FacadeFilesPath;
+Expand-Archive -Path ".\output\tSQLt\validation\tSQLtFacade.zip" -DestinationPath $FacadeFilesPath;
 
 Push-Location;
 
 $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $DatabaseName;
-$FacadeFileName = $TempPath + "/tSQLt/Facade/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
+$FacadeFileName = $TempPath + "\tSQLt\Facade\tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 
 $DacpacDatabaseName = $DatabaseName+"_dacpac";
 $AdditionalParameters = '-v NewDbName="'+$DacpacDatabaseName+'"';
