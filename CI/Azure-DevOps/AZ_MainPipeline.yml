@@ -373,7 +373,7 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          Copy-Item -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Destination "$(DACPAC_ARTIFACT_DIR)" -Filter *.dacpac -Recurse -Container:$false
+          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_ARTIFACT_DIR)"
           Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
 
     - task: PowerShell@2
