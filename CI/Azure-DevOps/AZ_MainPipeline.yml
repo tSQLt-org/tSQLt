@@ -506,6 +506,7 @@ stages:
           Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
 
 
+    # It's ok to download this from the pipeline and not the artifact repository, because the tests are not part of the publicly published artifact
     - task: DownloadPipelineArtifact@2
       name: DownloadPipelineArtifact
       inputs:
@@ -513,20 +514,13 @@ stages:
         artifactName: 'tSQLtValidationArtifact'
         targetPath: '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
 
-    - task: DownloadPipelineArtifact@2
-      name: DownloadtSQLtDacpacArtifact
-      inputs:
-        buildType: 'current'
-        artifactName: 'tSQLtDacpacArtifact_$(System.JobName)'
-        targetPath: '$(TEST_ARTIFACT_WORKING_DIR)'
-
     - task: PowerShell@2
       name: SetupVariables
       inputs:
         targetType: 'inline'
         script: |
           Get-ChildItem -Path "$(TEST_ARTIFACT_WORKING_DIR)" -Recurse;
-          
+
           $inputObject = @'
           $(databaseAccessDetails)
           '@;

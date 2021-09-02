@@ -18,26 +18,26 @@ $dir = Split-Path $scriptpath
 
 Log-Output "FileLocation: $dir"
 
-$TempPath = $dir + "\temp\Validate";
-$FacadeFilesPath = $TempPath + "\Facade";
-$TestResultsPath = $TempPath + "\TestResults|TestResults_Facade.xml";
+$TempPath = $dir + "/temp/Validate";
+$FacadeFilesPath = $TempPath + "/Facade";
+$TestResultsPath = $TempPath + "/TestResults/TestResults_Facade.xml";
 
 $ServerNameTrimmed = $ServerName.Trim();
 $LoginTrimmed = $Login.Trim("'").Trim();
 
-Expand-Archive -Path ".\output\tSQLt\validation\tSQLtFacade.zip" -DestinationPath $FacadeFilesPath;
+Expand-Archive -Path "./output/tSQLt/validation/tSQLtFacade.zip" -DestinationPath $FacadeFilesPath;
 
 Push-Location;
 
 $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $DatabaseName;
-$FacadeFileName = $TempPath + "\tSQLt\Facade\tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
+$FacadeFileName = $TempPath + "/tSQLt/Facade/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 
 $DacpacDatabaseName = $DatabaseName+"_dacpac";
 $AdditionalParameters = '-v NewDbName="'+$DacpacDatabaseName+'"';
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "CreateBuildDb.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 
 $SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $DacpacDatabaseName;
-& "$SqlPackagePath\sqlpackage.exe" /a:Publish /tcs:"$SqlConnectionString" /sf:"$FacadeFileName"
+& "$SqlPackagePath/sqlpackage.exe" /a:Publish /tcs:"$SqlConnectionString" /sf:"$FacadeFileName"
 if($LASTEXITCODE -ne 0) {
     throw "error during execution of dacpac " + $FacadeFileName;
 }
