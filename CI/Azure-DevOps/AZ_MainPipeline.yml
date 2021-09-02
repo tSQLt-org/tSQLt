@@ -46,6 +46,8 @@ variables:
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\public
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
+  - name: TEST_ARTIFACT_WORKING_DIR
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\temp\Validate\tSQLt\Facade
   - name: TEST_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\Validate
   - name: SQLCMDPath
@@ -511,14 +513,18 @@ stages:
         artifactName: 'tSQLtValidationArtifact'
         targetPath: '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
 
+    - task: DownloadPipelineArtifact@2
+      name: DownloadtSQLtDacpacArtifact
+      inputs:
+        buildType: 'current'
+        artifactName: 'tSQLtDacpacArtifact_$(System.JobName)'
+        targetPath: '$(TEST_ARTIFACT_WORKING_DIR)'
 
     - task: PowerShell@2
       name: SetupVariables
       inputs:
         targetType: 'inline'
         script: |
-          Get-ChildItem -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)" -Recurse;
-          
           $inputObject = @'
           $(databaseAccessDetails)
           '@;
