@@ -39,7 +39,7 @@ variables:
   - name: CLR_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\CLRBuild
   - name: TSQLTFILES_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild\Artifact
   - name: DACPAC_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\DacpacBuild
   - name: TSQLT_PUBLIC_ARTIFACT_DIR
@@ -373,6 +373,8 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
+          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Recurse;        
+          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;        
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_ARTIFACT_DIR)"
           Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
 
@@ -381,9 +383,9 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
+          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)";
           .\Build\BuildtSQLtZip.ps1
-          Get-ChildItem -Recurse;
+          Get-ChildItem -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)" -Recurse;
 
     - checkout: tSQLtArtifacts
       clean: true
