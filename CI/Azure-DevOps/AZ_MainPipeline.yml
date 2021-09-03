@@ -46,10 +46,6 @@ variables:
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\public
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
-  - name: TEST_ARTIFACT_WORKING_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\temp\Validate\tSQLt\Facade
-  - name: TEST_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\Validate
   - name: SQLCMDPath
     value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
   - name: SQLPackagePath
@@ -431,7 +427,8 @@ stages:
             git rm -r *.*
             $CheckIfGitOk.invoke($?);
 
-            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Verbose
+            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Destination "./public" -Verbose
+            Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)\*" -Destination "./validation" -Verbose
 
             git add *.*
             $CheckIfGitOk.invoke($?);
@@ -445,13 +442,6 @@ stages:
             throw "Git Failed. See prior errors.";
           } 
           git status
-
-    - task: PublishPipelineArtifact@1
-      name: PublishtSQLtValidationArtifact
-      inputs:
-        targetPath: '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
-        artifact: 'tSQLtValidationArtifact'
-        publishLocation: 'pipeline'
 
 - stage: Validate
   displayName: ValidateAll
@@ -493,6 +483,7 @@ stages:
 
           Set-Location "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)";
           $ArtifactTargetPath= '$(TSQLT_PUBLIC_ARTIFACT_DIR)'
+          $TestsTargetPath= '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)");
 
           try{
@@ -504,17 +495,10 @@ stages:
             throw "git failed. See prior errors.";
           } 
 
-          New-Item -Path $ArtifactTargetPath  -ItemType directory -Force
-          Copy-Item -Path "*" -Verbose -Destination $ArtifactTargetPath
+          New-Item -Path $ArtifactTargetPath  -ItemType directory -Force;
+          Copy-Item -Path "./public/*" -Verbose -Destination $ArtifactTargetPath;
+          Copy-Item -Path "./validation/*" -Verbose -Destination $TestsTargetPath;
 
-
-    # It's ok to download this from the pipeline and not the artifact repository, because the tests are not part of the publicly published artifact
-    - task: DownloadPipelineArtifact@2
-      name: DownloadPipelineArtifact
-      inputs:
-        buildType: 'current'
-        artifactName: 'tSQLtValidationArtifact'
-        targetPath: '$(TSQLT_VALIDATION_ARTIFACT_DIR)'
 
     - task: PowerShell@2
       name: SetupVariables
