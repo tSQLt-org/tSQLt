@@ -430,7 +430,7 @@ stages:
             Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Destination "./public" -Verbose
             Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)\*" -Destination "./validation" -Verbose
 
-            git add *.*
+            git add --all
             $CheckIfGitOk.invoke($?);
 
             git commit -m "$(ArtifactBranchName)"
