@@ -372,9 +372,9 @@ stages:
       inputs:
         targetType: 'inline'
         failOnStderr: true
-        script: |
-          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Recurse;        
-          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;        
+        script: |  
+          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;
+          New-Item -Path "$(DACPAC_ARTIFACT_DIR)" -ItemType directory -Force;    
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_ARTIFACT_DIR)"
           Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
 
