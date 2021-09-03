@@ -39,7 +39,7 @@ variables:
   - name: CLR_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\CLRBuild
   - name: TSQLTFILES_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild\Artifact
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild
   - name: DACPAC_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\DacpacBuild
   - name: TSQLT_PUBLIC_ARTIFACT_DIR
@@ -279,7 +279,7 @@ stages:
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtFilesArtifact
       inputs:
-        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
+        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)\Artifact'
         artifact: 'tSQLtFilesArtifact'
         publishLocation: 'pipeline'
 
