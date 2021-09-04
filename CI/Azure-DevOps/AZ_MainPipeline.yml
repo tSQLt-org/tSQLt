@@ -382,6 +382,7 @@ stages:
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)";
           .\Build\BuildtSQLtZip.ps1
           Get-ChildItem -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)" -Recurse;
+          Get-ChildItem -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)" -Recurse;
 
     - checkout: tSQLtArtifacts
       clean: true
@@ -433,7 +434,7 @@ stages:
             git add --all
             $CheckIfGitOk.invoke($?);
 
-            git commit -m "$(ArtifactBranchName)"
+            git commit -am "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
             git push origin "$(ArtifactBranchName)"
