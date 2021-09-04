@@ -428,8 +428,8 @@ stages:
             git rm -r *.*
             $CheckIfGitOk.invoke($?);
 
-            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Destination "./public" -Verbose
-            Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)\*" -Destination "./validation" -Verbose
+            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Destination "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\public" -Verbose
+            Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)\*" -Destination "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\validation" -Verbose
 
             Get-ChildItem -Path "./public" -Recurse;
             Get-ChildItem -Path "./validation" -Recurse;
