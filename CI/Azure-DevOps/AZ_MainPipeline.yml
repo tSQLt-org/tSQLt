@@ -496,8 +496,11 @@ stages:
           } 
 
           New-Item -Path $ArtifactTargetPath  -ItemType directory -Force;
+          New-Item -Path $TestsTargetPath  -ItemType directory -Force;
           Copy-Item -Path "./public/*" -Verbose -Destination $ArtifactTargetPath;
           Copy-Item -Path "./validation/*" -Verbose -Destination $TestsTargetPath;
+          Get-ChildItem -Path $ArtifactTargetPath -Recurse;
+          Get-ChildItem -Path $TestsTargetPath -Recurse;
 
 
     - task: PowerShell@2
