@@ -23,12 +23,12 @@
       "defaultValue": "Sunday"
 	},
 	"sqlAutopatchingStartHour": {
-		"type": "string",
-      "defaultValue": "2"
+		"type": "int",
+      "defaultValue": 2
 	},
 	"sqlAutopatchingWindowDuration": {
-		"type": "string",
-      "defaultValue": "60"
+		"type": "int",
+      "defaultValue": 60
 	},
 	"sqlAuthenticationLogin": {
 		"type": "string",
