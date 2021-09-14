@@ -145,7 +145,16 @@ Log-Output "DONE: Creating VM";
 Log-Output 'Applying SqlVM Config'
 
 ##Set-PSDebug -Trace 1;
-$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
+#$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
+$sqlVMParameters = @{
+    "sqlPortNumber" = "$SQLPort"
+    "sqlAuthenticationLogin" = "$SQLUserName"
+    "sqlAuthenticationPassword" = "$SQLPwd"
+    "newVMName" = "$VMName"
+    "newVMRID" = "$VmResourceId"
+};
+$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -TemplateParameterObject $sqlVMParameters;
+
 $SQLVM|Out-String|Log-Output;
 
 Log-Output 'Done: Applying SqlVM Config'
