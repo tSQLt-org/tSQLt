@@ -44,7 +44,7 @@ steps:
     resourceGroupName: '$(DevTestLabRGName)'
     location: 'East US 2'
     templateLocation: 'Linked artifact'
-    csmFile: 'CI/CreateSQLVirtualMachineTemplate.json'
+    csmFile: 'CI/Azure-DevOps/CreateSQLVirtualMachineTemplate.json'
     deploymentMode: 'Validation'
 
 - task: AzurePowerShell@4
