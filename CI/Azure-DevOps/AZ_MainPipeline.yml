@@ -87,8 +87,12 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + $(SQLVersionEdition) + "_" + $(Build.BuildId));
-          Write-Host "##vso[task.setvariable variable=ResourceGroupName;isOutput=true]$ResourceGroupName"
+          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
+          .("Build/CommonFunctionsAndMethods.ps1")
+
+          $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionEdition)" + "_" + "$(Build.BuildId)");
+          Log-Output "ResourceGroupName: $ResourceGroupName";
+          Write-Host "##vso[task.setvariable variable=ResourceGroupName;isOutput=true]$ResourceGroupName";
 
     - task: AzurePowerShell@4
       name: CreateSQLVMEnvironment
