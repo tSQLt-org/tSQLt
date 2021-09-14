@@ -147,7 +147,7 @@ Log-Output 'Applying SqlVM Config'
 ##Set-PSDebug -Trace 1;
 #$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
 $sqlVMParameters = @{
-    "sqlPortNumber" = "$SQLPort"
+    "sqlPortNumber" = $SQLPort
     "sqlAuthenticationLogin" = "$SQLUserName"
     "sqlAuthenticationPassword" = "$SQLPwd"
     "newVMName" = "$VMName"
