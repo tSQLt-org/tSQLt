@@ -65,8 +65,8 @@
 			"AutoPatchingSettings": {
 				"Enable": true,
 				"DayOfWeek": "[parameters('sqlAutopatchingDayOfWeek')]",
-				"MaintenanceWindowStartingHour": "[parameters('sqlAutopatchingStartHour')]",
-				"MaintenanceWindowDuration": "[parameters('sqlAutopatchingWindowDuration')]"
+				"MaintenanceWindowStartingHour": [parameters('sqlAutopatchingStartHour')],
+				"MaintenanceWindowDuration": [parameters('sqlAutopatchingWindowDuration')]
 			},
 			"KeyVaultCredentialSettings": {
 				"Enable": false,
@@ -79,7 +79,7 @@
 			"ServerConfigurationsManagementSettings": {
 				"SQLConnectivityUpdateSettings": {
 					"ConnectivityType": "[parameters('sqlConnectivityType')]",
-					"Port": "[parameters('sqlPortNumber')]",
+					"Port": [parameters('sqlPortNumber')],
 					"SQLAuthUpdateUserName": "[parameters('sqlAuthenticationLogin')]",
 					"SQLAuthUpdatePassword": "[parameters('sqlAuthenticationPassword')]"
 				},
