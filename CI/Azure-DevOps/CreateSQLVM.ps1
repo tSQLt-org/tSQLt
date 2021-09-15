@@ -153,6 +153,17 @@ $sqlVMParameters = @{
     "newVMName" = "$VMName"
     "newVMRID" = "$VmResourceId"
 };
+
+Log-Output "*---------------*";
+
+Get-InstalledModule -Name Az;
+bicep --version;
+get-module -name az.resources -listavailable
+$psversiontable
+$env:PSModulePath -split ";"
+
+Log-Output "*---------------*";
+
 $SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.bicep" -TemplateParameterObject $sqlVMParameters;
 
 $SQLVM|Out-String|Log-Output;
