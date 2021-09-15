@@ -153,7 +153,7 @@ $sqlVMParameters = @{
     "newVMName" = "$VMName"
     "newVMRID" = "$VmResourceId"
 };
-$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -TemplateParameterObject $sqlVMParameters;
+$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.bicep" -TemplateParameterObject $sqlVMParameters;
 
 $SQLVM|Out-String|Log-Output;
 
