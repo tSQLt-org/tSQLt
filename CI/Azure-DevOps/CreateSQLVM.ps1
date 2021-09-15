@@ -155,17 +155,17 @@ $sqlVMParameters = @{
 };
 
 Log-Output "*---------------*";
-
-Get-InstalledModule -Name Az;
-bicep --version;
-get-module -name az.resources -listavailable
-$psversiontable
-$env:PSModulePath -split ";"
-
+Log-Output (Get-InstalledModule -Name Az|Out-String);
+Log-Output (bicep --version|Out-String);
+Log-Output (get-module -name az.resources -listavailable|Out-String);
+Log-Output ($psversiontable|Out-String);
+Log-Output ($env:PSModulePath -split ";"|Out-String);
 Log-Output "*---------------*";
-Get-Item -Path $dir/CreateSQLVirtualMachineTemplate.bicep
+Log-Output "$dir/CreateSQLVirtualMachineTemplate.bicep"
+Log-Output (Get-Item -Path "$dir/CreateSQLVirtualMachineTemplate.bicep"|Out-String);
+Log-Output "*---------------*";
 
-$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.bicep" -TemplateParameterObject $sqlVMParameters;
+$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.bicep" -TemplateParameterObject $sqlVMParameters -Debug;
 
 $SQLVM|Out-String|Log-Output;
 
