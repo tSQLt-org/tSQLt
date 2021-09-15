@@ -163,6 +163,7 @@ $psversiontable
 $env:PSModulePath -split ";"
 
 Log-Output "*---------------*";
+Get-Item -Path $dir/CreateSQLVirtualMachineTemplate.bicep
 
 $SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.bicep" -TemplateParameterObject $sqlVMParameters;
 
