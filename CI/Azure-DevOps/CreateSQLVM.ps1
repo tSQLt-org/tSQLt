@@ -145,7 +145,6 @@ Log-Output "DONE: Creating VM";
 Log-Output 'Applying SqlVM Config'
 
 ##Set-PSDebug -Trace 1;
-#$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
 $sqlVMParameters = @{
     "sqlPortNumber" = $SQLPort
     "sqlAuthenticationLogin" = "$SQLUserName"
@@ -165,7 +164,9 @@ Log-Output "$dir/CreateSQLVirtualMachineTemplate.bicep"
 Log-Output (Get-Item -Path "$dir/CreateSQLVirtualMachineTemplate.bicep"|Out-String);
 Log-Output "*---------------*";
 
-$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.bicep" -TemplateParameterObject $sqlVMParameters -Debug;
+#$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.json" -sqlPortNumber "$SQLPort" -sqlAuthenticationLogin "$SQLUserName" -sqlAuthenticationPassword "$SQLPwd" -newVMName "$VMName" -newVMRID "$VmResourceId"
+#$SQLVM = New-AzResourceGroupDeployment -ResourceGroupName "$ResourceGroupName" -TemplateFile "$dir/CreateSQLVirtualMachineTemplate.bicep" -TemplateParameterObject $sqlVMParameters -Debug;
+az deployment group create --resource-group $ResourceGroupName --template-file "$dir/CreateSQLVirtualMachineTemplate.bicep" --parameters sqlPortNumber=$SQLPort sqlAuthenticationLogin="$SQLUserName" sqlAuthenticationPassword="$SQLPwd" newVMName="$VMName" newVMRID="$VmResourceId"
 
 $SQLVM|Out-String|Log-Output;
 
