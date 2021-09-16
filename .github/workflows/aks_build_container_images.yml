@@ -1,0 +1,294 @@
+# This workflow creates the ACR images for the different supported SQL Server versions.
+
+name: Build MSSQL Images
+
+on:
+  # schedule:
+  #   # * is a special character in YAML so you have to quote this string
+  #   # Run every sunday at 6:20 AM
+  #   - cron:  '20 6 * * 0'
+  workflow_dispatch: 
+    inputs:
+      projectName:
+        description: 'Project Name'     
+        required: true
+        default: 'test_20210224'
+      machineName:
+        description: 'Machine Name,  cannot be more than 15 characters long, be entirely numeric, or contain the following characters: ` ~ ! @ # $ % ^ & * ( ) = + _ [ ] { } \ | ; : . singlequote " , < > / ?.'     
+        required: true
+        default: 'w2019c1'
+      msSqlVersions:
+        description: 'names of the k8s deployment files in JSON array format (e.g. ["windows-2008r2","windows-2012","windows-2014","windows-2016","windows-2017","windows-2019"])'
+        required: true
+        default: '["windows-2014","windows-2016","windows-2017","windows-2019"]'
+      debugVM:
+        description: 'set to "true" to retain the VM for debugging purposes'
+        required: false
+        default: 'false'
+
+
+jobs:
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  create-vm:
+    name: Create The VM
+    runs-on: windows-latest 
+#    if: ${{ false }}
+
+    env:
+      PROJECT_NAME: ${{ github.event.inputs.projectName }}
+      MACHINE_NAME: ${{ github.event.inputs.machineName }}
+      MS_SQL_VERSIONS: ${{ github.event.inputs.msSqlVersions }}
+      AZ_SERVICE_PRINCIPAL_CREDENTIALS: ${{ secrets[format('AZ_SP_CRED_{0}', github.event.inputs.projectName)] }}
+      
+    steps:
+      - name: Checkout self
+        uses: actions/checkout@v2
+        with:
+          path: cicd
+
+      - name: create variables
+        id: create-vars
+        shell: pwsh
+        run: |
+          function Get-MD5HashOfString($string) {
+              $stringAsStream = [System.IO.MemoryStream]::new();
+              $writer = [System.IO.StreamWriter]::new($stringAsStream);
+              $writer.write($string);
+              $writer.Flush();
+              $stringAsStream.Position = 0;
+              $hashedString = (Get-FileHash -InputStream $stringAsStream).Hash;
+              return [String]$hashedString;
+          }
+
+          $projectNameHash = (Get-MD5HashOfString($env:PROJECT_NAME)).Substring(0,10);
+          $machineName = "$env:MACHINE_NAME";
+          $machineRgName = "rg_$machineName";
+          $azSecretsManagerName = "sm-" + $projectNameHash;
+          $containerRegistryURL = "crn" + $projectNameHash + ".azurecr.io";
+          $repoURL = "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}.git";
+          $commitId = "${{ github.SHA }}" ;
+          $msSqlVersionForMatrix = '{"windows-version":'+$env:MS_SQL_VERSIONS+'}';
+
+
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          Write-Host "";
+          Write-Host ("projectName value: {0}" -f $env:PROJECT_NAME);
+          Write-Host ("machineName value: {0}" -f $machineName);
+          Write-Host ("machineRgName value: {0}" -f $machineRgName);
+          Write-Host ("msSqlVersionForMatrix: {0}" -f "$msSqlVersionForMatrix"); 
+          Write-Host ("azSecretsManagerName: {0}" -f "$azSecretsManagerName"); 
+          Write-Host ("containerRegistryURL: {0}" -f "$containerRegistryURL"); 
+          Write-Host ("repoURL: {0}" -f "$repoURL"); 
+          Write-Host ("commitId: {0}" -f "$commitId"); 
+          Write-Host "";
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          
+          Write-Host ('::set-output name=azsecretsmanagername::'+$azSecretsManagerName);
+          Write-Host ('::set-output name=containerregistryurl::'+$containerRegistryURL);
+          Write-Host ('::set-output name=repoURL::'+$repoURL);
+          Write-Host ('::set-output name=machineName::'+$machineName);
+          Write-Host ('::set-output name=machineRgName::'+$machineRgName);
+          Write-Host ('::set-output name=commitId::'+$commitId);
+          Write-Host ("::set-output name=msSqlVersionForMatrix::{0}" -f "$msSqlVersionForMatrix"); 
+           
+      - name: decode az sp cred
+        id: cred-decode
+        shell: pwsh
+        run: |
+          $decodedCreds = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("${{ env.AZ_SERVICE_PRINCIPAL_CREDENTIALS}}"))
+          Write-Host ('::set-output name=az_sp_creds::'+$decodedCreds);
+
+       # documentation: https://github.com/azure/login#configure-azure-credentials
+      - name: login via az module
+        uses: azure/login@v1
+        with:
+          creds: ${{ steps.cred-decode.outputs.az_sp_creds }}
+          enable-AzPSSession: true 
+
+      # documentation: https://github.com/Azure/get-keyvault-secrets
+      - name: get azure secrets
+        id: azure-secrets
+        uses: Azure/get-keyvault-secrets@v1.0
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true' # Note that this task can be replaced with a similar pattern as setting the namespace to the env variables (above), but is also not secure.
+        with:
+          keyvault: ${{ steps.create-vars.outputs.azsecretsmanagername }}
+          secrets: 'azResourceGroupName'  # comma separated list of secret keys that need to be fetched from the Key Vault 
+
+      - name: run azure powershell script
+        id: buildMachine-ps
+        uses: azure/powershell@v1
+        with:
+          azpsversion: 'latest'
+          errorActionPreference: 'continue'
+          inlineScript: |
+            $Parameters = @{
+              projectName = "$env:PROJECT_NAME";
+              azSecretsManagerName = "${{ steps.create-vars.outputs.azsecretsmanagername }}";
+              azResourceGroupName = "${{ steps.azure-secrets.outputs.azResourceGroupName }}";
+              machineRgName = "${{ steps.create-vars.outputs.machineRgName }}";
+              repoURL = "${{ steps.create-vars.outputs.repoURL }}";
+              commitId = "${{ steps.create-vars.outputs.commitId }}";
+              machineName = "${{ steps.create-vars.outputs.machineName }}";
+              debugOn = $true;
+            }; 
+            ./cicd/envSetup/createContainerBuildMachine.ps1 @Parameters; 
+
+    outputs:
+      mssqlversion: ${{ steps.create-vars.outputs.msSqlVersionForMatrix }}
+      containerregistryurl: ${{ steps.create-vars.outputs.containerregistryurl }}
+      azsecretsmanagername: ${{ steps.create-vars.outputs.azSecretsManagerName }}
+      machinergname: ${{ steps.create-vars.outputs.machineRgName }}
+      machinename: ${{ steps.create-vars.outputs.machineName }}
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  create-images:
+    name: create and publish the ACR images
+    needs: create-vm
+
+    runs-on: windows-latest
+
+    env:
+      AZ_CONTAINER_REGISTRY_URL: ${{ needs.create-vm.outputs.containerregistryurl }}
+      AZ_SECRETS_MANAGER_NAME: ${{ needs.create-vm.outputs.azsecretsmanagername }}
+      MACHINE_NAME: ${{ needs.create-vm.outputs.machinename }}
+      MACHINE_RG_NAME: ${{ needs.create-vm.outputs.machinergname }}
+      AZ_SERVICE_PRINCIPAL_CREDENTIALS: ${{ secrets[format('AZ_SP_CRED_{0}', github.event.inputs.projectName)] }}
+
+    strategy:
+      matrix: ${{fromJson(needs.create-vm.outputs.mssqlversion)}}
+      max-parallel: 1
+
+    steps:
+
+      - name: Checkout self
+        uses: actions/checkout@v2
+        with:
+          path: cicd
+
+      - name: build and push docker image
+        shell: pwsh
+        run: |
+          $mssqlversion = '${{ matrix.mssqlversion }}';
+
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          Write-Host "";
+          Write-Host ("mssqlversion: {0}" -f "$mssqlversion"); 
+          Write-Host ("azContainerRegistryURL: {0}" -f "$env:AZ_CONTAINER_REGISTRY_URL"); 
+          Write-Host ("azSecretsManagerName: {0}" -f "$env:AZ_SECRETS_MANAGER_NAME"); 
+          Write-Host ("machineName: {0}" -f "$env:MACHINE_NAME"); 
+          Write-Host ("machineRGName: {0}" -f "$env:MACHINE_RG_NAME"); 
+          Write-Host "";
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+
+      - name: decode az sp cred
+        id: cred-decode
+        shell: pwsh
+        run: |
+          $decodedCreds = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("${{ env.AZ_SERVICE_PRINCIPAL_CREDENTIALS}}"));
+          Write-Host ('::set-output name=az_sp_creds::'+$decodedCreds);
+
+      # documentation: https://github.com/azure/login#configure-azure-credentials
+      - name: login via az module
+        uses: azure/login@v1
+        with:
+          creds: ${{ steps.cred-decode.outputs.az_sp_creds }}
+          enable-AzPSSession: true 
+
+      - name: build and push image script
+        id: build-and-push-image
+        uses: azure/powershell@v1
+        with:
+          azpsversion: 'latest'
+          errorActionPreference: 'continue'
+          inlineScript: |
+            $builImageScriptPath = 'cicd\envSetup\buildAndPushImage.ps1';
+            Invoke-AzVMRunCommand -ResourceGroupName $env:MACHINE_RG_NAME -VMName $env:MACHINE_NAME -CommandId 'RunPowerShellScript' -ScriptPath $builImageScriptPath -Parameter @{mssqlVersion = "${{ matrix.mssqlversion }}"; acrURL = "$env:AZ_CONTAINER_REGISTRY_URL"; azSpCrBase64 = "${{ env.AZ_SERVICE_PRINCIPAL_CREDENTIALS}}"; debugOnString = "$debugOn"}
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  prune-untagged-images:
+    name: prune images
+    needs: [create-vm, create-images]
+    if: ${{ always() }}
+
+    runs-on: windows-latest
+
+    env:
+      AZ_CONTAINER_REGISTRY_URL: ${{ needs.create-vm.outputs.containerregistryurl }}
+      AZ_SERVICE_PRINCIPAL_CREDENTIALS: ${{ secrets[format('AZ_SP_CRED_{0}', github.event.inputs.projectName)] }}
+
+    steps:
+      - name: decode az sp cred
+        id: cred-decode
+        shell: pwsh
+        run: |
+          $decodedCreds = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("${{ env.AZ_SERVICE_PRINCIPAL_CREDENTIALS}}"))
+          Write-Host ('::set-output name=az_sp_creds::'+$decodedCreds);
+
+      # documentation: https://github.com/azure/login#configure-azure-credentials
+      - name: login via az module
+        uses: azure/login@v1
+        with:
+          creds: ${{ steps.cred-decode.outputs.az_sp_creds }}
+          enable-AzPSSession: true 
+
+      - name: drop image script
+        id: dropBuildMachine-ps
+        uses: azure/powershell@v1
+        with:
+          azpsversion: 'latest'
+          errorActionPreference: 'continue'
+          inlineScript: |
+            # Documented here: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-delete#delete-all-untagged-images
+
+            $registry = "$env:AZ_CONTAINER_REGISTRY_URL";
+            $repository = "windows-mssql"; # https://github.com/distribution/distribution/blob/main/docs/spec/api.md#overview, must adhere to: [a-z0-9]+(?:[._-][a-z0-9]+)*
+
+            az acr repository show-manifests --name $registry --repository $repository --query "[?tags[0]==null].digest" -o tsv | %{ az acr repository delete --name $registry --image $repository@$_ --yes }
+
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  drop-vm:
+    name: drop the VM
+    needs: [create-vm, create-images]
+    if: ${{ always() }}
+
+    runs-on: windows-latest
+
+    env:
+      AZ_SERVICE_PRINCIPAL_CREDENTIALS: ${{ secrets[format('AZ_SP_CRED_{0}', github.event.inputs.projectName)] }}
+      MACHINE_RG_NAME: ${{ needs.create-vm.outputs.machinergname }}
+
+    steps:
+      - name: check debug VM
+        shell: pwsh
+        if: ${{ github.event.inputs.debugVM == 'true' }}
+        run: |
+            Write-Host ("::error::✨   ✨   ✨TURN OFF THE VM WHEN YOU ARE DONE!✨   ✨   ✨");
+            exit 1; 
+
+      - name: decode az sp cred
+        id: cred-decode
+        shell: pwsh
+        run: |
+          $decodedCreds = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("${{ env.AZ_SERVICE_PRINCIPAL_CREDENTIALS}}"))
+          Write-Host ('::set-output name=az_sp_creds::'+$decodedCreds);
+
+      # documentation: https://github.com/azure/login#configure-azure-credentials
+      - name: login via az module
+        uses: azure/login@v1
+        with:
+          creds: ${{ steps.cred-decode.outputs.az_sp_creds }}
+          enable-AzPSSession: true 
+
+      - name: drop image build machine resource group script
+        id: dropBuildMachine-ps
+        uses: azure/powershell@v1
+        with:
+          azpsversion: 'latest'
+          errorActionPreference: 'continue'
+          inlineScript: |
+            Remove-AzResourceGroup -Name "$env:MACHINE_RG_NAME" -Force ;
+
+

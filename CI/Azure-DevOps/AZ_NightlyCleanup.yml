@@ -1,0 +1,249 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+schedules:
+  - cron: 1 16 * * *
+    displayName: Scheduled NOON cleanup #Remove When Finished#
+    branches:
+      include:
+      - main
+    always: true
+  - cron: "0 4,5,6,7,8 * * *"
+    displayName: Nightly cleanup
+    branches:
+     include:
+      - main
+    always: true
+
+variables:
+  GetResourceGroupsStatement: 'Get-AzResourceGroup -Tag @{Department="tSQLtCI"; Ephemeral="True"}'
+
+
+steps:
+
+- task: AzureCLI@2
+  name: IdentifyDeletableRGs
+  condition: true
+  env:
+    SYSTEM_TEAMPROJECT: $(System.TeamProject)
+    SYSTEM_COLLECTIONURI: $(System.CollectionUri)
+    AZURE_DEVOPS_EXT_PAT: $(tSQLtCIAzureCLIPatToken) 
+    ## black magic: this token ^^^^ is required to make "az pipelines runs show" work below
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      
+      ##Functions
+      $GetAll_tSQLtCI_RGs = {
+        param();
+        ((az group list)|Out-String|ConvertFrom-JSON|?{$_.Tags.Department -eq "tSQLtCI"})
+        ## black magic, because "az group list" returns an array of strings that together make a json value -- go figure
+      }
+
+      $DoesRGNotExist = {
+        param([object]$RGArray,[string]$name);
+        ($RGArray|Where-Object{$_.name -eq $name}).count -eq 0
+      }
+
+      $RGNs = @();
+      $AddToRGNsAndListLocks_MethodWithSideEffect = {
+        param([string]$name);
+        $script:RGNs += ($name);
+        Write-Host ("{0} added to queue" -f $name);
+        ConvertFrom-JSON((az group lock list -g $name)|out-string)|FT;
+      }
+
+      ##Script
+      Write-Host '-----------------------------'
+      Write-Host 'List RGs to be deleted'
+      Write-Host '-----------------------------'
+      $RGTBD = $GetAll_tSQLtCI_RGs.Invoke()|?{$_.Tags.Ephemeral -eq "True"};
+
+      $RGTBD | ForEach-Object { 
+        $isDeletable = $TRUE;
+        $RBTag = $_.tags.RemovalBy;
+        
+        if(![string]::isnullorempty($RBTag))
+        {
+          $isDeletable = $FALSE;
+          $stmt = ("az pipelines runs show --id $RBTag --query 'status' --organization='{0}' --project='{1}'  --only-show-errors" -f $env:SYSTEM_COLLECTIONURI, $env:SYSTEM_TEAMPROJECT);
+          Write-Host ("Statement:{0}" -f "$stmt")
+          $Output = ((Invoke-Expression $stmt) 2>&1 6>&1); ##<<-- this will fail 5/19/2021 due to expired PAT token
+          ## more black magic, because "az pipelines" does not produce capturable errors
+          write-host ("-->{0}<--" -f $Output);
+          if($Output -match "The requested build $RBTag could not be found.")
+          {
+            $isDeletable = $TRUE;
+            write-host ("not found")
+          }
+          elseif($Output -match "^.?(cancelling|completed|notStarted|postponed).?$")
+          {
+            $isDeletable = $TRUE;
+            write-host ("not inProgress")
+          }
+          elseif($Output -match "^.?(inProgress).?$")
+          {
+            ##NoOp
+            write-host ("inProgress")
+          }
+          else
+          {
+            write-host ("Error encountered")
+            throw ("Error(s) encountered inquiring status for buid {0}{1}" -f $RBTag,$ConcatenatedErrorMessages)
+          }
+          
+          if($isDeletable)
+          {
+            write-host ("Removing RemovalBy Tag")
+            $MyRGN = $_.name;
+            az group update --name $MyRGN --set tags.RemovalBy;
+          }
+        }
+        
+        if($isDeletable)
+        {
+          $AddToRGNsAndListLocks_MethodWithSideEffect.Invoke($_.name);
+        }
+        else
+        {
+          Write-Host ("{0} skipped (RemovalBy {1})" -f $_.name,$RBTag);
+        }
+      }
+
+      Write-Host '-----------------------------'
+      Write-Host 'Finding Orphan RGs'
+      Write-Host '-----------------------------'
+
+      $AllRGs = $GetAll_tSQLtCI_RGs.Invoke();
+      $ResourceGroupsWithParentRGNTag = $AllRGs|Where-Object{![string]::isnullorempty($_.tags.ParentRGN)}
+      $ResourceGroupsWithParentRGNTag|ForEach-Object{
+        if($DoesRGNotExist.Invoke($AllRGs,$_.tags.ParentRGN)){
+          $AddToRGNsAndListLocks_MethodWithSideEffect.Invoke($_.name);
+        }
+      }
+
+      Write-Host '-----------------------------'
+      Write-Host 'Storing in Global Variable'
+      Write-Host '-----------------------------'
+      $SerializedListOfRGs=(ConvertTo-JSON -InputObject $RGNs -Compress)
+      $SerializedListOfRGs
+      Write-Host "##vso[task.setvariable variable=SerializedListOfRGs]$SerializedListOfRGs"
+      Write-Host 'Setting Variable Done'
+
+
+- task: AzurePowerShell@4
+  name: print_stuff
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    failOnStandardError: True
+    ScriptType: 'InlineScript'
+    Inline: |
+      Write-Host '----->' $env:SerializedListOfRGs '<-----'
+      $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
+      $RGTBD | FT
+      $RGTBD.count;
+      Write-Host '-----> List of Running Cleanup Builds <-----'
+      #az pipelines runs list --org "https://sqlity.visualstudio.com/" --project "tSQLt CI"
+
+
+
+- task: AzurePowerShell@4
+  condition: succeeded()
+  name: Delete_RGs
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    FailOnStandardError: true
+    ScriptType: 'InlineScript'
+    Inline: |
+      Set-Location $(Build.Repository.LocalPath)
+      .("Build/CommonFunctionsAndMethods.ps1")
+    
+      $ThreadHash = @{};
+      $RGs = (ConvertFrom-JSON $env:SerializedListOfRGs);
+      Write-Host ("Deleting {0} ResourceGroups" -f $RGs.count)
+      $RunspacePool = [runspacefactory]::CreateRunspacePool(1,5); ##$RGs.count)
+      $RunspacePool.open()
+      $RGs | ForEach-Object { 
+          $ResourceGroupName = $_;
+          Write-Host "===================================================================================================================";
+          Write-Host ("Deleting ResourceGroup {0}" -f $ResourceGroupName)
+          if($ResourceGroupName -ne $null)
+          {
+            Write-Host ("BeginInvoke Remove-ResourceGroup -ResourceGroupName {0} -BuildId {1}" -f $ResourceGroupName, $(Build.BuildId));
+            $scriptBlock = [scriptBlock]::Create("Remove-ResourceGroup -ResourceGroupName '$ResourceGroupName' -BuildId '$(Build.BuildId)'");
+            $PSInstance = [powershell]::Create().AddScript({.("$(Build.Repository.LocalPath)\Build\CommonFunctionsAndMethods.ps1");});
+            $PSInstance.AddScript($scriptBlock);
+            $PSinstance.RunspacePool = $RunspacePool;
+            $Handle = $PSInstance.BeginInvoke();
+            $ThreadHash.Add($ResourceGroupName,@{PSInstance=$PSInstance;Handle=$Handle})
+          }else{
+            Write-Host "Skipped...";
+          }
+          Write-Host ("Done BeginInvoke Remove-ResourceGroup -ResourceGroupName {0} -BuildId {1}" -f $ResourceGroupName, $(Build.BuildId));
+          Write-Host "===================================================================================================================";
+      }
+      $Errors = New-Object System.Collections.Generic.List[System.Object];
+      $ThreadHash.GetEnumerator() | ForEach-Object{
+          $Key = $_.Key;
+          Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
+          Write-Host ("START: EndInvoke Remove-ResourceGroup({0})" -f $Key);
+          $PsInstance = $_.Value.PsInstance;
+          $PSInstance.EndInvoke($_.Value.Handle);
+          $Streams = $PSInstance.Streams;
+          Write-Host "(Set [$VerbosePreference = "Continue"] and/or [$DebugPreference = "Continue"] to see the corresponding output below.)";
+          $Streams.PSObject.Properties|ForEach-Object{
+            Write-Host "⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩";
+            Write-Host $_.name;
+            Write-Host "⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒ ⥓⥒";
+            $_.value|ForEach-Object{Write-Host $_;};
+            Write-Host "⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧⇧";
+          }
+          if($Streams.Error.Count -ne 0)
+          {
+            $Errors.add($Key);
+            $Streams.Error|%{Write-Host "##vso[task.logissue type=error]$Key -> $_";}
+          }
+          Write-Host ("Done Remove-ResourceGroup({0})" -f $Key);
+          Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::";
+      }
+      if($Errors.count -ne 0)
+      {
+        $Errors|%{Write-Host ("##vso[task.logissue type=error]Error while removing ResourceGroup {0}" -f $_);}
+        throw("Errors encounterd while deleting resource group(s). See prior error messages.");
+      }
+
+- task: AzurePowerShell@4
+  name: AssertDeleteSuccessful
+  condition: always()
+  inputs:
+    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azurePowerShellVersion: 'LatestVersion'
+    failOnStandardError: True
+    ScriptType: 'InlineScript'
+    Inline: |
+      Write-Host '----->' $env:SerializedListOfRGs '<-----'
+      $RGTBD = (ConvertFrom-JSON $env:SerializedListOfRGs)
+      $NDC = 0;
+      $RGTBD | ForEach-Object{
+        $RG = (Get-AzResourceGroup -name "$_" -ErrorVariable notPresent -ErrorAction SilentlyContinue);
+        if(-NOT ($notPresent)){
+          $NDC++;
+          Write-Host ("##vso[task.logissue type=error]ResourceGroup {0} still exists!" -f $_);
+        }else{
+          Write-Host ("ResourceGroup {0} deleted." -f $_);
+        }
+      };
+      if($NDC -ne 0){
+        Write-Host ("##vso[task.logissue type=error]{0} ResourceGroup(s) were not deleted!" -f $NDC);
+        throw("Not all resource groups were deleted sucessfully. See prior error messages.");
+      };
+

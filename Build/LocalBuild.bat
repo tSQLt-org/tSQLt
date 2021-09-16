@@ -4,49 +4,73 @@ ECHO +-------------------------+
 ECHO : Executing Local Build   :
 ECHO +-------------------------+
 ECHO Parameters:
-ECHO AntHome: "%~1"
-ECHO NET4Home: "%~2"
-ECHO SQLCMDPath: "%~3"
+SET AntHome=%~1
+ECHO AntHome: "%AntHome%"
+SET NET4Home=%~2
+ECHO NET4Home: "%NET4Home%"
+SET SQLCMDPath=%~3
+ECHO SQLCMDPath: "%SQLCMDPath%"
 ECHO SQLVersion: "deprecated"
-ECHO SQLInstanceName: "%~4"
-ECHO DBName: "%~5"
-ECHO DBLogin: "%~6"
+SET SQLInstanceName=%~4
+ECHO SQLInstanceName: "%SQLInstanceName%"
+SET DBName=%~5
+ECHO DBName: "%DBName%"
 SET DBLogin=-E
 IF NOT "%~6"=="-v" IF NOT "%~6"=="" SET DBLogin=%~6
-IF "%~7"=="-v" ECHO Verbose ON ELSE ECHO Verbose OFF
-ECHO Final Value DBLogin: "%DBLogin%"
+IF NOT "%~7"=="-v" IF NOT "%~7"=="" SET SQLPackagePath=%~7
+SET VerboseOutput=ON
+IF NOT "%~6"=="-v" IF NOT "%~7"=="-v" IF NOT "%~8"=="-v" SET VerboseOutput=OFF
+ECHO DBLogin: "%DBLogin%"
+ECHO SQLPackagePath: "%SQLPackagePath%"
+ECHO VerboseOutput: "%VerboseOutput%"
 
-REM CALL "%~1\bin\ant" -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path="%~2" -verbose || goto :error
+REM CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path="%NET4Home%" -verbose || goto :error
 REM goto :EOF
+
+CALL "powershell.exe" -Command "Set-ExecutionPolicy Bypass -Scope CurrentUser"
 
 ECHO +-------------------------+
 ECHO : Starting CLR BUILD      :
 ECHO +-------------------------+
-IF "%~7"=="-v" @ECHO ON
-CALL "%~1\bin\ant" -buildfile Build\tSQLt.buildCLR.xml -Dmsbuild.path="%~2" || goto :error
+IF "%VerboseOutput%"=="ON" @ECHO ON
+CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.buildCLR.xml -Dmsbuild.path="%NET4Home%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
 ECHO : Starting tSQLt BUILD    :
 ECHO +-------------------------+
-IF "%~7"=="-v" @ECHO ON
-CALL "%~1\bin\ant" -buildfile Build\tSQLt.build.xml || goto :error
+IF "%VerboseOutput%"=="ON" @ECHO ON
+CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.build.xml -Dcommit.id="--> LOCALBUILD <--" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
-ECHO : Copying BUILD           :
+ECHO : Creating tSQLt Facade   :
 ECHO +-------------------------+
-ECHO :- THIS STEP IS OPTIONAL -:
+IF "%VerboseOutput%"=="ON" @ECHO ON
+@REM -----------------------------------------------------------------------------This space character is utterly important! --------------v
+CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
+@ECHO OFF
+
 ECHO +-------------------------+
-IF "%~7"=="-v" @ECHO ON
-CALL "%~1\bin\ant" -buildfile Build\tSQLt.copybuild.xml || goto :error
+ECHO : Repackage zip file      :
+ECHO +-------------------------+
+IF "%VerboseOutput%"=="ON" @ECHO ON
+CALL "powershell.exe" -File Build\BuildtSQLtZip.ps1 -ErrorAction Stop || goto :error
+@ECHO OFF
+
+ECHO +----------------------------+
+ECHO : Create Build Debug Project :
+ECHO +----------------------------+
+IF "%VerboseOutput%"=="ON" @ECHO ON
+CALL "powershell.exe" -File Build\CreateDebugSSMSProject.ps1 -ErrorAction Stop || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
-IF "%~7"=="-v" @ECHO ON
-CALL "%~1\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%~4" -Ddb.name=%~5 -Ddb.login="%DBLogin%" -Dsqlcmd.path="%~3" || goto :error
+IF "%VerboseOutput%"=="ON" @ECHO ON
+@REM -----------------------------------------------------------------------------This space character is utterly important! ----v
+CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
@@ -55,6 +79,7 @@ ECHO +-------------------------+
 goto :EOF
 
 :error
+@ECHO OFF
 ECHO +-------------------------+
 ECHO :  !!! BUILD FAILED !!!   :
 ECHO +-------------------------+

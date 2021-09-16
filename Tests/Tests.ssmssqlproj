@@ -156,6 +156,12 @@
           <AssociatedConnUserName />
           <FullPath>FakeTableTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="FriendlySQLServerVersionTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>FriendlySQLServerVersionTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="InfoTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -251,6 +257,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_ScriptIndexTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_SplitSqlVersionTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_SplitSqlVersionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_SqlVariantFormatterTests.class.sql">
           <AssociatedConnectionMoniker />

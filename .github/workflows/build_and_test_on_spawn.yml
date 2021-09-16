@@ -1,36 +1,384 @@
-# This is a basic workflow to help you get started with Actions
+# Builds and tests a database project (in this case tSQLt) 
+# 
+# Originally from: https://github.com/lizbaron/db-cicd-with-github-actions/blob/9a514ed0c41029daa231db22e30de7806636160c/.github/workflows/build_and_test_on_linux.yml
 
-name: CI
+name: Build and Test tSQLt on Spawn
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - tSQLtFacadeBuild
+  workflow_dispatch: 
+    inputs:
+      spawnDataImages:
+        description: 'names of the data-images on spawn (e.g. ["mssql","empty-mssql"]) aka 2017 and 2019'
+        required: true
+        default: '["mssql","empty-mssql"]' # If you change this, remember to also update env.SPAWNDATAIMAGES_DEFAULT
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+env:
+  SPAWNDATAIMAGES_DEFAULT: '["mssql","empty-mssql"]'
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  set-up-env-vars:
+    name: set up matrix variables
+    #if: ${{ always() }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    # More types found here, https://docs.github.com/en/free-pro-team@latest/actions/reference/specifications-for-github-hosted-runners
+    runs-on: windows-latest
+
+    env:
+      TSQLT_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\tSQLt
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: create variables
+        id: create-vars
+        shell: pwsh
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          $spawnDataImages = '${{ github.event.inputs.spawnDataImages }}';
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          Write-Host "";
+          Write-Host ("input spawnDataImages: {0}" -f $spawnDataImages);
+          if ([string]::IsNullOrEmpty($spawnDataImages)) {
+            $spawnDataImages = '${{ env.spawndataimages_default }}';
+          }
+          Write-Host ("final spawnDataImages value: {0}" -f $spawnDataImages);
+          $matrixValues = '{{"data-image":{0} }}' -f $spawnDataImages;
+          Write-Host ("matrixValues value: {0}" -f $matrixValues);
+          Write-Host "";
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+
+          Write-Host ('::set-output name=matrixValues::' + $matrixValues);
+
+    outputs:
+      matrixValues: ${{ steps.create-vars.outputs.matrixValues }}
+
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  build-tSQLt:
+    name: build tSQLt
+    #if: ${{ false }}
+
+    runs-on: windows-latest
+
+    env:
+      PFX_PATH: ${{ github.workspace }}\tSQLt\Build\tSQLtOfficialSigningKey.pfx
+      PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
+      ARTIFACT_DIR: ${{ github.workspace }}\artifacts
+      MSBUILD_HOME: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it. 
+      # But this is misleading, because this variable is only really helpful as ${{ github.workspace }}
+      - name: Checkout tSQLt
+        uses: actions/checkout@v2
+        with:
+          path: tSQLt
+
+      # documentation: This is just what you need to do...
+      - name: create and install unofficial pfx file for signing dlls
+        shell: pwsh
+        run: |
+          $cert = New-SelfSignedCertificate -FriendlyName "tSQLt_testKey" -Type CodeSigningCert -Subject "CN=localhost" -KeyAlgorithm RSA -HashAlgorithm SHA1 -KeyLength 2048 -SmimeCapabilities -CertStoreLocation "cert:/LocalMachine" -Provider "Microsoft Strong Cryptographic Provider"
+          $pwd = ConvertTo-SecureString -String "$env:PFX_PASSWORD" -Force -AsPlainText
+          $pfxFile = Export-PfxCertificate -cert ("Cert:\LocalMachine\My\" + $cert.thumbprint) -FilePath $env:PFX_PATH -Password $pwd
+          &"${{ github.workspace }}\tSQLt\Build\SnInstallPfx" "$env:PFX_PATH" "$env:PFX_PASSWORD" tSQLt_OfficialSigningKey
+
+      - name: ant Build\tSQLt.buildCLR.xml --> Build/output/CLRBuild/
+        run: ant -buildfile "${{ github.workspace }}\tSQLt\Build\tSQLt.buildCLR.xml" -D"msbuild.path"="$env:MSBUILD_HOME" all
+ 
+      - name: ant Build/tSQLt.build.xml --> Build/output/tSQLtBuild
+        run: ant -buildfile "${{ github.workspace }}\tSQLt\Build\tSQLt.build.xml" all -D"commit.id"="${{ github.sha }}"
+
+      - name: copy tSQLt artifacts to ${{ env.artifact_dir }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "$env:ARTIFACT_DIR"
+          $basePath = "${{ github.workspace }}\tSQLt\Build\output\tSQLtBuild\";
+          $artifactFiles = (@("ReadMe.txt","CommitId.txt","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt")| ForEach-Object { $basePath + $_ });
+          $artifactFiles | Copy-Item -Verbose -Destination "$env:ARTIFACT_DIR";
+
+      - name: Archive production artifact
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: tSQLtBuildArtifact
+          path: "${{ env.artifact_dir }}\\"
+          retention-days: 5
+
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  build-facades:
+    name: build facade dacpacs
+    needs: [build-tSQLt,set-up-env-vars]
+    #if: ${{ always() }}
+
+    env:
+      SQLPACKAGE_HOME: C:\Program Files\Microsoft SQL Server\150\DAC\bin\
+      DACPAC_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\DacpacBuild
+
+    strategy:
+      matrix: ${{ fromJson(needs.set-up-env-vars.outputs.matrixValues) }}
+      fail-fast: true
+
+    # More types found here, https://docs.github.com/en/free-pro-team@latest/actions/reference/specifications-for-github-hosted-runners
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout tSQLt
+        uses: actions/checkout@v2
+        with:
+          path: tSQLt
+
+      - name: load namespace variables into env
+        id: create-vars
+        shell: pwsh
+        run: |
+          $sqlcmdPath = (Get-Command sqlcmd).Path.TrimEnd("\\SQLCMD.EXE");
+          Write-Host ('::set-output name=sqlcmdPath::'+$sqlcmdPath);
+
+      - name: Install spawnctl
+        shell: pwsh
+        run: |
+          echo "Downloading and installing spawnctl..."
+          Invoke-WebRequest -Uri "https://run.spawn.cc/spawnctl.exe" -UseBasicParsing -OutFile "${{ github.workspace }}\spawnctl.exe"
+          & "${{ github.workspace }}\spawnctl.exe" version
+
+      - name: Create Container
+        id: create-container
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\spawnctl.exe" get data-images
+
+          $dataImageName = "${{ matrix.data-image }}";
+
+          echo "Creating 'tSQLtOnLinux' Spawn data container from image '$dataImageName'";
+          $containerName= & "${{ github.workspace }}\spawnctl.exe" create data-container --image $dataImageName --lifetime 30m -q
+          $containerJSON= & "${{ github.workspace }}\spawnctl.exe" get data-container $containerName -o json
+          $containerInfo = ConvertFrom-JSON -inputObject $containerJSON;
+          $containerFQDN=$containerInfo.host+", "+$containerInfo.port;
+          $containerUser=$containerInfo.user;
+          $containerPassword=$containerInfo.password;
+          echo "Successfully created Spawn data container '$containerName'"
+
+          Write-Host ('::set-output name=containerFQDN::'+$containerFQDN);
+          Write-Host ('::set-output name=containerUser::'+$containerUser);
+          Write-Host ('::set-output name=containerPassword::'+$containerPassword);
+
+        env:
+          SPAWNCTL_ACCESS_TOKEN: ${{ secrets.SPAWNCTL_ACCESS_TOKEN }} 
+
+      - name: print sql version info
+        shell: pwsh
+        run: |
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          Write-Host "";
+          # Write-Host Invoke-Sqlcmd -ConnectionTimeout 600 -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "${{ steps.create-container.outputs.containerFQDN }}" -Username "${{ steps.create-container.outputs.containerUser }}" -Password "${{ steps.create-container.outputs.containerPassword }}" -As DataSet
+          $DS = Invoke-Sqlcmd -ConnectionTimeout 600 -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "${{ steps.create-container.outputs.containerFQDN }}" -Username "${{ steps.create-container.outputs.containerUser }}" -Password "${{ steps.create-container.outputs.containerPassword }}" -As DataSet
+
+          $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }    
+          Write-Host "";
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+
+      - name: download tSQLtBuildArtifact artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: tSQLtBuildArtifact
+          path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLtBuild"
+
+      - name: build tSQLtFacade  --> Build/output/DacpacBuild/
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\tSQLt\
+        run: |
+          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "${{ steps.create-container.outputs.containerFQDN }}" -DatabaseName "tSQLt_dev" -Login "-U ${{ steps.create-container.outputs.containerUser }} -P ${{ steps.create-container.outputs.containerPassword }}" -SqlCmdPath "${{ steps.create-vars.outputs.sqlcmdPath }}" -SqlPackagePath "$env:SQLPACKAGE_HOME"
+
+      - name: create dacpacs artifact
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: dacpacs
+          path: "${{ env.dacpac_artifact_dir }}\\"
+          retention-days: 5
+
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  create-artifact:
+    name: create artifact
+    needs: [build-facades]
+    #if: ${{ always() }}
+
+    # More types found here, https://docs.github.com/en/free-pro-team@latest/actions/reference/specifications-for-github-hosted-runners
+    runs-on: windows-latest
+
+    env:
+      TSQLT_PUBLIC_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\tSQLt\public
+      TSQLT_VALIDATION_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\tSQLt\validation
+
+    steps:
+      - name: Checkout tSQLt
+        uses: actions/checkout@v2
+        with:
+          path: tSQLt
+
+      - name: download tSQLtBuildArtifact artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: tSQLtBuildArtifact
+          path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLtBuild"
+
+      - name: download tSQLt dacpac artifact(s)
+        uses: actions/download-artifact@v2
+        with:
+          name: dacpacs
+          path: "${{ github.workspace }}\\tSQLt\\Build\\output\\DacpacBuild"
+
+      - name: inspect CreateArtifact directory
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\tSQLt\Build\output
+        run: |
+          Get-ChildItem . -Recurse
+
+      - name: package Build/output/tSQLt /public and /validation files
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\tSQLt\
+        run: |
+          .\Build\BuildtSQLtZip.ps1 -ErrorAction Stop
+
+      - name: create tSQLt public artifact
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: tSQLtPublic
+          path: "${{ env.tsqlt_public_artifact_dir }}\\"
+          retention-days: 90
+
+      - name: create tSQLt validation artifact
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: tSQLtValidation
+          path: "${{ env.tsqlt_validation_artifact_dir }}\\"
+          retention-days: 5
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  test-tSQLt-and-facade:
+    name: test build artifact
+    needs: [create-artifact,set-up-env-vars]
+    #if: ${{ always() }}
+
+    env:
+      TEST_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\temp\Validate\TestResults
+      SQLPACKAGE_HOME: C:\Program Files\Microsoft SQL Server\150\DAC\bin\
+      DACPAC_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\DacpacBuild
+      MATRIX_VERSIONS: ${{ format('{{"data-image":{0} }}',github.event.inputs.spawnDataImages) }}
+
+    strategy:
+      matrix: ${{ fromJson(needs.set-up-env-vars.outputs.matrixValues) }}
+      fail-fast: false
+
+    # More types found here, https://docs.github.com/en/free-pro-team@latest/actions/reference/specifications-for-github-hosted-runners
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout tSQLt
+        uses: actions/checkout@v2
+        with:
+          path: tSQLt
+
+      - name: download public tSQLt artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: tSQLtPublic
+          path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLt\\public"
+
+      - name: download validation tSQLt artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: tSQLtValidation
+          path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLt\\validation"
+
+      - name: load namespace variables into env
+        id: create-vars
+        shell: pwsh
+        run: |
+          $sqlcmdPath = (Get-Command sqlcmd).Path.TrimEnd("\\SQLCMD.EXE");
+          Write-Host ('::set-output name=sqlcmdPath::'+$sqlcmdPath);
+
+      - name: Install spawnctl
+        shell: pwsh
+        run: |
+          echo "Downloading and installing spawnctl..."
+          Invoke-WebRequest -Uri "https://run.spawn.cc/spawnctl.exe" -UseBasicParsing -OutFile "${{ github.workspace }}\spawnctl.exe"
+          & "${{ github.workspace }}\spawnctl.exe" version
+
+      - name: Create Container
+        id: create-container
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\spawnctl.exe" get data-images
+
+          $dataImageName = "${{ matrix.data-image }}";
+
+          echo "Creating 'tSQLtOnLinux' Spawn data container from image '$dataImageName'";
+          $containerName= & "${{ github.workspace }}\spawnctl.exe" create data-container --image $dataImageName --lifetime 30m -q
+          $containerJSON= & "${{ github.workspace }}\spawnctl.exe" get data-container $containerName -o json
+          $containerInfo = ConvertFrom-JSON -inputObject $containerJSON;
+          $containerFQDN=$containerInfo.host+", "+$containerInfo.port;
+          $containerUser=$containerInfo.user;
+          $containerPassword=$containerInfo.password;
+          echo "Successfully created Spawn data container '$containerName'"
+
+          Write-Host ('::set-output name=containerFQDN::'+$containerFQDN);
+          Write-Host ('::set-output name=containerUser::'+$containerUser);
+          Write-Host ('::set-output name=containerPassword::'+$containerPassword);
+
+        env:
+          SPAWNCTL_ACCESS_TOKEN: ${{ secrets.SPAWNCTL_ACCESS_TOKEN }} 
+
+      - name: print sql version info
+        shell: pwsh
+        run: |
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          Write-Host "";
+          # Write-Host Invoke-Sqlcmd -ConnectionTimeout 600 -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "${{ steps.create-container.outputs.containerFQDN }}" -Username "${{ steps.create-container.outputs.containerUser }}" -Password "${{ steps.create-container.outputs.containerPassword }}" -As DataSet
+          $DS = Invoke-Sqlcmd -ConnectionTimeout 600 -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "${{ steps.create-container.outputs.containerFQDN }}" -Username "${{ steps.create-container.outputs.containerUser }}" -Password "${{ steps.create-container.outputs.containerPassword }}" -As DataSet
+
+          $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" }    
+          Write-Host "";
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+
+      # @SM --> TODO: jUnit results
+      - name: ant Build/tSQLt.validatebuild.xml
+        working-directory: ${{ github.workspace }}\tSQLt\Build
+        run: ant -buildfile tSQLt.validatebuild.xml all -D"db.server"="${{ steps.create-container.outputs.containerFQDN }}" -D"db.name"=tSQLt_dev -D"db.login"="-U ${{ steps.create-container.outputs.containerUser }} -P ${{ steps.create-container.outputs.containerPassword }}" -D"sqlcmd.path"="${{ steps.create-vars.outputs.sqlcmdPath }}"  -D"sqlpackage.path"="$env:SQLPACKAGE_HOME"
+
+      - name: create junit artifact
+        shell: pwsh
+        run: |
+          $ArtifactPath = "$env:TEST_ARTIFACT_DIR\";
+          (Get-ChildItem $basePath -recurse -include "TestResults*.xml").FullName; 
+
+      - name: archive junit test artifact
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: jUnitTests-${{ matrix.data-image }}
+          path: "${{ env.test_artifact_dir }}\\"
+          retention-days: 90
+
+
+# # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+#   drop-data-container:
+#     name: drop the data container
+#     needs: test-tSQLt
+#     if: ${{ always() }}
+#     runs-on: ubuntu-latest
+#     env:
+#     steps:
+#       - name: decode az sp cred
+#         id: cred-decode
+#         shell: pwsh
+#         run: |
+#           Write-Host ('#TODO');
+#       # documentation: https://github.com/azure/login#configure-azure-credentials
