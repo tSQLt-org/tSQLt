@@ -7,6 +7,14 @@ CREATE PROCEDURE tSQLt.EnableExternalAccess
   @enable BIT = 1
 AS
 BEGIN
+  IF((SELECT HostPlatform FROM tSQLt.Info()) = 'Linux')
+  BEGIN
+    IF(@try = 0)
+    BEGIN
+      RAISERROR('tSQLt.EnableExternalAccess is not supported on Linux.',16,10);
+    END;
+    RETURN -1;
+  END;
   BEGIN TRY
     IF @enable = 1
     BEGIN

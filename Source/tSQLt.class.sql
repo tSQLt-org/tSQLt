@@ -8,8 +8,8 @@ CREATE TABLE tSQLt.TestResult(
     TranName NVARCHAR(MAX) NOT NULL,
     Result NVARCHAR(MAX) NULL,
     Msg NVARCHAR(MAX) NULL,
-    TestStartTime DATETIME NOT NULL CONSTRAINT [DF:TestResult(TestStartTime)] DEFAULT GETDATE(),
-    TestEndTime DATETIME NULL
+    TestStartTime DATETIME2 NOT NULL CONSTRAINT [DF:TestResult(TestStartTime)] DEFAULT SYSDATETIME(),
+    TestEndTime DATETIME2 NULL
 );
 GO
 CREATE TABLE tSQLt.TestMessage(
@@ -161,24 +161,6 @@ END
 GO
 
 ----------------------------------------------------------------------
-CREATE VIEW tSQLt.TestClasses
-AS
-  SELECT s.name AS Name, s.schema_id AS SchemaId
-    FROM sys.extended_properties ep
-    JOIN sys.schemas s
-      ON ep.major_id = s.schema_id
-   WHERE ep.name = N'tSQLt.TestClass';
-GO
-
-CREATE VIEW tSQLt.Tests
-AS
-  SELECT classes.SchemaId, classes.Name AS TestClassName, 
-         procs.object_id AS ObjectId, procs.name AS Name
-    FROM tSQLt.TestClasses classes
-    JOIN sys.procedures procs ON classes.SchemaId = procs.schema_id
-   WHERE LOWER(procs.name) LIKE 'test%';
-GO
-
 
 CREATE FUNCTION tSQLt.TestCaseSummary()
 RETURNS TABLE
@@ -541,13 +523,3 @@ RETURN
     ORDER BY ord
 GO
 
-CREATE PROCEDURE tSQLt.Uninstall
-AS
-BEGIN
-  DROP TYPE tSQLt.Private;
-
-  EXEC tSQLt.DropClass 'tSQLt';  
-  
-  DROP ASSEMBLY tSQLtCLR;
-END;
-GO

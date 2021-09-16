@@ -10,7 +10,11 @@ ECHO SQLCMDPath: "%~3"
 ECHO SQLVersion: "deprecated"
 ECHO SQLInstanceName: "%~4"
 ECHO DBName: "%~5"
-IF "%~6"=="-v" ECHO Verbose ON ELSE ECHO Verbose OFF
+ECHO DBLogin: "%~6"
+SET DBLogin=-E
+IF NOT "%~6"=="-v" IF NOT "%~6"=="" SET DBLogin=%~6
+IF "%~7"=="-v" ECHO Verbose ON ELSE ECHO Verbose OFF
+ECHO Final Value DBLogin: "%DBLogin%"
 
 REM CALL "%~1\bin\ant" -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path="%~2" -verbose || goto :error
 REM goto :EOF
@@ -18,14 +22,14 @@ REM goto :EOF
 ECHO +-------------------------+
 ECHO : Starting CLR BUILD      :
 ECHO +-------------------------+
-IF "%~6"=="-v" @ECHO ON
+IF "%~7"=="-v" @ECHO ON
 CALL "%~1\bin\ant" -buildfile Build\tSQLt.buildCLR.xml -Dmsbuild.path="%~2" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
 ECHO : Starting tSQLt BUILD    :
 ECHO +-------------------------+
-IF "%~6"=="-v" @ECHO ON
+IF "%~7"=="-v" @ECHO ON
 CALL "%~1\bin\ant" -buildfile Build\tSQLt.build.xml || goto :error
 @ECHO OFF
 
@@ -34,15 +38,15 @@ ECHO : Copying BUILD           :
 ECHO +-------------------------+
 ECHO :- THIS STEP IS OPTIONAL -:
 ECHO +-------------------------+
-IF "%~6"=="-v" @ECHO ON
+IF "%~7"=="-v" @ECHO ON
 CALL "%~1\bin\ant" -buildfile Build\tSQLt.copybuild.xml || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
-IF "%~6"=="-v" @ECHO ON
-CALL "%~1\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server=%~4 -Ddb.name=%~5 -Ddb.login="-E" -Dsqlcmd.path="\"%~3\"" || goto :error
+IF "%~7"=="-v" @ECHO ON
+CALL "%~1\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%~4" -Ddb.name=%~5 -Ddb.login="%DBLogin%" -Dsqlcmd.path="%~3" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

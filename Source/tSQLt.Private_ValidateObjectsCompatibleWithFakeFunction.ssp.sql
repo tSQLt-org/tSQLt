@@ -3,20 +3,44 @@ GO
 ---Build+
 GO
 CREATE PROCEDURE tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction
-  @FunctionName NVARCHAR(MAX),
-  @FakeFunctionName NVARCHAR(MAX),
-  @FunctionObjectId INT OUTPUT,
-  @FakeFunctionObjectId INT OUTPUT,
-  @IsScalarFunction BIT OUTPUT
+  @FunctionName         NVARCHAR(MAX),
+  @FakeFunctionName     NVARCHAR(MAX) = NULL,
+  @FakeDataSource       NVARCHAR(MAX) = NULL,
+  @FunctionObjectId     INT = NULL OUTPUT,
+  @FakeFunctionObjectId INT = NULL OUTPUT,
+  @IsScalarFunction     BIT = NULL OUTPUT
 AS
 BEGIN
   SET @FunctionObjectId = OBJECT_ID(@FunctionName);
-  SET @FakeFunctionObjectId = OBJECT_ID(@FakeFunctionName);
 
   IF(@FunctionObjectId IS NULL)
   BEGIN
     RAISERROR('%s does not exist!',16,10,@FunctionName);
   END;
+
+   IF COALESCE(@FakeFunctionName, @FakeDataSource) IS NULL
+   BEGIN
+      RAISERROR ('Either @FakeFunctionName or @FakeDataSource must be provided', 16, 10);
+   END;
+
+   IF (@FakeFunctionName  IS NOT NULL  AND @FakeDataSource IS NOT NULL )
+   BEGIN
+      RAISERROR ('Both @FakeFunctionName and @FakeDataSource are valued. Please use only one.', 16, 10);
+   END;
+
+   IF (@FakeDataSource IS NOT NULL ) 
+   BEGIN
+      IF NOT EXISTS (
+         SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(@FunctionName) and type in ('TF', 'IF', 'FT')
+      ) 
+      BEGIN
+         RAISERROR('You can use @FakeDataSource only with Inline, Multi-Statement or CLR Table-Valued functions.', 16, 10);
+      END
+    
+	  RETURN 0;
+   END
+
+  SET @FakeFunctionObjectId = OBJECT_ID(@FakeFunctionName);
   IF(@FakeFunctionObjectId IS NULL)
   BEGIN
     RAISERROR('%s does not exist!',16,10,@FakeFunctionName);
@@ -50,4 +74,3 @@ BEGIN
   END;	
 END;
 GO
-  

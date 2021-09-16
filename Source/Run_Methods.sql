@@ -97,7 +97,7 @@ BEGIN
       EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
 
       DECLARE @TmpMsg NVARCHAR(MAX);
-      DECLARE @TestEndTime DATETIME; SET @TestEndTime = NULL;
+      DECLARE @TestEndTime DATETIME2; SET @TestEndTime = NULL;
       BEGIN TRY
         IF(NOT EXISTS(SELECT 1 FROM #SkipTest))
         BEGIN
@@ -118,10 +118,10 @@ BEGIN
           SET @TmpMsg = '-->'+@TestName+' skipped: '+@Msg;
           EXEC tSQLt.Private_Print @Message = @TmpMsg;
         END;
-        SET @TestEndTime = GETDATE();
+        SET @TestEndTime = SYSDATETIME();
       END TRY
       BEGIN CATCH
-          SET @TestEndTime = ISNULL(@TestEndTime,GETDATE());
+          SET @TestEndTime = ISNULL(@TestEndTime,SYSDATETIME());
           IF ERROR_MESSAGE() LIKE '%tSQLt.Failure%'
           BEGIN
               SELECT @Msg = Msg FROM tSQLt.TestMessage;
@@ -474,7 +474,7 @@ CREATE PROCEDURE tSQLt.Private_InputBuffer
   @InputBuffer NVARCHAR(MAX) OUTPUT
 AS
 BEGIN
-  CREATE TABLE #inputbuffer(EventType SYSNAME, Parameters SMALLINT, EventInfo NVARCHAR(MAX));
+  CREATE TABLE #inputbuffer(EventType sysname, Parameters SMALLINT, EventInfo NVARCHAR(MAX));
   INSERT INTO #inputbuffer
   EXEC('DBCC INPUTBUFFER(@@SPID) WITH NO_INFOMSGS;');
   SELECT @InputBuffer = I.EventInfo FROM #inputbuffer AS I;

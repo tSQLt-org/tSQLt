@@ -159,29 +159,48 @@ BEGIN
   DECLARE @TestClassName NVARCHAR(MAX);
   DECLARE @TestProcName NVARCHAR(MAX);
 
-  DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
+  DECLARE testsWithExtendedProperty CURSOR LOCAL FAST_FORWARD FOR
    SELECT DISTINCT s.name AS testClassName
      FROM sys.extended_properties ep
      JOIN sys.schemas s
        ON ep.major_id = s.schema_id
     WHERE ep.name = N'tSQLt.TestClass';
 
-  OPEN tests;
+  OPEN testsWithExtendedProperty;
   
-  FETCH NEXT FROM tests INTO @TestClassName;
+  FETCH NEXT FROM testsWithExtendedProperty INTO @TestClassName;
   WHILE @@FETCH_STATUS = 0
   BEGIN
     EXEC sp_dropextendedproperty @name = 'tSQLt.TestClass',
                                  @level0type = 'SCHEMA',
                                  @level0name = @TestClassName;
     
-    FETCH NEXT FROM tests INTO @TestClassName;
+    FETCH NEXT FROM testsWithExtendedProperty INTO @TestClassName;
   END;
   
-  CLOSE tests;
-  DEALLOCATE tests;
+  CLOSE testsWithExtendedProperty;
+  DEALLOCATE testsWithExtendedProperty;
+
+  DECLARE testsWithSchemaClassification CURSOR LOCAL FAST_FORWARD FOR
+   SELECT DISTINCT s.name AS testClassName
+     FROM sys.schemas s
+    WHERE s.principal_id = USER_ID('tSQLt.TestClass');
+
+  OPEN testsWithSchemaClassification;
+  
+  FETCH NEXT FROM testsWithSchemaClassification INTO @TestClassName;
+  WHILE @@FETCH_STATUS = 0
+  BEGIN
+    DECLARE @cmd NVARCHAR(MAX) = 'ALTER AUTHORIZATION ON SCHEMA::'+QUOTENAME(@TestClassName)+' TO dbo;';
+    EXEC(@cmd);
+    FETCH NEXT FROM testsWithSchemaClassification INTO @TestClassName;
+  END;
+  
+  CLOSE testsWithSchemaClassification;
+  DEALLOCATE testsWithSchemaClassification;
 END;
 GO
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 
@@ -328,7 +347,7 @@ BEGIN
   BEGIN
     EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = 16
   END;
-  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Failure = 0 AND MRL.Error = 0))
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Skipped = 0))
   BEGIN
     EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = 16
   END;
@@ -359,6 +378,19 @@ BEGIN
    EXEC tSQLt.Fail 'Expected to find ',@Pattern,' in ',@Table,' but didn''t. Table was empty.';
  END;
 END;
+GO
+CREATE PROCEDURE tSQLt_testutil.WaitForMS
+  @milliseconds INT
+AS
+BEGIN
+  --WAITFOR DELAY might return significantly earlier than one would expect. Hence this workaround...
+  DECLARE @EndTime DATETIME2 = DATEADD(MILLISECOND,@milliseconds,SYSDATETIME());
+  WHILE(SYSDATETIME()<@EndTime)
+  BEGIN
+    WAITFOR DELAY '00:00:00.010';
+  END;
+END;
+GO
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

@@ -2,20 +2,7 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="CI">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
-      <Items>
-        <ConnectionNode Name="Dev_tSQLt:WIN10A\meinse00">
-          <Created>2020-05-01T09:42:44.6867376-04:00</Created>
-          <Type>SQL</Type>
-          <Server>Dev_tSQLt</Server>
-          <UserName />
-          <Authentication>Windows Authentication</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-      </Items>
+      <Items />
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -26,14 +13,14 @@
           <FullPath>Enable_tSQLt_SA_Login.sql</FullPath>
         </FileNode>
         <FileNode Name="GetSQLServerVersion.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>GetSQLServerVersion.sql</FullPath>
         </FileNode>
         <FileNode Name="PrepSQLServer.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>PrepSQLServer.sql</FullPath>
         </FileNode>
@@ -71,11 +58,23 @@
           <AssociatedConnUserName />
           <FullPath>AZ_TempTest.yml</FullPath>
         </FileNode>
+        <FileNode Name="AZ_ValidateARMTemplates.yml">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>AZ_ValidateARMTemplates.yml</FullPath>
+        </FileNode>
         <FileNode Name="AZ_ValidateBuild.yml">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AZ_ValidateBuild.yml</FullPath>
+        </FileNode>
+        <FileNode Name="CommonFunctionsAndMethods.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>CommonFunctionsAndMethods.ps1n</FullPath>
         </FileNode>
         <FileNode Name="ContributorWithAuthorizationDelete.json">
           <AssociatedConnectionMoniker />
@@ -89,47 +88,11 @@
           <AssociatedConnUserName />
           <FullPath>CreateSqlVirtualMachineTemplate.json</FullPath>
         </FileNode>
-        <FileNode Name="CreateVMTemplate.json">
+        <FileNode Name="CreateSQLVM.ps1">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>CreateVMTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="CreateVNetTemplate.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>CreateVNetTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="CreateDevTestLabTemplate.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>CreateDevTestLabTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="DSCTemplate.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>DSCTemplate.json</FullPath>
-        </FileNode>
-        <FileNode Name="GetLabVMParams.ps1">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>GetLabVMParams.ps1</FullPath>
-        </FileNode>
-        <FileNode Name="SQL2008SP3_ARM_parms.txt">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>SQL2008SP3_ARM_parms.txt</FullPath>
-        </FileNode>
-        <FileNode Name="SQLServer.arm">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>SQLServer.arm</FullPath>
+          <FullPath>CreateSQLVM.ps1</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
