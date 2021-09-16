@@ -100,7 +100,7 @@ stages:
           Log-Output "ResourceGroupName: $ResourceGroupName";
           Write-Host "##vso[task.setvariable variable=ResourceGroupName;isOutput=true]$ResourceGroupName";
 
-    - task: AzurePowerShell@4
+    - task: AzureCLI@2
       name: CreateSQLVMEnvironment
       env:
         SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
@@ -113,8 +113,9 @@ stages:
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         azurePowerShellVersion: 'LatestVersion'
-        ScriptType: 'InlineScript'
-        Inline: |
+        ScriptType: ps
+        ScriptLocation: inlineScript
+        inlineScript: |
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
           .("Build/CommonFunctionsAndMethods.ps1")
 
