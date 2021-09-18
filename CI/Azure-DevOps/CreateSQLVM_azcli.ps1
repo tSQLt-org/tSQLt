@@ -141,7 +141,7 @@ if (!$output) {
     Log-Output "InterfaceName: ", $InterfaceName;
     Log-Output "Size: ", $Size;
     Write-Error "Error creating vm";
-    return
+    return;
 }
 
 $VMResourceId = (az vm show --resource-group $ResourceGroupName --name $VMName --query id --output tsv)
@@ -149,8 +149,12 @@ Log-Output "VmResourceId: ", $VmResourceId;
 Log-Output "DONE: Creating VM $VMName";
 
 Log-Output 'START: Applying SqlVM Config'
-az deployment group create --resource-group $ResourceGroupName --template-file "$dir/CreateSQLVirtualMachineTemplate.bicep" `
-                    --parameters sqlPortNumber=$SQLPort sqlAuthenticationLogin="$SQLUserName" sqlAuthenticationPassword="$SQLPwd" newVMName="$VMName" newVMRID="$VmResourceId"
+$output = az deployment group create --resource-group $ResourceGroupName --template-file "$dir/CreateSQLVirtualMachineTemplate.bicep" `
+                    --parameters sqlPortNumber=$SQLPort sqlAuthenticationLogin="$SQLUserName" sqlAuthenticationPassword="$SQLPwd" newVMName="$VMName" newVMRID="$VmResourceId" | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating SqlVM";
+    return;
+}
 $SQLVM|Out-String|Log-Output;
 Log-Output 'DONE: Applying SqlVM Config'
 
