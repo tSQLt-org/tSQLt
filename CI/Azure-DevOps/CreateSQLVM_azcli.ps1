@@ -73,16 +73,16 @@ if (!$output) {
 }
 Log-Output "DONE: Creating Resource Group $ResourceGroupName";
 
-Log-Output "START: Creating VNet";
+Log-Output "START: Creating VNet $VNetName";
 $output = az network vnet create --name "$VNetName" --resource-group "$ResourceGroupName" --location $Location --address-prefixes 192.168.0.0/16 `
             --subnet-name "$SubnetName" --subnet-prefixes 192.168.1.0/24 | ConvertFrom-Json;
 if (!$output) {
-    Write-Error "Error creating VNet";
+    Write-Error "Error creating VNet $VNetName";
     return
 }
 Log-Output "DONE: Creating VNet";
 
-Log-Output "START: Creating PIP";
+Log-Output "START: Creating PIP $PipName";
 $output = az network public-ip create --name $PipName --resource-group $ResourceGroupName --allocation-method Static --idle-timeout 4 `
                 --location $Location | ConvertFrom-Json;
 if (!$output) {
@@ -91,7 +91,7 @@ if (!$output) {
 }
 $FQDN = (az network public-ip show --resource-group $ResourceGroupName --name $PipName --query "ipAddress" --output tsv)
 Log-Output "FQDN: ", $FQDN;
-Log-Output "DONE: Creating PIP";
+Log-Output "DONE: Creating PIP $PipName";
 
 Log-Output "START: Creating NSG and Rules";
 $output = az network nsg create --name $NsgName --resource-group $ResourceGroupName --location $Location | ConvertFrom-Json;
@@ -125,15 +125,11 @@ if (!$output) {
 Log-Output "DONE: Creating NIC";
 
 Log-Output "Creating VM";
-<#
-az vm create --name V1234-2014 --resource-group aTestRG6 --location "$VMLocation" --admin-password "$VMAdminPwd" --admin-username "$VMAdminName" `
---computer-name V1234-2014 --image "$ImageUrn" --nics aTestRG6_nic --priority Spot `
---size $VMSize
-#>
 $output = az vm create --name "$VMName" --resource-group "$ResourceGroupName" --location "$Location" --admin-password "$VMAdminPwd" `
             --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority Spot `
             --size $Size | ConvertFrom-Json;
 if (!$output) {
+    Get-History -Count 3 # gets the three most recent history entries
     Write-Error "Error creating vm";
     return
 }
