@@ -93,7 +93,7 @@ $FQDN = (az network public-ip show --resource-group $ResourceGroupName --name $P
 Log-Output "FQDN: ", $FQDN;
 Log-Output "DONE: Creating PIP $PipName";
 
-Log-Output "START: Creating NSG and Rules";
+Log-Output "START: Creating NSG and Rules $NsgName";
 $output = az network nsg create --name $NsgName --resource-group $ResourceGroupName --location $Location | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating NIC";
@@ -113,30 +113,31 @@ if (!$output) {
     Write-Error "Error creating NIC MSSQLRule";
     return
 }
-Log-Output "DONE: Creating NSG and Rules";
+Log-Output "DONE: Creating NSG and Rules $NsgName";
 
-Log-Output "START: Creating NIC";
+Log-Output "START: Creating NIC $InterfaceName";
 $output = az network nic create --name $InterfaceName --resource-group $ResourceGroupName --subnet $SubnetName --vnet-name $VNetName `
             --location $Location --network-security-group $NsgName --public-ip-address $PipName | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating NIC";
     return
 }
-Log-Output "DONE: Creating NIC";
+Log-Output "DONE: Creating NIC $InterfaceName";
 
-Log-Output "Creating VM";
+Log-Output "Creating VM $VMName";
 $output = az vm create --name "$VMName" --resource-group "$ResourceGroupName" --location "$Location" --admin-password "$VMAdminPwd" `
             --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority Spot `
             --size $Size | ConvertFrom-Json;
 if (!$output) {
-    Get-History -Count 3 # gets the three most recent history entries
+    $history = Get-History -Count 3; # gets the three most recent history entries
+    Log-Output "CommandLine History: ", $history;
     Write-Error "Error creating vm";
     return
 }
 
 $VMResourceId = (az vm show --resource-group $ResourceGroupName --name $VMName --query id --output tsv)
 Log-Output "VmResourceId: ", $VmResourceId;
-Log-Output "DONE: Creating VM";
+Log-Output "DONE: Creating VM $VMName";
 
 Log-Output 'START: Applying SqlVM Config'
 
