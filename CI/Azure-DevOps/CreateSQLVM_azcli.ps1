@@ -95,9 +95,14 @@ az vm create --name V1234-2014 --resource-group aTestRG6 --location "$VMLocation
 --computer-name V1234-2014 --image "$ImageUrn" --nics aTestRG6_nic --priority Spot `
 --size $VMSize
 #>
-az vm create --name $VMName --resource-group $ResourceGroupName --location $Location --admin-password $VMAdminPwd --admin-username $VMAdminName `
+$output = az vm create --name $VMName --resource-group $ResourceGroupName --location $Location --admin-password "$VMAdminPwd" --admin-username "$VMAdminName" `
             --computer-name $VMName --image $ImageUrn --nics $InterfaceName --priority Spot `
-            --size $Size
+            --size $Size | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating vm";
+    return
+}
+
 $VMResourceId = (az vm show --resource-group $ResourceGroupName --name $VMName --query id --output tsv)
 Log-Output "VmResourceId: ", $VmResourceId;
 Log-Output "DONE: Creating VM";
