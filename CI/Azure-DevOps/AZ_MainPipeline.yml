@@ -51,7 +51,7 @@ variables:
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
   - name: SQLCMDPath
-    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+    value: 'C:\Program Files\Microsoft SQL Server\130\Tools\Binn'
   - name: SQLPackagePath
     value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin'
 
@@ -631,13 +631,14 @@ stages:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
         
     steps:
-    - task: AzurePowerShell@4
+    - task: AzureCLI@2
       name: DeleteAzureVM
       inputs:
         azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
         azurePowerShellVersion: 'LatestVersion'
-        ScriptType: 'InlineScript'
-        Inline: |
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
           $inputObject = @'
           $(databaseAccessDetails)
           '@;
@@ -649,4 +650,8 @@ stages:
           .("Build/CommonFunctionsAndMethods.ps1")
     
           $ResourceGroupName | Log-Output;
-          Remove-ResourceGroup -ResourceGroupName $ResourceGroupName -BuildId $(Build.BuildId)
+          $output = az group delete --name $ResourceGroupName --no-wait | ConvertTo-Json;
+          if (!$output) {
+            Write-Error "Error deleting Resource Group $ResourceGroupName";
+            return;
+          }
