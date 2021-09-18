@@ -66,27 +66,62 @@ Log-Output "ImageUrn:  ", $ImageUrn;
 Log-Output "SQLVersionEditionInfo:  ", $SQLVersionEditionInfo;
 
 Log-Output "START: Creating Resource Group $ResourceGroupName";
-az group create --location "$Location" --name "$ResourceGroupName"
+$output = az group create --location "$Location" --name "$ResourceGroupName" | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating Resource Group";
+    return
+}
 Log-Output "DONE: Creating Resource Group $ResourceGroupName";
 
 Log-Output "START: Creating VNet";
-az network vnet create --name "$VNetName" --resource-group "$ResourceGroupName" --location $Location --address-prefixes 192.168.0.0/16 --subnet-name "$SubnetName" --subnet-prefixes 192.168.1.0/24
+$output = az network vnet create --name "$VNetName" --resource-group "$ResourceGroupName" --location $Location --address-prefixes 192.168.0.0/16 `
+            --subnet-name "$SubnetName" --subnet-prefixes 192.168.1.0/24 | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating VNet";
+    return
+}
 Log-Output "DONE: Creating VNet";
 
 Log-Output "START: Creating PIP";
-az network public-ip create --name $PipName --resource-group $ResourceGroupName --allocation-method Static --idle-timeout 4 --location $Location 
+$output = az network public-ip create --name $PipName --resource-group $ResourceGroupName --allocation-method Static --idle-timeout 4 `
+                --location $Location | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating PIP";
+    return
+}
 $FQDN = (az network public-ip show --resource-group $ResourceGroupName --name $PipName --query "ipAddress" --output tsv)
 Log-Output "FQDN: ", $FQDN;
 Log-Output "DONE: Creating PIP";
 
 Log-Output "START: Creating NSG and Rules";
-az network nsg create --name $NsgName --resource-group $ResourceGroupName --location $Location 
-az network nsg rule create --name "RDPRule" --nsg-name $NsgName --priority 1000 --resource-group $ResourceGroupName --access Allow --destination-address-prefixes * --destination-port-ranges 3389 --direction Inbound --protocol Tcp --source-address-prefixes * --source-port-ranges *
-az network nsg rule create --name "MSSQLRule" --nsg-name $NsgName --priority 1001 --resource-group $ResourceGroupName --access Allow --destination-address-prefixes * --destination-port-ranges $SQLPort --direction Inbound --protocol Tcp --source-address-prefixes * --source-port-ranges *
+$output = az network nsg create --name $NsgName --resource-group $ResourceGroupName --location $Location | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating NIC";
+    return
+}
+$output = az network nsg rule create --name "RDPRule" --nsg-name $NsgName --priority 1000 --resource-group $ResourceGroupName --access Allow `
+            --destination-address-prefixes * --destination-port-ranges 3389 --direction Inbound --protocol Tcp --source-address-prefixes * `
+            --source-port-ranges * | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating NIC RDPRule";
+    return
+}
+$output = az network nsg rule create --name "MSSQLRule" --nsg-name $NsgName --priority 1001 --resource-group $ResourceGroupName --access Allow `
+            --destination-address-prefixes * --destination-port-ranges $SQLPort --direction Inbound --protocol Tcp --source-address-prefixes * `
+            --source-port-ranges * | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating NIC MSSQLRule";
+    return
+}
 Log-Output "DONE: Creating NSG and Rules";
 
 Log-Output "START: Creating NIC";
-az network nic create --name $InterfaceName --resource-group $ResourceGroupName --subnet $SubnetName --vnet-name $VNetName --location $Location --network-security-group $NsgName --public-ip-address $PipName 
+$output = az network nic create --name $InterfaceName --resource-group $ResourceGroupName --subnet $SubnetName --vnet-name $VNetName `
+            --location $Location --network-security-group $NsgName --public-ip-address $PipName | ConvertFrom-Json;
+if (!$output) {
+    Write-Error "Error creating NIC";
+    return
+}
 Log-Output "DONE: Creating NIC";
 
 Log-Output "Creating VM";
@@ -95,8 +130,8 @@ az vm create --name V1234-2014 --resource-group aTestRG6 --location "$VMLocation
 --computer-name V1234-2014 --image "$ImageUrn" --nics aTestRG6_nic --priority Spot `
 --size $VMSize
 #>
-$output = az vm create --name $VMName --resource-group $ResourceGroupName --location $Location --admin-password "$VMAdminPwd" --admin-username "$VMAdminName" `
-            --computer-name $VMName --image $ImageUrn --nics $InterfaceName --priority Spot `
+$output = az vm create --name "$VMName" --resource-group "$ResourceGroupName" --location "$Location" --admin-password "$VMAdminPwd" `
+            --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority Spot `
             --size $Size | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating vm";
