@@ -128,6 +128,12 @@ Log-Output "DONE: Creating NIC $InterfaceName";
 Log-Output "Creating VM $VMName";
 <#
 TODO: WHY DOESN'T THIS WORK
+
+--admin-password
+Password for the VM if authentication type is 'Password'.
+
+--admin-username
+Username for the VM. Default value is current username of OS. If the default value is system reserved, then default value will be set to azureuser. Please refer to https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/createorupdate#osprofile to get a full list of reserved values.
 #>
 $VMAdminPwd = "a1n2o3th4##!r5Pa6ss7wo8rd";
 $VMAdminName = "vmadminusername1";

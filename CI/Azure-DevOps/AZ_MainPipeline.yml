@@ -5,7 +5,7 @@ trigger: none
 pr: none
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'vs2017-win2016'
 
 parameters: # TODO, these don't work for scheduled pipelines, not even the defaults. Fix it. Hint: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/runtime-parameters?view=azure-devops&tabs=script#check-for-an-empty-parameter-object
   - name: VMMatrix
@@ -51,7 +51,7 @@ variables:
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
   - name: SQLCMDPath
-    value: 'C:\Program Files\Microsoft SQL Server\130\Tools\Binn'
+    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
   - name: SQLPackagePath
     value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin'
 
@@ -650,8 +650,4 @@ stages:
           .("Build/CommonFunctionsAndMethods.ps1")
     
           $ResourceGroupName | Log-Output;
-          $output = az group delete --name $ResourceGroupName --no-wait | ConvertTo-Json;
-          if (!$output) {
-            Write-Error "Error deleting Resource Group $ResourceGroupName";
-            return;
-          }
+          az group delete --name $ResourceGroupName --yes
