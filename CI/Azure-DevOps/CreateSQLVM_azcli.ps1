@@ -80,7 +80,7 @@ if (!$output) {
     Write-Error "Error creating VNet $VNetName";
     return
 }
-Log-Output "DONE: Creating VNet";
+Log-Output "DONE: Creating VNet $VNetName";
 
 Log-Output "START: Creating PIP $PipName";
 $output = az network public-ip create --name $PipName --resource-group $ResourceGroupName --allocation-method Static --idle-timeout 4 `
@@ -129,8 +129,15 @@ $output = az vm create --name "$VMName" --resource-group "$ResourceGroupName" --
             --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority Spot `
             --size $Size | ConvertFrom-Json;
 if (!$output) {
-    $history = Get-History -Count 3; # gets the three most recent history entries
-    Log-Output "CommandLine History: ", $history;
+    Log-Output "VMName: ", $VMName;
+    Log-Output "ResourceGroupName: ", $ResourceGroupName;
+    Log-Output "Location: ", $Location;
+    Log-Output "VMAdminPwd: ", $VMAdminPwd;
+    Log-Output "VMAdminName: ", $VMAdminName;
+    Log-Output "VMName: ", $VMName;
+    Log-Output "ImageUrn: ", $ImageUrn;
+    Log-Output "InterfaceName: ", $InterfaceName;
+    Log-Output "Size: ", $Size;
     Write-Error "Error creating vm";
     return
 }
