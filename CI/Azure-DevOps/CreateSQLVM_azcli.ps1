@@ -21,13 +21,14 @@ $projectDir = Split-Path (Split-Path $dir);
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Log-Output "FileLocation: ", $dir;
 Log-Output "Project Location: ", $projectDir;
-Log-Output "Parameters:";
-Log-Output "ResourceGroupName:", $ResourceGroupName;
+Log-Output "Parameters: ---------------------------";
 Log-Output "Location:", $Location;
 Log-Output "Size:", $Size;
+Log-Output "ResourceGroupName:", $ResourceGroupName;
 Log-Output "BuildId:", $BuildId;
 Log-Output "SQLVersionEdition:", $SQLVersionEdition;
 Log-Output "SQLPort:", $SQLPort;
+Log-Output "Parameters: ---------------------------";
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 
 $VNetName = $ResourceGroupName+'_VNet';
@@ -125,6 +126,11 @@ if (!$output) {
 Log-Output "DONE: Creating NIC $InterfaceName";
 
 Log-Output "Creating VM $VMName";
+<#
+TODO: WHY DOESN'T THIS WORK
+#>
+$VMAdminPwd = "a1n2o3th4##!r5Pa6ss7wo8rd";
+$VMAdminName = "vmadminusername1";
 $output = az vm create --name "$VMName" --resource-group "$ResourceGroupName" --location "$Location" --admin-password "$VMAdminPwd" `
             --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority Spot `
             --size $Size | ConvertFrom-Json;
@@ -147,14 +153,6 @@ Log-Output "VmResourceId: ", $VmResourceId;
 Log-Output "DONE: Creating VM $VMName";
 
 Log-Output 'START: Applying SqlVM Config'
-
-$sqlVMParameters = @{
-    "sqlPortNumber" = $SQLPort
-    "sqlAuthenticationLogin" = "$SQLUserName"
-    "sqlAuthenticationPassword" = "$SQLPwd"
-    "newVMName" = "$VMName"
-    "newVMRID" = "$VmResourceId"
-};
 az deployment group create --resource-group $ResourceGroupName --template-file "$dir/CreateSQLVirtualMachineTemplate.bicep" `
                     --parameters sqlPortNumber=$SQLPort sqlAuthenticationLogin="$SQLUserName" sqlAuthenticationPassword="$SQLPwd" newVMName="$VMName" newVMRID="$VmResourceId"
 $SQLVM|Out-String|Log-Output;
