@@ -19,7 +19,7 @@ schedules:
     always: true
 
 pool:
-  vmImage: 'vs2017-win2016'
+  vmImage: 'windows-latest'
 
 parameters:
 - name: SQLCMDPath
