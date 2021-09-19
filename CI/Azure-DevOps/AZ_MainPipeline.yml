@@ -5,7 +5,7 @@ trigger: none
 pr: none
 
 pool:
-  vmImage: 'vs2017-win2016'
+  vmImage: 'windows-latest'
 
 parameters: # TODO, these don't work for scheduled pipelines, not even the defaults. Fix it. Hint: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/runtime-parameters?view=azure-devops&tabs=script#check-for-an-empty-parameter-object
   - name: VMMatrix
@@ -51,7 +51,8 @@ variables:
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
   - name: SQLCMDPath
-    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+#    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn' for vmImage: 'vs2017-win2016'
+    value: 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\SQLCMD.EXE'
   - name: SQLPackagePath
     value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin'
 
