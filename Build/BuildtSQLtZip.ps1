@@ -9,7 +9,8 @@ $TempPath = $dir + "/temp/tSQLt/";
 $PublicOutputPath = $OutputPath + "public/";
 $PublicTempPath = $TempPath + "public/";
 $ValidationOutputPath = $OutputPath + "validation/";
-$FacadePath = $PublicTempPath + "/Facade/";
+$FacadeDacpacPath = $PublicTempPath + "/FacadeDacpacs/";
+$tSQLtDacpacPath = $PublicTempPath + "/tSQLtDacpacs/";
 $tSQLtFilesZipPath = $dir + "/output/tSQLtBuild/tSQLtFiles.zip";
 $PublicOutputFiles = @(($dir + "/output/tSQLtBuild/ReadMe.txt"), ($dir + "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip"));
 $ValidationOutputFiles = @(($dir + "/output/tSQLtBuild/Version.txt"), ($dir + "/output/tSQLtBuild/CommitId.txt"), ($dir + "/output/tSQLtBuild/tSQLt.tests.zip"), ($dir + "/output/tSQLtBuild/tSQLtFacade.zip")); 
@@ -19,13 +20,15 @@ Remove-DirectoryQuietly -Path $TempPath;
 Remove-DirectoryQuietly -Path $OutputPath;
 
 <# Init directories, capturing the return values in a variable so that they don't print. #>
-$publicOutputDir = New-Item -ItemType "directory" -Path $PublicOutputPath;
-$facadeDir = New-Item -ItemType "directory" -Path $FacadePath;
-$validationOutputDir = New-Item -ItemType "directory" -Path $ValidationOutputPath;
+$eatPublicOutputDir = New-Item -ItemType "directory" -Path $PublicOutputPath;
+$eatFacadeDacpacsDir = New-Item -ItemType "directory" -Path $FacadeDacpacPath;
+$eattSQLtDacpacsDir = New-Item -ItemType "directory" -Path $tSQLtDacpacPath;
+$eatValidationOutputDir = New-Item -ItemType "directory" -Path $ValidationOutputPath;
 
 <# Copy files to temp path #>
 Expand-Archive -Path ($tSQLtFilesZipPath) -DestinationPath $PublicTempPath;
-Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadePath;
+Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadeDacpacPath;
+Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLt.*.dacpac") | Copy-Item -Destination $tSQLtDacpacPath;
 
 <# Create the tSQLt.zip in the public output path #>
 $compress = @{
