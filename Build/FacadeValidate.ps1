@@ -19,7 +19,7 @@ $dir = Split-Path $scriptpath
 Log-Output "FileLocation: $dir"
 
 $TempPath = $dir + "/temp/Validate";
-$FacadeFilesPath = $TempPath + "/Facade";
+$FacadeFilesPath = $TempPath + "/FacadeDacpacs";
 $TestResultsPath = $TempPath + "/TestResults/TestResults_Facade.xml";
 
 $ServerNameTrimmed = $ServerName.Trim();
