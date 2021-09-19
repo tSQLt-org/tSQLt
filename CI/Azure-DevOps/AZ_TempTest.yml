@@ -41,14 +41,10 @@ variables:
     value: tSQLt$(Build.SourceVersion)
 
 stages:
-- stage: antCallTesting
+- stage: Find_SQLCMD
   jobs:
   - job:
     steps:
-    - checkout: self
-      clean: true
-      lfs: false
-      path: tSQLt
 
     - task: PowerShell@2
       name: Find_SQLCMD
@@ -56,4 +52,17 @@ stages:
         targetType: 'inline'
         script: |
           $x = get-ChildItem -path C:\program* -include sqlcmd.exe -recurse -ErrorAction Ignore
+          $x|%{$_.FullName}
+
+- stage: Find_SqlPackage
+  jobs:
+  - job:
+    steps:
+
+    - task: PowerShell@2
+      name: Find_SqlPackage
+      inputs:
+        targetType: 'inline'
+        script: |
+          $x = get-ChildItem -path C:\program* -include sqlpackage.exe -recurse -ErrorAction Ignore
           $x|%{$_.FullName}
