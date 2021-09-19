@@ -120,8 +120,7 @@ stages:
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
           $SQLUserName = "$env:SQL_USER_NAME";
-          # $SQLPwd = "$env:SQL_PASSWORD"; #TODO, randomize password, instead of taking it directly from the key vault
-          $SQLPwd = "somethingrandom";
+          $SQLPwd = "$env:SQL_PASSWORD"; #TODO, randomize password, instead of taking it directly from the key vault
 
           Log-Output '==========================================================';
           Log-Output 'Executing CreateSQLVM.ps1';
