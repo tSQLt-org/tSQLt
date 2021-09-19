@@ -52,7 +52,7 @@ variables:
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
   - name: SQLCMDPath
 #    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn' for vmImage: 'vs2017-win2016'
-    value: 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\SQLCMD.EXE'
+    value: 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn'
   - name: SQLPackagePath
     value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin'
 
