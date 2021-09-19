@@ -12,13 +12,13 @@ $FileNamesToExclude = ".gitignore", "Build_Debug.ssmssqlproj";
 Remove-Item  -Path $DebugProjectPath -Include "*" -Exclude $FileNamesToExclude -Recurse -Force;
 
 <# "hello announcement" #>
-$VersionFile = "output/tSQLtBuild/Version.txt";
+$VersionFile = $OutputPath + "tSQLtBuild/Version.txt";
 $Version = Get-Content $VersionFile;
 Log-Output ("Copying tSQLt build files to local Build_Debug. (Version:" + $Version.Trim() + ")");
 
 <# "copy output files and unzip tSQLt.zip and tSQLt.tests.zip" #>
 $OutputFilesToCopy = @(
-    ($OutputPath + "tSQLt/tSQLt.zip")
+    ($OutputPath + "tSQLt/public/tSQLt.zip")
     ($OutputPath + "tSQLtBuild/tSQLt.tests.zip")
     ($OutputPath + "tSQLtBuild/tSQLtSnippets(SQLPrompt).zip")
     ($OutputPath + "tSQLtBuild/Version.txt")
