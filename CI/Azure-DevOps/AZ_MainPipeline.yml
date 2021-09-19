@@ -370,7 +370,7 @@ stages:
       name: DownloadtSQLtDacpacArtifact
       inputs:
         buildType: 'current'
-        patterns: '**/tSQLtFacade.*.dacpac'
+        patterns: '**/tSQLt*.*.dacpac'
         targetPath: '$(Pipeline.Workspace)/dacpacArtifactTmp'
 
     - task: PowerShell@2
