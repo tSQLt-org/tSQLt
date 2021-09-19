@@ -11,8 +11,8 @@ $createBuildDb = Get-Content "../Build/CreateBuildDb.sql";
 Set-Content "../Build/temp/tSQLtBuild/Facade/CreateSourceDb.sql" $createBuildDb.Replace('$(NewDbName)', '$(FacadeSourceDb)');
 Set-Content "../Build/temp/tSQLtBuild/Facade/CreateTargetDb.sql" $createBuildDb.Replace('$(NewDbName)', '$(FacadeTargetDb)');
 
-$facadeHeader3 = 'USE $(FacadeSourceDb);'
-Set-Content "../Build/temp/tSQLtBuild/Facade/FacadeHeader3.ps1" $facadeHeader3;
+$sourceDbUseStatement = 'USE $(FacadeSourceDb);'
+Set-Content "../Build/temp/tSQLtBuild/Facade/SourceDbUseStatement.sql" $sourceDbUseStatement;
 
 ../Build/BuildHelper.exe "BuildOrder.txt" "../Build/temp/tSQLtBuild/Facade/FacadeScript.sql"
 

@@ -41,24 +41,33 @@ Expand-Archive -Path "./output/tSQLtBuild/tSQLtFacade.zip" -DestinationPath $Tem
 Set-Location $TempPath;
 
 $SourceDatabaseName = $DatabaseName+"_src";
+$TargetDatabaseName = $DatabaseName+"_tgt";
 $AdditionalParameters = '-v FacadeSourceDb="'+$SourceDatabaseName+'" FacadeTargetDb="'+$DatabaseName+'_tgt"'
 
+$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $SourceDatabaseName;
+$FacadeDacpacFileName = "tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
+$FacadeApplicationName = "tSQLtFacade."+$FriendlySQLServerVersion;
+$FacadeConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $TargetDatabaseName;
+
+$tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
+$tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
+$tSQLtConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $SourceDatabaseName;
 
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames @("ResetValidationServer.sql","PrepareServer.sql");
 
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
 
-$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $SourceDatabaseName;
-$FacadeFileName = "tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
-$DacpacApplicationName = "tSQLtFacade."+$FriendlySQLServerVersion;
-$TargetDatabaseName = $DatabaseName+"_tgt";
-$SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $TargetDatabaseName;
-
-& "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$SqlConnectionString" /tf:"$FacadeFileName" /p:DacApplicationName="$DacpacApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
+& "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$FacadeConnectionString" /tf:"$FacadeDacpacFileName" /p:DacApplicationName="$FacadeApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
 if($LASTEXITCODE -ne 0) {
-    throw "error during execution of dacpac " + $FacadeFileName;
+    throw "error during execution of dacpac " + $FacadeDacpacFileName;
 }
 
-Copy-Item -Path $FacadeFileName -Destination $OutputPath;
+& "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$tSQLtConnectionString" /tf:"$tSQLtDacpacFileName" /p:DacApplicationName="$tSQLtApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
+if($LASTEXITCODE -ne 0) {
+    throw "error during execution of dacpac " + $tSQLtDacpacFileName;
+}
+
+Copy-Item -Path $FacadeDacpacFileName -Destination $OutputPath;
+Copy-Item -Path $tSQLtDacpacFileName -Destination $OutputPath;
 
 Pop-Location;
