@@ -44,6 +44,9 @@ $SourceDatabaseName = $DatabaseName+"_src";
 $TargetDatabaseName = $DatabaseName+"_tgt";
 $AdditionalParameters = '-v FacadeSourceDb="'+$SourceDatabaseName+'" FacadeTargetDb="'+$DatabaseName+'_tgt"'
 
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames @("ResetValidationServer.sql","PrepareServer.sql");
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
+
 $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $SourceDatabaseName;
 $FacadeDacpacFileName = "tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 $FacadeApplicationName = "tSQLtFacade."+$FriendlySQLServerVersion;
@@ -52,10 +55,6 @@ $FacadeConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed
 $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
 $tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
 $tSQLtConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $SourceDatabaseName;
-
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames @("ResetValidationServer.sql","PrepareServer.sql");
-
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
 
 & "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$FacadeConnectionString" /tf:"$FacadeDacpacFileName" /p:DacApplicationName="$FacadeApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
 if($LASTEXITCODE -ne 0) {
