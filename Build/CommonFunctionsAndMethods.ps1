@@ -1,4 +1,6 @@
-﻿$MergeHashTables = {param([HashTable]$base,[HashTable]$new);$new.GetEnumerator()|%{$base.remove($_.Key);$base += @{$_.Key=$_.Value}};$base;};
+﻿$PSScriptRoot;
+
+$MergeHashTables = {param([HashTable]$base,[HashTable]$new);$new.GetEnumerator()|%{$base.remove($_.Key);$base += @{$_.Key=$_.Value}};$base;};
 $AddTagsToResourceGroup = 
 {
   param([String]$ResourceGroupName,[HashTable]$newTags);
@@ -6,6 +8,7 @@ $AddTagsToResourceGroup =
   $RG|Set-AzResourceGroup -Tags ($MergeHashTables.Invoke($RG.Tags,$newTags)[0]);
 }
 $GetUTCTimeStamp = {param();(Get-Date).ToUniversalTime().ToString('[yyyy-MM-ddTHH:mm:ss.fffffff UTC]');};
+
 
 Function Log-Output{[cmdletbinding()]Param([parameter(ValueFromPipeline)]$I);Process{Write-Host ([string]::Concat($GetUTCTimeStamp.Invoke()[0],[string]::Concat(" $I")));};};
 
@@ -94,15 +97,16 @@ Function Get-SqlConnectionString
 function Get-FriendlySQLServerVersion {
   param (
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DatabaseName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlCmdPath
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlCmdPath,
+    [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName
   )
   $ServerNameTrimmed = $ServerName.Trim();
   $LoginTrimmed = $Login.Trim();
 
-  $QueryString = "DECLARE @FriendlyVersion NVARCHAR(128) = (SELECT FriendlyVersion FROM tSQLt.FriendlySQLServerVersion(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128)))); PRINT @FriendlyVersion;";
-  $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -Query $QueryString -DatabaseName $DatabaseName;
+  $GetFriendlySQLServerVersionFullPath = ($PSScriptRoot + '/output/tSQLtBuild/GetFriendlySQLServerVersion.sql');
+  $GetFriendlySQLServerVersionStatement = (Get-Content -Path $GetFriendlySQLServerVersionFullPath).Replace([System.Environment]::NewLine,' ');
+  $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -Query "$GetFriendlySQLServerVersionStatement" -DatabaseName 'tempdb';
   Log-Output "Friendly SQL Server Version: $resultSet";
   $resultSet.Trim();
 }
