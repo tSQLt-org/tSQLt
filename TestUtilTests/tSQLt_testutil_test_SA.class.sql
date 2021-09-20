@@ -38,7 +38,7 @@ BEGIN
   DECLARE @TableName NVARCHAR(MAX) = 'dbo.['+CAST(NEWID() AS NVARCHAR(MAX))+']';
   EXEC tSQLt_testutil.CreateBuildLog @TableName = @TableName;
 
-  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog',@Identity = 1;
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @Identity = 1;
   SET IDENTITY_INSERT tSQLt_testutil.MultiRunLog ON;
   INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Skipped,Failure,Error,TestCaseSet)
   VALUES (101,123,456,678,101112,'testcaseset-101'),(102,98,76,54,32,'testcaseset-102'),(103,398,376,354,332,'testcaseset-103');
@@ -77,7 +77,7 @@ BEGIN
   DECLARE @TableName NVARCHAR(MAX) = 'dbo.['+CAST(NEWID() AS NVARCHAR(MAX))+']';
   EXEC tSQLt_testutil.CreateBuildLog @TableName = @TableName;
 
-  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog',@Identity = 1;
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @Identity = 1;
 
   EXEC tSQLt_testutil.StoreBuildLog @TableName = @TableName, @RunGroup = 'AnotherRunGroup';
 
@@ -111,19 +111,19 @@ GO
 CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog throws error if a test error exists in the log]
 AS
 BEGIN
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @identity = 1;
   INSERT INTO tSQLt_testutil.MultiRunLog(Error)VALUES(1);
 
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest';
 
-  SELECT TOP(0)*
-  INTO #Actual
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL;
+  SELECT TOP(0)MRL.*
+  INTO #ignore
+  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt execution with failures or errors detected.', @ExpectedSeverity = 16, @ExpectedState = 10;
   
-  INSERT INTO #Actual
+  INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
 END
@@ -131,19 +131,19 @@ GO
 CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog throws error if a test failure exists in the log]
 AS
 BEGIN
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @identity = 1;
   INSERT INTO tSQLt_testutil.MultiRunLog(Failure)VALUES(1);
 
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest';
 
-  SELECT TOP(0)*
-  INTO #Actual
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL;
+  SELECT TOP(0)MRL.*
+  INTO #ignore
+  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt execution with failures or errors detected.', @ExpectedSeverity = 16, @ExpectedState = 10;
   
-  INSERT INTO #Actual
+  INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
 END
@@ -151,19 +151,19 @@ GO
 CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog throws no error if all tests in the log succeeded]
 AS
 BEGIN
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @identity = 1;
   INSERT INTO tSQLt_testutil.MultiRunLog(Success)VALUES(1);
 
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest';
 
-  SELECT TOP(0)*
-  INTO #Actual
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL; 
+  SELECT TOP(0)MRL.*
+  INTO #ignore
+  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectNoException;
   
-  INSERT INTO #Actual
+  INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
 END
@@ -171,22 +171,22 @@ GO
 CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog can be called twice]
 AS
 BEGIN
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @identity = 1;
   INSERT INTO tSQLt_testutil.MultiRunLog(Success)VALUES(1);
 
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest';
 
-  SELECT TOP(0)*
-  INTO #Actual
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL; 
+  SELECT TOP(0)MRL.*
+  INTO #ignore
+  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectNoException;
   
-  INSERT INTO #Actual
+  INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
-  INSERT INTO #Actual
+  INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
 END
@@ -233,17 +233,17 @@ GO
 CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog throws error if the log is empty]
 AS
 BEGIN
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @identity = 1;
 
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
 
-  SELECT TOP(0)*
-  INTO #Actual
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL; 
+  SELECT TOP(0)MRL.*
+  INTO #ignore
+  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'BuildLog is empty.', @ExpectedSeverity = 16, @ExpectedState = 10;
   
-  INSERT INTO #Actual
+  INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
 END
@@ -251,20 +251,20 @@ GO
 CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog throws error if the log contains empty run]
 AS
 BEGIN
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
-  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Skipped,Failure,Error,TestCaseSet)
-  VALUES(42,0,0,0,0,'some run');
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @identity = 1;
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error,TestCaseSet)
+  VALUES(0,0,0,0,'some run');
 
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest';
 
-  SELECT TOP(0)*
-  INTO #Actual
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL;
+  SELECT TOP(0)MRL.*
+  INTO #ignore
+  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'BuildLog contains Run without tests.', @ExpectedSeverity = 16, @ExpectedState = 10;
   
-  INSERT INTO #Actual
+  INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
 END
@@ -276,16 +276,16 @@ CREATE PROCEDURE tSQLt_testutil_test_SA.[ptest CheckBuildLog doesn't throw error
   @errored INT = 0
 AS
 BEGIN
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable] @identity=1;
   INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error)
   VALUES(@success,@skipped,@failed,@errored);
-
+  
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest';
-
-  SELECT TOP(0)*
+  
+  SELECT TOP(0)MRL.*
   INTO #Actual
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL; 
+  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectNoException;
   
