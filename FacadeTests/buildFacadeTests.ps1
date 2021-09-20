@@ -12,10 +12,8 @@ $executeFacadeTests = @"
     GO
     :r FacadeTests.sql
     GO
-    EXEC tSQLt.RunAll;
-    GO
 "@;
 
-Set-Content "../Build/temp/tSQLtBuild/Facade/ExecuteFacadeTests.sql" $executeFacadeTests;
+Set-Content "../Build/temp/tSQLtBuild/Facade/DeployFacadeTests.sql" $executeFacadeTests;
 
 Pop-Location;

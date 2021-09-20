@@ -1,33 +1,40 @@
 <?xml version="1.0"?>
-<project name="tSQLt" default="all" basedir=".">
+<project name="tSQLt" default="FacadeOnly" basedir=".">
 
- <target name="all" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Dacpac, deployAndValidate.Facade, deployAndValidate.Example, zip.All.testresults, report.SQL.Version" />
- <target name="noDacpac" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Facade, deployAndValidate.Example, zip.noDacpac.testresults, report.SQL.Version" />
- <target name="tSQLtOnly" depends="Preparation, deployAndValidate.tSQLt, zip.tSQLt.testresults, report.SQL.Version" />
- <target name="DacpacOnly" depends="Preparation, deployAndValidate.Dacpac, zip.Dacpac.testresults, report.SQL.Version" />
- <target name="FacadeOnly" depends="Preparation, deployAndValidate.Facade, zip.Facade.testresults, report.SQL.Version" />
- <target name="ExampleOnly" depends="Preparation, deployAndValidate.Example, zip.Example.testresults, report.SQL.Version" />
+  <!-- TODO: change path for dacpac tests so there's a differentiation in the MultiRunResults -->
+  <!-- TODO: capture Facade MultiRunResult -->
+  <!-- TODO: identify correct dacpac -->
+  <!-- TODO: deploy dacpac -->
+  <!-- TODO: collect all test results to be displayed a the end -->
+  <!-- TODO: CreateDebugSSMSProject section does not fail build on error -->
+
+ <target name="all" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Dacpac, deployAndValidate.Facade, deployAndValidate.Example, zip.All.testresults" />
+ <target name="noDacpac" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Facade, deployAndValidate.Example, zip.noDacpac.testresults" />
+ <target name="tSQLtOnly" depends="Preparation, deployAndValidate.tSQLt, zip.tSQLt.testresults" />
+ <target name="DacpacOnly" depends="Preparation, deployAndValidate.Dacpac, zip.Dacpac.testresults" />
+ <target name="FacadeOnly" depends="Preparation, deployAndValidate.Facade, zip.Facade.testresults" />
+ <target name="ExampleOnly" depends="Preparation, deployAndValidate.Example, zip.Example.testresults" />
 
  <target name="Preparation" depends="validate.parameters, clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts" />
 
  <target name="zip.All.testresults">
   <antcall target="zip.testresults">
-   <param name="zip.testresults.FileList" value="TestResults_Example.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_facade.xml;testresults_sa.xml;TestResults_TestUtil.xml;TestResults.xml" />
+   <param name="zip.testresults.FileList" value="TestResults_Example.xml;testresults_facade.xml;TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml;TestResults_tSQLt_TestUtil.xml;TestResults_tSQLtDacpac.xml;testresults_tSQLtDacpac_external_access_key_exists.xml;testresults_tSQLtDacpac_external_access.xml;testresults_tSQLtDacpac_sa.xml;TestResults_tSQLtDacpac_TestUtil.xml" />
   </antcall>
  </target>
  <target name="zip.noDacpac.testresults">
   <antcall target="zip.testresults">
-   <param name="zip.testresults.FileList" value="TestResults_Example.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_facade.xml;testresults_sa.xml;TestResults_TestUtil.xml;TestResults.xml" />
+   <param name="zip.testresults.FileList" value="TestResults_Example.xml;testresults_facade.xml;TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml;TestResults_tSQLt_TestUtil.xml" />
   </antcall>
  </target>
  <target name="zip.tSQLt.testresults">
   <antcall target="zip.testresults">
-   <param name="zip.testresults.FileList" value="TestResults.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_sa.xml;TestResults_TestUtil.xml" />
+   <param name="zip.testresults.FileList" value="TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml;TestResults_tSQLt_TestUtil.xml" />
   </antcall>
  </target>
  <target name="zip.Dacpac.testresults">
   <antcall target="zip.testresults">
-   <param name="zip.testresults.FileList" value="TestResults.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_sa.xml;TestResults_TestUtil.xml" />
+   <param name="zip.testresults.FileList" value="TestResults_tSQLtDacpac.xml;testresults_tSQLtDacpac_external_access_key_exists.xml;testresults_tSQLtDacpac_external_access.xml;testresults_tSQLtDacpac_sa.xml;TestResults_tSQLtDacpac_TestUtil.xml" />
   </antcall>
  </target>
  <target name="zip.Facade.testresults">
@@ -48,7 +55,11 @@
    <param name="deploy.tSQLt.database" value="${db.name}1" />
   </antcall>
   <antcall target="run.AllTests">
+   <param name="run.AllTests.ResultFilePrefix" value="tSQLt" />
    <param name="run.AllTests.database" value="${db.name}1" />
+  </antcall>
+  <antcall target="report.SQL.Version">
+   <param name="report.SQL.Version.database" value="${db.name}1" />
   </antcall>
  </target>
  <target name="deployAndValidate.Dacpac">
@@ -57,22 +68,43 @@
   <antcall target="deploy.tSQLt.Dacpac">
    <param name="deploy.tSQLt.Dacpac.database" value="${db.name}2" />
   </antcall>
-  <!-- TODO: Rename TestResult Files -->
-  <!-- TODO: capture Facade MultiRunResult -->
-  <!-- TODO: identify correct dacpac -->
-  <!-- TODO: change database name to tSQLt_Dacpac -->
-  <!-- TODO: deploy dacpac -->
-  <!-- TODO: run tests in tSQLt_Dacpac -->
-  <!-- TODO: collect all test results to be displayed a the end -->
-  <!-- TODO: CreateDebugSSMSProject section does not fail build on error -->
   <antcall target="run.AllTests">
+   <param name="run.AllTests.ResultFilePrefix" value="tSQLtDacPac" />
    <param name="run.AllTests.database" value="${db.name}2" />
+  </antcall>
+  <antcall target="report.SQL.Version">
+   <param name="report.SQL.Version.database" value="${db.name}2" />
   </antcall>
  </target>
  <target name="deployAndValidate.Example">
-  <antcall target="deploy.Example" />
-  <antcall target="validate.Example" />
+  <antcall target="reset.server" />
+  <antcall target="prepare.server" />
+  <antcall target="deploy.Example">
+  </antcall>
+  <antcall target="validate.Example">
+  </antcall>
+  <antcall target="report.SQL.Version">
+   <param name="report.SQL.Version.database" value="tSQLt_Example" />
+  </antcall>
  </target>
+ <target name="deployAndValidate.Facade">
+  <antcall target="reset.server" />
+  <antcall target="prepare.server" />
+  <exec dir="." executable="powershell" failonerror="true">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File FacadeValidate.ps1" />
+      <arg line="-ServerName &quot;${db.server}&quot;" />
+      <arg line="-DatabaseName &quot;${db.name}_Facade&quot;" />
+      <arg line="-Login &quot;${db.login}&quot;" />
+      <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
+      <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
+  </exec>
+
+  <antcall target="report.SQL.Version">
+   <param name="report.SQL.Version.database" value="${db.name}_Facade_src" />
+  </antcall>
+ </target>
+
  
  <target name="StopBuild">
   <Intentional---Error---To---Stop---The---Build />
@@ -129,7 +161,7 @@
  <target name="report.SQL.Version">
   <antcall target="execute.sql.file">
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.database" value="tempdb" />
+   <param name="execute.sql.database" value="${report.SQL.Version.database}" />
    <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.filename" value="PrintVersionInfo.sql" />
   </antcall>
@@ -288,6 +320,8 @@
   <echo message="execute.sql.statement_or_file started" />
   <echo message="  +----> filename: ${execute.sql.filename}" />
   <echo message="  +----> statement: ${execute.sql.statement}" />
+  <echo message="  +----> statement: ${execute.sql.database}" />
+  <echo message="  +----> statement: ${execute.sql.newDatabase}" />
 
   <condition property="execute.sql.statement_or_file.permissions.elevated">
    <equals arg1="${execute.sql.elevated}" arg2="true" />
@@ -494,7 +528,7 @@
    <param name="deployandrun.tests.elevated" value="false" />
    <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
    <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/TestUtilTests.sql" />
-   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_TestUtil.xml" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_TestUtil.xml" />
   </antcall>
 
   <!-- run non-specific tests -->
@@ -502,7 +536,7 @@
    <param name="deployandrun.tests.elevated" value="false" />
    <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
    <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.Main.sql" />
-   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults.xml" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}.xml" />
   </antcall>
 
   <!-- run SA tests -->
@@ -510,7 +544,7 @@
    <param name="deployandrun.tests.elevated" value="true" />
    <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
    <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.SA.sql" />
-   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_SA.xml" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_SA.xml" />
   </antcall>
 
   <!-- create EXTERNAL_ACCESS key -->
@@ -525,7 +559,7 @@
    <param name="deployandrun.tests.elevated" value="true" />
    <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
    <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
-   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
   </antcall>
 
   <!-- Enable EA -->
@@ -540,7 +574,7 @@
    <param name="deployandrun.tests.elevated" value="false" />
    <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
    <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.EXTERNAL_ACCESS.sql" />
-   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_EXTERNAL_ACCESS.xml" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_EXTERNAL_ACCESS.xml" />
   </antcall>
 
   <!-- Set SummaryError back On, CheckMultiRun -->
@@ -594,22 +628,6 @@
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
- </target>
-
- <!--=======================================================================-->
- <!--========                 Validate Facade Objects              =========-->
- <!--=======================================================================-->
-
- <target name="deployAndValidate.Facade">
-  <exec dir="." executable="powershell" failonerror="true">
-      <arg line="-ExecutionPolicy bypass" />
-      <arg line="-File FacadeValidate.ps1" />
-      <arg line="-ServerName &quot;${db.server}&quot;" />
-      <arg line="-DatabaseName &quot;${db.name}&quot;" />
-      <arg line="-Login &quot;${db.login}&quot;" />
-      <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
-      <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
-  </exec>
  </target>
 
  <!--=======================================================================-->
