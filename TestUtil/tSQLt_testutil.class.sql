@@ -303,21 +303,6 @@ BEGIN
     END
 END;
 GO
-CREATE PROCEDURE tSQLt_testutil.PrepMultiRunLogTable
-AS
-BEGIN
-  IF OBJECT_ID('tSQLt_testutil.MultiRunLog') IS NOT NULL DROP TABLE tSQLt_testutil.MultiRunLog;
-  CREATE TABLE tSQLt_testutil.MultiRunLog
-  (
-    id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
-    Success INT,
-    Skipped INT,
-    Failure INT,
-    [Error] INT,
-    TestCaseSet NVARCHAR(MAX)
-  );
-END;
-GO
 CREATE PROCEDURE tSQLt_testutil.LogMultiRunResult
   @TestCaseSet NVARCHAR(MAX)
 AS
@@ -336,20 +321,22 @@ BEGIN
 END;
 GO
 CREATE PROCEDURE tSQLt_testutil.CheckMultiRunResults
+  @noError INT = 0
 AS
 BEGIN
   SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL;
+  DECLARE @Severity INT = CASE WHEN @noError <> 0 THEN 0 ELSE 16 END;
   IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
   BEGIN
-    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = 16
+    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = @Severity
   END;
   IF(NOT EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL))
   BEGIN
-    EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = 16
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = @Severity
   END;
   IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Skipped = 0))
   BEGIN
-    EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = 16
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = @Severity
   END;
 END;
 GO
@@ -391,6 +378,96 @@ BEGIN
   END;
 END;
 GO
+CREATE PROCEDURE tSQLt_testutil.PrepMultiRunLogTable
+AS
+BEGIN
+  IF OBJECT_ID('tSQLt_testutil.MultiRunLog') IS NOT NULL DROP TABLE tSQLt_testutil.MultiRunLog;
+  CREATE TABLE tSQLt_testutil.MultiRunLog
+  (
+    id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    Success INT,
+    Skipped INT,
+    Failure INT,
+    [Error] INT,
+    TestCaseSet NVARCHAR(MAX)
+  );
+END;
+GO
+/*CreateBuildLogStart*/
+GO
+CREATE PROCEDURE tSQLt_testutil.CreateBuildLog
+  @TableName NVARCHAR(MAX)
+AS
+BEGIN
+  IF(OBJECT_ID(@TableName) IS NOT NULL)EXEC('DROP TABLE '+@TableName);
+  DECLARE @cmd NVARCHAR(MAX) = 
+  '
+  CREATE TABLE '+@TableName+'
+  (
+    [id] [int] NOT NULL IDENTITY(1, 1) PRIMARY KEY CLUSTERED,
+    [Success] [int] NULL,
+    [Skipped] [int] NULL,
+    [Failure] [int] NULL,
+    [Error] [int] NULL,
+    [TestCaseSet] NVARCHAR(MAX) NULL,
+    [RunGroup] NVARCHAR(MAX) NULL,
+    [DatabaseName] NVARCHAR(MAX) NULL
+  );
+  ';
+  EXEC(@cmd);
+  SET @cmd = 'GRANT INSERT ON '+@TableName+' TO PUBLIC;';
+  IF(PARSENAME(@TableName,3) IS NOT NULL)
+  BEGIN
+    SET @cmd = PARSENAME(@TableName,3)+'.sys.sp_executesql N'''+@cmd+''',N''''';
+  END;
+  EXEC(@cmd);
+END;
+GO
+/*CreateBuildLogEnd*/
+GO
+CREATE PROCEDURE tSQLt_testutil.StoreBuildLog
+  @TableName NVARCHAR(MAX),
+  @RunGroup NVARCHAR(MAX)
+AS
+BEGIN 
+  DECLARE @cmd NVARCHAR(MAX) = 
+   (SELECT QUOTENAME(C.name)+','
+      FROM sys.columns AS C
+     WHERE C.object_id = OBJECT_ID('tSQLt_testutil.MultiRunLog')
+       AND C.is_identity = 0
+     ORDER BY C.column_id
+       FOR XML PATH,TYPE).value('.','NVARCHAR(MAX)');
+  SET @cmd = 'INSERT INTO '+@TableName+'('+@cmd+'[RunGroup],[DatabaseName]) SELECT '+@cmd+'RG,DB FROM tSQLt_testutil.MultiRunLog RIGHT JOIN (VALUES('''+@RunGroup+''',DB_NAME()))XX(RG,DB) ON 1=1;'
+
+  EXEC(@cmd);
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.CheckBuildLog
+  @TableName NVARCHAR(MAX)
+AS
+BEGIN
+  IF OBJECT_ID('tSQLt_testutil.LocalBuildLogTemp') IS NOT NULL DROP TABLE tSQLt_testutil.LocalBuildLogTemp;
+  EXEC('SELECT * INTO tSQLt_testutil.LocalBuildLogTemp FROM '+@TableName+';');
+  SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = 16
+  END;
+  IF(NOT EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'BuildLog is empty.', @Severity = 16
+  END;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL WHERE MRL.Success IS NULL))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'BuildLog contains Test Suite Group without tests.', @Severity = 16
+  END;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL WHERE MRL.Success = 0 AND MRL.Skipped = 0))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'BuildLog contains Run without tests.', @Severity = 16
+  END;
+END;
+GO
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

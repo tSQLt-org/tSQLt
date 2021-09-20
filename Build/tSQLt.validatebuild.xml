@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<project name="tSQLt" default="FacadeOnly" basedir=".">
+<project name="tSQLt" default="all" basedir=".">
 
   <!-- TODO: change path for dacpac tests so there's a differentiation in the MultiRunResults -->
-  <!-- TODO: capture Facade MultiRunResult -->
+  <!-- TODO: where are the databases going? (drop login?) -->
   <!-- TODO: identify correct dacpac -->
   <!-- TODO: deploy dacpac -->
   <!-- TODO: collect all test results to be displayed a the end -->
@@ -15,7 +15,7 @@
  <target name="FacadeOnly" depends="Preparation, deployAndValidate.Facade, zip.Facade.testresults" />
  <target name="ExampleOnly" depends="Preparation, deployAndValidate.Example, zip.Example.testresults" />
 
- <target name="Preparation" depends="validate.parameters, clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts" />
+ <target name="Preparation" depends="validate.parameters, clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, create.logtable" />
 
  <target name="zip.All.testresults">
   <antcall target="zip.testresults">
@@ -98,6 +98,7 @@
       <arg line="-Login &quot;${db.login}&quot;" />
       <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
       <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
+      <arg line="-LogTableName &quot;${logtable.name}&quot;"/>
   </exec>
 
   <antcall target="report.SQL.Version">
@@ -106,6 +107,15 @@
  </target>
 
  
+ <target name="create.logtable">
+   <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="tempdb" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="output/tSQLtBuild/CreateBuildLog.sql" />
+   <param name="execute.sql.outputfile" value="" />
+  </antcall> 
+ </target>
+
  <target name="StopBuild">
   <Intentional---Error---To---Stop---The---Build />
  </target>
@@ -125,6 +135,9 @@
   </antcall>
   <antcall target="validate.parameter">
    <param name="parameter.name" value="sqlpackage.path" />
+  </antcall>
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="logtable.name" />
   </antcall>
  </target>
 
@@ -360,7 +373,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${execute.sql.newDatabase} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
+  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${execute.sql.newDatabase} DbName=${execute.sql.database} BuildLogTableName=${logtable.name} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
@@ -531,6 +544,14 @@
    <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_TestUtil.xml" />
   </antcall>
 
+  <!-- run TestUtil.SA tests -->
+  <antcall target="deployandrun.tests">
+   <param name="deployandrun.tests.elevated" value="true" />
+   <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/TestUtilTests.SA.sql" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_SA.xml" />
+  </antcall>
+
   <!-- run non-specific tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
@@ -580,7 +601,7 @@
   <!-- Set SummaryError back On, CheckMultiRun -->
   <antcall target="execute.sql.statement">
    <param name="execute.sql.database" value="${run.AllTests.database}" />
-   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults;" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='${logtable.name}',@RunGroup='AllTests_${run.AllTests.ResultFilePrefix}';" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
@@ -624,7 +645,7 @@
   <!-- Set SummaryError back On, CheckMultiRun -->
   <antcall target="execute.sql.statement">
    <param name="execute.sql.database" value="tSQLt_Example" />
-   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults;" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='${logtable.name}',@RunGroup='Example';" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 

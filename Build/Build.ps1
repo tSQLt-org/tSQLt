@@ -8,6 +8,7 @@ $buildPath = $invocationDir +'/';
 $tempPath = $invocationDir + '/temp/tSQLtBuild/';
 $outputPath = $invocationDir + '/output/tSQLtBuild/';
 $sourcePath = $invocationDir + '/../Source/';
+$testUtilPath = $invocationDir + '/../TestUtil/';
 
 <#--=======================================================================-->
 <!--========          Create CommitId.txt                         =========-->
@@ -23,19 +24,21 @@ $templateContent = Get-Content -path ($buildPath + "GetFriendlySQLServerVersion.
 $sqlFile1Content = Get-Content -path ($sourcePath + "tSQLt.FriendlySQLServerVersion.sfn.sql");
 $sqlFile2Content = Get-Content -path ($sourcePath + "tSQLt.Private_SplitSqlVersion.sfn.sql");
 
-Write-Host "****************************************"
 $outputOn = $false;
 $snip1Content = ($sqlFile1Content | ForEach-Object {if($_ -eq "/*EndSnip*/"){$outputOn = $false};if($outputOn){$_};if($_ -eq "/*StartSnip*/"){$outputOn = $true};} )
-Write-Host $snip1Content;
-Write-Host "****************************************"
 $outputOn = $false;
 $snip2Content = ($sqlFile2Content | ForEach-Object {if($_ -eq "/*EndSnip*/"){$outputOn = $false};if($outputOn){$_};if($_ -eq "/*StartSnip*/"){$outputOn = $true};} )
-Write-Host $snip2Content;
-Write-Host "****************************************"
 
 $FinalContent = $templateContent.Replace("/*snip1content*/",$snip1Content).Replace("/*snip2content*/",$snip2Content);
 Set-Content -Path ($tempPath + 'GetFriendlySQLServerVersion.sql') -Value ($FinalContent -join [System.Environment]::NewLine);
 
+Write-Host "****************************************************"
+$testUtilContent = Get-Content -path ($testUtilPath + "tSQLt_testutil.class.sql");
+$CreateBuildLogRaw = ($testUtilContent | ForEach-Object {if($_ -eq "/*CreateBuildLogEnd*/"){$outputOn = $false};if($outputOn){$_};if($_ -eq "/*CreateBuildLogStart*/"){$outputOn = $true};} )
+$CreateBuildLog = ($CreateBuildLogRaw -join [System.Environment]::NewLine).Replace("tSQLt_testutil.CreateBuildLog","#CreateBuildLog");
+$CreateBuildLog = ($CreateBuildLog + [System.Environment]::NewLine + "EXEC #CreateBuildLog @TableName='"+'$(BuildLogTableName)'+"';" + [System.Environment]::NewLine);
+Set-Content -Path ($tempPath + 'CreateBuildLog.sql') -Value ($CreateBuildLog);
+Write-Host "****************************************************"
 <#--=======================================================================-->
 <!--========              Create/Copy output files                =========-->
 <!--=======================================================================-#>
@@ -47,7 +50,7 @@ $compress = @{
     }
 Get-ChildItem -Path ($tempPath + "*") -Include $toBeZipped | Compress-Archive @compress
 
-$toBeCopied = @("Version.txt", "tSQLt.class.sql", "CommitId.txt", "GetFriendlySQLServerVersion.sql");
+$toBeCopied = @("Version.txt", "tSQLt.class.sql", "CommitId.txt", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
 Get-ChildItem -Path ($tempPath + "*")  -Include $toBeCopied | Copy-Item -Destination $outputPath;
 Copy-Item ($tempPath + "ReleaseNotes.txt") -Destination ($outputPath + "ReadMe.txt");
 

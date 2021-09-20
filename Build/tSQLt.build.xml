@@ -364,8 +364,16 @@
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>
-   <arg value="../TestUtilTests/*.class.sql"/>
+   <arg value="../TestUtilTests/tSQLt_testutil*test.class.sql"/>
    <arg value="temp/tSQLtBuild/Tests/TestUtilTests.sql"/>
+  </exec>
+
+  <echo message="Building TestUtilTests.SA.sql" />
+  <exec executable="cmd" dir="." failonerror="true">
+   <arg value="/c"/>
+   <arg value="BuildHelper.exe"/>
+   <arg value="../TestUtilTests/tSQLt_testutil*test_SA.class.sql"/>
+   <arg value="temp/tSQLtBuild/Tests/TestUtilTests.SA.sql"/>
   </exec>
 
   <echo message="Building AllTests.sql" />
@@ -421,6 +429,7 @@
    <fileset dir="temp/tSQLtBuild/Tests">
     <include name="TestUtil.sql"/>
     <include name="TestUtilTests.sql"/>
+    <include name="TestUtilTests.SA.sql"/>
     <include name="AllTests.sql"/>
     <include name="AllTests.EXTERNAL_ACCESS.sql"/>
     <include name="AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql"/>

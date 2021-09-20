@@ -68,9 +68,12 @@ CALL "powershell.exe" -File Build\CreateDebugSSMSProject.ps1 -ErrorAction Stop |
 ECHO +-------------------------+
 ECHO : Validating BUILD        :
 ECHO +-------------------------+
+FOR /F "usebackq tokens=1,2 delims==" %%i in (`wmic os get LocalDateTime /VALUE 2^>NUL`) do if '.%%i.'=='.LocalDateTime.' set LogTableName=tempdb.dbo.[%%j]
+ECHO LogTableName: %LogTableName%
+
 IF "%VerboseOutput%"=="ON" @ECHO ON
 @REM -----------------------------------------------------------------------------This space character is utterly important! ----v
-CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" || goto :error
+CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" -Dlogtable.name="%LogTableName%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
