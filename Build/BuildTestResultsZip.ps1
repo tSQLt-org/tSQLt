@@ -1,3 +1,7 @@
+Param( 
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ResultFiles
+);
+
 $scriptpath = $MyInvocation.MyCommand.Path;
 $dir = Split-Path $scriptpath;
 
@@ -6,14 +10,7 @@ $dir = Split-Path $scriptpath;
 $OutputPath = $dir + "/output/Validate/";
 $TempPath = $dir + "/temp/Validate/";
 $TestResultsZipPath = $OutputPath + "TestResults.zip";
-$ExpectedTestResultFileNames =
-    "TestResults_Example.xml",
-    "testresults_external_access_key_exists.xml",
-    "testresults_external_access.xml",
-    "testresults_facade.xml",
-    "testresults_sa.xml",
-    "TestResults_TestUtil.xml",
-    "TestResults.xml";
+$ExpectedTestResultFileNames = $ResultFiles.Split(';');
 
 $ActualTestResultFiles = Get-ChildItem -Path $TempPath -Include "TestResults*.xml" -Recurse;
 

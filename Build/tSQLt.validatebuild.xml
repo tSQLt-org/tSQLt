@@ -1,11 +1,45 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
- <target name="all" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Dacpac, deployAndValidate.Facade, deployAndValidate.Example, zip.testresults, report.SQL.Version" />
- <target name="noDacpac" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Facade, deployAndValidate.Example, zip.testresults, report.SQL.Version" />
- <target name="onlyDacpac" depends="Preparation, deployAndValidate.Dacpac, zip.testresults, report.SQL.Version" />
+ <target name="all" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Dacpac, deployAndValidate.Facade, deployAndValidate.Example, zip.All.testresults, report.SQL.Version" />
+ <target name="noDacpac" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Facade, deployAndValidate.Example, zip.noDacpac.testresults, report.SQL.Version" />
+ <target name="tSQLtOnly" depends="Preparation, deployAndValidate.tSQLt, zip.tSQLt.testresults, report.SQL.Version" />
+ <target name="DacpacOnly" depends="Preparation, deployAndValidate.Dacpac, zip.Dacpac.testresults, report.SQL.Version" />
+ <target name="FacadeOnly" depends="Preparation, deployAndValidate.Facade, zip.Facade.testresults, report.SQL.Version" />
+ <target name="ExampleOnly" depends="Preparation, deployAndValidate.Example, zip.Example.testresults, report.SQL.Version" />
 
  <target name="Preparation" depends="validate.parameters, clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts" />
+
+ <target name="zip.All.testresults">
+  <antcall target="zip.testresults">
+   <param name="zip.testresults.FileList" value="TestResults_Example.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_facade.xml;testresults_sa.xml;TestResults_TestUtil.xml;TestResults.xml" />
+  </antcall>
+ </target>
+ <target name="zip.noDacpac.testresults">
+  <antcall target="zip.testresults">
+   <param name="zip.testresults.FileList" value="TestResults_Example.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_facade.xml;testresults_sa.xml;TestResults_TestUtil.xml;TestResults.xml" />
+  </antcall>
+ </target>
+ <target name="zip.tSQLt.testresults">
+  <antcall target="zip.testresults">
+   <param name="zip.testresults.FileList" value="TestResults.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_sa.xml;TestResults_TestUtil.xml" />
+  </antcall>
+ </target>
+ <target name="zip.Dacpac.testresults">
+  <antcall target="zip.testresults">
+   <param name="zip.testresults.FileList" value="TestResults.xml;testresults_external_access_key_exists.xml;testresults_external_access.xml;testresults_sa.xml;TestResults_TestUtil.xml" />
+  </antcall>
+ </target>
+ <target name="zip.Facade.testresults">
+  <antcall target="zip.testresults">
+   <param name="zip.testresults.FileList" value="testresults_facade.xml" />
+  </antcall>
+ </target>
+ <target name="zip.Example.testresults">
+  <antcall target="zip.testresults">
+   <param name="zip.testresults.FileList" value="TestResults_Example.xml" />
+  </antcall>
+ </target>
 
  <target name="deployAndValidate.tSQLt">
   <antcall target="reset.server" />
@@ -23,7 +57,8 @@
   <antcall target="deploy.tSQLt.Dacpac">
    <param name="deploy.tSQLt.Dacpac.database" value="${db.name}2" />
   </antcall>
-  <!-- TODO: capture Facad MultiRunResult -->
+  <!-- TODO: Rename TestResult Files -->
+  <!-- TODO: capture Facade MultiRunResult -->
   <!-- TODO: identify correct dacpac -->
   <!-- TODO: change database name to tSQLt_Dacpac -->
   <!-- TODO: deploy dacpac -->
@@ -94,7 +129,7 @@
  <target name="report.SQL.Version">
   <antcall target="execute.sql.file">
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="tempdb" />
    <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.filename" value="PrintVersionInfo.sql" />
   </antcall>
@@ -585,6 +620,7 @@
   <exec dir="." executable="powershell" failonerror="true">
       <arg line="-ExecutionPolicy bypass" />
       <arg line="-File BuildTestResultsZip.ps1" />
+      <arg line="-ResultFiles &quot;${zip.testresults.FileList}&quot;" />
   </exec>
  </target>
 
