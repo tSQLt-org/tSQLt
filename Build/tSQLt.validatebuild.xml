@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
+  <!-- TODO: test do not fail build -->
   <!-- TODO: change path for dacpac tests so there's a differentiation in the MultiRunResults -->
   <!-- TODO: where are the databases going? (drop login?) -->
   <!-- TODO: identify correct dacpac -->
   <!-- TODO: deploy dacpac -->
-  <!-- TODO: collect all test results to be displayed a the end -->
   <!-- TODO: CreateDebugSSMSProject section does not fail build on error -->
 
  <target name="all" depends="Preparation, deployAndValidate.tSQLt, deployAndValidate.Dacpac, deployAndValidate.Facade, deployAndValidate.Example, zip.All.testresults" />
