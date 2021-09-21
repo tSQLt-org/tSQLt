@@ -2,6 +2,7 @@
 <project name="tSQLt" default="all" basedir=".">
 
   <!-- TODO: test do not fail build -->
+  <!-- TODO: test results not complete in Azure Devops -->
   <!-- TODO: change path for dacpac tests so there's a differentiation in the MultiRunResults -->
   <!-- TODO: where are the databases going? (drop login?) -->
   <!-- TODO: identify correct dacpac -->
