@@ -373,7 +373,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${execute.sql.newDatabase} DbName=${execute.sql.database} BuildLogTableName=${logtable.name} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
+  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${execute.sql.newDatabase} DbName=${execute.sql.database} BuildLogTableName=&quot;${logtable.name}&quot; ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
