@@ -348,6 +348,11 @@ jobs:
           Write-Host "";
           Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
 
+      - name: Setup SQL Users
+        shell: pwsh
+        run: |
+          $DS = Invoke-Sqlcmd -ConnectionTimeout 600 -InputFile "${{ github.workspace }}\tSQLt\Build\CreateLogin(tSQLt.Build).sql"  -ServerInstance "${{ steps.create-container.outputs.containerFQDN }}" -Username "${{ steps.create-container.outputs.containerUser }}" -Password "${{ steps.create-container.outputs.containerPassword }}"
+
       # @SM --> TODO: jUnit results
       - name: ant Build/tSQLt.validatebuild.xml
         working-directory: ${{ github.workspace }}\tSQLt\Build

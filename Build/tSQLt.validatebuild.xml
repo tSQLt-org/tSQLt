@@ -15,7 +15,7 @@
  <target name="FacadeOnly" depends="Preparation, deployAndValidate.Facade, zip.Facade.testresults" />
  <target name="ExampleOnly" depends="Preparation, deployAndValidate.Example, zip.Example.testresults" />
 
- <target name="Preparation" depends="validate.parameters, clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, prepare.server, create.logtable" />
+ <target name="Preparation" depends="validate.parameters, clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, create.logtable" />
 
  <target name="zip.All.testresults">
   <antcall target="zip.testresults">
