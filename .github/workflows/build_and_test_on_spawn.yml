@@ -351,7 +351,7 @@ jobs:
       # @SM --> TODO: jUnit results
       - name: ant Build/tSQLt.validatebuild.xml
         working-directory: ${{ github.workspace }}\tSQLt\Build
-        run: ant -buildfile tSQLt.validatebuild.xml all -D"db.server"="${{ steps.create-container.outputs.containerFQDN }}" -D"db.name"=tSQLt_dev -D"db.login"="-U ${{ steps.create-container.outputs.containerUser }} -P ${{ steps.create-container.outputs.containerPassword }}" -D"sqlcmd.path"="${{ steps.create-vars.outputs.sqlcmdPath }}"  -D"sqlpackage.path"="$env:SQLPACKAGE_HOME"
+        run: ant -buildfile tSQLt.validatebuild.xml all -D"db.server"="${{ steps.create-container.outputs.containerFQDN }}" -D"db.name"=tSQLt_dev -D"db.login"="-U ${{ steps.create-container.outputs.containerUser }} -P ${{ steps.create-container.outputs.containerPassword }}" -D"sqlcmd.path"="${{ steps.create-vars.outputs.sqlcmdPath }}"  -D"sqlpackage.path"="$env:SQLPACKAGE_HOME" -D"logtable.name"="tempdb.dbo.[Full Build Log]"
 
       - name: create junit artifact
         shell: pwsh
