@@ -277,8 +277,9 @@ stages:
           $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLtBuild\";
           $artifactPath = ($basePath+"Artifact\");
           New-Item -Path $artifactPath  -ItemType directory -Force
-          $ArtifactFiles = (@("ReadMe.txt","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt")| ForEach-Object { $basePath + $_ });
-          $ArtifactFiles|Copy-Item -Verbose -Destination $artifactPath;
+          $artifactFiles = @("ReadMe.txt","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt");
+          Get-ChildItem -Path ($basePath + "*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
+
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
