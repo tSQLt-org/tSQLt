@@ -16,7 +16,7 @@ Log-Output($GetUTCTimeStamp.Invoke(),"Done: Loading CommonFunctionsAndMethods");
 
 Function Exec-SqlFileOrQuery
 {
-  [cmdletbinding()]
+  [CmdletBinding()]
   param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
@@ -54,7 +54,7 @@ Function Exec-SqlFileOrQuery
 
 Function Get-SqlConnectionString
 {
-  [cmdletbinding()]
+  [CmdletBinding()]
   param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
@@ -151,7 +151,7 @@ function Remove-DirectoryQuietly {
 }
 
 Function Remove-ResourceGroup{
-  [cmdletbinding()]
+  [CmdletBinding()]
   Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ResourceGroupName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $BuildId);
@@ -196,4 +196,21 @@ Function Remove-ResourceGroup{
   }
   Write-Output ("[{0}]Done processing delete for {1}" -f ((get-date).toString("O")), ($ResourceGroupName))
   Write-Output "▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-";
+}
+
+Function Get-SnipContent {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory=$true)][AllowEmptyString()][String[]] $searchArray,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String] $startSnipPattern,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String] $endSnipPattern
+  )
+  $outputOn = $false;
+  (
+    $searchArray | ForEach-Object {
+      if($_ -eq $endSnipPattern) { $outputOn = $false };
+      if($outputOn) { $_ };
+      if($_ -eq $startSnipPattern) { $outputOn = $true };
+    } 
+  );
 }

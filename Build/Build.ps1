@@ -10,6 +10,8 @@ $outputPath = $invocationDir + '/output/tSQLtBuild/';
 $sourcePath = $invocationDir + '/../Source/';
 $testUtilPath = $invocationDir + '/../TestUtil/';
 
+.($buildPath+"CommonFunctionsAndMethods.ps1");
+
 <#--=======================================================================-->
 <!--========          Create CommitId.txt                         =========-->
 <!--=======================================================================-#>
@@ -24,17 +26,15 @@ $templateContent = Get-Content -path ($buildPath + "GetFriendlySQLServerVersion.
 $sqlFile1Content = Get-Content -path ($sourcePath + "tSQLt.FriendlySQLServerVersion.sfn.sql");
 $sqlFile2Content = Get-Content -path ($sourcePath + "tSQLt.Private_SplitSqlVersion.sfn.sql");
 
-$outputOn = $false;
-$snip1Content = ($sqlFile1Content | ForEach-Object {if($_ -eq "/*EndSnip*/"){$outputOn = $false};if($outputOn){$_};if($_ -eq "/*StartSnip*/"){$outputOn = $true};} )
-$outputOn = $false;
-$snip2Content = ($sqlFile2Content | ForEach-Object {if($_ -eq "/*EndSnip*/"){$outputOn = $false};if($outputOn){$_};if($_ -eq "/*StartSnip*/"){$outputOn = $true};} )
+$snip1Content = (Get-SnipContent $sqlFile1Content  "/*StartSnip*/" "/*EndSnip*/");
+$snip2Content = (Get-SnipContent $sqlFile2Content "/*StartSnip*/" "/*EndSnip*/");
 
-$FinalContent = $templateContent.Replace("/*snip1content*/",$snip1Content).Replace("/*snip2content*/",$snip2Content);
-Set-Content -Path ($tempPath + 'GetFriendlySQLServerVersion.sql') -Value ($FinalContent -join [System.Environment]::NewLine);
+$FinalContent = (($templateContent.Replace("/*snip1content*/",$snip1Content).Replace("/*snip2content*/",$snip2Content)) -join [System.Environment]::NewLine);
+Set-Content -Path ($tempPath + 'GetFriendlySQLServerVersion.sql') -Value $FinalContent;
 
 Write-Host "****************************************************"
 $testUtilContent = Get-Content -path ($testUtilPath + "tSQLt_testutil.class.sql");
-$CreateBuildLogRaw = ($testUtilContent | ForEach-Object {if($_ -eq "/*CreateBuildLogEnd*/"){$outputOn = $false};if($outputOn){$_};if($_ -eq "/*CreateBuildLogStart*/"){$outputOn = $true};} )
+$CreateBuildLogRaw = (Get-SnipContent $testUtilContent "/*CreateBuildLogStart*/" "/*CreateBuildLogEnd*/");
 $CreateBuildLog = ($CreateBuildLogRaw -join [System.Environment]::NewLine).Replace("tSQLt_testutil.CreateBuildLog","#CreateBuildLog");
 $CreateBuildLog = ($CreateBuildLog + [System.Environment]::NewLine + "EXEC #CreateBuildLog @TableName='"+'$(BuildLogTableName)'+"';" + [System.Environment]::NewLine);
 Set-Content -Path ($tempPath + 'CreateBuildLog.sql') -Value ($CreateBuildLog);

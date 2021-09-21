@@ -3,11 +3,11 @@ GO
 ---Build+
 GO
 CREATE FUNCTION tSQLt.FriendlySQLServerVersion(@ProductVersion NVARCHAR(128))
-/* Important: Do not rename the @ProducVersion parameter! */
+/* Important: Do not rename the @ProductVersion parameter! */
 RETURNS TABLE
 AS
 RETURN
-/* Important: Do not rename the @ProducVersion parameter! */
+/* Important: Do not rename the @ProductVersion parameter! */
 /*StartSnip*/
   SELECT 
       @ProductVersion ProductVersion, 
@@ -21,7 +21,7 @@ RETURN
         WHEN SSV.Major = '10' AND SSV.Minor IN ('00','0') THEN '2008' 
        END FriendlyVersion
 /*EndSnip*/
-/* Important: Do not rename the @ProducVersion parameter! */
+/* Important: Do not rename the @ProductVersion parameter! */
     FROM tSQLt.Private_SplitSqlVersion(@ProductVersion) AS SSV;
 GO
 ---Build-
