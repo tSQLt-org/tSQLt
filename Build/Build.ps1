@@ -12,15 +12,15 @@ $testUtilPath = $invocationDir + '/../TestUtil/';
 
 .($buildPath+"CommonFunctionsAndMethods.ps1");
 
-<#--=======================================================================-->
-<!--========          Create CommitId.txt                         =========-->
-<!--=======================================================================-#>
+Log-Output '<#--=======================================================================-->'
+Log-Output '<!--========                 Create CommitId.txt                  =========-->'
+Log-Output '<#--=======================================================================-->'
 
 Set-Content -Path "temp/tSQLtBuild/CommitId.txt" -Value $CommitId;
 
-<#--=======================================================================-->
-<!--========          Create GetFriendlySQLServerVersion.sql      =========-->
-<!--=======================================================================-#>
+Log-Output '<#--=======================================================================-->'
+Log-Output '<!--========          Create GetFriendlySQLServerVersion.sql      =========-->'
+Log-Output '<#--=======================================================================-->'
 
 $templateContent = Get-Content -path ($buildPath + "GetFriendlySQLServerVersion.template.sql");
 $sqlFile1Content = Get-Content -path ($sourcePath + "tSQLt.FriendlySQLServerVersion.sfn.sql");
@@ -32,16 +32,19 @@ $snip2Content = (Get-SnipContent $sqlFile2Content "/*StartSnip*/" "/*EndSnip*/")
 $FinalContent = (($templateContent.Replace("/*snip1content*/",$snip1Content).Replace("/*snip2content*/",$snip2Content)) -join [System.Environment]::NewLine);
 Set-Content -Path ($tempPath + 'GetFriendlySQLServerVersion.sql') -Value $FinalContent;
 
-Write-Host "****************************************************"
+Log-Output '<#--=======================================================================-->'
+Log-Output '<!--========          Create CreateBuildLog.sql                   =========-->'
+Log-Output '<#--=======================================================================-->'
+
 $testUtilContent = Get-Content -path ($testUtilPath + "tSQLt_testutil.class.sql");
 $CreateBuildLogRaw = (Get-SnipContent $testUtilContent "/*CreateBuildLogStart*/" "/*CreateBuildLogEnd*/");
 $CreateBuildLog = ($CreateBuildLogRaw -join [System.Environment]::NewLine).Replace("tSQLt_testutil.CreateBuildLog","#CreateBuildLog");
 $CreateBuildLog = ($CreateBuildLog + [System.Environment]::NewLine + "EXEC #CreateBuildLog @TableName='"+'$(BuildLogTableName)'+"';" + [System.Environment]::NewLine);
 Set-Content -Path ($tempPath + 'CreateBuildLog.sql') -Value ($CreateBuildLog);
-Write-Host "****************************************************"
-<#--=======================================================================-->
-<!--========              Create/Copy output files                =========-->
-<!--=======================================================================-#>
+
+Log-Output '<#--=======================================================================-->'
+Log-Output '<!--========              Create/Copy output files                =========-->'
+Log-Output '<#--=======================================================================-->'
 
 $toBeZipped = @("ReleaseNotes.txt", "License.txt", "tSQLt.class.sql", "Example.sql", "PrepareServer.sql");
 $compress = @{
