@@ -12,8 +12,18 @@ $ValidationOutputPath = $OutputPath + "validation/";
 $FacadeDacpacPath = $PublicTempPath + "/FacadeDacpacs/";
 $tSQLtDacpacPath = $PublicTempPath + "/tSQLtDacpacs/";
 $tSQLtFilesZipPath = $dir + "/output/tSQLtBuild/tSQLtFiles.zip";
-$PublicOutputFiles = @(($dir + "/output/tSQLtBuild/ReadMe.txt"), ($dir + "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip"));
-$ValidationOutputFiles = @(($dir + "/output/tSQLtBuild/Version.txt"), ($dir + "/output/tSQLtBuild/CommitId.txt"), ($dir + "/output/tSQLtBuild/tSQLt.tests.zip"), ($dir + "/output/tSQLtBuild/tSQLtFacade.zip")); 
+$PublicOutputFiles = @(
+    ($dir + "/output/tSQLtBuild/ReadMe.txt"), 
+    ($dir + "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip")
+);
+$ValidationOutputFiles = @(
+    ($dir + "/output/tSQLtBuild/Version.txt"), 
+    ($dir + "/output/tSQLtBuild/CommitId.txt"), 
+    ($dir + "/output/tSQLtBuild/tSQLt.tests.zip"), 
+    ($dir + "/output/tSQLtBuild/tSQLtFacade.zip"),
+    ($dir + "/output/tSQLtBuild/CreateBuildLog.sql"),
+    ($dir + "/output/tSQLtBuild/GetFriendlySQLServerVersion.sql")
+); 
 
 <# Clean #>
 Remove-DirectoryQuietly -Path $TempPath;

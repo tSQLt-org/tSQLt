@@ -111,7 +111,7 @@
    <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="output/tSQLtBuild/CreateBuildLog.sql" />
+   <param name="execute.sql.filename" value="output/tSQLt/validation/CreateBuildLog.sql" />
    <param name="execute.sql.outputfile" value="" />
   </antcall> 
  </target>

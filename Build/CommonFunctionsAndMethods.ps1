@@ -104,7 +104,7 @@ function Get-FriendlySQLServerVersion {
   $ServerNameTrimmed = $ServerName.Trim();
   $LoginTrimmed = $Login.Trim();
 
-  $GetFriendlySQLServerVersionFullPath = ($PSScriptRoot + '/output/tSQLtBuild/GetFriendlySQLServerVersion.sql');
+  $GetFriendlySQLServerVersionFullPath = (Get-ChildItem -Path ($PSScriptRoot + '/output/*') -include "GetFriendlySQLServerVersion.sql" -Recurse | Select-Object -First 1 ).FullName;
   $GetFriendlySQLServerVersionStatement = (Get-Content -Path $GetFriendlySQLServerVersionFullPath).Replace([System.Environment]::NewLine,' ');
   $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -Query "$GetFriendlySQLServerVersionStatement" -DatabaseName 'tempdb';
   Log-Output "Friendly SQL Server Version: $resultSet";
