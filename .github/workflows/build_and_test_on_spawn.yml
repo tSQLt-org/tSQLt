@@ -96,8 +96,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path "$env:ARTIFACT_DIR"
           $basePath = "${{ github.workspace }}\tSQLt\Build\output\tSQLtBuild\";
-          $artifactFiles = (@("ReadMe.txt","CommitId.txt","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt")| ForEach-Object { $basePath + $_ });
-          $artifactFiles | Copy-Item -Verbose -Destination "$env:ARTIFACT_DIR";
+          $artifactFiles = @("ReadMe.txt","CommitId.txt","CreateBuildLog.sql","GetFriendlySQLServerVersion.sql","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt");
+          Get-ChildItem -Path ($basePath + "*")  -Include $artifactFiles | Copy-Item -Destination "$env:ARTIFACT_DIR";
 
       - name: Archive production artifact
         uses: actions/upload-artifact@v2
