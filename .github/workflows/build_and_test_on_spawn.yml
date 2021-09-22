@@ -13,10 +13,10 @@ on:
       spawnDataImages:
         description: 'names of the data-images on spawn (e.g. ["mssql","empty-mssql"]) aka 2017 and 2019'
         required: true
-        default: '["mssql","empty-mssql"]' # If you change this, remember to also update env.SPAWNDATAIMAGES_DEFAULT
+        default: '["mssql-empty:2017","mssql-empty:2019"]' # If you change this, remember to also update env.SPAWNDATAIMAGES_DEFAULT
 
 env:
-  SPAWNDATAIMAGES_DEFAULT: '["mssql","empty-mssql"]'
+  SPAWNDATAIMAGES_DEFAULT: '["mssql-empty:2017","mssql-empty:2019"]'
 
 jobs:
 # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
