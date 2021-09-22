@@ -12,6 +12,12 @@
           <AssociatedConnUserName />
           <FullPath>GetUnsignedEmptyBytes.mdl.sql</FullPath>
         </FileNode>
+        <FileNode Name="SQLQuery1.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>SQLQuery1.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLtTestUtilCLR.mdl.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

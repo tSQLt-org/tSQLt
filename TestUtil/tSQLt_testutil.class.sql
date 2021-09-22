@@ -448,7 +448,40 @@ AS
 BEGIN
   IF OBJECT_ID('tSQLt_testutil.LocalBuildLogTemp') IS NOT NULL DROP TABLE tSQLt_testutil.LocalBuildLogTemp;
   EXEC('SELECT * INTO tSQLt_testutil.LocalBuildLogTemp FROM '+@TableName+';');
-  SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL;
+
+  IF OBJECT_ID('tSQLt_testutil.LocalBuildLogTempFormatted') IS NOT NULL DROP TABLE tSQLt_testutil.LocalBuildLogTempFormatted;
+  DECLARE @cmd NVARCHAR(MAX) =
+  (
+    SELECT 'SELECT '+
+               'CAST(REPLICATE('' '','+CAST(MAX(idML) AS NVARCHAR(MAX))+'-LEN(id))+CAST(id AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(idML)+1 AS NVARCHAR(MAX))+'))id,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(SuccessML) AS NVARCHAR(MAX))+'-LEN(Success))+CAST(Success AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(SuccessML)+1 AS NVARCHAR(MAX))+'))Success,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(SkippedML) AS NVARCHAR(MAX))+'-LEN(Skipped))+CAST(Skipped AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(SkippedML)+1 AS NVARCHAR(MAX))+'))Skipped,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(FailureML) AS NVARCHAR(MAX))+'-LEN(Failure))+CAST(Failure AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(FailureML)+1 AS NVARCHAR(MAX))+'))Failure,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(ErrorML) AS NVARCHAR(MAX))+'-LEN(Error))+CAST(Error AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(ErrorML)+1 AS NVARCHAR(MAX))+'))Error,'+
+               'CAST(TestCaseSet AS CHAR('+CAST(MAX(TestCaseSetML) AS NVARCHAR(MAX))+'))TestCaseSet,'+
+               'CAST(RunGroup AS CHAR('+CAST(MAX(RunGroupML) AS NVARCHAR(MAX))+'))RunGroup,'+
+               'CAST(DatabaseName AS CHAR('+CAST(MAX(DatabaseNameML) AS NVARCHAR(MAX))+'))DatabaseName '+
+             'INTO tSQLt_testutil.LocalBuildLogTempFormatted FROM tSQLt_testutil.LocalBuildLogTemp'
+      FROM 
+      (
+        SELECT 
+            MAX(LEN(CAST(id AS VARCHAR(MAX)))) idML,
+            MAX(LEN(CAST(Success AS VARCHAR(MAX)))) SuccessML,
+            MAX(LEN(CAST(Skipped AS VARCHAR(MAX)))) SkippedML,
+            MAX(LEN(CAST(Failure AS VARCHAR(MAX)))) FailureML,
+            MAX(LEN(CAST(Error AS VARCHAR(MAX)))) ErrorML,
+            2+MAX(LEN(TestCaseSet)) TestCaseSetML,
+            2+MAX(LEN(RunGroup)) RunGroupML,
+            2+MAX(LEN(DatabaseName)) DatabaseNameML
+          FROM tSQLt_testutil.LocalBuildLogTemp
+          UNION ALL SELECT 2,7,7,7,5,0,0,0
+      )X
+  );
+  EXEC(@cmd);
+  DECLARE @BuildLog NVARCHAR(MAX);
+  EXEC tSQLt.TableToText @txt = @BuildLog OUT, @TableName = 'tSQLt_testutil.LocalBuildLogTempFormatted',@OrderBy = 'id'
+  EXEC tSQLt.Private_Print @Message = @BuildLog;
+
   IF(EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
   BEGIN
     EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = 16

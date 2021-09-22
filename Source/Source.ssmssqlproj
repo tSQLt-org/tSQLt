@@ -2,7 +2,20 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Source">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
-      <Items />
+      <Items>
+        <ConnectionNode Name=".,42419:WIN10A\meinse00">
+          <Created>2021-09-22T07:21:58.6610246-04:00</Created>
+          <Type>SQL</Type>
+          <Server>.,42419</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>master</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+      </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -409,8 +422,8 @@
           <FullPath>tSQLt.Private_NewTestClassList.tbl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_NullCellTable.tbl.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:.,42419:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>.,42419</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_NullCellTable.tbl.sql</FullPath>
         </FileNode>
