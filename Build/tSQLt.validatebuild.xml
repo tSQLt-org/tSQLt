@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="tSQLt" default="all" basedir=".">
+<project name="tSQLt" default="DacpacOnly" basedir=".">
 
   <!-- TODO: failing tests should fail build -->
   <!-- TODO: PS failures should fail build -->
@@ -457,18 +457,17 @@
 
  <target name="deploy.tSQLt.Dacpac" description="execute create scripts">
   <echo message="##teamcity[progressMessage 'Deploying tSQLt Dacpac to ${deploy.tSQLt.Dacpac.database}']" />
-  <antcall target="reset.parameter.variables" />
 
-  <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="tempdb" />
-   <param name="execute.sql.newDatabase" value="${deploy.tSQLt.Dacpac.database}" />
-   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/temp_prepare_server.sql" />
-  </antcall>
+  <exec dir="." executable="powershell" failonerror="true">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File DacpacDeploy.ps1" />
+      <arg line="-ServerName &quot;${db.server}&quot;" />
+      <arg line="-DatabaseName &quot;${deploy.tSQLt.Dacpac.database}&quot;" />
+      <arg line="-Login &quot;${db.login}&quot;" />
+      <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
+      <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
+  </exec>
 
-  <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${deploy.tSQLt.Dacpac.database}" />
-   <param name="execute.sql.filename" value="temp/Validate/tSQLt/tSQLt.class.sql" />
-  </antcall>
  </target>
 
 
