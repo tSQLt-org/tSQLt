@@ -95,11 +95,11 @@ Function Get-SqlConnectionString
 }
 
 function Get-FriendlySQLServerVersion {
+  [CmdletBinding()]
   param (
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlCmdPath,
-    [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlCmdPath
   )
   $ServerNameTrimmed = $ServerName.Trim();
   $LoginTrimmed = $Login.Trim();

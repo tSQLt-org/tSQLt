@@ -30,7 +30,7 @@ Expand-Archive -Path "./output/tSQLt/validation/tSQLtFacade.zip" -DestinationPat
 
 Push-Location;
 
-$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName $DatabaseName;
+$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath;
 $FacadeFileName = $TempPath + "/tSQLt/FacadeDacpacs/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 
 $DacpacDatabaseName = $DatabaseName+"_dacpac";

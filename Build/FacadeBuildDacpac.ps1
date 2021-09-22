@@ -47,7 +47,7 @@ $AdditionalParameters = '-v FacadeSourceDb="'+$SourceDatabaseName+'" FacadeTarge
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames @("ResetValidationServer.sql","PrepareServer.sql");
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames "ExecuteFacadeScript.sql" -AdditionalParameters $AdditionalParameters;
 
-$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -DatabaseName '$SourceDatabaseName';
+$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath;
 $FacadeDacpacFileName = "tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 $FacadeApplicationName = "tSQLtFacade."+$FriendlySQLServerVersion;
 $FacadeConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $TargetDatabaseName;
