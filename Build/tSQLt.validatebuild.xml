@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="tSQLt" default="all" basedir=".">
+<project name="tSQLt" default="ExampleOnly" basedir=".">
 
   <!-- TODO: PS failures should fail build -->
   <!-- TODO: fix: test results not complete in Azure Devops -->
@@ -103,13 +103,6 @@
  </target>
 
  <target name="process.testresults">
-  <antcall target="execute.sql.statement">
-   <param name="execute.sql.database" value="${process.testresults.database}" />
-   <param name="execute.sql.statement" value="SET NOCOUNT ON;EXEC tSQLt_testutil.CheckBuildLog @TableName='${logtable.name}';" />
-   <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.outputfile" value="output/tSQLt/validation/BuildLogSummary.txt" />
-  </antcall>
-  <loadfile property="BuildLog.Summary" srcFile="output/tSQLt/validation/BuildLogSummary.txt" />
   <antcall target="report.SQL.Version">
    <param name="report.SQL.Version.database" value="${process.testresults.database}" />
   </antcall>
@@ -121,7 +114,12 @@
   <echo message="|+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+|" />
   <echo message="+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+" />
   <echo message="  " />
-  <echo message="${BuildLog.Summary}" />
+  <antcall target="execute.sql.statement">
+   <param name="execute.sql.database" value="${process.testresults.database}" />
+   <param name="execute.sql.statement" value="SET NOCOUNT ON;EXEC tSQLt_testutil.CheckBuildLog @TableName='${logtable.name}';" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.outputfile" value="" />
+  </antcall>
 
   <antcall target="zip.testresults">
    <param name="zip.testresults.FileList" value="${process.testresults.FileList}" />
