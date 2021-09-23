@@ -474,7 +474,7 @@ BEGIN
             2+MAX(LEN(RunGroup)) RunGroupML,
             2+MAX(LEN(DatabaseName)) DatabaseNameML
           FROM tSQLt_testutil.LocalBuildLogTemp
-          UNION ALL SELECT 2,7,7,7,5,0,0,0
+          UNION ALL SELECT 2,7,7,7,5,11,8,12
       )X
   );
   EXEC(@cmd);

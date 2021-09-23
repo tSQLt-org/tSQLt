@@ -190,41 +190,66 @@ BEGIN
   
 END
 GO
-CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog returns contents of Log as resultset]
+
+CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog Private_Print is called with the result of TableToText]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
-  EXEC tSQLt_testutil_test_SA.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
-  SET IDENTITY_INSERT tSQLt_testutil.MultiRunLog ON;
-  INSERT INTO tSQLt_testutil.MultiRunLog(id,Success,Skipped,Failure,Error,TestCaseSet)
-  VALUES
-    (101,17,9,1,3,'row 1'),(102,4,6,7,5,'row 2');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.TableToText', @CommandToExecute = 'SET @txt=''<recognizable text goes here>'';';
 
   EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
-  EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest1';
-  EXEC tSQLt_testutil.StoreBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]',@RunGroup='ATest2';
-  --SELECT * FROM tSQLt_testutil_test_SA.[Temp BuildLog Table];
 
-  SELECT TOP(0)MRL.*
-  INTO tSQLt_testutil_test_SA.[testtable for comparison Actual]
-  FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
-
-  INSERT INTO tSQLt_testutil_test_SA.[testtable for comparison Actual]
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
 
+  IF NOT EXISTS(SELECT 1 FROM tSQLt.Private_Print_SpyProcedureLog WHERE Message = '<recognizable text goes here>')
+  BEGIN
+    EXEC tSQLt.Fail 'tSQLt.Private_Print was not called with the output of tSQLt.TableToText';
+  END;
 
+END;
+GO
 
-  SELECT ROW_NUMBER()OVER(ORDER BY XX.RunGroup,MRL.id) AS id,
-         MRL.Success,
-         MRL.Skipped,
-         MRL.Failure,
-         MRL.Error,
-         MRL.TestCaseSet,
-         RunGroup,
-         DB_NAME() DatabaseName
+--TODO: This really needs an "undo" on the tSQLt.SpyProcedure, but we don't have time for it.
+CREATE PROCEDURE tSQLt_testutil_test_SA.[test CheckBuildLog prints contents of Log]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.TableToText';
+
+  EXEC tSQLt_testutil.CreateBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
+  INSERT INTO tSQLt_testutil_test_SA.[Temp BuildLog Table](id, Success, Skipped, Failure, Error, TestCaseSet, RunGroup, DatabaseName)
+  VALUES
+    (101,17,9,1,3,'row 1','RG1','DB1'),(102,4,6,7,5,'row 2','RG2','DB2');
+
+  EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
+
+  DECLARE @TableName NVARCHAR(MAX) = (SELECT TableName FROM tSQLt.TableToText_SpyProcedureLog);
+
+  SELECT CAST (MRL.id AS NVARCHAR(MAX)) AS id,
+         CAST (MRL.Success AS NVARCHAR(MAX)) AS Success,
+         CAST (MRL.Skipped AS NVARCHAR(MAX)) AS Skipped,
+         CAST (MRL.Failure AS NVARCHAR(MAX)) AS Failure,
+         CAST (MRL.Error AS NVARCHAR(MAX)) AS Error,
+         CAST (MRL.TestCaseSet AS NVARCHAR(MAX)) AS TestCaseSet,
+         CAST (RunGroup AS NVARCHAR(MAX)) AS RunGroup,
+         CAST (DatabaseName AS NVARCHAR(MAX)) AS DatabaseName
     INTO tSQLt_testutil_test_SA.[testtable for comparison Expected]
-    FROM tSQLt_testutil.MultiRunLog AS MRL
-    CROSS JOIN (VALUES('ATest1'),('ATest2'))XX(RunGroup);
+    FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL
+
+  EXEC('SELECT * INTO tSQLt_testutil_test_SA.[testtable for comparison Hold] FROM ' + @TableName + ';');
+
+  SELECT LTRIM(RTRIM(CAST (MRL.id AS NVARCHAR(MAX)))) AS id,
+         LTRIM(RTRIM(CAST (MRL.Success AS NVARCHAR(MAX)))) AS Success,
+         LTRIM(RTRIM(CAST (MRL.Skipped AS NVARCHAR(MAX)))) AS Skipped,
+         LTRIM(RTRIM(CAST (MRL.Failure AS NVARCHAR(MAX)))) AS Failure,
+         LTRIM(RTRIM(CAST (MRL.Error AS NVARCHAR(MAX)))) AS Error,
+         LTRIM(RTRIM(CAST (MRL.TestCaseSet AS NVARCHAR(MAX)))) AS TestCaseSet,
+         LTRIM(RTRIM(CAST (RunGroup AS NVARCHAR(MAX)))) AS RunGroup,
+         LTRIM(RTRIM(CAST (DatabaseName AS NVARCHAR(MAX)))) AS DatabaseName
+    INTO tSQLt_testutil_test_SA.[testtable for comparison Actual]
+    FROM tSQLt_testutil_test_SA.[testtable for comparison Hold] AS MRL
+
 
   EXEC tSQLt.AssertEqualsTable 'tSQLt_testutil_test_SA.[testtable for comparison Expected]','tSQLt_testutil_test_SA.[testtable for comparison Actual]';  
 END
