@@ -16,7 +16,7 @@ on:
         default: '["mssql-empty:2017","mssql-empty:2019"]' # If you change this, remember to also update env.SPAWNDATAIMAGES_DEFAULT
 
 env:
-  SPAWNDATAIMAGES_DEFAULT: '["mssql-empty:2017","mssql-empty:2019"]'
+  SPAWNDATAIMAGES_DEFAULT: '["mssql-empty:v2017","mssql-empty:v2019"]'
 
 jobs:
 # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
