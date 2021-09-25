@@ -11,14 +11,14 @@ BEGIN
     FROM sys.objects O 
    WHERE O.schema_id = SCHEMA_ID('tSQLt')
      AND UPPER(O.name) NOT LIKE 'PRIVATE%'
-     AND O.type NOT IN ('D', 'PK')
+     AND O.type NOT IN ('D', 'PK','UQ')
 
   SELECT O.name, CASE WHEN O.type_desc LIKE '%STORED[_]PROCEDURE' THEN 'STORED_PROCEDURE' ELSE O.type_desc END type_desc
     INTO #Actual
     FROM $(DacpacTargetDb).sys.objects O 
    WHERE O.schema_id = SCHEMA_ID('tSQLt')
      AND UPPER(O.name) NOT LIKE 'PRIVATE%'
-     AND O.type NOT IN ('D', 'PK')
+     AND O.type NOT IN ('D', 'PK','UQ')
      
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
