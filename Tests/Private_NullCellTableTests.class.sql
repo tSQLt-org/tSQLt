@@ -129,13 +129,3 @@
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual'; 
   END;
   GO
-
-  CREATE PROCEDURE Private_NullCellTableTests.[test truncate table will error]
-  AS
-  BEGIN
-    EXEC tSQLt.ExpectException @ExpectedMessagePattern='Cannot truncate table%';
-    TRUNCATE TABLE tSQLt.Private_NullCellTable;
-  END;
-  GO
-
-  

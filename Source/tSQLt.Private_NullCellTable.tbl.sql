@@ -8,11 +8,6 @@ CREATE TABLE tSQLt.Private_NullCellTable(
 );
 GO
 
-CREATE TABLE tSQLt.Private_NullCellTable_PreventTruncate (
-  I INT CONSTRAINT[FK:tSQLt.Private_NullCellTable(I)] FOREIGN KEY REFERENCES tSQLt.Private_NullCellTable(I)
-);
-GO
-
 INSERT INTO tSQLt.Private_NullCellTable (I) VALUES (NULL);
 GO
 
