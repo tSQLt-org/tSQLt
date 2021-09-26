@@ -573,7 +573,7 @@ stages:
         #searchFolder: '$(System.DefaultWorkingDirectory)' # Optional
         #mergeTestResults: false # Optional
         #failTaskOnFailedTests: false # Optional
-#        testRunTitle: '$(SQLVersionEdition)' # Optional
+        testRunTitle: '$(SQLVersionEdition)' # Optional
         buildPlatform: '$(SQLVersionEdition)' # Optional
         #buildConfiguration: # Optional
         publishRunAttachments: true # Optional
