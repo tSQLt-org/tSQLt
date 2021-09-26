@@ -11,12 +11,15 @@ on:
   workflow_dispatch: 
     inputs:
       spawnDataImages:
-        description: 'names of the data-images on spawn (e.g. ["mssql","empty-mssql"]) aka 2017 and 2019'
+        description: 'names of the data-images on spawn (e.g. all is currently equivalent to [["SQL2017","mssql-empty:v2017"],["SQL2019","mssql-empty:v2019"]] 2021-09-26)'
         required: true
-        default: '["mssql-empty:2017","mssql-empty:2019"]' # If you change this, remember to also update env.SPAWNDATAIMAGES_DEFAULT
+        default: 'all'
 
 env:
-  SPAWNDATAIMAGES_DEFAULT: '["mssql-empty:v2017","mssql-empty:v2019"]'
+  MATRIX_NAME: 0
+  MATRIX_SPAWNIMAGE: 1
+  SPAWNDATAIMAGES_DEFAULT: 
+    '[["SQL2017","mssql-empty:v2017"],["SQL2019","mssql-empty:v2019"]]'
 
 jobs:
 # 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
@@ -40,7 +43,7 @@ jobs:
           Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
           Write-Host "";
           Write-Host ("input spawnDataImages: {0}" -f $spawnDataImages);
-          if ([string]::IsNullOrEmpty($spawnDataImages)) {
+          if ([string]::IsNullOrEmpty($spawnDataImages) -or ("all" -eq $spawnDataImages)) {
             $spawnDataImages = '${{ env.spawndataimages_default }}';
           }
           Write-Host ("final spawnDataImages value: {0}" -f $spawnDataImages);
@@ -151,7 +154,7 @@ jobs:
         run: |
           & "${{ github.workspace }}\spawnctl.exe" get data-images
 
-          $dataImageName = "${{ matrix.data-image }}";
+          $dataImageName = "${{ matrix.data-image[MATRIX_SPAWNIMAGE] }}";
 
           echo "Creating 'tSQLtOnLinux' Spawn data container from image '$dataImageName'";
           $containerName= & "${{ github.workspace }}\spawnctl.exe" create data-container --image $dataImageName --lifetime 30m -q
@@ -318,7 +321,7 @@ jobs:
         run: |
           & "${{ github.workspace }}\spawnctl.exe" get data-images
 
-          $dataImageName = "${{ matrix.data-image }}";
+          $dataImageName = "${{ matrix.data-image[MATRIX_SPAWNIMAGE] }}";
 
           echo "Creating 'tSQLtOnLinux' Spawn data container from image '$dataImageName'";
           $containerName= & "${{ github.workspace }}\spawnctl.exe" create data-container --image $dataImageName --lifetime 30m -q
@@ -368,7 +371,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
-          name: jUnitTests-${{ matrix.data-image }}
+          name: jUnitTests-${{ matrix.data-image[MATRIX_NAME] }}
           path: "${{ env.test_artifact_dir }}\\"
           retention-days: 90
 
