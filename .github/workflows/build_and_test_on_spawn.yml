@@ -154,7 +154,7 @@ jobs:
         run: |
           & "${{ github.workspace }}\spawnctl.exe" get data-images
 
-          $dataImageName = "${{ matrix.data-image[MATRIX_SPAWNIMAGE] }}";
+          $dataImageName = "${{ matrix.data-image[ env.MATRIX_SPAWNIMAGE ] }}";
 
           echo "Creating 'tSQLtOnLinux' Spawn data container from image '$dataImageName'";
           $containerName= & "${{ github.workspace }}\spawnctl.exe" create data-container --image $dataImageName --lifetime 30m -q
@@ -321,7 +321,7 @@ jobs:
         run: |
           & "${{ github.workspace }}\spawnctl.exe" get data-images
 
-          $dataImageName = "${{ matrix.data-image[MATRIX_SPAWNIMAGE] }}";
+          $dataImageName = "${{ matrix.data-image[ env.MATRIX_SPAWNIMAGE] }}";
 
           echo "Creating 'tSQLtOnLinux' Spawn data container from image '$dataImageName'";
           $containerName= & "${{ github.workspace }}\spawnctl.exe" create data-container --image $dataImageName --lifetime 30m -q
@@ -371,7 +371,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
-          name: jUnitTests-${{ matrix.data-image[MATRIX_NAME] }}
+          name: jUnitTests-${{ matrix.data-image[ env.MATRIX_NAME ] }}
           path: "${{ env.test_artifact_dir }}\\"
           retention-days: 90
 
