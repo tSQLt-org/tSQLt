@@ -584,7 +584,7 @@ stages:
       name: PublishValidateOutputArtifact
       inputs:
         targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/Validate'
-        artifact: 'ValidateOutput'
+        artifact: 'ValidateOutput_$(System.JobName)'
         publishLocation: 'pipeline'
 
 
