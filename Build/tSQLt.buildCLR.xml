@@ -11,7 +11,7 @@
 
  <target
    name="all"
-   depends="validate.parameters, init, clr.compile, tSQLtAssemblyKey.compile, clr.testutil.compile, clr.UnsignedEmpty.compile, package.files"
+   depends="clean, validate.parameters, init, clr.compile, tSQLtAssemblyKey.compile, clr.testutil.compile, clr.UnsignedEmpty.compile, package.files"
    />
 
 
@@ -19,11 +19,23 @@
  <!--========                 Misc                                 =========-->
  <!--=======================================================================-->
 
+ <target name="clean" description="clean all of the things that might be left over from previous builds">
+  <delete dir="temp/CLRBuild"/>
+  <delete dir="output/CLRBuild/"/>
+  <delete dir="../tSQLtCLR/tSQLtCLR/bin/" />
+  <delete dir="../tSQLtCLR/tSQLtCLR/obj/" />
+  <delete dir="../tSQLtCLR/tSQLtAssemblyKey/bin/" />
+  <delete dir="../tSQLtCLR/tSQLtAssemblyKey/obj/" />
+  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/bin/" />
+  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/obj/" />
+  <delete dir="../tSQLtCLR/UnsignedEmpty/bin/" />
+  <delete dir="../tSQLtCLR/UnsignedEmpty/obj/" />
+ </target>
+
  <target name="init" description="prepare output directory">
-  <mkdir dir="output" />
-  <delete dir="temp"/>
-  <mkdir dir="temp"/>
-  <mkdir dir="temp/tSQLtCLR"/>
+  <mkdir dir="output/CLRBuild" />
+  <mkdir dir="temp/CLRBuild" />
+<!-- <mkdir dir="temp/tSQLtCLR"/> -->
   <property name="build.configuration" value="CruiseControl" />
  </target>
 
@@ -45,8 +57,6 @@
 
  <target name="clr.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
-  <delete dir="../tSQLtCLR/tSQLtCLR/bin/${build.configuration}" />
-  <delete dir="../tSQLtCLR/tSQLtCLR/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtCLR/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
@@ -55,8 +65,6 @@
 
  <target name="tSQLtAssemblyKey.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtAssemblyKey.csproj /p:Configuration=${build.configuration} /nologo"/>
-  <delete dir="../tSQLtCLR/tSQLtAssemblyKey/bin/${build.configuration}" />
-  <delete dir="../tSQLtCLR/tSQLtAssemblyKey/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtAssemblyKey/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtAssemblyKey.csproj /p:Configuration=${build.configuration} /nologo"/>
@@ -65,8 +73,6 @@
 
  <target name="clr.testutil.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
-  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/bin/${build.configuration}" />
-  <delete dir="../tSQLtCLR/tSQLtTestUtilCLR/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/tSQLtTestUtilCLR/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}\msbuild.exe&quot; tSQLtTestUtilCLR.csproj /p:Configuration=${build.configuration} /nologo"/>
@@ -75,8 +81,6 @@
 
  <target name="clr.UnsignedEmpty.compile">
   <echo message="Compile CLR Command: &quot;${msbuild.path}\msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
-  <delete dir="../tSQLtCLR/UnsignedEmpty/bin/${build.configuration}" />
-  <delete dir="../tSQLtCLR/UnsignedEmpty/obj/${build.configuration}" />
   <exec executable="cmd" dir="../tSQLtCLR/UnsignedEmpty/" failonerror="true">
    <arg value="/c"/>
    <arg value="&quot;${msbuild.path}\msbuild.exe&quot; UnsignedEmpty.csproj /p:Configuration=${build.configuration} /nologo"/>
@@ -84,14 +88,13 @@
  </target>
 
  <target name="package.files">
-  <copy todir="temp/tSQLtCLR" flatten="true">
+  <copy todir="temp/CLRBuild" flatten="true">
    <fileset dir="../tSQLtCLR">
     <include name="*/bin/${build.configuration}/*.dll"/>
    </fileset>
   </copy>
-  <delete file="output/tSQLtCLR.zip" />
-  <zip zipfile="output/tSQLtCLR.zip">
-   <fileset dir="temp/tSQLtCLR">
+  <zip zipfile="output/CLRBuild/tSQLtCLR.zip">
+   <fileset dir="temp/CLRBuild">
     <include name="*.*"/>
    </fileset>
   </zip>

@@ -1,0 +1,35 @@
+# Documentation
+# - https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/
+# - https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables/
+# - 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix.mssqlversion-deployment
+  labels:
+    app: matrix.mssqlversion-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: matrix.mssqlversion-db
+  template:
+    metadata:
+      labels:
+        app: matrix.mssqlversion-db
+    spec:
+      nodeSelector:
+        agentpool: akswin
+      containers:
+      - name: matrix.mssqlversion-db
+        image: containerRegistryName/mssql:matrix.mssqlversion
+        ports:
+          - containerPort: 80
+            name: other 
+            protocol: TCP
+          - containerPort: 1433
+            name: mssql
+            protocol: TCP
+      imagePullSecrets:
+      - name: acr-secret
+

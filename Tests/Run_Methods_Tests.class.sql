@@ -1,5 +1,48 @@
 EXEC tSQLt.NewTestClass 'Run_Methods_Tests';
 GO
+CREATE PROC Run_Methods_Tests.[test all tSQLt.Run methods call the run method handler]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunMethodHandler';
+
+  SELECT P.object_id,P.name
+    INTO #Expected
+    FROM sys.procedures AS P
+   WHERE P.schema_id = SCHEMA_ID('tSQLt')
+     AND P.name LIKE 'Run%'
+     AND P.name NOT IN('RunTest');
+
+  SELECT TOP(0) E.* INTO #Actual FROM #Expected E RIGHT JOIN #Expected X ON 1=0;
+  
+  DECLARE @cmd NVARCHAR(MAX) = 
+  (
+    SELECT 'EXEC tSQLt.'+QUOTENAME(P.name) + PP.ParameterList + ';INSERT INTO #Actual SELECT '+CAST(P.object_id AS NVARCHAR(MAX))+','''+P.name+''' FROM tSQLt.Private_RunMethodHandler_SpyProcedureLog; TRUNCATE TABLE tSQLt.Private_RunMethodHandler_SpyProcedureLog;'
+      FROM #Expected AS P
+     OUTER APPLY
+     (
+       SELECT
+           ISNULL(
+             STUFF(
+               (
+                 SELECT ','+PP.name+'=NULL' FROM sys.parameters AS PP
+                  WHERE P.object_id = PP.object_id
+                  ORDER BY PP.parameter_id
+                    FOR XML PATH(''),TYPE
+               ).value('.','NVARCHAR(MAX)'),
+               1,1,' '
+             ),
+             ''
+           )
+     )PP(ParameterList)
+       FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)');
+  EXEC(@cmd);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 CREATE PROC Run_Methods_Tests.[test Run truncates TestResult table]
 AS
 BEGIN
@@ -2058,6 +2101,7 @@ BEGIN
     EXEC tSQLt.XmlResultFormatter;
 
     EXEC tSQLt.ExpectNoException;
+RETURN
     EXEC Run_Methods_Tests.SetupXMLSchemaCollection;
     DECLARE @TestResultXML XML;
     SELECT @TestResultXML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;

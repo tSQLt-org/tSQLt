@@ -1,9 +1,185 @@
 <?xml version="1.0"?>
 <project name="tSQLt" default="all" basedir=".">
 
- <target name="all" depends="validate.parameters, deploy.all, validate.tSQLt, validate.Example, report.SQL.Version" />
+  <!-- TODO: PS failures should fail build -->
+  <!-- TODO: fix: test results not complete in Azure Devops -->
+  <!-- TODO: change path for dacpac tests so there's a differentiation in the MultiRunResults -->
+  <!-- TODO: where are the databases going? (drop login?) -->
+  <!-- TODO: identify correct dacpac -->
+  <!-- TODO: deploy dacpac -->
+  <!-- TODO: deployAndValidate.Facade should pass in three database names to FacadeValidate.ps1 to reduce coupling -->
+  <!-- TODO: CreateDebugSSMSProject section does not fail build on error -->
 
- <target name="deploy.all" depends="reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, reset.server, prepare.server, deploy.tSQLt, deploy.Example" />
+ <target name="all" depends="run.all" />
+ <target name="noDacpac" depends="run.noDacpac" />
+ <target name="tSQLtOnly" depends="run.tSQLtOnly" />
+ <target name="DacpacOnly" depends="run.DacpacOnly" />
+ <target name="FacadeOnly" depends="run.FacadeOnly" />
+ <target name="ExampleOnly" depends="run.ExampleOnly" />
+
+ <target name="Preparation" depends="validate.parameters, clean, reset.parameter.variables, hello, init, create.tSQLt.scripts, create.Example.scripts, create.logtable" />
+
+ <target name="set.database.name.variables">
+   <property name="run.tSQLt.database" value="${db.name}" />
+   <property name="run.Dacpac.database" value="${db.name}_dacpac" />
+   <property name="run.Facade.database" value="${db.name}_facade" />
+   <property name="run.Example.database" value="tSQLt_Example" /> <!-- do not change, hard coded in deployment -->
+
+   <property name="run.Facade.src.database" value="${run.Facade.database}_src" />
+   <property name="run.Facade.trg.database" value="${run.Facade.database}_trg" />
+   <property name="run.Facade.validate.database" value="${run.Facade.database}_validate" />
+  <echo message="Selected Dacpac Database: [${run.Dacpac.database}]" />
+ </target>
+
+ <target name="run.all" depends="set.database.name.variables, Preparation">
+  <antcall target="deployAndValidate.tSQLt">
+   <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
+  </antcall>
+  <antcall target="deployAndValidate.Dacpac">
+   <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.database}" />
+  </antcall>
+  <antcall target="deployAndValidate.Facade">
+   <param name="deployAndValidate.Facade.database" value="${run.Facade.database}" />
+  </antcall>
+  <antcall target="deployAndValidate.Example">
+   <param name="deployAndValidate.Example.database" value="${run.Example.database}" />
+  </antcall>
+  <antcall target="process.testresults">
+   <param name="process.testresults.database" value="${run.Example.database}" />
+   <param name="process.testresults.FileList" value="TestResults_Example.xml;testresults_facade.xml;TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml;TestResults_tSQLt_TestUtil.xml;TestResults_tSQLtDacpac.xml;testresults_tSQLtDacpac_external_access_key_exists.xml;testresults_tSQLtDacpac_external_access.xml;testresults_tSQLtDacpac_sa.xml;TestResults_tSQLtDacpac_TestUtil.xml" />
+  </antcall>
+ </target>
+ <target name="run.noDacpac" depends="set.database.name.variables, Preparation">
+  <antcall target="deployAndValidate.tSQLt">
+   <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
+  </antcall>
+  <antcall target="deployAndValidate.Facade">
+   <param name="deployAndValidate.Facade.database" value="${run.Facade.database}" />
+  </antcall>
+  <antcall target="deployAndValidate.Example">
+   <param name="deployAndValidate.Example.database" value="${run.Example.database}" />
+  </antcall>
+  <antcall target="process.testresults">
+   <param name="process.testresults.database" value="${run.Example.database}" />
+   <param name="process.testresults.FileList" value="TestResults_Example.xml;testresults_facade.xml;TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml;TestResults_tSQLt_TestUtil.xml;" />
+  </antcall>
+ </target>
+ <target name="run.tSQLtOnly" depends="set.database.name.variables, Preparation">
+  <antcall target="deployAndValidate.tSQLt">
+   <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
+  </antcall>
+  <antcall target="process.testresults">
+   <param name="process.testresults.database" value="${run.tSQLt.database}" />
+   <param name="process.testresults.FileList" value="TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml;TestResults_tSQLt_TestUtil.xml;" />
+  </antcall>
+ </target>
+ <target name="run.DacpacOnly" depends="set.database.name.variables, Preparation">
+  <echo message="Selected Database: [${run.Dacpac.database}]" />
+  <antcall target="deployAndValidate.Dacpac">
+   <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.database}" />
+  </antcall>
+  <antcall target="process.testresults">
+   <param name="process.testresults.database" value="${run.Dacpac.database}" />
+   <param name="process.testresults.FileList" value="TestResults_tSQLtDacpac.xml;testresults_tSQLtDacpac_external_access_key_exists.xml;testresults_tSQLtDacpac_external_access.xml;testresults_tSQLtDacpac_sa.xml;TestResults_tSQLtDacpac_TestUtil.xml;" />
+  </antcall>
+ </target>
+ <target name="run.FacadeOnly" depends="set.database.name.variables, Preparation">
+  <antcall target="deployAndValidate.Facade">
+   <param name="deployAndValidate.Facade.database" value="${run.Facade.database}" />
+  </antcall>
+  <antcall target="process.testresults">
+   <param name="process.testresults.database" value="${run.Facade.src.database}" />
+   <param name="process.testresults.FileList" value="testresults_facade.xml;" />
+  </antcall>
+ </target>
+ <target name="run.ExampleOnly" depends="set.database.name.variables, Preparation">
+  <antcall target="deployAndValidate.Example">
+   <param name="deployAndValidate.Example.database" value="${run.Example.database}" />
+  </antcall>
+  <antcall target="process.testresults">
+   <param name="process.testresults.database" value="${run.Example.database}" />
+   <param name="process.testresults.FileList" value="TestResults_Example.xml;" />
+  </antcall>
+ </target>
+
+ <target name="process.testresults">
+  <antcall target="report.SQL.Version">
+   <param name="report.SQL.Version.database" value="${process.testresults.database}" />
+  </antcall>
+  <echo message="+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+" />
+  <echo message="|+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+|" />
+  <echo message="||                                                                           ||" />
+  <echo message="||                          Build Test Result Summary                        ||" />
+  <echo message="||                                                                           ||" />
+  <echo message="|+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+|" />
+  <echo message="+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+" />
+  <echo message="  " />
+  <antcall target="execute.sql.statement">
+   <param name="execute.sql.database" value="${process.testresults.database}" />
+   <param name="execute.sql.statement" value="SET NOCOUNT ON;EXEC tSQLt_testutil.CheckBuildLog @TableName='${logtable.name}';" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.outputfile" value="" />
+  </antcall>
+
+  <antcall target="zip.testresults">
+   <param name="zip.testresults.FileList" value="${process.testresults.FileList}" />
+  </antcall>
+ </target>
+
+ <target name="deployAndValidate.tSQLt">
+  <antcall target="reset.server" />
+  <antcall target="prepare.server" />
+  <antcall target="deploy.tSQLt">
+   <param name="deploy.tSQLt.database" value="${deployAndValidate.tSQLt.database}" />
+  </antcall>
+  <antcall target="run.AllTests">
+   <param name="run.AllTests.ResultFilePrefix" value="tSQLt" />
+   <param name="run.AllTests.database" value="${deployAndValidate.tSQLt.database}" />
+  </antcall>
+ </target>
+ <target name="deployAndValidate.Dacpac">
+  <antcall target="reset.server" />
+  <antcall target="prepare.server" />
+  <antcall target="deploy.tSQLt.Dacpac">
+   <param name="deploy.tSQLt.Dacpac.database" value="${deployAndValidate.Dacpac.database}" />
+  </antcall>
+  <antcall target="run.AllTests">
+   <param name="run.AllTests.ResultFilePrefix" value="tSQLtDacPac" />
+   <param name="run.AllTests.database" value="${deployAndValidate.Dacpac.database}" />
+  </antcall>
+ </target>
+ <target name="deployAndValidate.Example">
+  <antcall target="reset.server" />
+  <antcall target="prepare.server" />
+  <antcall target="deploy.Example">
+  </antcall>
+  <antcall target="validate.Example">
+  </antcall>
+ </target>
+ <target name="deployAndValidate.Facade">
+  <antcall target="reset.server" />
+  <antcall target="prepare.server" />
+  <exec dir="." executable="powershell" failonerror="true">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File FacadeValidate.ps1" />
+      <arg line="-ServerName &quot;${db.server}&quot;" />
+      <arg line="-DatabaseName &quot;${deployAndValidate.Facade.database}&quot;" />
+      <arg line="-Login &quot;${db.login}&quot;" />
+      <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
+      <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
+      <arg line="-LogTableName &quot;${logtable.name}&quot;"/>
+  </exec>
+ </target>
+
+ 
+ <target name="create.logtable">
+   <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="tempdb" />
+   <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="output/tSQLt/validation/CreateBuildLog.sql" />
+   <param name="execute.sql.outputfile" value="" />
+  </antcall> 
+ </target>
 
  <target name="StopBuild">
   <Intentional---Error---To---Stop---The---Build />
@@ -22,12 +198,18 @@
   <antcall target="validate.parameter">
    <param name="parameter.name" value="sqlcmd.path" />
   </antcall>
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="sqlpackage.path" />
+  </antcall>
+  <antcall target="validate.parameter">
+   <param name="parameter.name" value="logtable.name" />
+  </antcall>
  </target>
 
  <target name="hello" description="announcement">
   <loadfile
     failonerror="true"
-    srcfile="../Build_Artifact/Version.txt"
+    srcfile="./output/tSQLt/validation/Version.txt"
     property="clr.version"
    />
   <property name="clr.version" value="${string::trim(clr.version)}" />
@@ -38,6 +220,7 @@
   <echo message="db.name: ${db.name}" />
   <echo message="db.login: ${db.login}" />
   <echo message="sqlcmd.path: ${sqlcmd.path}" />
+  <echo message="sqlpackage.path: ${sqlpackage.path}" />
 
  </target>
 
@@ -56,7 +239,7 @@
  <target name="report.SQL.Version">
   <antcall target="execute.sql.file">
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${report.SQL.Version.database}" />
    <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.filename" value="PrintVersionInfo.sql" />
   </antcall>
@@ -77,13 +260,18 @@
  <!--========               initialize artifact files              =========-->
  <!--=======================================================================-->
 
- <target name="init" description="prepare directories for tSQLt build">
-  <delete dir="temp"/>
-  <mkdir dir="temp"/>
-  <mkdir dir="output" />
+ <target name="clean" description="delete directories">
+  <delete dir="temp/Validate"/>
+  <delete dir="output/Validate"/>
+ </target> 
 
-  <unzip src="../Build_Artifact/tSQLt.zip" dest="temp" />
-  <unzip src="../Build_Artifact/tSQLt.tests.zip" dest="temp" />
+ <target name="init" description="prepare directories for tSQLt build">
+  <mkdir dir="temp/Validate" />
+  <mkdir dir="temp/Validate/TestResults" />
+  <mkdir dir="output/Validate" />
+
+  <unzip src="./output/tSQLt/public/tSQLt.zip" dest="temp/Validate/tSQLt/" />
+  <unzip src="./output/tSQLt/validation/tSQLt.tests.zip" dest="temp/Validate/tSQLt.tests/" />
 
   <property name="execute.sql.elevated" value="false" />
   <property name="deployandrun.tests.elevated" value="false" />
@@ -95,7 +283,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
    <param name="execute.sql.caller" value="true" />
-   <param name="execute.sql.filename" value="temp/ResetValidationServer.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/ResetValidationServer.sql" />
   </antcall>
 
  </target>
@@ -105,7 +293,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/PrepareServer.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt/PrepareServer.sql" />
   </antcall>
 
  </target>
@@ -118,62 +306,56 @@
  </target>
 
  <target name="create.tSQLt.scripts.AllTests.Main">
-  <delete file="temp/AllTests.Main.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/AllTests.Main.sql" />
-   <param name="append.source" value="temp/AllTests.sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/AllTests.Main.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/AllTests.sql" />
   </antcall>
  </target>
  
  <target name="create.tSQLt.scripts" description="generate build execution utility scripts">
-  <delete file="temp/temp_prepare_server.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_prepare_server.sql" />
-   <param name="append.source" value="temp/CreateBuildDb.sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_prepare_server.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/CreateBuildDb.sql" />
   </antcall>
 
-  <delete file="temp/temp_executeas.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas.sql" />
-   <param name="append.source" value="temp/ExecuteAs(tSQLt.Build).sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_executeas.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/ExecuteAs(tSQLt.Build).sql" />
   </antcall>
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas.sql" />
-   <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
-  </antcall>
-
-  <delete file="temp/temp_executeas_sa.sql" />
-  <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas_sa.sql" />
-   <param name="append.source" value="temp/ExecuteAs(tSQLt.Build.SA).sql" />
-  </antcall>
-  <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas_sa.sql" />
-   <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_executeas.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
   </antcall>
 
-  <delete file="temp/temp_executeas_caller.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_executeas_caller.sql" />
-   <param name="append.source" value="temp/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_executeas_sa.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/ExecuteAs(tSQLt.Build.SA).sql" />
+  </antcall>
+  <antcall target="append.file">
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_executeas_sa.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
+  </antcall>
+
+  <antcall target="append.file">
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_executeas_caller.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/ChangeDbAndExecuteStatement(tSQLt.Build).sql" />
   </antcall>  
   <antcall target="create.tSQLt.scripts.AllTests.Main" />
 
  </target>
 
  <target name="create.Example.scripts" description="generate database creation scripts for example">
-  <delete file="temp/temp_create_example.sql" />
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_create_example.sql" />
-   <param name="append.source" value="temp/Example.sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_create_example.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt/Example.sql" />
   </antcall>
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_create_example.sql" />
-   <param name="append.source" value="temp/TestUtil.sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_create_example.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/TestUtil.sql" />
   </antcall>
   <antcall target="append.file">
-   <param name="append.target" value="temp/temp_create_example.sql" />
-   <param name="append.source" value="temp/TestThatExamplesAreDeployed.sql" />
+   <param name="append.target" value="temp/Validate/tSQLt.tests/temp_create_example.sql" />
+   <param name="append.source" value="temp/Validate/tSQLt.tests/TestThatExamplesAreDeployed.sql" />
   </antcall>
 
  </target>
@@ -185,19 +367,19 @@
  <target name="execute.sql.statement_or_file.permissions.caller" if="execute.sql.statement_or_file.permissions.caller">
   <echo message="--> execute.sql.statement_or_file.caller" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas_caller.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/tSQLt.tests/temp_executeas_caller.sql" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.permissions.elevated" if="execute.sql.statement_or_file.permissions.elevated">
   <echo message="--> execute.sql.statement_or_file.elevated" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas_sa.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/tSQLt.tests/temp_executeas_sa.sql" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.permissions.default" if="execute.sql.statement_or_file.permissions.default">
   <echo message="--> execute.sql.statement_or_file.default" />
   <antcall target="execute.sql.statement_or_file.exec">
-   <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/tSQLt.tests/temp_executeas.sql" />
   </antcall>
  </target>
  <target name="execute.sql.statement_or_file.with.permissions">
@@ -216,6 +398,8 @@
   <echo message="execute.sql.statement_or_file started" />
   <echo message="  +----> filename: ${execute.sql.filename}" />
   <echo message="  +----> statement: ${execute.sql.statement}" />
+  <echo message="  +----> statement: ${execute.sql.database}" />
+  <echo message="  +----> statement: ${execute.sql.newDatabase}" />
 
   <condition property="execute.sql.statement_or_file.permissions.elevated">
    <equals arg1="${execute.sql.elevated}" arg2="true" />
@@ -233,7 +417,7 @@
   </condition>
 
   <antcall target="execute.sql.statement_or_file.with.permissions">
-   <param name="execute.sql.executeas" value="temp/temp_executeas.sql" />
+   <param name="execute.sql.executeas" value="temp/Validate/tSQLt.tests/temp_executeas.sql" />
    <param name="execute.sql.sqlconnect" value="-S&quot;${db.server}&quot; ${db.login}" />
   </antcall>
  </target>
@@ -254,7 +438,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${db.name} DbName=${execute.sql.database} ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
+  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${execute.sql.newDatabase} DbName=${execute.sql.database} BuildLogTableName=&quot;${logtable.name}&quot; ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
@@ -306,7 +490,7 @@
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.outputfile" value="${execute.sql.outputfile}" />
-   <param name="execute.sql.filename" value="temp/GetTestResults.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/GetTestResults.sql" />
    <param name="execute.sql.statement" value="" />
   </antcall>
 
@@ -318,31 +502,47 @@
 
 
  <target name="deploy.tSQLt" description="execute create scripts">
-  <echo message="##teamcity[progressMessage 'Deploying tSQLt']" />
+  <echo message="##teamcity[progressMessage 'Deploying tSQLt to ${deploy.tSQLt.database}']" />
   <antcall target="reset.parameter.variables" />
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
-   <param name="execute.sql.filename" value="temp/temp_prepare_server.sql" />
+   <param name="execute.sql.newDatabase" value="${deploy.tSQLt.database}" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/temp_prepare_server.sql" />
   </antcall>
 
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.filename" value="temp/tSQLt.class.sql" />
+   <param name="execute.sql.database" value="${deploy.tSQLt.database}" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt/tSQLt.class.sql" />
   </antcall>
+ </target>
+
+ <target name="deploy.tSQLt.Dacpac" description="execute create scripts">
+  <echo message="##teamcity[progressMessage 'Deploying tSQLt Dacpac to ${deploy.tSQLt.Dacpac.database}']" />
+
+  <exec dir="." executable="powershell" failonerror="true">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File DacpacDeploy.ps1" />
+      <arg line="-ServerName &quot;${db.server}&quot;" />
+      <arg line="-DatabaseName &quot;${deploy.tSQLt.Dacpac.database}&quot;" />
+      <arg line="-Login &quot;${db.login}&quot;" />
+      <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
+      <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
+  </exec>
+
  </target>
 
 
  <target name="deployandrun.tests" description="deploy and run one tests file">
   <antcall target="execute.sql.statement">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${deployandrun.tests.database}" />
    <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.statement" value="EXEC tSQLt.Reset;" />
   </antcall>
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${deployandrun.tests.database}" />
    <param name="execute.sql.outputfile" value="" />
    <param name="execute.sql.filename" value="${deployandrun.tests.filename}" />
   </antcall>
@@ -350,52 +550,52 @@
   <antcall target="execute.sql.tests">
    <param name="execute.sql.elevated" value="${deployandrun.tests.elevated}" />
    <param name="execute.sql.outputfile" value="${deployandrun.tests.outputfile}" />
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${deployandrun.tests.database}" />
    <param name="execute.sql.testcasefilename" value="${deployandrun.tests.filename}" />
    <param name="execute.sql.statement" value="EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;" />
   </antcall>
  </target>
 
 
- <target name="validate.tSQLt" description="run the tests">
+ <target name="run.AllTests" description="run the tests">
   <echo message="##teamcity[progressMessage 'Validating tSQLt']" />
 
   <antcall target="reset.parameter.variables" />
 
   <!-- prepare master -->
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Drop(master.tSQLt_testutil).sql" />
   </antcall>
 
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Install(master.tSQLt_testutil).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Install(master.tSQLt_testutil).sql" />
   </antcall>
 
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(tSQLtAssemblyKey)(Pre2017).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Drop(tSQLtAssemblyKey)(Pre2017).sql" />
   </antcall>
 
   <!-- run bootstrap tests -->
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.filename" value="temp/BootStrapTest.sql" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/BootStrapTest.sql" />
   </antcall>
 
   <!-- Install TestUtil -->
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.filename" value="temp/TestUtil.sql" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/TestUtil.sql" />
   </antcall>
 
   <!-- Set SummaryError Off, PrepMultiRun -->
   <antcall target="execute.sql.statement">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.statement" value="EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
@@ -403,64 +603,77 @@
   <!-- run TestUtil tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
-   <param name="deployandrun.tests.filename" value="temp/TestUtilTests.sql" />
-   <param name="deployandrun.tests.outputfile" value="output/TestResults.xml" />
+   <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/TestUtilTests.sql" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_TestUtil.xml" />
+  </antcall>
+
+  <!-- run TestUtil.SA tests -->
+  <antcall target="deployandrun.tests">
+   <param name="deployandrun.tests.elevated" value="true" />
+   <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/TestUtilTests.SA.sql" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_SA.xml" />
   </antcall>
 
   <!-- run non-specific tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.Main.sql" />
-   <param name="deployandrun.tests.outputfile" value="output/TestResults.xml" />
+   <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.Main.sql" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}.xml" />
   </antcall>
 
   <!-- run SA tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="true" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.SA.sql" />
-   <param name="deployandrun.tests.outputfile" value="output/TestResults_SA.xml" />
+   <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.SA.sql" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_SA.xml" />
   </antcall>
 
   <!-- create EXTERNAL_ACCESS key -->
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Install(tSQLtAssemblyKey).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Install(tSQLtAssemblyKey).sql" />
   </antcall>
 
   <!-- EAKE Tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="true" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
-   <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
+   <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_EXTERNAL_ACCESS_KEY_EXISTS.xml" />
   </antcall>
 
   <!-- Enable EA -->
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/EnableExternalAccess.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/EnableExternalAccess.sql" />
   </antcall>
 
   <!-- EA Tests -->
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
-   <param name="deployandrun.tests.filename" value="temp/AllTests.EXTERNAL_ACCESS.sql" />
-   <param name="deployandrun.tests.outputfile" value="output/TestResults_EXTERNAL_ACCESS.xml" />
+   <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.EXTERNAL_ACCESS.sql" />
+   <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}_EXTERNAL_ACCESS.xml" />
   </antcall>
 
   <!-- Set SummaryError back On, CheckMultiRun -->
   <antcall target="execute.sql.statement">
-   <param name="execute.sql.database" value="${db.name}" />
-   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults;" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='${logtable.name}',@RunGroup='AllTests_${run.AllTests.ResultFilePrefix}';" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
   <!-- cleanup master -->
   <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Drop(master.tSQLt_testutil).sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Drop(master.tSQLt_testutil).sql" />
   </antcall>
 
  </target>
@@ -471,7 +684,7 @@
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="tempdb" />
-   <param name="execute.sql.filename" value="temp/temp_create_example.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/temp_create_example.sql" />
   </antcall>
  </target>
 
@@ -488,7 +701,7 @@
 
   <antcall target="execute.sql.tests">
    <param name="execute.sql.database" value="tSQLt_Example" />
-   <param name="execute.sql.outputfile" value="output/ExampleTestResults.xml" />
+   <param name="execute.sql.outputfile" value="temp/Validate/TestResults/TestResults_Example.xml" />
    <param name="execute.sql.testcasefilename" value="ExampleDB" />
    <param name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
   </antcall>
@@ -496,10 +709,24 @@
   <!-- Set SummaryError back On, CheckMultiRun -->
   <antcall target="execute.sql.statement">
    <param name="execute.sql.database" value="tSQLt_Example" />
-   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults;" />
+   <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='${logtable.name}',@RunGroup='Example';" />
    <param name="execute.sql.outputfile" value="" />
   </antcall>
 
  </target>
 
+ <!--=======================================================================-->
+ <!--========                 Zip TestResults                      =========-->
+ <!--=======================================================================-->
+
+ <target name="zip.testresults">
+  <exec dir="." executable="powershell" failonerror="true">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File BuildTestResultsZip.ps1" />
+      <arg line="-ResultFiles &quot;${zip.testresults.FileList}&quot;" />
+  </exec>
+ </target>
+
 </project>
+
+

@@ -168,6 +168,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.FakeTable.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.FriendlySQLServerVersion.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.FriendlySQLServerVersion.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Info.sfn.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

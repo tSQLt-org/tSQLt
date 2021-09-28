@@ -278,10 +278,11 @@ BEGIN
 END
 GO
 CREATE PROCEDURE tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable]
+  @identity INT = 0
 AS
 BEGIN
   EXEC tSQLt_testutil.PrepMultiRunLogTable
-  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = @identity, @ComputedColumns = 0, @Defaults = 0;
 END;
 GO
 CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws error if a test error exists in the log]
@@ -386,6 +387,41 @@ BEGIN
   INSERT INTO #Actual
   EXEC tSQLt_testutil.CheckMultiRunResults;
   
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults doesn't throw error if @noError=1]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+  EXEC tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+
+  SELECT TOP(0)*
+  INTO #Ignore
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  
+  INSERT INTO #Ignore
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error)
+  VALUES(0,0,0,0);
+
+  INSERT INTO #Ignore
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error)
+  VALUES(0,0,2,3);
+
+  INSERT INTO #Ignore
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+
+  SELECT Message, Severity INTO #Actual FROM tSQLt.Private_Print_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('tSQLt execution with failures or errors detected.',0),
+        ('MultiRunLog is empty.',0),
+        ('MultiRunLog contains Run without tests.',0);
 END
 GO
 CREATE PROCEDURE tSQLt_testutil_test.[ptest CheckMultiRunResults doesn't throw error if]

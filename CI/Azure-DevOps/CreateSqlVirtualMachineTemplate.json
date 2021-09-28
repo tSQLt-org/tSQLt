@@ -1,0 +1,94 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+	"sqlConnectivityType": {
+		"type": "string",
+      "defaultValue": "Public"
+	},
+	"sqlPortNumber": {
+		"type": "int",
+      "defaultValue": 41433
+	},
+	"sqlStorageWorkloadType": {
+		"type": "string",
+      "defaultValue": "DW"
+	},
+	"sqlStorageDisksConfigurationType": {
+		"type": "string",
+      "defaultValue": "NEW"
+	},
+	"sqlAutopatchingDayOfWeek": {
+		"type": "string",
+      "defaultValue": "Sunday"
+	},
+	"sqlAutopatchingStartHour": {
+		"type": "int",
+      "defaultValue": 2
+	},
+	"sqlAutopatchingWindowDuration": {
+		"type": "int",
+      "defaultValue": 60
+	},
+	"sqlAuthenticationLogin": {
+		"type": "string",
+      "defaultValue": "tSQLt"
+	},
+	"sqlAuthenticationPassword": {
+		"type": "string",
+      "defaultValue": "sdlfksdlkfjlsdkjf39939^"
+	},
+	"rServicesEnabled": {
+		"type": "string",
+      "defaultValue": "false"
+	},	
+	"newVMName": {
+		"type": "string",
+      "defaultValue": "V1052sql2014sp3"
+	},	
+	"newVMRID": {
+		"type": "string",
+      "defaultValue": "/subscriptions/58c04a99-5b92-410c-9e41-10262f68ca80/resourceGroups/tSQLtCI_DevTestLab_20200318_1052-V1052sql2014sp3-155797/providers/Microsoft.Compute/virtualMachines/V1052sql2014sp3"
+	}	
+  },
+  "resources": [
+
+	{
+		"name": "[parameters('newVMName')]",
+		"type": "Microsoft.SqlVirtualMachine/SqlVirtualMachines",
+		"apiVersion": "2017-03-01-preview",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"virtualMachineResourceId": "[parameters('newVMRID')]",
+			"sqlManagement": "Full",
+			"SqlServerLicenseType": "PAYG",
+			"AutoPatchingSettings": {
+				"Enable": true,
+				"DayOfWeek": "[parameters('sqlAutopatchingDayOfWeek')]",
+				"MaintenanceWindowStartingHour": "[parameters('sqlAutopatchingStartHour')]",
+				"MaintenanceWindowDuration": "[parameters('sqlAutopatchingWindowDuration')]"
+			},
+			"KeyVaultCredentialSettings": {
+				"Enable": false,
+				"CredentialName": ""
+			},
+			"StorageConfigurationSettings": {
+				"DiskConfigurationType": "[parameters('sqlStorageDisksConfigurationType')]",
+				"StorageWorkloadType": "[parameters('sqlStorageWorkloadType')]"
+			},
+			"ServerConfigurationsManagementSettings": {
+				"SQLConnectivityUpdateSettings": {
+					"ConnectivityType": "[parameters('sqlConnectivityType')]",
+					"Port": "[parameters('sqlPortNumber')]",
+					"SQLAuthUpdateUserName": "[parameters('sqlAuthenticationLogin')]",
+					"SQLAuthUpdatePassword": "[parameters('sqlAuthenticationPassword')]"
+				},
+				"AdditionalFeaturesServerConfigurations": {
+					"IsRServicesEnabled": "[parameters('rServicesEnabled')]"
+				}
+			}
+		}
+	}
+
+  ]
+}

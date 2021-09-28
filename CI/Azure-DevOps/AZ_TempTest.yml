@@ -1,0 +1,56 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
+
+trigger: none
+
+pr: none
+
+pool:
+  vmImage: 'windows-latest'
+
+parameters:
+- name: SQLCMDPath
+  type: string
+  default: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn'
+- name: RequestingBuildId
+  type: string
+  default: 'NULL'
+- name: VMMatrix
+  type: object
+  default: [{"name":"S3",'SQLVersionEdition':'2016'},{"name":"S4",'SQLVersionEdition':'2017'},{"name":"S5",'SQLVersionEdition':'2019'}]
+
+
+
+variables:
+  - name: NamePreFix
+    value: 'tSQLtCI_DevTestLab_'
+  - name: ArtifactBranchName
+    value: tSQLt$(Build.SourceVersion)
+
+stages:
+- stage: Find_SQLCMD
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  jobs:
+  - job:
+    steps:
+
+    - task: PowerShell@2
+      name: Find_SQLCMD
+      inputs:
+        targetType: 'inline'
+        script: |
+          $x = get-ChildItem -path C:\program* -include sqlcmd.exe -recurse -ErrorAction Ignore
+          $x|%{$_.FullName}
+
+- stage: Find_SqlPackage
+  dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  jobs:
+  - job:
+    steps:
+
+    - task: PowerShell@2
+      name: Find_SqlPackage
+      inputs:
+        targetType: 'inline'
+        script: |
+          $x = get-ChildItem -path C:\program* -include sqlpackage.exe -recurse -ErrorAction Ignore
+          $x|%{$_.FullName}

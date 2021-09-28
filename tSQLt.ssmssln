@@ -23,20 +23,21 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.SA", "Tests.SA\Tests.
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Tests.EXTERNAL_ACCESS_KEY_EXISTS", "Tests.EXTERNAL_ACCESS_KEY_EXISTS\Tests.EXTERNAL_ACCESS_KEY_EXISTS.ssmssqlproj", "{7FC3A926-9834-455A-906E-330FFCF224E3}"
 EndProject
-Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Build_Artifact", "Build_Artifact\Build_Artifact.ssmssqlproj", "{92395F13-BF15-4C42-A876-DC851DE88ACA}"
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Build_Debug", "Build_Debug\Build_Debug.ssmssqlproj", "{92395F13-BF15-4C42-A876-DC851DE88ACA}"
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TestUtilTests", "TestUtilTests\TestUtilTests.ssmssqlproj", "{29C01CDC-4748-4118-ACF3-FFFE56A8A989}"
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "CI", "CI\CI.ssmssqlproj", "{244CA5E2-1A9D-4569-A05D-5D0FE85C3F03}"
 EndProject
-Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "BuildTests", "BuildTests\BuildTests.ssmssqlproj", "{BE51C6D7-1DBA-4845-8512-A13A4BAF2F0D}"
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "FacadeTests", "FacadeTests\FacadeTests.ssmssqlproj", "{BE51C6D7-1DBA-4845-8512-A13A4BAF2F0D}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Facade", "Facade\Facade.ssmssqlproj", "{2FC4D7CE-389E-4044-AE06-F999E036F6D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E5878387-26CA-458C-8474-6F3B37DE385A}.Default|Default.ActiveCfg = Default
 		{E5760F57-8934-4790-8420-DA7032D58EB7}.Default|Default.ActiveCfg = Default
 		{5FFBD87D-F3CF-43CF-BD60-ED175F5B0E92}.Default|Default.ActiveCfg = Default
 		{161EC148-F99F-4D07-A8A0-FF7ECB9A1566}.Default|Default.ActiveCfg = Default
@@ -51,6 +52,8 @@ Global
 		{29C01CDC-4748-4118-ACF3-FFFE56A8A989}.Default|Default.ActiveCfg = Default
 		{244CA5E2-1A9D-4569-A05D-5D0FE85C3F03}.Default|Default.ActiveCfg = Default
 		{BE51C6D7-1DBA-4845-8512-A13A4BAF2F0D}.Default|Default.ActiveCfg = Default
+		{0E86CAC5-6E7F-4272-8E27-869E1A037717}.Default|Default.ActiveCfg = Default
+		{2FC4D7CE-389E-4044-AE06-F999E036F6D6}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
