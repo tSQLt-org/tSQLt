@@ -50,6 +50,8 @@ variables:
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\public
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
+  - name: TSQLT_TEST_RESULTS_ARTIFACT_DIR
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation\TestResults
   - name: SQLCMDPath
 #    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn' for vmImage: 'vs2017-win2016'
     value: 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn'
@@ -577,6 +579,13 @@ stages:
         buildPlatform: '$(SQLVersionEdition)' # Optional
         #buildConfiguration: # Optional
         publishRunAttachments: true # Optional
+
+    - task: PublishPipelineArtifact@1
+      name: PublishCLRArtifact
+      inputs:
+        targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/Validate'
+        artifact: 'ValidateFailes'
+        publishLocation: 'pipeline'
 
 
     - task: PowerShell@2
