@@ -581,10 +581,10 @@ stages:
         publishRunAttachments: true # Optional
 
     - task: PublishPipelineArtifact@1
-      name: PublishCLRArtifact
+      name: PublishValidateOutputArtifact
       inputs:
         targetPath: '$(Pipeline.Workspace)/tSQLt/Build/output/Validate'
-        artifact: 'ValidateFailes'
+        artifact: 'ValidateOutput'
         publishLocation: 'pipeline'
 
 
