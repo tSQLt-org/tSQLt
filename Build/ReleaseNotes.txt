@@ -9,6 +9,28 @@ Release: VLATEST-BUILD-NUMBER
 
 BUG FIXES:
 
+N/A
+
+NEW FEATURES:
+
+1. tSQLt can now be installed using DACPACs as well as the original tSQLt.class.sql script. Note: Unlike the original tSQLt.class.sql script, DACPACs are SQL Server version specific.
+2. tSQLt.FriendlySQLServerVersion function reports the SQL Server Version as a string with commonly used moniker e.g. 2008R2 or 2019.
+3. tSQLt is now certified for SQL Server on Linux.
+
+MISCELLANEOUS:
+
+1. Created GitHub Action for building and testing tSQLt on MSSQL 2017 and 2019 using Redgate Spawn.
+2. Refactored Azure DevOps Pipeline to use more powerful VMs and azcli to create the SQLVM with a bicep file.
+3. Migrated parts of the tSQLt build from ant to PowerShell. 
+4. Prototyped using AKS (Azure Kubernetes Service) to host MSSQL 2014, 2016, 2017, and 2019.
+5. Prototyped Facade dacpacs for use in Visual Studio when developing tests with tSQLt. Ultimately we chose a full tSQLt dacpac for this work, but continue to retain the original Facade code and tests.
+
+
+---------------------------
+Release: V1.0.7682.21917
+
+BUG FIXES:
+
 1. Fix sysname casing for case-sensitive databases. Fixed by Trygve Wastvedt (https://github.com/twastvedt).
 
 2. Fixed issue in tSQLt.Private_GetFullTypeName not handling fractional seconds precision on date and time types. Fixed by saperry (https://github.com/saperry).
