@@ -34,8 +34,7 @@ $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerName
 $FacadeFileName = $TempPath + "/tSQLt/FacadeDacpacs/tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 
 $DacpacDatabaseName = $DatabaseName+"_dacpac";
-$AdditionalParameters = '-v NewDbName="'+$DacpacDatabaseName+'"';
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "CreateBuildDb.sql" -DatabaseName 'tempdb' -AdditionalParameters $AdditionalParameters;
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "CreateBuildDb.sql" -DatabaseName 'tempdb' -AdditionalParameters ('-v NewDbName="'+$DacpacDatabaseName+'"');
 
 $SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $DacpacDatabaseName;
 & "$SqlPackagePath/sqlpackage.exe" /a:Publish /tcs:"$SqlConnectionString" /sf:"$FacadeFileName"
@@ -55,9 +54,9 @@ Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdP
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt.RunAll;" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt_testutil.LogMultiRunResult 'DeployFacadeTests.sql';" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
-$AdditionalParameters = '-o "'+$TestResultsPath+'"';
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='$LogTableName',@RunGroup='Facade';" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
+
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "GetTestResults.sql" -DatabaseName $SourceDatabaseName -AdditionalParameters ('-o "'+$TestResultsPath+'"');
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='$LogTableName',@RunGroup='Facade';" -DatabaseName $SourceDatabaseName;
 
 Pop-Location;
 
