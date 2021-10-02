@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - FixCommunityBuild
   workflow_dispatch: 
     inputs:
       spawnDataImages:
