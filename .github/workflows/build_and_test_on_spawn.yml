@@ -78,6 +78,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: tSQLt
+          submodules: false
 
       # documentation: This is just what you need to do...
       - name: create and install unofficial pfx file for signing dlls
