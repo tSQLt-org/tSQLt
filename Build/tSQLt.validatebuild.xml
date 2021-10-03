@@ -578,7 +578,7 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/GrantUserAccessToRemoteDatabase.sql" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/GrantUserAccessToRemoteDatabase.sql" />
   </antcall>
 
   <antcall target="execute.sql.file">

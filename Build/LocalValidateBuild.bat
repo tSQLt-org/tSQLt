@@ -34,7 +34,7 @@ ECHO LogTableName: %LogTableName%
 
 IF "%VerboseOutput%"=="ON" @ECHO ON
 @REM -----------------------------------------------------------------------------This space character is utterly important! ----v
-CALL "ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" -Dlogtable.name="%LogTableName%" || goto :error
+CALL "C:\ProgramData\chocolatey\lib\ant\tools\apache-ant-1.10.10\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" -Dlogtable.name="%LogTableName%" || goto :error
 @ECHO OFF
 
 ECHO +----------------------------------+

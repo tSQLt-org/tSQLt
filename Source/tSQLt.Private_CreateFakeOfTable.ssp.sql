@@ -11,9 +11,6 @@ CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
   @RemoteObjectID INT
 AS
 BEGIN
-   DECLARE @Cmd NVARCHAR(MAX);
-   DECLARE @Cols NVARCHAR(MAX);
-
    IF (@RemoteObjectID IS NOT NULL)
    BEGIN
       EXEC tSQLt.Private_CreateRemoteUserDefinedDataTypes @RemoteObjectID = @RemoteObjectID

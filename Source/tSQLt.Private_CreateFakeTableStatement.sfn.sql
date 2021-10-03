@@ -30,7 +30,7 @@ RETURN
                 THEN ''
                 ELSE CASE WHEN @PreserveNOTNULL = 1 AND c.is_nullable = 0 THEN ' NOT NULL' ELSE ' NULL' END
            END
-          FROM sys.columns c
+          FROM tSQLt.Private_SysColumns c
          CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(c.user_type_id, c.max_length, c.precision, c.scale, c.collation_name, c.object_id, c.column_id, @ComputedColumns) cc
          CROSS APPLY tSQLt.Private_GetDefaultConstraintDefinition(c.object_id, c.column_id, @Defaults) AS dc
          CROSS APPLY tSQLt.Private_GetIdentityDefinition(c.object_id, c.column_id, @Identity) AS id
