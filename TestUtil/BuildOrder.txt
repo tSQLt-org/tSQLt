@@ -2,3 +2,4 @@ tSQLt_testutil.class.sql
 ../Build/temp/tSQLtBuild/Tests/CreateTestUtilAssembly.sql
 ../Build/temp/tSQLtBuild/Tests/GetUnsignedEmptyBytes.sql
 tSQLtTestUtilCLR_CreateItems.sql
+tSQLt_RemoteSynonymsTestDatabase.db.sql

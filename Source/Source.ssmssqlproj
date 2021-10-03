@@ -204,6 +204,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.NewTestClass.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_AlterSysObjectForRemote.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_AlterSysObjectForRemote.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.PrepareServer.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -239,6 +245,18 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CreateFakeFunction.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_CreateRemoteSysObjects.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CreateRemoteSysObjects.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_CreateRemoteUserDefinedDataTypes.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CreateRemoteUserDefinedDataTypes.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CreateFakeFunctionStatement.sfn.sql">
           <AssociatedConnectionMoniker />
@@ -330,6 +348,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetFullTypeName.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_GetRemoteObjectId.ssp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetRemoteObjectId.ssp.sql</FullPath>
+        </FileNode>      
         <FileNode Name="tSQLt.Private_GetIdentityDefinition.sfn.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -498,12 +522,48 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_SqlVersion.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_SysColumns.svw.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_SysColumns.svw.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_SysComputedColumns.svw.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_SysComputedColumns.svw.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_SysDefaultConstraints.svw.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_SysDefaultConstraints.svw.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_SysIdentityColumns.svw.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_SysIdentityColumns.svw.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_SysIndexes.svw.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_SysIndexes.svw.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_SysObjects.svw.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_SysObjects.svw.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_SysSchemas.svw.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_SysSchemas.svw.sql</FullPath>
+        </FileNode> 
         <FileNode Name="tSQLt.Private_SysTypes.svw.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -653,7 +713,7 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLtCLR_CreateProcs.sql</FullPath>
-        </FileNode>
+        </FileNode> 
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">

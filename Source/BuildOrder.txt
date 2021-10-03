@@ -16,9 +16,19 @@ tSQLt.InstallAssemblyKey.ssp.sql
 tSQLt.PrepareServer.ssp.sql
 tSQLt.Private_NewTestClassList.tbl.sql
 tSQLt.Private_ResetNewTestClassList.ssp.sql
+tSQLt.Private_SysColumns.svw.sql
+tSQLt.Private_SysComputedColumns.svw.sql
+tSQLt.Private_SysDefaultConstraints.svw.sql
+tSQLt.Private_SysIdentityColumns.svw.sql
+tSQLt.Private_SysObjects.svw.sql
+tSQLt.Private_SysSchemas.svw.sql
 tSQLt.Private_DisallowOverwritingNonTestSchema.ssp.sql
+tSQLt.Private_AlterSysObjectForRemote.ssp.sql
+tSQLt.Private_CreateRemoteSysObjects.ssp.sql
+tSQLt.Private_GetRemoteObjectId.ssp.sql
 tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql
 tSQLt.Private_MarkSchemaAsTestClass.ssp.sql
+tSQLt.Private_ValidateSynonymCompatibilityWithFakeTable.ssp.sql
 tSQLt.NewTestClass.ssp.sql
 tSQLt.Fail.ssp.sql
 tSQLt.class.sql
@@ -64,6 +74,7 @@ tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
 tSQLt.Private_GetIdentityDefinition.sfn.sql
 tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql
 tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql
+tSQLt.Private_CreateRemoteUserDefinedDataTypes.ssp.sql
 tSQLt.Private_CreateFakeTableStatement.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
 tSQLt.Private_MarkFakeTable.ssp.sql

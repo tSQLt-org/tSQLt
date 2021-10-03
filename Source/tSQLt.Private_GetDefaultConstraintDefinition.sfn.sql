@@ -9,7 +9,7 @@ RETURN SELECT
               COALESCE(DefaultDefinition, '') AS DefaultDefinition
         FROM (SELECT 1) X(X)
         LEFT JOIN (SELECT 1 AS IsDefault,' DEFAULT '+ definition AS DefaultDefinition,parent_object_id,parent_column_id
-                     FROM sys.default_constraints
+                     FROM tSQLt.Private_SysDefaultConstraints
                   )dc
                ON dc.parent_object_id = @ObjectId
               AND dc.parent_column_id = @ColumnId

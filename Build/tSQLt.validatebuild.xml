@@ -578,6 +578,12 @@
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${run.AllTests.database}" />
    <param name="execute.sql.elevated" value="true" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/GrantUserAccessToRemoteDatabase.sql" />
+  </antcall>
+
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${db.name}" />
+   <param name="execute.sql.elevated" value="true" />
    <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Drop(tSQLtAssemblyKey)(Pre2017).sql" />
   </antcall>
 

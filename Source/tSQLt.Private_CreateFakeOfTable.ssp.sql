@@ -7,12 +7,18 @@ CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
   @OrigTableFullName NVARCHAR(MAX),
   @Identity BIT,
   @ComputedColumns BIT,
-  @Defaults BIT
+  @Defaults BIT,
+  @RemoteObjectID INT
 AS
 BEGIN
+   IF (@RemoteObjectID IS NOT NULL)
+   BEGIN
+      EXEC tSQLt.Private_CreateRemoteUserDefinedDataTypes @RemoteObjectID = @RemoteObjectID
+   END
+   
    DECLARE @cmd NVARCHAR(MAX) =
      (SELECT CreateTableStatement 
-        FROM tSQLt.Private_CreateFakeTableStatement(OBJECT_ID(@OrigTableFullName), @SchemaName+'.'+@TableName,@Identity,@ComputedColumns,@Defaults,0));
+        FROM tSQLt.Private_CreateFakeTableStatement(COALESCE(@RemoteObjectID, OBJECT_ID(@OrigTableFullName)), @SchemaName+'.'+@TableName,@Identity,@ComputedColumns,@Defaults,0));
    EXEC (@cmd);
 END;
 ---Build-

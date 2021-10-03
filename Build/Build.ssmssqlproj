@@ -84,6 +84,12 @@
           <AssociatedConnUserName />
           <FullPath>GrantBuildPermissions.sql</FullPath>
         </FileNode>
+        <FileNode Name="GrantUserAccessToRemoteDatabase.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Dev_tSQLt:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Dev_tSQLt</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>GrantUserAccessToRemoteDatabase.sql</FullPath>
+        </FileNode>
         <FileNode Name="Install(master.tSQLt_testutil).sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
