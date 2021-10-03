@@ -1,0 +1,155 @@
+name: Manage AKS
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Run every sunday at 6:20 AM
+    - cron:  '15 5 * * *'
+  repository_dispatch:
+    types: [aks-start, aks-stop]
+  workflow_dispatch: 
+    inputs:
+      projectName:
+        description: 'Project Name'     
+        required: true
+        default: 'test_20210224'
+      aks_action:
+        description: 'AKS Action: start or stop'     
+        required: true
+        default: 'stop'
+
+jobs:
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  
+  aks-action:
+    name: Apply Action to AKS
+    runs-on: windows-latest
+    if: ${{ github.event.inputs.aks_action == 'start' || github.event.inputs.aks_action == 'stop' || github.event_name != 'workflow_dispatch'}}
+
+    env:
+      GITHUB_EVENT_NAME: ${{ github.event_name }}
+      GITHUB_EVENT_ACTION: ${{ github.event.action }}
+      WORKFLOW_PROJECT_NAME: ${{ github.event.inputs.projectName }}
+      WORKFLOW_ACTION: ${{ github.event.inputs.aks_action }}
+      DEFAULT_PROJECT_NAME: test_20210224
+      DEFAULT_ACTION: stop
+      
+    steps:
+      - name: create variables
+        id: create-vars
+        shell: pwsh
+        run: |
+          function Get-MD5HashOfString($string) {
+              $stringAsStream = [System.IO.MemoryStream]::new();
+              $writer = [System.IO.StreamWriter]::new($stringAsStream);
+              $writer.write($string);
+              $writer.Flush();
+              $stringAsStream.Position = 0;
+              $hashedString = (Get-FileHash -InputStream $stringAsStream).Hash;
+              return [String]$hashedString;
+          }
+
+          $projectName;
+          $action;
+          if ($env:GITHUB_EVENT_NAME -ne "workflow_dispatch") {
+            $projectName = "$env:DEFAULT_PROJECT_NAME";
+            if($env:GITHUB_EVENT_NAME -eq "repository_dispatch"){
+              $env:GITHUB_EVENT_ACTION -match "aks-(?<Command>.*)"
+              $action = $matches.Command;
+            } else {
+              $action = "$env:DEFAULT_ACTION";
+            }
+          } else {
+            $projectName = "$env:WORKFLOW_PROJECT_NAME";
+            $action = "$env:WORKFLOW_ACTION";
+          }
+
+          $projectNameHash = (Get-MD5HashOfString($projectName)).Substring(0,10);
+          $azSecretsManagerName = "sm-" + $projectNameHash;
+
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          Write-Host "";
+          Write-Host ("projectName value: {0}" -f $projectName);
+          Write-Host ("action value: {0}" -f $action);
+          Write-Host ("azSecretsManagerName: {0}" -f "$azSecretsManagerName"); 
+          Write-Host "";
+          Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
+          
+          Write-Host ('::set-output name=azsecretsmanagername::'+$azSecretsManagerName);
+          Write-Host ('::set-output name=projectName::'+$projectName);
+          Write-Host ('::set-output name=action::'+$action);
+           
+      - name: decode az sp cred
+        id: cred-decode
+        env:
+          AZ_SERVICE_PRINCIPAL_CREDENTIALS: ${{ secrets[format('AZ_SP_CRED_{0}', steps.create-vars.outputs.projectName)] }}
+        shell: pwsh
+        run: |
+          $decodedCreds = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("${{ env.AZ_SERVICE_PRINCIPAL_CREDENTIALS}}"))
+          Write-Host ('::set-output name=az_sp_creds::'+$decodedCreds);
+
+       # documentation: https://github.com/azure/login#configure-azure-credentials
+      - name: login via az module
+        uses: azure/login@v1
+        with:
+          creds: ${{ steps.cred-decode.outputs.az_sp_creds }}
+          enable-AzPSSession: true 
+
+      # documentation: https://github.com/Azure/get-keyvault-secrets
+      - name: get azure secrets
+        id: azure-secrets
+        uses: Azure/get-keyvault-secrets@v1.0
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true' # Note that this task can be replaced with a similar pattern as setting the namespace to the env variables (above), but is also not secure.
+        with:
+          keyvault: ${{ steps.create-vars.outputs.azsecretsmanagername }}
+          secrets: 'azResourceGroupName,aksClusterName'  # comma separated list of secret keys that need to be fetched from the Key Vault 
+
+      - name: aks action
+        id: aks-action
+        uses: azure/powershell@v1
+        with:
+          azpsversion: 'latest'
+          errorActionPreference: 'continue'
+          inlineScript: |
+            az aks ${{ steps.create-vars.outputs.action }} --name ${{ steps.azure-secrets.outputs.aksClusterName }} --resource-group ${{ steps.azure-secrets.outputs.azResourceGroupName }}
+
+# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  unknown-aks-action:
+    name: Unknown Action for AKS
+    needs: [aks-action]
+    runs-on: windows-latest
+    if: ${{ always() && needs.aks-action.result == 'skipped' }} #MDPOMG, how to run a job if the previous one is skipped, but not if it isn't.
+
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJSON(job) }}
+        run: echo "$JOB_CONTEXT"
+
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJSON(steps) }}
+        run: echo "$STEPS_CONTEXT"
+
+      - name: Dump needs context
+        env:
+          NEEDS_CONTEXT: ${{ toJSON(needs) }}
+        run: echo "$NEEDS_CONTEXT"
+
+      - name: Dump needs context
+        env:
+          NEEDS_CONTEXT: ${{ toJSON(needs.aks-action) }}
+        run: echo "$NEEDS_CONTEXT"
+
+      - name: unknown action error
+        shell: pwsh
+        run: |
+            Write-Host ("::error::✨   ✨   ✨ `"${{ needs.aks-action.result }}`" is not a valid option. ✨   ✨   ✨");
+            Write-Host ("::error::✨   ✨   ✨ `"stop`" and `"start`" are the only options! ✨   ✨   ✨");
+            exit 1; 

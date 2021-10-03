@@ -19,30 +19,10 @@ BEGIN
       EXEC tSQLt.Private_CreateRemoteUserDefinedDataTypes @RemoteObjectID = @RemoteObjectID
    END
    
-   SELECT @Cols = 
-   (
-    SELECT
-       ',' +
-       QUOTENAME(name) + 
-       cc.ColumnDefinition +
-       dc.DefaultDefinition + 
-       id.IdentityDefinition +
-       CASE WHEN cc.IsComputedColumn = 1 OR id.IsIdentityColumn = 1 
-            THEN ''
-            ELSE ' NULL'
-       END
-      FROM tSQLt.Private_SysColumns c
-     CROSS APPLY tSQLt.Private_GetDataTypeOrComputedColumnDefinition(c.user_type_id, c.max_length, c.precision, c.scale, c.collation_name, c.object_id, c.column_id, @ComputedColumns) cc
-     CROSS APPLY tSQLt.Private_GetDefaultConstraintDefinition(c.object_id, c.column_id, @Defaults) AS dc
-     CROSS APPLY tSQLt.Private_GetIdentityDefinition(c.object_id, c.column_id, @Identity) AS id
-     WHERE object_id = COALESCE(@RemoteObjectID, OBJECT_ID(@OrigTableFullName))
-     ORDER BY column_id
-     FOR XML PATH(''), TYPE
-    ).value('.', 'NVARCHAR(MAX)');
-    
-   SELECT @Cmd = 'CREATE TABLE ' + @SchemaName + '.' + @TableName + '(' + STUFF(@Cols,1,1,'') + ')';
-   
-   EXEC (@Cmd);
+   DECLARE @cmd NVARCHAR(MAX) =
+     (SELECT CreateTableStatement 
+        FROM tSQLt.Private_CreateFakeTableStatement(COALESCE(@RemoteObjectID, OBJECT_ID(@OrigTableFullName)), @SchemaName+'.'+@TableName,@Identity,@ComputedColumns,@Defaults,0));
+   EXEC (@cmd);
 END;
 ---Build-
 GO

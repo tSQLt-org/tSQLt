@@ -159,29 +159,48 @@ BEGIN
   DECLARE @TestClassName NVARCHAR(MAX);
   DECLARE @TestProcName NVARCHAR(MAX);
 
-  DECLARE tests CURSOR LOCAL FAST_FORWARD FOR
+  DECLARE testsWithExtendedProperty CURSOR LOCAL FAST_FORWARD FOR
    SELECT DISTINCT s.name AS testClassName
      FROM sys.extended_properties ep
      JOIN sys.schemas s
        ON ep.major_id = s.schema_id
     WHERE ep.name = N'tSQLt.TestClass';
 
-  OPEN tests;
+  OPEN testsWithExtendedProperty;
   
-  FETCH NEXT FROM tests INTO @TestClassName;
+  FETCH NEXT FROM testsWithExtendedProperty INTO @TestClassName;
   WHILE @@FETCH_STATUS = 0
   BEGIN
     EXEC sp_dropextendedproperty @name = 'tSQLt.TestClass',
                                  @level0type = 'SCHEMA',
                                  @level0name = @TestClassName;
     
-    FETCH NEXT FROM tests INTO @TestClassName;
+    FETCH NEXT FROM testsWithExtendedProperty INTO @TestClassName;
   END;
   
-  CLOSE tests;
-  DEALLOCATE tests;
+  CLOSE testsWithExtendedProperty;
+  DEALLOCATE testsWithExtendedProperty;
+
+  DECLARE testsWithSchemaClassification CURSOR LOCAL FAST_FORWARD FOR
+   SELECT DISTINCT s.name AS testClassName
+     FROM sys.schemas s
+    WHERE s.principal_id = USER_ID('tSQLt.TestClass');
+
+  OPEN testsWithSchemaClassification;
+  
+  FETCH NEXT FROM testsWithSchemaClassification INTO @TestClassName;
+  WHILE @@FETCH_STATUS = 0
+  BEGIN
+    DECLARE @cmd NVARCHAR(MAX) = 'ALTER AUTHORIZATION ON SCHEMA::'+QUOTENAME(@TestClassName)+' TO dbo;';
+    EXEC(@cmd);
+    FETCH NEXT FROM testsWithSchemaClassification INTO @TestClassName;
+  END;
+  
+  CLOSE testsWithSchemaClassification;
+  DEALLOCATE testsWithSchemaClassification;
 END;
 GO
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 
@@ -284,21 +303,6 @@ BEGIN
     END
 END;
 GO
-CREATE PROCEDURE tSQLt_testutil.PrepMultiRunLogTable
-AS
-BEGIN
-  IF OBJECT_ID('tSQLt_testutil.MultiRunLog') IS NOT NULL DROP TABLE tSQLt_testutil.MultiRunLog;
-  CREATE TABLE tSQLt_testutil.MultiRunLog
-  (
-    id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
-    Success INT,
-    Skipped INT,
-    Failure INT,
-    [Error] INT,
-    TestCaseSet NVARCHAR(MAX)
-  );
-END;
-GO
 CREATE PROCEDURE tSQLt_testutil.LogMultiRunResult
   @TestCaseSet NVARCHAR(MAX)
 AS
@@ -317,20 +321,22 @@ BEGIN
 END;
 GO
 CREATE PROCEDURE tSQLt_testutil.CheckMultiRunResults
+  @noError INT = 0
 AS
 BEGIN
   SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL;
+  DECLARE @Severity INT = CASE WHEN @noError <> 0 THEN 0 ELSE 16 END;
   IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
   BEGIN
-    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = 16
+    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = @Severity
   END;
   IF(NOT EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL))
   BEGIN
-    EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = 16
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog is empty.', @Severity = @Severity
   END;
-  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Failure = 0 AND MRL.Error = 0))
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.MultiRunLog AS MRL WHERE MRL.Success = 0 AND MRL.Skipped = 0))
   BEGIN
-    EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = 16
+    EXEC tSQLt.Private_Print @Message = 'MultiRunLog contains Run without tests.', @Severity = @Severity
   END;
 END;
 GO
@@ -359,6 +365,142 @@ BEGIN
    EXEC tSQLt.Fail 'Expected to find ',@Pattern,' in ',@Table,' but didn''t. Table was empty.';
  END;
 END;
+GO
+CREATE PROCEDURE tSQLt_testutil.WaitForMS
+  @milliseconds INT
+AS
+BEGIN
+  --WAITFOR DELAY might return significantly earlier than one would expect. Hence this workaround...
+  DECLARE @EndTime DATETIME2 = DATEADD(MILLISECOND,@milliseconds,SYSDATETIME());
+  WHILE(SYSDATETIME()<@EndTime)
+  BEGIN
+    WAITFOR DELAY '00:00:00.010';
+  END;
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.PrepMultiRunLogTable
+AS
+BEGIN
+  IF OBJECT_ID('tSQLt_testutil.MultiRunLog') IS NOT NULL DROP TABLE tSQLt_testutil.MultiRunLog;
+  CREATE TABLE tSQLt_testutil.MultiRunLog
+  (
+    id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    Success INT,
+    Skipped INT,
+    Failure INT,
+    [Error] INT,
+    TestCaseSet NVARCHAR(MAX)
+  );
+END;
+GO
+/*CreateBuildLogStart*/
+GO
+CREATE PROCEDURE tSQLt_testutil.CreateBuildLog
+  @TableName NVARCHAR(MAX)
+AS
+BEGIN
+  IF(OBJECT_ID(@TableName) IS NOT NULL)EXEC('DROP TABLE '+@TableName);
+  DECLARE @cmd NVARCHAR(MAX) = 
+  '
+  CREATE TABLE '+@TableName+'
+  (
+    [id] [int] NOT NULL IDENTITY(1, 1) PRIMARY KEY CLUSTERED,
+    [Success] [int] NULL,
+    [Skipped] [int] NULL,
+    [Failure] [int] NULL,
+    [Error] [int] NULL,
+    [TestCaseSet] NVARCHAR(MAX) NULL,
+    [RunGroup] NVARCHAR(MAX) NULL,
+    [DatabaseName] NVARCHAR(MAX) NULL
+  );
+  ';
+  EXEC(@cmd);
+  SET @cmd = 'GRANT INSERT ON '+@TableName+' TO PUBLIC;';
+  IF(PARSENAME(@TableName,3) IS NOT NULL)
+  BEGIN
+    SET @cmd = PARSENAME(@TableName,3)+'.sys.sp_executesql N'''+@cmd+''',N''''';
+  END;
+  EXEC(@cmd);
+END;
+GO
+/*CreateBuildLogEnd*/
+GO
+CREATE PROCEDURE tSQLt_testutil.StoreBuildLog
+  @TableName NVARCHAR(MAX),
+  @RunGroup NVARCHAR(MAX)
+AS
+BEGIN 
+  DECLARE @cmd NVARCHAR(MAX) = 
+   (SELECT QUOTENAME(C.name)+','
+      FROM sys.columns AS C
+     WHERE C.object_id = OBJECT_ID('tSQLt_testutil.MultiRunLog')
+       AND C.is_identity = 0
+     ORDER BY C.column_id
+       FOR XML PATH,TYPE).value('.','NVARCHAR(MAX)');
+  SET @cmd = 'INSERT INTO '+@TableName+'('+@cmd+'[RunGroup],[DatabaseName]) SELECT '+@cmd+'RG,DB FROM tSQLt_testutil.MultiRunLog RIGHT JOIN (VALUES('''+@RunGroup+''',DB_NAME()))XX(RG,DB) ON 1=1;'
+
+  EXEC(@cmd);
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil.CheckBuildLog
+  @TableName NVARCHAR(MAX)
+AS
+BEGIN
+  IF OBJECT_ID('tSQLt_testutil.LocalBuildLogTemp') IS NOT NULL DROP TABLE tSQLt_testutil.LocalBuildLogTemp;
+  EXEC('SELECT * INTO tSQLt_testutil.LocalBuildLogTemp FROM '+@TableName+';');
+
+  IF OBJECT_ID('tSQLt_testutil.LocalBuildLogTempFormatted') IS NOT NULL DROP TABLE tSQLt_testutil.LocalBuildLogTempFormatted;
+  DECLARE @cmd NVARCHAR(MAX) =
+  (
+    SELECT 'SELECT '+
+               'CAST(REPLICATE('' '','+CAST(MAX(idML) AS NVARCHAR(MAX))+'-LEN(id))+CAST(id AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(idML)+1 AS NVARCHAR(MAX))+'))id,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(SuccessML) AS NVARCHAR(MAX))+'-LEN(Success))+CAST(Success AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(SuccessML)+1 AS NVARCHAR(MAX))+'))Success,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(SkippedML) AS NVARCHAR(MAX))+'-LEN(Skipped))+CAST(Skipped AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(SkippedML)+1 AS NVARCHAR(MAX))+'))Skipped,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(FailureML) AS NVARCHAR(MAX))+'-LEN(Failure))+CAST(Failure AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(FailureML)+1 AS NVARCHAR(MAX))+'))Failure,'+
+               'CAST(REPLICATE('' '','+CAST(MAX(ErrorML) AS NVARCHAR(MAX))+'-LEN(Error))+CAST(Error AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(ErrorML)+1 AS NVARCHAR(MAX))+'))Error,'+
+               'CAST(TestCaseSet AS CHAR('+CAST(MAX(TestCaseSetML) AS NVARCHAR(MAX))+'))TestCaseSet,'+
+               'CAST(RunGroup AS CHAR('+CAST(MAX(RunGroupML) AS NVARCHAR(MAX))+'))RunGroup,'+
+               'CAST(DatabaseName AS CHAR('+CAST(MAX(DatabaseNameML) AS NVARCHAR(MAX))+'))DatabaseName '+
+             'INTO tSQLt_testutil.LocalBuildLogTempFormatted FROM tSQLt_testutil.LocalBuildLogTemp'
+      FROM 
+      (
+        SELECT 
+            MAX(LEN(CAST(id AS VARCHAR(MAX)))) idML,
+            MAX(LEN(CAST(Success AS VARCHAR(MAX)))) SuccessML,
+            MAX(LEN(CAST(Skipped AS VARCHAR(MAX)))) SkippedML,
+            MAX(LEN(CAST(Failure AS VARCHAR(MAX)))) FailureML,
+            MAX(LEN(CAST(Error AS VARCHAR(MAX)))) ErrorML,
+            2+MAX(LEN(TestCaseSet)) TestCaseSetML,
+            2+MAX(LEN(RunGroup)) RunGroupML,
+            2+MAX(LEN(DatabaseName)) DatabaseNameML
+          FROM tSQLt_testutil.LocalBuildLogTemp
+          UNION ALL SELECT 2,7,7,7,5,11,8,12
+      )X
+  );
+  EXEC(@cmd);
+  DECLARE @BuildLog NVARCHAR(MAX);
+  EXEC tSQLt.TableToText @txt = @BuildLog OUT, @TableName = 'tSQLt_testutil.LocalBuildLogTempFormatted',@OrderBy = 'id'
+  EXEC tSQLt.Private_Print @Message = @BuildLog;
+
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL WHERE MRL.Failure<>0 OR MRL.Error<>0))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'tSQLt execution with failures or errors detected.', @Severity = 16
+  END;
+  IF(NOT EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'BuildLog is empty.', @Severity = 16
+  END;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL WHERE MRL.Success IS NULL))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'BuildLog contains Test Suite Group without tests.', @Severity = 16
+  END;
+  IF(EXISTS(SELECT * FROM tSQLt_testutil.LocalBuildLogTemp AS MRL WHERE MRL.Success = 0 AND MRL.Skipped = 0))
+  BEGIN
+    EXEC tSQLt.Private_Print @Message = 'BuildLog contains Run without tests.', @Severity = 16
+  END;
+END;
+GO
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 

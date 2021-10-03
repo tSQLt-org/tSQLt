@@ -4,6 +4,7 @@ CREATE TABLE Run_Methods_Tests_EA.[table 4 tSQLt.Private_InputBuffer tests](
   InputBuffer NVARCHAR(MAX)
 );
 GO
+--[@tSQLt:RunOnlyOnHostPlatform]('Windows')
 CREATE PROCEDURE Run_Methods_Tests_EA.[test tSQLt.Private_InputBuffer returns actual INPUTBUFFER]
 AS
 BEGIN

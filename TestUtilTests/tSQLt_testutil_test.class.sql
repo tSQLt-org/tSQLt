@@ -278,10 +278,11 @@ BEGIN
 END
 GO
 CREATE PROCEDURE tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable]
+  @identity INT = 0
 AS
 BEGIN
   EXEC tSQLt_testutil.PrepMultiRunLogTable
-  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = 0, @ComputedColumns = 0, @Defaults = 0;
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt_testutil.MultiRunLog', @Identity = @identity, @ComputedColumns = 0, @Defaults = 0;
 END;
 GO
 CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults throws error if a test error exists in the log]
@@ -388,6 +389,75 @@ BEGIN
   
 END
 GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults doesn't throw error if @noError=1]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+  EXEC tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+
+  SELECT TOP(0)*
+  INTO #Ignore
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  
+  INSERT INTO #Ignore
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error)
+  VALUES(0,0,0,0);
+
+  INSERT INTO #Ignore
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error)
+  VALUES(0,0,2,3);
+
+  INSERT INTO #Ignore
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+
+  SELECT Message, Severity INTO #Actual FROM tSQLt.Private_Print_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('tSQLt execution with failures or errors detected.',0),
+        ('MultiRunLog is empty.',0),
+        ('MultiRunLog contains Run without tests.',0);
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[ptest CheckMultiRunResults doesn't throw error if]
+  @success INT = 0,
+  @skipped INT = 0,
+  @failed INT = 0,
+  @errored INT = 0
+AS
+BEGIN
+  EXEC tSQLt_testutil_test.[Create and fake tSQLt_testutil.PrepMultiRunLogTable];
+  INSERT INTO tSQLt_testutil.MultiRunLog(Success,Skipped,Failure,Error)
+  VALUES(@success,@skipped,@failed,@errored);
+
+  SELECT TOP(0)*
+  INTO #Actual
+  FROM tSQLt_testutil.MultiRunLog AS MRL;
+
+  EXEC tSQLt.ExpectNoException;
+  
+  INSERT INTO #Actual
+  EXEC tSQLt_testutil.CheckMultiRunResults;
+  
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults doesn't throw error if a success exists]
+AS
+BEGIN
+  EXEC tSQLt_testutil_test.[ptest CheckMultiRunResults doesn't throw error if] @success=1;
+END
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test CheckMultiRunResults doesn't throw error if a skip exists]
+AS
+BEGIN
+  EXEC tSQLt_testutil_test.[ptest CheckMultiRunResults doesn't throw error if] @skipped=1;
+END
+GO
 CREATE PROCEDURE tSQLt_testutil_test.[test LogMultiRunResult captures all results]
 AS
 BEGIN
@@ -417,5 +487,23 @@ BEGIN
   VALUES(4,3,2,1,'MyTestingSet');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROCEDURE tSQLt_testutil_test.[test tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses removes TestClass classifications]
+AS
+BEGIN
+  EXEC ('CREATE SCHEMA tSQLtTestDummyA AUTHORIZATION [tSQLt.TestClass];');
+  EXEC ('CREATE SCHEMA tSQLtTestDummyB AUTHORIZATION [tSQLt.TestClass];');
+  EXEC ('CREATE SCHEMA tSQLtTestDummyC AUTHORIZATION [tSQLt.TestClass];');
+  EXEC tSQLt.NewTestClass 'tSQLtTestDummyD';
+  EXEC tSQLt.NewTestClass 'tSQLtTestDummyE';
+
+  EXEC tSQLt_testutil.RemoveTestClassPropertyFromAllExistingClasses;
+
+  SELECT Name
+    INTO #Actual
+    FROM tSQLt.TestClasses;
+    
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
 END;
 GO

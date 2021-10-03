@@ -334,6 +334,7 @@ BEGIN
 
 END;
 GO
+--[@tSQLt:RunOnlyOnHostPlatform]('Windows')
 CREATE PROCEDURE InstallAssemblyKeyTests.[test tSQLt can be set to EXTERNAL ACCESS after InstallAssemblyKey executed]
 AS
 BEGIN

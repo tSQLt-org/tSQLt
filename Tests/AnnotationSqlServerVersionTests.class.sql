@@ -3,12 +3,12 @@ GO
 CREATE FUNCTION AnnotationSqlServerVersionTests.[42.17.1986.57]()
 RETURNS TABLE
 AS
-RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition;
+RETURN SELECT CAST(N'42.17.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition, NULL AS HostPlatform;
 GO
 CREATE FUNCTION AnnotationSqlServerVersionTests.[13.0.1986.57]()
 RETURNS TABLE
 AS
-RETURN SELECT CAST(N'13.0.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition;
+RETURN SELECT CAST(N'13.0.1986.57' AS NVARCHAR(128)) AS ProductVersion, 'My Edition' AS Edition, NULL AS HostPlatform;
 GO
 CREATE PROCEDURE AnnotationSqlServerVersionTests.[test MinSqlMajorVersion allows test to execute if actual version is larger]
 AS

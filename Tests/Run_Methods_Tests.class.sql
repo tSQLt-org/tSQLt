@@ -1,5 +1,48 @@
 EXEC tSQLt.NewTestClass 'Run_Methods_Tests';
 GO
+CREATE PROC Run_Methods_Tests.[test all tSQLt.Run methods call the run method handler]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunMethodHandler';
+
+  SELECT P.object_id,P.name
+    INTO #Expected
+    FROM sys.procedures AS P
+   WHERE P.schema_id = SCHEMA_ID('tSQLt')
+     AND P.name LIKE 'Run%'
+     AND P.name NOT IN('RunTest');
+
+  SELECT TOP(0) E.* INTO #Actual FROM #Expected E RIGHT JOIN #Expected X ON 1=0;
+  
+  DECLARE @cmd NVARCHAR(MAX) = 
+  (
+    SELECT 'EXEC tSQLt.'+QUOTENAME(P.name) + PP.ParameterList + ';INSERT INTO #Actual SELECT '+CAST(P.object_id AS NVARCHAR(MAX))+','''+P.name+''' FROM tSQLt.Private_RunMethodHandler_SpyProcedureLog; TRUNCATE TABLE tSQLt.Private_RunMethodHandler_SpyProcedureLog;'
+      FROM #Expected AS P
+     OUTER APPLY
+     (
+       SELECT
+           ISNULL(
+             STUFF(
+               (
+                 SELECT ','+PP.name+'=NULL' FROM sys.parameters AS PP
+                  WHERE P.object_id = PP.object_id
+                  ORDER BY PP.parameter_id
+                    FOR XML PATH(''),TYPE
+               ).value('.','NVARCHAR(MAX)'),
+               1,1,' '
+             ),
+             ''
+           )
+     )PP(ParameterList)
+       FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)');
+  EXEC(@cmd);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 CREATE PROC Run_Methods_Tests.[test Run truncates TestResult table]
 AS
 BEGIN
@@ -677,11 +720,11 @@ BEGIN
     FROM #Actual;
     
     INSERT INTO #Expected
-    VALUES('MyTestClass1', 'testA', '0.136');
+    VALUES('MyTestClass1', 'testA', '0.138');
     INSERT INTO #Expected
     VALUES('MyTestClass1', 'testB', '1.633');
     INSERT INTO #Expected
-    VALUES('MyTestClass2', 'testC', '2147483.646');
+    VALUES('MyTestClass2', 'testC', '2147483.647');
     INSERT INTO #Expected
     VALUES('MyTestClass2', 'testD', '0.003');
 
@@ -726,7 +769,7 @@ BEGIN
     INSERT INTO #Expected
     VALUES('MyTestClass1', '2015-07-24T00:00:01', '1.633');
     INSERT INTO #Expected
-    VALUES('MyTestClass2', '2015-07-24T00:00:00', '73884.090');
+    VALUES('MyTestClass2', '2015-07-24T00:00:00', '73884.091');
 
     EXEC tSQLt.AssertEqualsTable '#expected','#actual';
 END;
@@ -1309,112 +1352,92 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';    
 END;
 GO
-CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures start time]
+CREATE PROC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures]
+  @the NVARCHAR(MAX),
+  @whenTest NVARCHAR(MAX)
 AS
 BEGIN
     EXEC('EXEC tSQLt.DropClass innertest;');
     EXEC('CREATE SCHEMA innertest;');
-    EXEC('CREATE PROC innertest.testMe as WAITFOR DELAY ''00:00:00.111'';');
 
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
+    IF(@whenTest = 'succeeds')
+    BEGIN
+      EXEC('CREATE PROC innertest.testMe as EXEC tSQLt_testutil.WaitForMS 120;');
+    END;
+    IF(@whenTest = 'fails')
+    BEGIN
+      EXEC('CREATE PROC innertest.testMe as EXEC tSQLt_testutil.WaitForMS 120;EXEC tSQLt.Fail ''XX'';');
+    END;
 
-    DECLARE @actual DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
+    --Prime cache to prevent unintentional "padding" of the execution time during compilation
+    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';'; 
+
+    DECLARE @actual DATETIME2;
+    DECLARE @after DATETIME2;
+    DECLARE @before DATETIME2;
+
+    DELETE FROM tSQLt.TestResult;
     
-    SET @before = GETDATE();  
+    SET @before = SYSDATETIME();  
     
     EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
     
-    SET @after = GETDATE();  
-    
-    SELECT  @actual = TestStartTime
-    FROM tSQLt.TestResult AS TR   
-    
+    SET @after = SYSDATETIME();  
+
+    DECLARE @expectedIntervalStart DATETIME2;
+    DECLARE @expectedIntervalEnd DATETIME2;
+
+    IF(@the = 'StartTime')
+    BEGIN
+      SELECT  
+        @actual = (SELECT TestStartTime FROM tSQLt.TestResult), 
+        @expectedIntervalStart = @before,
+        @expectedIntervalEnd = DATEADD(MILLISECOND, -120, @after);
+    END;
+    IF(@the = 'EndTime')
+    BEGIN
+      SELECT  
+        @actual = (SELECT TestEndTime FROM tSQLt.TestResult), 
+        @expectedIntervalStart = DATEADD(MILLISECOND,120,@before), 
+        @expectedIntervalEnd = @after;  
+    END;
+
     DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < DATEADD(MILLISECOND,-9,@before) OR @actual > DATEADD(MILLISECOND,-102,@after) OR @actual IS NULL)
+    IF(@actual < @expectedIntervalStart OR @actual > @expectedIntervalEnd OR @actual IS NULL)
     BEGIN
       SET @msg = 
         'Expected:'+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-9,@before),121)+
+        CONVERT(NVARCHAR(MAX),@expectedIntervalStart,121)+
         ' <= '+
         ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
         ' <= '+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-102,@after),121);
+        CONVERT(NVARCHAR(MAX),@expectedIntervalEnd,121);
         EXEC tSQLt.Fail @msg;
     END;
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures start time]
+AS
+BEGIN
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'StartTime', @whenTest = 'succeeds';
+END;
+GO
+CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures start time for failing test]
+AS
+BEGIN
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'StartTime', @whenTest = 'fails';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures finish time]
 AS
 BEGIN
-    EXEC('EXEC tSQLt.DropClass innertest;');
-    EXEC('CREATE SCHEMA innertest;');
-    EXEC('CREATE PROC innertest.testMe as WAITFOR DELAY ''00:00:00.111'';');
-
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-
-    DECLARE @actual DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
-    
-    SET @before = GETDATE();  
-    
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-    
-    SET @after = GETDATE();  
-    
-    SELECT  @actual = TestEndTime
-    FROM tSQLt.TestResult AS TR   
-    
-    DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < DATEADD(MILLISECOND,102,@before) OR @actual > DATEADD(MILLISECOND,9,@after) OR @actual IS NULL)
-    BEGIN
-      SET @msg = 
-        'Expected:'+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,102,@before),121)+
-        ' <= '+
-        ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
-        ' <= '+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,9,@after),121);
-        EXEC tSQLt.Fail @msg;
-    END;
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'EndTime', @whenTest = 'succeeds';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test that tSQLt.Private_Run captures finish time for failing test]
 AS
 BEGIN
-    EXEC('EXEC tSQLt.DropClass innertest;');
-    EXEC('CREATE SCHEMA innertest;');
-    EXEC('CREATE PROC innertest.testMe as WAITFOR DELAY ''00:00:00.111'';EXEC tSQLt.Fail ''XX'';');
-
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-
-    DECLARE @actual DATETIME;
-    DECLARE @after DATETIME;
-    DECLARE @before DATETIME;
-    
-    SET @before = GETDATE();  
-    
-    EXEC tSQLt.CaptureOutput @command='EXEC tSQLt.Private_Run ''innertest.testMe'', ''tSQLt.NullTestResultFormatter'';';
-    
-    SET @after = GETDATE();  
-    
-    SELECT  @actual = TestEndTime
-    FROM tSQLt.TestResult AS TR   
-    
-    DECLARE @msg NVARCHAR(MAX);
-    IF(@actual < DATEADD(MILLISECOND,111,@before) OR @actual > @after OR @actual IS NULL)
-    BEGIN
-      SET @msg = 
-        'Expected:'+
-        CONVERT(NVARCHAR(MAX),@before,121)+
-        ' <= '+
-        ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+
-        ' <= '+
-        CONVERT(NVARCHAR(MAX),DATEADD(MILLISECOND,-111,@after),121);
-        EXEC tSQLt.Fail @msg;
-    END;
+  EXEC Run_Methods_Tests.[ptest that tSQLt.Private_Run correctly captures] @the = 'EndTime', @whenTest = 'fails';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test Privat_GetCursorForRunNew returns all test classes created after(!) tSQLt.Reset was called]
@@ -1671,8 +1694,8 @@ BEGIN
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('[a test class].[test 1]',' 609556'),
-        ('[a test class].[test 2]','1321443');
+  VALUES('[a test class].[test 1]',' 609555'),
+        ('[a test class].[test 2]','1321444');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -1844,7 +1867,7 @@ DECLARE @cmd NVARCHAR(MAX);SET @cmd =
 	 attributeFormDefault="unqualified">
 	<xs:annotation>
 		<xs:documentation xml:lang="en">JUnit test result schema for the Apache Ant JUnit and JUnitReport tasks
-Copyright © 2011, Windy Road Technology Pty. Limited
+Copyright ï¿½ 2011, Windy Road Technology Pty. Limited
 The Apache Ant JUnit XML Schema is distributed under the terms of the Apache License Version 2.0 http://www.apache.org/licenses/
 Permission to waive conditions of this license may be requested from Windy Road Support (http://windyroad.org/support).</xs:documentation>
 	</xs:annotation>
@@ -2049,7 +2072,7 @@ Permission to waive conditions of this license may be requested from Windy Road 
 		</xs:restriction>
 	</xs:simpleType>
 </xs:schema>';
-SET @cmd = 'CREATE XML SCHEMA COLLECTION Run_Methods_Tests.ValidJUnitXML AS '''+REPLACE(REPLACE(@cmd,'''',''''''),'©','(c)')+''';';
+SET @cmd = 'CREATE XML SCHEMA COLLECTION Run_Methods_Tests.ValidJUnitXML AS '''+REPLACE(REPLACE(@cmd,'''',''''''),'ï¿½','(c)')+''';';
 --EXEC(@cmd);
 EXEC tSQLt.CaptureOutput @cmd;
 END;
@@ -2078,6 +2101,7 @@ BEGIN
     EXEC tSQLt.XmlResultFormatter;
 
     EXEC tSQLt.ExpectNoException;
+RETURN
     EXEC Run_Methods_Tests.SetupXMLSchemaCollection;
     DECLARE @TestResultXML XML;
     SELECT @TestResultXML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
@@ -2207,5 +2231,15 @@ BEGIN
   EXEC tSQLt.ExpectNoException;
   EXEC tSQLt.DefaultResultFormatter;
 
+END
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Private_InputBuffer returns non-empty string]
+AS
+BEGIN
+  DECLARE @r NVARCHAR(MAX);EXEC tSQLt.Private_InputBuffer @r OUT;
+  IF(ISNULL(@r,'') = '')
+  BEGIN
+    EXEC tSQLt.Fail 'tSQLt.Private_InputBuffer returned NULL or an empty string.';
+  END;
 END
 GO

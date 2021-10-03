@@ -15,9 +15,7 @@
 */
 EXEC tSQLt.NewTestClass 'tSQLtclr_tests_EA';
 GO
-
-
-
+--[@tSQLt:RunOnlyOnHostPlatform]('Windows')
 CREATE PROC tSQLtclr_tests_EA.[test NewConnection executes a command in a new process]
 AS
 BEGIN

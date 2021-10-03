@@ -1,0 +1,41 @@
+# Adapted from: https://github.com/Microsoft/mssql-docker/blob/master/windows/mssql-server-windows-developer/dockerfile
+#
+#
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+LABEL maintainer "Liz B & Sebastian M"
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Continue'; $ProgressPreference = 'SilentlyContinue';"]
+
+WORKDIR /
+
+# Install chocolatey via powershell
+ENV chocolateyUseWindowsCompression false
+RUN powershell -Command Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+RUN choco feature disable --name showDownloadProgress
+
+# MSSQL 2019 Download link
+ENV exe "https://go.microsoft.com/fwlink/?linkid=866662"
+ENV ACCEPT_EULA="Y"
+
+# Install MSSQL 2019
+RUN mkdir c:\downloadFiles ; \
+    Invoke-WebRequest -Uri $env:exe -OutFile c:\downloadFiles\SQL.exe ; \
+    mkdir c:\setupFiles ; \
+    Start-Process -Wait -FilePath "c:\downloadFiles\SQL.exe" -ArgumentList /QUIET, /ACTION=Download, /MEDIAPATH="c:\setupFiles"; \
+    $setupExeFullPath = (Get-ChildItem -Path "c:\setupFiles\*.exe").FullName; \
+    $setupExecFullPath; \
+    Start-Process -Wait -FilePath "$setupExeFullPath" -ArgumentList /qs, /x:"c:\setup" ; \
+    c:\setup\setup.exe /q /ACTION=Install /INSTANCENAME=MSSQLSERVER /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\System' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS ; \
+	Remove-Item -Recurse -Force c:\downloadFiles, c:\setupFiles, c:\setup
+
+RUN stop-service MSSQLSERVER ; \
+        set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value '' ; \
+        set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433 ; \
+        set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2 ;
+HEALTHCHECK CMD [ "sqlcmd", "-Q", "select 1" ]
+ 
+COPY start.ps1 /
+RUN net user /add LOCAL_SQLSRVR
+RUN powershell -Command Add-LocalGroupMember -Group "Administrators" -Member "LOCAL_SQLSRVR"
+USER LOCAL_SQLSRVR
+CMD .\start -ACCEPT_EULA $env:ACCEPT_EULA -sqlsrvrlogin "LOCAL_SQLSRVR" -Verbose *> start_script.log

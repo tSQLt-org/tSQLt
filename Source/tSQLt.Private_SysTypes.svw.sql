@@ -4,7 +4,7 @@ GO
 GO
 CREATE VIEW tSQLt.Private_SysTypes AS SELECT * FROM sys.types AS T;
 GO
-IF(CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(MAX)) LIKE '9.%')
+IF((SELECT SqlVersion FROM tSQLt.Info())=9)
 BEGIN
   EXEC('ALTER VIEW tSQLt.Private_SysTypes AS SELECT *,0 is_table_type FROM sys.types AS T;');
 END;

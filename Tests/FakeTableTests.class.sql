@@ -17,25 +17,6 @@
 EXEC tSQLt.NewTestClass 'FakeTableTests';
 GO
 
-CREATE PROC FakeTableTests.[test that no disabled tests exist]
-AS
-BEGIN
-  SELECT name 
-  INTO #Actual
-  FROM sys.procedures
-  WHERE (
-     LOWER(name) LIKE '_test%'
-  OR LOWER(name) LIKE 't_est%'
-  OR LOWER(name) LIKE 'te_st%'
-  OR LOWER(name) LIKE 'tes_t%'
-  )
-  AND schema_id = SCHEMA_ID(OBJECT_SCHEMA_NAME(@@PROCID));
-  
-  SELECT TOP(0) * INTO #Expected FROM #Actual;
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-
 CREATE PROC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints
 @TableName NVARCHAR(MAX)
 AS
@@ -572,6 +553,29 @@ BEGIN
   EXEC tSQLt.FakeTable 'dbo.tst1';
 
   SELECT column_id,name
+    INTO #Actual
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+CREATE PROC FakeTableTests.[test FakeTable handles column length, precision, and scale]
+AS
+BEGIN
+  IF OBJECT_ID('dbo.tst1') IS NOT NULL DROP TABLE dbo.tst1;
+
+  CREATE TABLE dbo.tst1(Length1 VARCHAR(42), Length2 VARCHAR(MAX), Precision_Scale NUMERIC(21,3));
+
+  SELECT column_id,name,max_length, precision, scale
+    INTO #Expected
+    FROM sys.columns
+   WHERE object_id = OBJECT_ID('dbo.tst1')
+  
+  EXEC tSQLt.FakeTable 'dbo.tst1';
+
+  SELECT column_id,name,max_length, precision, scale
     INTO #Actual
     FROM sys.columns
    WHERE object_id = OBJECT_ID('dbo.tst1')
