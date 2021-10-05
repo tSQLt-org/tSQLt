@@ -21,14 +21,27 @@
 
  <target name="set.database.name.variables">
    <property name="run.tSQLt.database" value="${db.name}" />
-   <property name="run.Dacpac.database" value="${db.name}_dacpac" />
+   <property name="run.Dacpac.src.database" value="${db.name}_dacpac_src" />
+   <property name="run.Dacpac.validate.database" value="${db.name}_dacpac_tgt" />
    <property name="run.Facade.database" value="${db.name}_facade" />
    <property name="run.Example.database" value="tSQLt_Example" /> <!-- do not change, hard coded in deployment -->
 
    <property name="run.Facade.src.database" value="${run.Facade.database}_src" />
-   <property name="run.Facade.trg.database" value="${run.Facade.database}_trg" />
+   <property name="run.Facade.tgt.database" value="${run.Facade.database}_tgt" />
    <property name="run.Facade.validate.database" value="${run.Facade.database}_validate" />
-  <echo message="Selected Dacpac Database: [${run.Dacpac.database}]" />
+  
+  <echo message="Selected tSQLt Database: [${run.tSQLt.database}]" />
+
+  <echo message="Selected Dacpac Src Database: [${run.Dacpac.src.database}]" />
+  <echo message="Selected Dacpac Validate Database: [${run.Dacpac.validate.database}]" />
+
+  <echo message="Selected Facade Database Prefix: [${run.Facade.database}]" />
+  <echo message="Selected Facade Src Database: [${run.Facade.src.database}]" />
+  <echo message="Selected Facade Tgt Database: [${run.Facade.tgt.database}]" />
+  <echo message="Selected Facade Validate Database: [${run.Facade.validate.database}]" />
+
+  <echo message="Selected Example Database: [${run.Example.database}]" />
+
  </target>
 
  <target name="run.all" depends="set.database.name.variables, Preparation">
@@ -36,7 +49,7 @@
    <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
   </antcall>
   <antcall target="deployAndValidate.Dacpac">
-   <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.database}" />
+   <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.validate.database}" />
   </antcall>
   <antcall target="deployAndValidate.Facade">
    <param name="deployAndValidate.Facade.database" value="${run.Facade.database}" />
@@ -74,12 +87,12 @@
   </antcall>
  </target>
  <target name="run.DacpacOnly" depends="set.database.name.variables, Preparation">
-  <echo message="Selected Database: [${run.Dacpac.database}]" />
+  <echo message="Selected Database: [${run.Dacpac.validate.database}]" />
   <antcall target="deployAndValidate.Dacpac">
-   <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.database}" />
+   <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.validate.database}" />
   </antcall>
   <antcall target="process.testresults">
-   <param name="process.testresults.database" value="${run.Dacpac.database}" />
+   <param name="process.testresults.database" value="${run.Dacpac.validate.database}" />
    <param name="process.testresults.FileList" value="TestResults_tSQLtDacpac.xml;testresults_tSQLtDacpac_external_access_key_exists.xml;testresults_tSQLtDacpac_external_access.xml;testresults_tSQLtDacpac_sa.xml;TestResults_tSQLtDacpac_TestUtil.xml;" />
   </antcall>
  </target>

@@ -20,24 +20,12 @@ $dir = Split-Path $scriptpath;
 $OutputPath = $dir + "/output/DacpacBuild/";
 $TempPath = $dir + "/temp/DacpacBuild/";
 
-<# Clean #>
-Remove-DirectoryQuietly -Path $TempPath;
-Remove-DirectoryQuietly -Path $OutputPath;
-
-<# Init #>
-$tempDir = New-Item -ItemType "directory" -Path $TempPath;
-$outputDir = New-Item -ItemType "directory" -Path $OutputPath;
-
 $ServerNameTrimmed = $ServerName.Trim();
 $LoginTrimmed = $Login.Trim("'").Trim();
 
 
 Log-Output "FileLocation: $dir";
 Push-Location;
-Set-Location $dir;
-
-Expand-Archive -Path "./output/tSQLtBuild/tSQLtFacade.zip" -DestinationPath $TempPath;
-
 Set-Location $TempPath;
 
 $SourceDatabaseName = $DatabaseName+"_src";
@@ -52,21 +40,11 @@ $FacadeDacpacFileName = "tSQLtFacade."+$FriendlySQLServerVersion+".dacpac";
 $FacadeApplicationName = "tSQLtFacade."+$FriendlySQLServerVersion;
 $FacadeConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $TargetDatabaseName;
 
-$tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
-$tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
-$tSQLtConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $SourceDatabaseName;
-
 & "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$FacadeConnectionString" /tf:"$FacadeDacpacFileName" /p:DacApplicationName="$FacadeApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
 if($LASTEXITCODE -ne 0) {
     throw "error during execution of dacpac " + $FacadeDacpacFileName;
 }
 
-& "$SqlPackagePath\sqlpackage.exe" /a:Extract /scs:"$tSQLtConnectionString" /tf:"$tSQLtDacpacFileName" /p:DacApplicationName="$tSQLtApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
-if($LASTEXITCODE -ne 0) {
-    throw "error during execution of dacpac " + $tSQLtDacpacFileName;
-}
-
 Copy-Item -Path $FacadeDacpacFileName -Destination $OutputPath;
-Copy-Item -Path $tSQLtDacpacFileName -Destination $OutputPath;
 
 Pop-Location;
