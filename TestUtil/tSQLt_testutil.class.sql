@@ -411,7 +411,15 @@ BEGIN
     [Error] [int] NULL,
     [TestCaseSet] NVARCHAR(MAX) NULL,
     [RunGroup] NVARCHAR(MAX) NULL,
-    [DatabaseName] NVARCHAR(MAX) NULL
+    [DatabaseName] NVARCHAR(MAX) NULL,
+    [Version] VARCHAR(14) NULL,
+    [ClrVersion] NVARCHAR(4000) NULL,
+    [ClrSigningKey] VARBINARY(8000) NULL,
+    [InstalledOnSqlVersion] NUMERIC(10, 2) NULL,
+    [SqlVersion] NUMERIC(10, 2) NULL,
+    [SqlBuild] NUMERIC(10, 2) NULL,
+    [SqlEdition] NVARCHAR(128) NULL,
+    [HostPlatform] NVARCHAR(256) NULL
   );
   ';
   EXEC(@cmd);
@@ -437,7 +445,7 @@ BEGIN
        AND C.is_identity = 0
      ORDER BY C.column_id
        FOR XML PATH,TYPE).value('.','NVARCHAR(MAX)');
-  SET @cmd = 'INSERT INTO '+@TableName+'('+@cmd+'[RunGroup],[DatabaseName]) SELECT '+@cmd+'RG,DB FROM tSQLt_testutil.MultiRunLog RIGHT JOIN (VALUES('''+@RunGroup+''',DB_NAME()))XX(RG,DB) ON 1=1;'
+  SET @cmd = 'INSERT INTO '+@TableName+' SELECT '+@cmd+'RG,DB,I.* FROM tSQLt_testutil.MultiRunLog CROSS JOIN tSQLt.Info() I RIGHT JOIN (VALUES('''+@RunGroup+''',DB_NAME()))XX(RG,DB) ON 1=1;'
 
   EXEC(@cmd);
 END;
@@ -460,7 +468,15 @@ BEGIN
                'CAST(REPLICATE('' '','+CAST(MAX(ErrorML) AS NVARCHAR(MAX))+'-LEN(Error))+CAST(Error AS VARCHAR(MAX)) AS CHAR('+CAST(MAX(ErrorML)+1 AS NVARCHAR(MAX))+'))Error,'+
                'CAST(TestCaseSet AS CHAR('+CAST(MAX(TestCaseSetML) AS NVARCHAR(MAX))+'))TestCaseSet,'+
                'CAST(RunGroup AS CHAR('+CAST(MAX(RunGroupML) AS NVARCHAR(MAX))+'))RunGroup,'+
-               'CAST(DatabaseName AS CHAR('+CAST(MAX(DatabaseNameML) AS NVARCHAR(MAX))+'))DatabaseName '+
+               'CAST(DatabaseName AS CHAR('+CAST(MAX(DatabaseNameML) AS NVARCHAR(MAX))+'))DatabaseName, '+
+               'CAST([Version] AS CHAR('+CAST(MAX(VersionML) AS NVARCHAR(MAX))+'))[Version], '+
+               'CAST([ClrVersion] AS CHAR('+CAST(MAX(ClrVersionML) AS NVARCHAR(MAX))+'))[ClrVersion], '+
+               'CONVERT(CHAR('+CAST(MAX(ClrSigningKeyML) AS NVARCHAR(MAX))+'),[ClrSigningKey],1)[ClrSigningKey], '+
+               'CAST([InstalledOnSqlVersion] AS CHAR('+CAST(MAX(InstalledOnSqlVersionML) AS NVARCHAR(MAX))+'))[InstalledOnSqlVersion], '+
+               'CAST([SqlVersion] AS CHAR('+CAST(MAX(SqlVersionML) AS NVARCHAR(MAX))+'))[SqlVersion], '+
+               'CAST([SqlBuild] AS CHAR('+CAST(MAX(SqlBuildML) AS NVARCHAR(MAX))+'))[SqlBuild], '+
+               'CAST([SqlEdition] AS CHAR('+CAST(MAX(SqlEditionML) AS NVARCHAR(MAX))+'))[SqlEdition], '+
+               'CAST([HostPlatform] AS CHAR('+CAST(MAX(HostPlatformML) AS NVARCHAR(MAX))+'))[HostPlatform] '+
              'INTO tSQLt_testutil.LocalBuildLogTempFormatted FROM tSQLt_testutil.LocalBuildLogTemp'
       FROM 
       (
@@ -472,9 +488,17 @@ BEGIN
             MAX(LEN(CAST(Error AS VARCHAR(MAX)))) ErrorML,
             2+MAX(LEN(TestCaseSet)) TestCaseSetML,
             2+MAX(LEN(RunGroup)) RunGroupML,
-            2+MAX(LEN(DatabaseName)) DatabaseNameML
+            2+MAX(LEN(DatabaseName)) DatabaseNameML,
+            MAX(LEN(CAST([Version] AS VARCHAR(MAX)))) VersionML,
+            MAX(LEN(CAST([ClrVersion] AS VARCHAR(MAX)))) ClrVersionML,
+            MAX(LEN(CONVERT(NVARCHAR(MAX),[ClrSigningKey],1))) ClrSigningKeyML,
+            MAX(LEN(CAST([InstalledOnSqlVersion] AS VARCHAR(MAX)))) InstalledOnSqlVersionML,
+            MAX(LEN(CAST([SqlVersion] AS VARCHAR(MAX)))) SqlVersionML,
+            MAX(LEN(CAST([SqlBuild] AS VARCHAR(MAX)))) SqlBuildML,
+            MAX(LEN(CAST([SqlEdition] AS VARCHAR(MAX)))) SqlEditionML,
+            MAX(LEN(CAST([HostPlatform] AS VARCHAR(MAX)))) HostPlatformML
           FROM tSQLt_testutil.LocalBuildLogTemp
-          UNION ALL SELECT 2,7,7,7,5,11,8,12
+          UNION ALL SELECT 2,7,7,7,5,11,8,12,1,1,1,1,1,1,1,1
       )X
   );
   EXEC(@cmd);

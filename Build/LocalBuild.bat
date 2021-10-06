@@ -43,12 +43,14 @@ IF "%VerboseOutput%"=="ON" @ECHO ON
 CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.build.xml -Dcommit.id="--> LOCALBUILD <--" || goto :error
 @ECHO OFF
 
-ECHO +-------------------------+
-ECHO : Creating tSQLt Facade   :
-ECHO +-------------------------+
+ECHO +-----------------------------------+
+ECHO : Creating tSQLt and Facade dacpacs   :
+ECHO +-----------------------------------+
 IF "%VerboseOutput%"=="ON" @ECHO ON
+CALL "powershell.exe" -File Build\SetupDacpacBuild.ps1 -ErrorAction Stop || goto :error
 @REM -----------------------------------------------------------------------------This space character is utterly important! --------------v
 CALL "powershell.exe" -File Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
+CALL "powershell.exe" -File Build\BuildtSQLtDacpac.ps1 -ErrorAction Stop -ServerName "%SQLInstanceName%" -DatabaseName "%DBName%_dacpac_src" -Login " %DBLogin%" -SqlCmdPath "%SQLCMDPath%" -SqlPackagePath "%SQLPackagePath%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

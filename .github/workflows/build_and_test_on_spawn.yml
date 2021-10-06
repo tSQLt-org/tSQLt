@@ -191,11 +191,13 @@ jobs:
           name: tSQLtBuildArtifact
           path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLtBuild"
 
-      - name: build tSQLtFacade  --> Build/output/DacpacBuild/
+      - name: build tSQLt and Facade Dacpacs --> Build/output/DacpacBuild/
         shell: pwsh
         working-directory: ${{ github.workspace }}\tSQLt\
         run: |
+          .\Build\SetupDacpacBuild.ps1 -ErrorAction Stop 
           .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "${{ steps.create-container.outputs.containerFQDN }}" -DatabaseName "tSQLt_dev" -Login "-U ${{ steps.create-container.outputs.containerUser }} -P ${{ steps.create-container.outputs.containerPassword }}" -SqlCmdPath "${{ steps.create-vars.outputs.sqlcmdPath }}" -SqlPackagePath "$env:SQLPACKAGE_HOME"
+          .\Build\BuildtSQLtDacpac.ps1 -ErrorAction Stop -ServerName "${{ steps.create-container.outputs.containerFQDN }}" -DatabaseName "tSQLt_dev_dacpac_src" -Login "-U ${{ steps.create-container.outputs.containerUser }} -P ${{ steps.create-container.outputs.containerPassword }}" -SqlCmdPath "${{ steps.create-vars.outputs.sqlcmdPath }}" -SqlPackagePath "$env:SQLPACKAGE_HOME"
 
       - name: create dacpacs artifact
         uses: actions/upload-artifact@v2

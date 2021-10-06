@@ -23,7 +23,15 @@ BEGIN
     [Error] [int] NULL,
     [TestCaseSet] NVARCHAR(MAX) NULL,
     [RunGroup] NVARCHAR(MAX) NULL,
-    [DatabaseName] NVARCHAR(MAX) NULL
+    [DatabaseName] NVARCHAR(MAX) NULL,
+    [Version] VARCHAR(14) NULL,
+    [ClrVersion] NVARCHAR(4000) NULL,
+    [ClrSigningKey] VARBINARY(8000) NULL,
+    [InstalledOnSqlVersion] NUMERIC(10, 2) NULL,
+    [SqlVersion] NUMERIC(10, 2) NULL,
+    [SqlBuild] NUMERIC(10, 2) NULL,
+    [SqlEdition] NVARCHAR(128) NULL,
+    [HostPlatform] NVARCHAR(256) NULL
   );
 
   EXEC('SELECT TOP(0) * INTO tSQLt_testutil_test_SA.[testtable for comparison Actual] FROM '+@TableName+';')
@@ -181,7 +189,7 @@ BEGIN
   FROM tSQLt_testutil_test_SA.[Temp BuildLog Table] X LEFT JOIN tSQLt_testutil_test_SA.[Temp BuildLog Table] AS MRL ON 0=1;   
 
   EXEC tSQLt.ExpectNoException;
-  
+
   INSERT INTO #ignore
   EXEC tSQLt_testutil.CheckBuildLog @TableName = 'tSQLt_testutil_test_SA.[Temp BuildLog Table]';
   
