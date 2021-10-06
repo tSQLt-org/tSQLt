@@ -29,6 +29,7 @@ Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCm
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames ($dir+"/CreateBuildDb.sql") -Database "tempdb" -AdditionalParameters ('-v NewDbName="'+$DatabaseName+'"');
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -FileNames "tSQLt.class.sql" -Database "$DatabaseName";
 
+$FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath;
 $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
 $tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
 $tSQLtConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $DatabaseName;

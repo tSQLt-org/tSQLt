@@ -60,6 +60,12 @@
           <AssociatedConnUserName />
           <FullPath>GetFailedTestCount.sql</FullPath>
         </FileNode>
+        <FileNode Name="GetFriendlySQLServerVersion.template.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>GetFriendlySQLServerVersion.template.sql</FullPath>
+        </FileNode>
         <FileNode Name="GetSQLServerVersion.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -118,6 +124,18 @@
           <AssociatedConnUserName />
           <FullPath>BuildHelper.exe</FullPath>
         </FileNode>
+        <FileNode Name="BuildTestResultsZip.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>BuildTestResultsZip.ps1</FullPath>
+        </FileNode>
+        <FileNode Name="BuildtSQLtDacpac.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>BuildtSQLtDacpac.ps1</FullPath>
+        </FileNode>
         <FileNode Name="BuildtSQLtZip.ps1">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -141,6 +159,18 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>CreateAssemblyGenerator.exe</FullPath>
+        </FileNode>
+        <FileNode Name="CreateDebugSSMSProject.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>CreateDebugSSMSProject.ps1</FullPath>
+        </FileNode>
+        <FileNode Name="DacpacDeploy.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>DacpacDeploy.ps1</FullPath>
         </FileNode>
         <FileNode Name="FacadeBuildDacpac.ps1">
           <AssociatedConnectionMoniker />
@@ -184,6 +214,12 @@
           <AssociatedConnUserName />
           <FullPath>LocalBuild.bat</FullPath>
         </FileNode>
+        <FileNode Name="LocalValidateBuild.bat">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>LocalValidateBuild.bat</FullPath>
+        </FileNode>
         <FileNode Name="NewRelease.doc">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -201,6 +237,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Setup.bat</FullPath>
+        </FileNode>
+        <FileNode Name="SetupDacpacBuild.ps1">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>SetupDacpacBuild.ps1</FullPath>
         </FileNode>
         <FileNode Name="SnInstallPfx.exe">
           <AssociatedConnectionMoniker />
