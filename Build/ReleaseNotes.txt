@@ -97,7 +97,7 @@ NEW FEATURES:
 
    --[@tSQLt:MaxSqlMajorVersion](@MaxVersion) <-- Skips the test if the major version of SQL Server is > @MaxVersion
    --[@tSQLt:MinSqlMajorVersion](@MinVersion) <-- Skips the test if the major version of SQL Server is < @MinVersion
-   --[@tSQLt:Skip](@SkipReason)               <-- Skips the test and reports @SkipReason as reason in the output
+   --[@tSQLt:SkipTest](@SkipReason)           <-- Skips the test and reports @SkipReason as reason in the output
 
 5. Implemented a CI pipeline for tSQLt itself in Azure DevOps
 
