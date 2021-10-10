@@ -420,10 +420,10 @@
   <copy file="CreateBuildDb.sql" todir="temp/tSQLtBuild/Tests"/>
   <copy file="Drop(master.tSQLt_testutil).sql" todir="temp/tSQLtBuild/Tests"/>
   <copy file="Install(master.tSQLt_testutil).sql" todir="temp/tSQLtBuild/Tests"/>
-  <copy file="GrantUserAccessToRemoteDatabase.sql" todir="temp/tSQLtBuild/Tests"/>
   <copy file="GetTestResults.sql" todir="temp/tSQLtBuild/Tests"/>
   <copy file="GetFailedTestCount.sql" todir="temp/tSQLtBuild/Tests"/>
   <copy file="../Examples/TestThatExamplesAreDeployed.sql" todir="temp/tSQLtBuild/Tests"/>
+  <copy file="tSQLt.remote.class.sql" todir="temp/tSQLtBuild/Tests"/>
  </target>
 
  <target name="package.test.create.artifacts">
@@ -444,7 +444,6 @@
     <include name="EnableExternalAccess.sql"/>
     <include name="Drop(master.tSQLt_testutil).sql"/>
     <include name="Install(master.tSQLt_testutil).sql"/>
-    <include name="GrantUserAccessToRemoteDatabase.sql"/>
     <include name="ChangeDbAndExecuteStatement(tSQLt.Build).sql"/>
     <include name="CreateBuildDb.sql"/>
     <include name="GetTestResults.sql"/>

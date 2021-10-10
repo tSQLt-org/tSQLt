@@ -23,6 +23,7 @@
    <property name="run.tSQLt.database" value="${db.name}" />
    <property name="run.Dacpac.database" value="${db.name}_dacpac" />
    <property name="run.Facade.database" value="${db.name}_facade" />
+   <property name="run.Remote.database" value="${db.name}_remote" />
    <property name="run.Example.database" value="tSQLt_Example" /> <!-- do not change, hard coded in deployment -->
 
    <property name="run.Facade.src.database" value="${run.Facade.database}_src" />
@@ -32,6 +33,7 @@
  </target>
 
  <target name="run.all" depends="set.database.name.variables, Preparation">
+  <antcall target="deploy.tSQLt.Remote" />
   <antcall target="deployAndValidate.tSQLt">
    <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
   </antcall>
@@ -50,6 +52,7 @@
   </antcall>
  </target>
  <target name="run.noDacpac" depends="set.database.name.variables, Preparation">
+  <antcall target="deploy.tSQLt.Remote" />
   <antcall target="deployAndValidate.tSQLt">
    <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
   </antcall>
@@ -65,6 +68,7 @@
   </antcall>
  </target>
  <target name="run.tSQLtOnly" depends="set.database.name.variables, Preparation">
+  <antcall target="deploy.tSQLt.Remote" />
   <antcall target="deployAndValidate.tSQLt">
    <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
   </antcall>
@@ -75,6 +79,7 @@
  </target>
  <target name="run.DacpacOnly" depends="set.database.name.variables, Preparation">
   <echo message="Selected Database: [${run.Dacpac.database}]" />
+  <antcall target="deploy.tSQLt.Remote" />
   <antcall target="deployAndValidate.Dacpac">
    <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.database}" />
   </antcall>
@@ -129,6 +134,7 @@
  <target name="deployAndValidate.tSQLt">
   <antcall target="reset.server" />
   <antcall target="prepare.server" />
+  <antcall target="deploy.tSQLt.Remote" />
   <antcall target="deploy.tSQLt">
    <param name="deploy.tSQLt.database" value="${deployAndValidate.tSQLt.database}" />
   </antcall>
@@ -140,6 +146,7 @@
  <target name="deployAndValidate.Dacpac">
   <antcall target="reset.server" />
   <antcall target="prepare.server" />
+  <antcall target="deploy.tSQLt.Remote" />
   <antcall target="deploy.tSQLt.Dacpac">
    <param name="deploy.tSQLt.Dacpac.database" value="${deployAndValidate.Dacpac.database}" />
   </antcall>
@@ -500,6 +507,19 @@
   </antcall>
  </target>
 
+ <target name="deploy.tSQLt.Remote" description="execute create scripts">
+  <echo message="##teamcity[progressMessage 'Deploying tSQLt Remote to ${run.Remote.database}']" />
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="tempdb" />
+   <param name="execute.sql.newDatabase" value="${run.Remote.database}" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/temp_prepare_server.sql" />
+  </antcall>
+
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${run.Remote.database}" />
+   <param name="execute.sql.filename" value="temp/tSQLtBuild/Tests/tSQLt.remote.class.sql" />
+  </antcall>
+ </target>
 
  <target name="deploy.tSQLt" description="execute create scripts">
   <echo message="##teamcity[progressMessage 'Deploying tSQLt to ${deploy.tSQLt.database}']" />
@@ -577,12 +597,6 @@
 
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${run.AllTests.database}" />
-   <param name="execute.sql.elevated" value="true" />
-   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/GrantUserAccessToRemoteDatabase.sql" />
-  </antcall>
-
-  <antcall target="execute.sql.file">
-   <param name="execute.sql.database" value="${db.name}" />
    <param name="execute.sql.elevated" value="true" />
    <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Drop(tSQLtAssemblyKey)(Pre2017).sql" />
   </antcall>
