@@ -1,12 +1,12 @@
 name: Manage AKS
 
 on:
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    # Run every sunday at 6:20 AM
-    - cron:  '15 5 * * *'
-  repository_dispatch:
-    types: [aks-start, aks-stop]
+  # schedule:
+  #   # * is a special character in YAML so you have to quote this string
+  #   # Run every sunday at 6:20 AM
+  #   - cron:  '15 5 * * *'
+  # repository_dispatch:
+  #   types: [aks-start, aks-stop]
   workflow_dispatch: 
     inputs:
       projectName:
