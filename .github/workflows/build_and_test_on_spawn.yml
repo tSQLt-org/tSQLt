@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
   workflow_dispatch: 
     inputs:
       spawnDataImages:
@@ -23,7 +22,7 @@ env:
     '[["SQL2017","mssql-empty:v2017"],["SQL2019","mssql-empty:v2019"]]'
 
 jobs:
-# 💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖  💖   
+  
   set-up-env-vars:
     name: set up matrix variables
     #if: ${{ always() }}
@@ -68,7 +67,6 @@ jobs:
 
     env:
       PFX_PATH: ${{ github.workspace }}\tSQLt\Build\tSQLtOfficialSigningKey.pfx
-      PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
       ARTIFACT_DIR: ${{ github.workspace }}\artifacts
       MSBUILD_HOME: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin
 
@@ -84,10 +82,10 @@ jobs:
       - name: create and install unofficial pfx file for signing dlls
         shell: pwsh
         run: |
+          $superSecurePassword = "ExtraSuperSecurePassword1!";
           $cert = New-SelfSignedCertificate -FriendlyName "tSQLt_testKey" -Type CodeSigningCert -Subject "CN=localhost" -KeyAlgorithm RSA -HashAlgorithm SHA1 -KeyLength 2048 -SmimeCapabilities -CertStoreLocation "cert:/LocalMachine" -Provider "Microsoft Strong Cryptographic Provider"
-          $pwd = ConvertTo-SecureString -String "$env:PFX_PASSWORD" -Force -AsPlainText
-          $pfxFile = Export-PfxCertificate -cert ("Cert:\LocalMachine\My\" + $cert.thumbprint) -FilePath $env:PFX_PATH -Password $pwd
-          &"${{ github.workspace }}\tSQLt\Build\SnInstallPfx" "$env:PFX_PATH" "$env:PFX_PASSWORD" tSQLt_OfficialSigningKey
+          $pfxFile = Export-PfxCertificate -cert ("Cert:\LocalMachine\My\" + $cert.thumbprint) -FilePath $env:PFX_PATH -Password (ConvertTo-SecureString -String $superSecurePassword -Force -AsPlainText)
+          &"${{ github.workspace }}\tSQLt\Build\SnInstallPfx" "$env:PFX_PATH" $superSecurePassword tSQLt_OfficialSigningKey
 
       - name: ant Build\tSQLt.buildCLR.xml --> Build/output/CLRBuild/
         run: ant -buildfile "${{ github.workspace }}\tSQLt\Build\tSQLt.buildCLR.xml" -D"msbuild.path"="$env:MSBUILD_HOME" all
