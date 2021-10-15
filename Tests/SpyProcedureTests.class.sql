@@ -734,3 +734,51 @@ BEGIN
     
 END;
 GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works with synonym pointing to proc in same database]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure AS RETURN;');
+	EXEC('CREATE SYNONYM dbo.InnerProcSynonym FOR dbo.InnerProcedure')
+    
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcSynonym';
+
+    EXEC dbo.InnerProcSynonym
+
+    SELECT _id_ INTO #Actual FROM dbo.InnerProcSynonym_SpyProcedureLog;
+
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected
+    VALUES(1);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works with synonym with parameters]
+AS
+BEGIN
+    EXEC('CREATE PROC dbo.InnerProcedure @param1 INT AS RETURN;');
+	EXEC('CREATE SYNONYM dbo.InnerProcSynonym FOR dbo.InnerProcedure')
+    
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcSynonym';
+
+    EXEC dbo.InnerProcSynonym @param1 = 1136;
+
+    SELECT param1 INTO #Actual FROM dbo.InnerProcSynonym_SpyProcedureLog;
+
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected
+    VALUES(1136);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
+/*
+TODO:
+-- Write tests for better error messages
+-- Write tests for odd type names like dbo.CharacterType
+-- tackle different database
+-- tackle linked server
+
+--*/

@@ -7,26 +7,32 @@ CREATE PROCEDURE tSQLt.SpyProcedure
 AS
 BEGIN
     DECLARE @ProcedureObjectId INT;
-    SELECT @ProcedureObjectId = OBJECT_ID(@ProcedureName);
+    DECLARE @OriginalObjectId INT;
+	DECLARE @SpyProcedureName NVARCHAR(MAX);
+    SELECT @OriginalObjectId = OBJECT_ID(@ProcedureName);
+	SELECT @ProcedureObjectId = @OriginalObjectId;
 
     EXEC tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure @ProcedureName;
 
+	SELECT @ProcedureObjectId = OBJECT_ID(s.base_object_name) FROM sys.synonyms AS s WHERE s.object_id = @OriginalObjectId;
+
     DECLARE @LogTableName NVARCHAR(MAX);
-    SELECT @LogTableName = QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId)) + '.' + QUOTENAME(OBJECT_NAME(@ProcedureObjectId)+'_SpyProcedureLog');
+    SELECT @LogTableName = QUOTENAME(OBJECT_SCHEMA_NAME(@OriginalObjectId)) + '.' + QUOTENAME(OBJECT_NAME(@OriginalObjectId)+'_SpyProcedureLog');
+	SELECT @SpyProcedureName = QUOTENAME(OBJECT_SCHEMA_NAME(@OriginalObjectId)) + '.' + QUOTENAME(OBJECT_NAME(@OriginalObjectId));
 
     DECLARE @CreateProcedureStatement NVARCHAR(MAX);
     DECLARE @CreateLogTableStatement NVARCHAR(MAX);
 
     EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
            @ProcedureObjectId = @ProcedureObjectId,
-           @OriginalProcedureName = @ProcedureName,
+           @OriginalProcedureName = @SpyProcedureName,
            @LogTableName = @LogTableName,
            @CommandToExecute = @CommandToExecute,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
     
 
-    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId;
+    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @OriginalObjectId;
 
     EXEC(@CreateLogTableStatement);
 
