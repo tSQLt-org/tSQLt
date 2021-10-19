@@ -19,4 +19,11 @@ BEGIN
 
 END;
 GO
+/*--
+TODO
+- ApplyConstraint
+- ApplyTrigger
 
+Also, just review all the code.
+
+--*/
