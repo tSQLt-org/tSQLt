@@ -636,6 +636,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Tests.view.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.UndoTestDoubles.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.UndoTestDoubles.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Uninstall.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
