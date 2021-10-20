@@ -11,11 +11,19 @@ BEGIN
 	IF (OBJECT_ID(@ProcedureName, 'SN') IS NOT NULL ) 
 	BEGIN
 		SET @ResolvedProcedureName = (SELECT s.base_object_name FROM sys.synonyms AS s WHERE object_id = OBJECT_ID(@ProcedureName, 'SN'));
-	END
 
-    IF NOT EXISTS(SELECT 1 FROM sys.procedures WHERE object_id = OBJECT_ID(@ResolvedProcedureName))
-    BEGIN
-      RAISERROR('Cannot use SpyProcedure on %s because the procedure does not exist', 16, 10, @ResolvedProcedureName) WITH NOWAIT;
+		IF (OBJECT_ID(@ResolvedProcedureName, 'P') IS NULL)
+		BEGIN
+		  RAISERROR('Cannot use SpyProcedure on synonym %s because it does not point to a procedure', 16, 10, @ProcedureName) WITH NOWAIT;
+		END;
+
+	END
+	ELSE
+	BEGIN
+		IF NOT EXISTS(SELECT 1 FROM sys.procedures WHERE object_id = OBJECT_ID(@ResolvedProcedureName))
+		BEGIN
+		  RAISERROR('Cannot use SpyProcedure on %s because the procedure does not exist', 16, 10, @ResolvedProcedureName) WITH NOWAIT;
+		END;
     END;
     
     IF (1020 < (SELECT COUNT(*) FROM sys.parameters WHERE object_id = OBJECT_ID(@ResolvedProcedureName)))

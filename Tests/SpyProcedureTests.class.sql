@@ -774,11 +774,112 @@ BEGIN
     
 END;
 GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure produces meaningful error when synonym is pointing to non-procedure]
+AS
+BEGIN
+    EXEC('CREATE TABLE dbo.InnerTable (a int)');
+	EXEC('CREATE SYNONYM dbo.InnerTableSynonym FOR dbo.InnerTable')
+    
+	EXEC tSQLt.ExpectException @ExpectedMessage = N'Cannot use SpyProcedure on synonym dbo.InnerTableSynonym because it does not point to a procedure'       
+	                         , @ExpectedSeverity = 16        
+	                         , @ExpectedState = 10;
+	
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerTableSynonym';
+END;
+GO
+CREATE PROC SpyProcedureTests.[test handles the length of char types correctly]
+AS
+BEGIN
+    EXEC('CREATE PROCEDURE dbo.InnerProcedure @p1 CHAR(13), @p2 VARCHAR(15), @p3 NCHAR(17), @p4 NVARCHAR(19) AS RETURN;');
+
+	SELECT P.name, P.system_type_id,P.user_type_id,P.max_length, P.precision, P.scale 
+	  INTO #Expected
+	  FROM sys.parameters P 
+	 WHERE P.object_id = OBJECT_ID('dbo.InnerProcedure');
+
+	EXEC tSQLt.SpyProcedure @ProcedureName = N'dbo.InnerProcedure';
+	
+	SELECT P.name, P.system_type_id,P.user_type_id,P.max_length, P.precision, P.scale 
+	  INTO #Actual
+	  FROM sys.parameters P 
+	 WHERE P.object_id = OBJECT_ID('dbo.InnerProcedure');
+
+	EXEC tSQLt.AssertEqualsTable @Expected = N'#Expected'
+	                           , @Actual = N'#Actual';
+	
+END;
+GO
+CREATE PROC SpyProcedureTests.[test handles user types with 'char' in name]
+AS
+BEGIN
+    CREATE TYPE dbo.type_with_character FROM INT;
+    EXEC('CREATE PROCEDURE dbo.InnerProcedure @p1 dbo.type_with_character AS RETURN;');
+
+	SELECT P.name, P.system_type_id,P.user_type_id,P.max_length, P.precision, P.scale 
+	  INTO #Expected
+	  FROM sys.parameters P 
+	 WHERE P.object_id = OBJECT_ID('dbo.InnerProcedure');
+
+	EXEC tSQLt.SpyProcedure @ProcedureName = N'dbo.InnerProcedure';
+	
+	SELECT P.name, P.system_type_id,P.user_type_id,P.max_length, P.precision, P.scale 
+	  INTO #Actual
+	  FROM sys.parameters P 
+	 WHERE P.object_id = OBJECT_ID('dbo.InnerProcedure');
+
+	EXEC tSQLt.AssertEqualsTable @Expected = N'#Expected'
+	                           , @Actual = N'#Actual';
+	
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works with synonym pointing to proc in different database]
+AS
+BEGIN
+    DECLARE @RemoteDB NVARCHAR(MAX)= 'tSQLt_dev_remote';
+	DECLARE @cmd NVARCHAR(MAX) = @RemoteDB+'.sys.sp_executesql';
+    EXEC @cmd N'EXEC(''CREATE PROC dbo.InnerProcedure AS RETURN;'');', N'';
+
+	EXEC('CREATE SYNONYM dbo.InnerProcSynonym FOR '+@RemoteDB+'.dbo.InnerProcedure')
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcSynonym';
+
+    EXEC dbo.InnerProcSynonym
+
+    SELECT _id_ INTO #Actual FROM dbo.InnerProcSynonym_SpyProcedureLog;
+
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected
+    VALUES(1);
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works with synonym pointing to proc with params in different database]
+AS
+BEGIN
+    DECLARE @RemoteDB NVARCHAR(MAX)= 'tSQLt_dev_remote';
+	DECLARE @cmd NVARCHAR(MAX) = @RemoteDB+'.sys.sp_executesql';
+    EXEC @cmd N'EXEC(''CREATE PROC dbo.InnerProcedure @p1 INT, @p2 VARCHAR(13) AS RETURN;'');', N'';
+
+	EXEC('CREATE SYNONYM dbo.InnerProcSynonym FOR '+@RemoteDB+'.dbo.InnerProcedure')
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcSynonym';
+
+    EXEC dbo.InnerProcSynonym 123, 'Some Val'
+
+    SELECT p1, p2 INTO #Actual FROM dbo.InnerProcSynonym_SpyProcedureLog;
+
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected
+    VALUES(123, 'Some Val');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
 /*
 TODO:
--- Write tests for better error messages
--- Write tests for odd type names like dbo.CharacterType
 -- tackle different database
+	-- procs types P,X,RF,PC
 -- tackle linked server
-
+-- avoid code duplication in tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure lines #15, #23
 --*/

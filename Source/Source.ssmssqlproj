@@ -522,6 +522,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
