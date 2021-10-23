@@ -127,6 +127,69 @@ CREATE FUNCTION MyTestClass.AClrTvf(@p1 NVARCHAR(MAX), @p2 NVARCHAR(MAX))
     END
 END;
 GO
+                  --CASE type *WHEN 'P' THEN 'PROCEDURE'
+                  --          WHEN 'PC' THEN 'PROCEDURE'
+                  --          *WHEN 'U' THEN 'TABLE'
+                  --          WHEN 'IF' THEN 'FUNCTION'
+                  --          *WHEN 'TF' THEN 'FUNCTION'
+                  --          WHEN 'FN' THEN 'FUNCTION'
+                  --          *WHEN 'FT' THEN 'FUNCTION'
+                  --          *WHEN 'V' THEN 'VIEW'
+/*--
+EXEC tSQLt.Run DropClassTests
+--*/
+CREATE PROC DropClassTests.[test removes SSPs]
+AS
+BEGIN
 
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE PROC MyTestClass.P AS RETURN;');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test removes VIEWs]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE VIEW MyTestClass.V AS SELECT 0 X;');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test removes CLR SSPs]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE PROC MyTestClass.CLRProcedure @expectedCommand NVARCHAR(MAX), @actualCommand NVARCHAR(MAX) AS EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].AssertResultSetsHaveSameMetaData;');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+
+    
 
 

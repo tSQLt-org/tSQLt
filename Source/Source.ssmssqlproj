@@ -438,6 +438,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_RemoveSchemaBoundReferences.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_RenameObject.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_RenameObject.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_RenameObjectToUniqueName.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -635,6 +641,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Tests.view.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.UndoSingleTestDouble.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.UndoSingleTestDouble.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.UndoTestDoubles.ssp.sql">
           <AssociatedConnectionMoniker />
