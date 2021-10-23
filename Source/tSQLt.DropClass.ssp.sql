@@ -30,11 +30,11 @@ BEGIN
            SELECT 10,
                   'DROP ' +
                   CASE type WHEN 'P' THEN 'PROCEDURE'
-                            --WHEN 'PC' THEN 'PROCEDURE'
+                            WHEN 'PC' THEN 'PROCEDURE'
                             WHEN 'U' THEN 'TABLE'
-                            --WHEN 'IF' THEN 'FUNCTION'
+                            WHEN 'IF' THEN 'FUNCTION'
                             WHEN 'TF' THEN 'FUNCTION'
-                            --WHEN 'FN' THEN 'FUNCTION'
+                            WHEN 'FN' THEN 'FUNCTION'
                             WHEN 'FT' THEN 'FUNCTION'
                             WHEN 'V' THEN 'VIEW'
                    END +
@@ -42,7 +42,6 @@ BEGIN
                    name + 
                    ';'
               FROM ObjectInfo
-/*
              UNION ALL
            SELECT 20,
                   'DROP TYPE ' +
@@ -55,7 +54,6 @@ BEGIN
                    name + 
                    ';'
               FROM XMLSchemaInfo
-*/
              UNION ALL
             SELECT 10000,'DROP SCHEMA ' + QUOTENAME(name) +';'
               FROM sys.schemas

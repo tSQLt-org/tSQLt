@@ -40,13 +40,15 @@ BEGIN
     END
 END;
 GO
-CREATE PROC DropClassTests.[test removes UDDTs after tables]
+CREATE PROC DropClassTests.[test removes UDDTs after the objects that use them]
 AS
 BEGIN
 
     EXEC('CREATE SCHEMA MyTestClass;');
     EXEC('CREATE TYPE MyTestClass.UDT FROM INT;');
     EXEC('CREATE TABLE MyTestClass.tbl(i MyTestClass.UDT);');
+    EXEC('CREATE PROCEDURE MyTestClass.ssp @i MyTestClass.UDT AS RETURN;');
+    EXEC('CREATE FUNCTION MyTestClass.[IF](@i MyTestClass.UDT) RETURNS TABLE AS RETURN SELECT 0 X;');
 
     EXEC tSQLt.ExpectNoException;
     
@@ -128,13 +130,57 @@ CREATE FUNCTION MyTestClass.AClrTvf(@p1 NVARCHAR(MAX), @p2 NVARCHAR(MAX))
 END;
 GO
                   --CASE type *WHEN 'P' THEN 'PROCEDURE'
-                  --          WHEN 'PC' THEN 'PROCEDURE'
+                  --          *WHEN 'PC' THEN 'PROCEDURE'
                   --          *WHEN 'U' THEN 'TABLE'
                   --          WHEN 'IF' THEN 'FUNCTION'
                   --          *WHEN 'TF' THEN 'FUNCTION'
                   --          WHEN 'FN' THEN 'FUNCTION'
                   --          *WHEN 'FT' THEN 'FUNCTION'
                   --          *WHEN 'V' THEN 'VIEW'
+                  -- *XML
+                  -- *UDDT
+/*
+Object type:
+  AF = Aggregate function (CLR)
+-  C = CHECK constraint
+-  D = DEFAULT (constraint or stand-alone)
+-  F = FOREIGN KEY constraint
++  FN = SQL scalar function
+  FS = Assembly (CLR) scalar-function
++  FT = Assembly (CLR) table-valued function
++  IF = SQL inline table-valued function
+  IT = Internal table
++  P = SQL Stored Procedure
++  PC = Assembly (CLR) stored-procedure
+-  PG = Plan guide
+-  PK = PRIMARY KEY constraint
+?  R = Rule (old-style, stand-alone)
+  RF = Replication-filter-procedure
+-  S = System base table
+  SN = Synonym
+  SO = Sequence object
++  U = Table (user-defined)
++  V = View
+-  EC = Edge constraint
+
+Applies to: SQL Server 2012 (11.x) and later.
+  SQ = Service queue
+ - TA = Assembly (CLR) DML trigger
+ + TF = SQL table-valued-function
+ - TR = SQL DML trigger
+  TT = Table type
+ - UQ = UNIQUE constraint
+ ? X = Extended stored procedure
+
+Applies to: SQL Server 2014 (12.x) and later, Azure SQL Database, Azure Synapse Analytics, Analytics Platform System (PDW).
+ ? ST = STATS_TREE
+
+Applies to: SQL Server 2016 (13.x) and later, Azure SQL Database, Azure Synapse Analytics, Analytics Platform System (PDW).
+  ET = External Table
+
+Also think about schema bound objects (an exercise in sorting?? because they need to be dropped in the correct order so that you don't drop parent objects before the child objects)
+*/
+
 /*--
 EXEC tSQLt.Run DropClassTests
 --*/
@@ -189,7 +235,74 @@ BEGIN
     END
 END;
 GO
+CREATE PROC DropClassTests.[test removes Tables]
+AS
+BEGIN
 
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE TABLE MyTestClass.U(i INT);');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test removes Inline Table-Valued Functions]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE FUNCTION MyTestClass.[IF]() RETURNS TABLE AS RETURN SELECT 0 X;');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test removes Multi-Statement Table-Valued Functions]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE FUNCTION MyTestClass.[TF]() RETURNS @T TABLE (i INT) BEGIN RETURN; END;');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test removes Scalar Functions]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE FUNCTION MyTestClass.[FN]() RETURNS INT BEGIN RETURN 0; END;');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
     
 
 
