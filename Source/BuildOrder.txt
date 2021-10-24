@@ -2,6 +2,7 @@ tSQLt._Header.sql
 ../Build/temp/tSQLtBuild/TempDropClass.sql
 tSQLt.schema.sql
 tSQLt.TestClass.user.sql
+tSQLt.Private_GetDropItemCmd.sfn.sql
 tSQLt.DropClass.ssp.sql
 tSQLt.Uninstall.ssp.sql
 tSQLt.TestClasses.view.sql

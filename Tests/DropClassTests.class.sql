@@ -181,7 +181,7 @@ Applies to: SQL Server 2016 (13.x) and later, Azure SQL Database, Azure Synapse 
 Also think about schema bound objects (an exercise in sorting?? because they need to be dropped in the correct order so that you don't drop parent objects before the child objects)
 */
 
-/*--
+/*-- random line because someone can't use ctrl-9 through zoom
 EXEC tSQLt.Run DropClassTests
 --*/
 CREATE PROC DropClassTests.[test removes SSPs]

@@ -318,6 +318,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_GetDropItemCmd.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetDropItemCmd.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_GetForeignKeyDefinition.sfn.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
