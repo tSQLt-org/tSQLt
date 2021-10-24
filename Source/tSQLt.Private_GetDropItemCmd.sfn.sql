@@ -10,6 +10,7 @@ CREATE FUNCTION tSQLt.Private_GetDropItemCmd
 RETURNS TABLE
 AS
 RETURN
+/*START*/
 SELECT
     'DROP ' +
     CASE @ItemType 
@@ -28,4 +29,5 @@ SELECT
      ' ' + 
      @FullName + 
      ';' AS cmd
+/*END*/
 GO
