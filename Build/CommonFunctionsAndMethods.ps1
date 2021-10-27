@@ -201,16 +201,20 @@ Function Remove-ResourceGroup{
 Function Get-SnipContent {
   [CmdletBinding()]
   param (
-    [Parameter(Mandatory=$true)][AllowEmptyString()][String[]] $searchArray,
+    [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()][string[]]$searchArray,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String] $startSnipPattern,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][String] $endSnipPattern
   )
-  $outputOn = $false;
-  (
+  begin {
+    $outputOn = $false;
+  };
+  process {
     $searchArray | ForEach-Object {
       if($_ -eq $endSnipPattern) { $outputOn = $false };
       if($outputOn) { $_ };
       if($_ -eq $startSnipPattern) { $outputOn = $true };
-    } 
-  );
+    }
+  };
+  end {
+  };
 }

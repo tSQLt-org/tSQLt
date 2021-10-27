@@ -4,13 +4,15 @@ GO
 GO
 CREATE FUNCTION tSQLt.Private_GetDropItemCmd
 (
+/*SnipStart: CreateDropClassStatement.ps1*/
   @FullName NVARCHAR(MAX),
   @ItemType NVARCHAR(MAX)
+/*SnipEnd: CreateDropClassStatement.ps1*/
 )
 RETURNS TABLE
 AS
 RETURN
-/*START*/
+/*SnipStart: CreateDropClassStatement.ps1*/
 SELECT
     'DROP ' +
     CASE @ItemType 
@@ -29,5 +31,5 @@ SELECT
      ' ' + 
      @FullName + 
      ';' AS cmd
-/*END*/
+/*SnipEnd: CreateDropClassStatement.ps1*/
 GO

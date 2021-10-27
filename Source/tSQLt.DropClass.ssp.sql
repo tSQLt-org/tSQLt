@@ -5,6 +5,9 @@ CREATE PROCEDURE tSQLt.DropClass
     @ClassName NVARCHAR(MAX)
 AS
 BEGIN
+---Build-
+/*SnipStart: CreateDropClassStatement.ps1*/
+---Build+
     DECLARE @Cmd NVARCHAR(MAX);
 
     WITH ObjectInfo(FullName, ItemType) AS
@@ -67,4 +70,5 @@ BEGIN
     EXEC(@Cmd);
 END;
 ---Build-
+/*SnipEnd: CreateDropClassStatement.ps1*/
 GO
