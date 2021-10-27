@@ -685,6 +685,7 @@ BEGIN
            @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
            @LogTableName = NULL,
            @CommandToExecute = NULL,
+           @RemoteObjectName = NULL,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
 
@@ -707,6 +708,7 @@ BEGIN
            @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
            @LogTableName = NULL,
            @CommandToExecute = NULL,
+           @RemoteObjectName = NULL,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
 

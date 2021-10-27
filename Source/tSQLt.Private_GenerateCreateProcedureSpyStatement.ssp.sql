@@ -6,6 +6,7 @@ CREATE PROCEDURE tSQLt.Private_GenerateCreateProcedureSpyStatement
     @OriginalProcedureName NVARCHAR(MAX),
     @LogTableName NVARCHAR(MAX),
     @CommandToExecute NVARCHAR(MAX),
+	@RemoteObjectName NVARCHAR(MAX),
     @CreateProcedureStatement NVARCHAR(MAX) OUTPUT,
     @CreateLogTableStatement NVARCHAR(MAX) OUTPUT
 AS
@@ -25,13 +26,17 @@ BEGIN
       
     SELECT @Separator = '', @ProcParmTypeListSeparator = '', 
            @ProcParmList = '', @TableColList = '', @ProcParmTypeList = '', @TableColTypeList = '';
-      
-    DECLARE Parameters CURSOR FOR
-     SELECT p.name, t.TypeName, p.is_output, p.is_cursor_ref, t.IsTableType
-       FROM sys.parameters p
-       CROSS APPLY tSQLt.Private_GetFullTypeName(p.user_type_id,p.max_length,p.precision,p.scale,NULL) t
-      WHERE object_id = @ProcedureObjectId;
-    
+     
+	DECLARE @RemoteDatabaseName NVARCHAR(MAX) =ISNULL(PARSENAME(@RemoteObjectName,3),'');
+    DECLARE @cmd NVARCHAR(MAX) = 
+    'DECLARE Parameters CURSOR FOR 
+       SELECT p.name, t.TypeName, p.is_output, p.is_cursor_ref, t.IsTableType
+       FROM '+@RemoteDatabaseName+'.sys.parameters p
+       CROSS APPLY ('+ (SELECT cmd FROM tSQLt.Private_GetFullTypeNameStatement(@RemoteDatabaseName,'p.user_type_id','p.max_length','p.precision','p.scale','NULL')) +')t
+      WHERE object_id = '+CAST(@ProcedureObjectId AS NVARCHAR(MAX))+';'
+
+	EXEC(@cmd);
+
     OPEN Parameters;
     
     FETCH NEXT FROM Parameters INTO @ParamName, @TypeName, @IsOutput, @IsCursorRef, @IsTableType;
