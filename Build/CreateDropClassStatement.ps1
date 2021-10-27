@@ -21,22 +21,20 @@ $DropItemSnip = ($GetDropItemCmdFile | Get-SnipContent -startSnipPattern "/*Snip
 
 $CaptureName = $true;
 $VariableNames = @();
+$DropItemSnipPrepared = "("+[System.Environment]::NewLine+((
 $DropItemSnip | ForEach-Object{
-  if($CaptureName){
-    if($_.trim() -match '^(@\w+).*'){
-      $VariableNames += $Matches[1];
-      
-    }
-    else {
-      $CaptureName = $false
-    }
+  if($CaptureName -and $_.trim() -match '^(@\w+).*'){
+    $VariableNames += $Matches[1];
   }
   else{
-    $s=$_;for($i = 0;$i -lt $VariableNames.count;$i++){$s=$s -replace $VariableNamess[$i], ("$"+($i+1)) };$s 
+    $CaptureName = $false;
+    $s=$_;for($i = 0;$i -lt $VariableNames.count;$i++){$s=$s -replace $VariableNames[$i], ("($"+($i+1)+")") };$s 
   }
 }
+).trim() -join [System.Environment]::NewLine) + [System.Environment]::NewLine + ")" + [System.Environment]::NewLine;
+$RawDropClassStatement = $DropClassSnip -replace 'tSQLt\s*.\s*Private_GetDropItemCmd\s*\(\s*([^,]*)\s*,\s*([^)]*)\s*\)',$DropItemSnipPrepared;
 
-$VariableNames;
+$RawDropClassStatement.trim()|Where-Object {$_ -ne "" -and $_ -notmatch "^GO(\s.*)?"};
 
 <#
 TODO --> Test this: Empty File TempDropClass.sql file should throw an error

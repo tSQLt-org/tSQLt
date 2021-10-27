@@ -60,7 +60,7 @@ BEGIN
          (
            SELECT GDIC.cmd [text()]
              FROM DropStatements DS
-            CROSS APPLY tSQLt.Private_GetDropItemCmd(FullName, ItemType) GDIC
+            CROSS APPLY tSQLt.Private_GetDropItemCmd(DS.FullName, DS.ItemType) GDIC
             ORDER BY no
               FOR XML PATH(''), TYPE
          )
