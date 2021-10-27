@@ -1,6 +1,7 @@
-SELECT 1 AS [A /*
+--execute, then comment out the line below and execute again
+SELECT 1 AS [A
 GO
-*/ O]
+SELECT 0 AS [X]
 
 --/* <-- execute, then delete '--' and execute again
 /*Comment*/
