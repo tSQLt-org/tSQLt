@@ -12,29 +12,34 @@ Log-Output '<#--================================================================
 Log-Output '<!--========          Start CreateDropClassStatement.ps1          =========-->'
 Log-Output '<#--=======================================================================-->'
 
-$DropClassFile = Get-Content -path ($sourcePath+"tSQLt.DropClass.ssp.sql");
-$GetDropItemCmdFile = Get-Content -path ($sourcePath+"tSQLt.Private_GetDropItemCmd.sfn.sql");
-$OutputFile = $tempPath+"TempDropClass.sql";
+$DropClassFileContent = Get-Content -path ($sourcePath+"tSQLt.DropClass.ssp.sql");
+$GetDropItemCmdFileContent = Get-Content -path ($sourcePath+"tSQLt.Private_GetDropItemCmd.sfn.sql");
+$OutputFilePath = $tempPath+"TempDropClass.sql";
 
-$DropClassSnip = ($DropClassFile | Get-SnipContent -startSnipPattern "/*SnipStart: CreateDropClassStatement.ps1*/" -endSnipPattern "/*SnipEnd: CreateDropClassStatement.ps1*/");
-$DropItemSnip = ($GetDropItemCmdFile | Get-SnipContent -startSnipPattern "/*SnipStart: CreateDropClassStatement.ps1*/" -endSnipPattern "/*SnipEnd: CreateDropClassStatement.ps1*/");
+$DropClassSnip = ($DropClassFileContent | Get-SnipContent -startSnipPattern "/*SnipStart: CreateDropClassStatement.ps1*/" -endSnipPattern "/*SnipEnd: CreateDropClassStatement.ps1*/");
+$DropItemSnip = ($GetDropItemCmdFileContent | Get-SnipContent -startSnipPattern "/*SnipStart: CreateDropClassStatement.ps1*/" -endSnipPattern "/*SnipEnd: CreateDropClassStatement.ps1*/");
+$DropItemParamSnip = ($GetDropItemCmdFileContent | Get-SnipContent -startSnipPattern "/*SnipParamStart: CreateDropClassStatement.ps1*/" -endSnipPattern "/*SnipParamEnd: CreateDropClassStatement.ps1*/");
 
-$CaptureName = $true;
-$VariableNames = @();
-$DropItemSnipPrepared = "("+[System.Environment]::NewLine+((
-$DropItemSnip | ForEach-Object{
-  if($CaptureName -and $_.trim() -match '^(@\w+).*'){
-    $VariableNames += $Matches[1];
-  }
-  else{
-    $CaptureName = $false;
-    $s=$_;for($i = 0;$i -lt $VariableNames.count;$i++){$s=$s -replace $VariableNames[$i], ("($"+($i+1)+")") };$s 
-  }
-}
-).trim() -join [System.Environment]::NewLine) + [System.Environment]::NewLine + ")" + [System.Environment]::NewLine;
-$RawDropClassStatement = $DropClassSnip -replace 'tSQLt\s*.\s*Private_GetDropItemCmd\s*\(\s*([^,]*)\s*,\s*([^)]*)\s*\)',$DropItemSnipPrepared;
+$VariablesString = ($DropItemParamSnip.trim() -join ' ')
 
-$RawDropClassStatement.trim()|Where-Object {$_ -ne "" -and $_ -notmatch "^GO(\s.*)?"};
+$VariableNames = (Select-String '@\S+' -input $VariablesString -AllMatches|ForEach-Object{$_.matches.Value});
+#$VariableNames 
+
+$DISP1 =   ($DropItemSnip | ForEach-Object{
+    $s=$_;
+    for($i = 0;$i -lt $VariableNames.count;$i++){
+      $s=$s -replace $VariableNames[$i], ("($"+($i+1)+")") 
+    };
+    $s; 
+});
+$DISP2 = $DISP1.trim() -join ' ';
+
+$DropItemSnipPrepared = "("+ $DISP2 + ")";
+$RawDropClassStatement = $DropClassSnip -replace 'tSQLt.Private_GetDropItemCmd\s*\(\s*([^,]*)\s*,\s*([^)]*)\s*\)',$DropItemSnipPrepared;
+
+$DropClassStatement = ($RawDropClassStatement.trim()|Where-Object {$_ -ne "" -and $_ -notmatch "^GO(\s.*)?"}) -join ' ';
+
+Set-Content -Path $OutputFilePath -Value $DropClassStatement;
 
 <#
 TODO --> Test this: Empty File TempDropClass.sql file should throw an error
@@ -67,7 +72,7 @@ if ($LoginTrimmed -match '((.*[-]U)|(.*[-]P))+.*'){
 <# We need to replace this target with a exec target which calls a ps1 to do this work.
 In addition, we will add a replace which will "in line" the relevant text of tSQLt.Private_GetDropItemCmd.
 
-"suggested (◔_◔)" regex: tSQLt.Private_GetDropItemCmd(FullName, ItemType)
+"suggested (◔_◔)" regex: tSQLt.Private_GetDropItemCmd(Ds.FullName, Ds.ItemType)
 'tSQLt\s*.\s*Private_GetDropItemCmd\s*\(\s*([^,]*)\s*,\s*([^)]*)\s*\)'
 
 It should look like this:

@@ -4,10 +4,10 @@ GO
 GO
 CREATE FUNCTION tSQLt.Private_GetDropItemCmd
 (
-/*SnipStart: CreateDropClassStatement.ps1*/
+/*SnipParamStart: CreateDropClassStatement.ps1*/
   @FullName NVARCHAR(MAX),
   @ItemType NVARCHAR(MAX)
-/*SnipEnd: CreateDropClassStatement.ps1*/
+/*SnipParamEnd: CreateDropClassStatement.ps1*/
 )
 RETURNS TABLE
 AS
