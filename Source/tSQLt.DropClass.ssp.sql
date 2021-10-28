@@ -28,7 +28,7 @@ BEGIN
          (
            SELECT 
                QUOTENAME(SCHEMA_NAME(XSC.schema_id))+'.'+QUOTENAME(XSC.name),
-               'xml_schema_collections'
+               'xml_schema_collection'
              FROM sys.xml_schema_collections AS XSC
             WHERE XSC.schema_id = SCHEMA_ID(@ClassName)
          ),
