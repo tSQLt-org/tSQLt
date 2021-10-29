@@ -6,6 +6,11 @@ CREATE PROCEDURE tSQLt.UndoTestDoubles
 AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
+
+  SELECT TOP(0)A.* INTO #RenamedObjects FROM tSQLt.Private_RenamedObjectLog A RIGHT JOIN tSQLt.Private_RenamedObjectLog X ON 1=0;
+
+  BEGIN TRAN;
+  DELETE FROM tSQLt.Private_RenamedObjectLog OUTPUT Deleted.* INTO #RenamedObjects;
   WITH L AS
   (
     SELECT 
@@ -17,10 +22,10 @@ BEGIN
         OBJECT_NAME(ROL.ObjectId) CurrentName,
         PARSENAME(ROL.OriginalName,1) OriginalName,
         O.type ObjectType
-      FROM tSQLt.Private_RenamedObjectLog ROL
+      FROM #RenamedObjects ROL
       JOIN sys.objects O
         ON ROL.ObjectId = O.object_id
-      LEFT JOIN tSQLt.Private_RenamedObjectLog ParentROL
+      LEFT JOIN #RenamedObjects ParentROL
         ON O.parent_object_id = ParentROL.ObjectId
   )
   SELECT @cmd = 
@@ -34,6 +39,7 @@ BEGIN
        FOR XML PATH(''),TYPE
   ).value('.','NVARCHAR(MAX)')
   EXEC(@cmd);
+  COMMIT;
 END;
 GO
 

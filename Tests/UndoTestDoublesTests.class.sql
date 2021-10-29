@@ -134,14 +134,93 @@ BEGIN
 
 END;
 GO
+CREATE PROCEDURE UndoTestDoublesTests.CreateTableWithTriggersAndConstraints
+  @Number NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+  SELECT @cmd = 'CREATE TABLE UndoTestDoublesTests.aSimpleTable0 ( Id INT CONSTRAINT aSimpleTable0C1 CHECK(Id > 9) CONSTRAINT aSimpleTable0PK PRIMARY KEY);';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+  SET @cmd = 'CREATE TRIGGER aSimpleTrigger0i ON UndoTestDoublesTests.aSimpleTable0 FOR INSERT AS RETURN;';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+  SET @cmd = 'CREATE TRIGGER aSimpleTrigger0u ON UndoTestDoublesTests.aSimpleTable0 FOR UPDATE AS RETURN;';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints
+  @Number NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+  SELECT @cmd = '
+    EXEC tSQLt.FakeTable @TableName=''UndoTestDoublesTests.aSimpleTable0'';
+    EXEC tSQLt.ApplyConstraint @TableName=''UndoTestDoublesTests.aSimpleTable0'', @ConstraintName = ''aSimpleTable0C1'';
+    EXEC tSQLt.ApplyConstraint @TableName=''UndoTestDoublesTests.aSimpleTable0'', @ConstraintName = ''aSimpleTable0PK'';
+    EXEC tSQLt.ApplyTrigger @TableName=''UndoTestDoublesTests.aSimpleTable0'', @TriggerName = ''aSimpleTrigger0i'';
+    EXEC tSQLt.ApplyTrigger @TableName=''UndoTestDoublesTests.aSimpleTable0'', @TriggerName = ''aSimpleTrigger0u'';
+  ';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores multiple triggers and multiple constraints on multiple tables faked multiple times]
+AS
+BEGIN
+  EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '3';
+
+  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+    INTO #OriginalObjectIds
+    FROM (VALUES('aSimpleTrigger1i'),('aSimpleTrigger1u'),('aSimpleTable1C1'),('aSimpleTable1PK'),('aSimpleTable1'),
+                ('aSimpleTrigger2i'),('aSimpleTrigger2u'),('aSimpleTable2C1'),('aSimpleTable2PK'),('aSimpleTable2'),
+                ('aSimpleTrigger3i'),('aSimpleTrigger3u'),('aSimpleTable3C1'),('aSimpleTable3PK'),('aSimpleTable3')
+    ) X (ObjectName);
+
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '3';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '3';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '3';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+    INTO #RestoredObjectIds
+    FROM (VALUES('aSimpleTrigger1i'),('aSimpleTrigger1u'),('aSimpleTable1C1'),('aSimpleTable1PK'),('aSimpleTable1'),
+                ('aSimpleTrigger2i'),('aSimpleTrigger2u'),('aSimpleTable2C1'),('aSimpleTable2PK'),('aSimpleTable2'),
+                ('aSimpleTrigger3i'),('aSimpleTrigger3u'),('aSimpleTable3C1'),('aSimpleTable3PK'),('aSimpleTable3')
+    ) X (ObjectName);
+
+  EXEC tSQLt.AssertEqualsTable @Expected = '#OriginalObjectIds', @Actual = '#RestoredObjectIds';
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test tSQLt.Private_RenamedObjectLog is empty after execution]
+AS
+BEGIN
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable ( Id INT );
+
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.Private_RenamedObjectLog';
+END;
+GO
+
 /*--
 TODO
-==> multiple constraints and triggers on a multiple tables, faked multiple times
 - stored procedures
 - views
 - functions
-
-
-Also, just review all the code.
+- rename object to unique name
 
 --*/
