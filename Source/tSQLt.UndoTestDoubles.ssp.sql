@@ -11,7 +11,7 @@ BEGIN
 
   BEGIN TRAN;
   DELETE FROM tSQLt.Private_RenamedObjectLog OUTPUT Deleted.* INTO #RenamedObjects;
-  WITH L AS
+  WITH LL AS
   (
     SELECT 
         ROL.Id,
@@ -20,13 +20,27 @@ BEGIN
         ROL.ObjectId,
         OBJECT_SCHEMA_NAME(ROL.ObjectId) SchemaName,
         OBJECT_NAME(ROL.ObjectId) CurrentName,
-        PARSENAME(ROL.OriginalName,1) OriginalName,
-        O.type ObjectType
+        PARSENAME(ROL.OriginalName,1) OriginalName
       FROM #RenamedObjects ROL
       JOIN sys.objects O
         ON ROL.ObjectId = O.object_id
       LEFT JOIN #RenamedObjects ParentROL
         ON O.parent_object_id = ParentROL.ObjectId
+  ),
+  L AS
+  (
+    SELECT 
+        LL.Id,
+        LL.ParentId,
+        LL.SortId,
+        LL.ObjectId,
+        LL.SchemaName,
+        LL.CurrentName,
+        LL.OriginalName,
+        FakeO.type ObjectType
+      FROM LL
+      JOIN sys.objects FakeO
+        ON FakeO.object_id = OBJECT_ID(QUOTENAME(LL.SchemaName)+'.'+QUOTENAME(LL.OriginalName))
   )
   SELECT @cmd = 
   (

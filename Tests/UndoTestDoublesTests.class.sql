@@ -215,12 +215,40 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.Private_RenamedObjectLog';
 END;
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked stored procedure]
+AS
+BEGIN
+  EXEC ('CREATE PROCEDURE UndoTestDoublesTests.aSimpleSSP @Id INT AS RETURN;');
+  DECLARE @OriginalObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleSSP');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'UndoTestDoublesTests.aSimpleSSP';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  DECLARE @RestoredObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleSSP');
+  EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked view]
+AS
+BEGIN
+  EXEC ('CREATE VIEW UndoTestDoublesTests.aSimpleView AS SELECT NULL X;');
+  DECLARE @OriginalObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleView');
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleView';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  DECLARE @RestoredObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleView');
+  EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
+
+END;
+GO
 
 /*--
 TODO
-- stored procedures
-- views
 - functions
 - rename object to unique name
+-- no replacement
+-- random replacement
 
 --*/
