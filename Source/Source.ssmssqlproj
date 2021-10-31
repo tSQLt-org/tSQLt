@@ -420,6 +420,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_NullCellTable.tbl.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ProcessTestAnnotations.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

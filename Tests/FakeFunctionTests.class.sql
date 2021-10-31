@@ -647,14 +647,31 @@ CREATE PROCEDURE FakeFunctionTests.[test Private_PrepareFakeFunctionOutputTable 
 AS
 BEGIN
 
-  DECLARE @NewTable sysname;
+  DECLARE @NewTable NVARCHAR(MAX);
 
-  CREATE TABLE #Expected (a int);
-  INSERT INTO #Expected VALUES(1);
-  
-  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1 AS a', @NewTable OUTPUT;
+  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable 'SELECT 1013 AS a', @NewTable OUTPUT;
 
-  EXEC tSQLt.AssertEqualsTable '#Expected', @NewTable;
+  EXEC('SELECT TOP(0)A.* INTO FakeFunctionTests.Expected FROM '+@NewTable+' A RIGHT JOIN '+@NewTable+' ON 0=1;'); 
+  INSERT INTO FakeFunctionTests.Expected VALUES(1013);
 
+  EXEC tSQLt.AssertEqualsTable 'FakeFunctionTests.Expected', @NewTable;
+END;
+GO
+CREATE PROCEDURE FakeFunctionTests.[test Private_PrepareFakeFunctionOutputTable creates snapshot table in passed in schema]
+AS
+BEGIN
+  DECLARE @NewTable NVARCHAR(MAX);
+
+  EXEC('CREATE SCHEMA [a random schema];');
+
+  EXEC tSQLt.Private_PrepareFakeFunctionOutputTable @FakeDataSource = 'SELECT 1013 AS a',@SchemaName = 'a random schema', @NewTableName = @NewTable OUT;
+
+  SELECT SCHEMA_NAME(O.schema_id) SchemaName INTO #Actual FROM sys.objects O WHERE O.object_id = OBJECT_ID(@NewTable);
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('a random schema');
+
+  EXEC tSQLt.AssertEqualsTable #Expected, #Actual
 END;
 GO
