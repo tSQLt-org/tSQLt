@@ -166,19 +166,16 @@ BEGIN
 
 END;
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test restores multiple triggers and multiple constraints on multiple tables faked multiple times]
+CREATE PROCEDURE UndoTestDoublesTests.[test restores objects after multiple fake actions and deletes test doubles]
 AS
 BEGIN
   EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '1';
   EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '2';
   EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '3';
 
-  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name 
     INTO #OriginalObjectIds
-    FROM (VALUES('aSimpleTrigger1i'),('aSimpleTrigger1u'),('aSimpleTable1C1'),('aSimpleTable1PK'),('aSimpleTable1'),
-                ('aSimpleTrigger2i'),('aSimpleTrigger2u'),('aSimpleTable2C1'),('aSimpleTable2PK'),('aSimpleTable2'),
-                ('aSimpleTrigger3i'),('aSimpleTrigger3u'),('aSimpleTable3C1'),('aSimpleTable3PK'),('aSimpleTable3')
-    ) X (ObjectName);
+    FROM sys.objects O;
 
   EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '1';
   EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '2';
@@ -192,14 +189,18 @@ BEGIN
 
   EXEC tSQLt.UndoTestDoubles;
 
-  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name 
     INTO #RestoredObjectIds
-    FROM (VALUES('aSimpleTrigger1i'),('aSimpleTrigger1u'),('aSimpleTable1C1'),('aSimpleTable1PK'),('aSimpleTable1'),
-                ('aSimpleTrigger2i'),('aSimpleTrigger2u'),('aSimpleTable2C1'),('aSimpleTable2PK'),('aSimpleTable2'),
-                ('aSimpleTrigger3i'),('aSimpleTrigger3u'),('aSimpleTable3C1'),('aSimpleTable3PK'),('aSimpleTable3')
-    ) X (ObjectName);
+    FROM sys.objects O;
 
-  EXEC tSQLt.AssertEqualsTable @Expected = '#OriginalObjectIds', @Actual = '#RestoredObjectIds';
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 
 END;
 GO
@@ -243,12 +244,44 @@ BEGIN
 
 END;
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked function]
+AS
+BEGIN
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aSimpleITVF() RETURNS TABLE AS RETURN SELECT NULL X;');
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aSimpleTVF() RETURNS @R TABLE(i INT) AS BEGIN RETURN; END;');
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aSimpleSVF() RETURNS INT AS BEGIN RETURN NULL; END;');
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aTempSVF() RETURNS INT AS BEGIN RETURN NULL; END;');
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
 
+  EXEC tSQLt.FakeFunction @FunctionName = 'UndoTestDoublesTests.aSimpleITVF', @FakeDataSource = '(VALUES(NULL))X(X)';
+  EXEC tSQLt.FakeFunction @FunctionName = 'UndoTestDoublesTests.aSimpleTVF', @FakeDataSource = '(VALUES(NULL))X(X)';
+  EXEC tSQLt.FakeFunction @FunctionName = 'UndoTestDoublesTests.aSimpleSVF', @FakeFunctionName = 'UndoTestDoublesTests.aTempSVF';
+
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
 /*--
 TODO
 - functions
 - rename object to unique name
 -- no replacement
 -- random replacement
-
+-- fakefunction should put new objects in the same schema
+------->START HERE: Do we even need the fakefunction tempobject?
 --*/
