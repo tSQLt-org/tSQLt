@@ -276,12 +276,73 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test if FakeFunctionWithSnapshot exists we need to write tests]
+AS
+BEGIN
+  IF EXISTS (SELECT * FROM sys.objects WHERE UPPER(name) LIKE 'FAKEFUNCTION_%')
+  BEGIN
+    EXEC tSQLt.Fail 'More tests to be written!'
+  END;
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test objects renamed by RemoveObject are restored if there is no other object of the same original name]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleTable';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test objects renamed by RemoveObject are restored and conflicting object are deleted]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleTable';
+  EXEC ('CREATE PROCEDURE UndoTestDoublesTests.aSimpleTable AS PRINT ''Who came up with that name?'';');
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
 /*--
 TODO
-- functions
-- rename object to unique name
+- Tests for the case in which people are writing their own test case doubles using both tSQLt.RemoveObject
 -- no replacement
 -- random replacement
--- fakefunction should put new objects in the same schema
-------->START HERE: Do we even need the fakefunction tempobject?
 --*/
