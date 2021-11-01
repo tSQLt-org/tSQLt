@@ -11,19 +11,19 @@ BEGIN
          (
            SELECT QUOTENAME(SCHEMA_NAME(O.schema_id))+'.'+QUOTENAME(O.name) , O.type
              FROM sys.objects AS O
-            WHERE O.schema_id = SCHEMA_ID(@ClassName)
+            WHERE O.schema_id = SCHEMA_ID(PARSENAME(@ClassName, 1))
          ),
          TypeInfo(name) AS
          (
            SELECT QUOTENAME(SCHEMA_NAME(T.schema_id))+'.'+QUOTENAME(T.name)
              FROM sys.types AS T
-            WHERE T.schema_id = SCHEMA_ID(@ClassName)
+            WHERE T.schema_id = SCHEMA_ID(PARSENAME(@ClassName, 1))
          ),
          XMLSchemaInfo(name) AS
          (
            SELECT QUOTENAME(SCHEMA_NAME(XSC.schema_id))+'.'+QUOTENAME(XSC.name)
              FROM sys.xml_schema_collections AS XSC
-            WHERE XSC.schema_id = SCHEMA_ID(@ClassName)
+            WHERE XSC.schema_id = SCHEMA_ID(PARSENAME(@ClassName, 1))
          ),
          DropStatements(no,cmd) AS
          (
@@ -57,7 +57,7 @@ BEGIN
              UNION ALL
             SELECT 10000,'DROP SCHEMA ' + QUOTENAME(name) +';'
               FROM sys.schemas
-             WHERE schema_id = SCHEMA_ID(PARSENAME(@ClassName,1))
+             WHERE schema_id = SCHEMA_ID(PARSENAME(@ClassName, 1))
          ),
          StatementBlob(xml)AS
          (
