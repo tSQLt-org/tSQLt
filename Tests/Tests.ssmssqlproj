@@ -348,6 +348,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLtclr_test.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="UndoTestDoublesTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>UndoTestDoublesTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="UninstallTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

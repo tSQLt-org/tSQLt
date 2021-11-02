@@ -45,15 +45,24 @@ BEGIN
   BEGIN
     EXEC('CREATE FUNCTION '+@FunctionName+'('+@ParameterList+') RETURNS '+@ReturnType+' AS BEGIN RETURN '+@FakeFunctionName+'('+@ParameterCallList+');END;');	
   END
-  ELSE IF (@FakeDataSource IS NOT NULL)
+  ELSE 
   BEGIN
-    DECLARE @newTbleName NVARCHAR(MAX);
-    EXEC tSQLt.Private_PrepareFakeFunctionOutputTable @FakeDataSource, @newTbleName OUTPUT;
-    EXEC ('CREATE FUNCTION '+@FunctionName+'('+@ParameterList+') RETURNS TABLE AS RETURN ( SELECT * FROM '+@newTbleName+');');
-  END
-  ELSE
-  BEGIN
-    EXEC('CREATE FUNCTION '+@FunctionName+'('+@ParameterList+') RETURNS TABLE AS RETURN SELECT * FROM '+@FakeFunctionName+'('+@ParameterCallList+');');	
+    DECLARE @cmd NVARCHAR(MAX);
+    IF (@FakeDataSource IS NOT NULL)
+    BEGIN
+       SET @cmd = 
+        CASE 
+          WHEN OBJECT_ID(@FakeDataSource) IS NOT NULL THEN 'SELECT * FROM '+@FakeDataSource
+          WHEN @FakeDataSource LIKE '(%)%(%)' THEN 'SELECT * FROM '+@FakeDataSource
+          ELSE @FakeDataSource
+        END;
+    END
+    ELSE
+    BEGIN
+      SET @cmd = 'SELECT * FROM '+@FakeFunctionName+'('+@ParameterCallList+')';	
+    END;
+    SET @cmd = 'CREATE FUNCTION '+@FunctionName+'('+@ParameterList+') RETURNS TABLE AS RETURN '+@cmd+';'
+    EXEC(@cmd);
   END;
 END;
 GO

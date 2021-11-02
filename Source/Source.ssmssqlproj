@@ -318,6 +318,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_GetDropItemCmd.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetDropItemCmd.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_GetForeignKeyDefinition.sfn.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -414,6 +420,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_NullCellTable.tbl.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ProcessTestAnnotations.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -437,6 +449,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_RemoveSchemaBoundReferences.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_RenameObject.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_RenameObject.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_RenameObjectToUniqueName.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -635,6 +653,18 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Tests.view.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.UndoSingleTestDouble.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.UndoSingleTestDouble.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.UndoTestDoubles.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.UndoTestDoubles.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Uninstall.ssp.sql">
           <AssociatedConnectionMoniker />

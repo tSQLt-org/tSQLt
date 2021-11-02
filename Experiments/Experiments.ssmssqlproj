@@ -66,6 +66,12 @@
           <AssociatedConnUserName />
           <FullPath>NameResolutionResearch.sql</FullPath>
         </FileNode>
+        <FileNode Name="ParsingDisaster.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>ParsingDisaster.sql</FullPath>
+        </FileNode>
         <FileNode Name="RunExternalAccessKeyExistsTests.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

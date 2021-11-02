@@ -1,0 +1,401 @@
+EXEC tSQLt.NewTestClass 'UndoTestDoublesTests';
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test doesn't fail if there's no test double in the database]
+AS
+BEGIN
+
+  EXEC tSQLt.ExpectNoException;
+  
+  EXEC tSQLt.UndoTestDoubles;
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked table]
+AS
+BEGIN
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable ( Id INT );
+
+  DECLARE @OriginalObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleTable');
+
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  DECLARE @RestoredObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleTable');
+  EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test works with names in need of quotes]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA [A Random Schema];');
+  CREATE TABLE [A Random Schema].[A Simple Table] 
+  (
+    Id INT
+  );
+
+  DECLARE @OriginalObjectId INT = OBJECT_ID('[A Random Schema].[A Simple Table]');
+
+  EXEC tSQLt.FakeTable @TableName = '[A Random Schema].[A Simple Table]';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  DECLARE @RestoredObjectId INT = OBJECT_ID('[A Random Schema].[A Simple Table]');
+  EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores many faked tables]
+AS
+BEGIN
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable1 ( Id INT );
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable2 ( Id INT );
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable3 ( Id INT );
+
+  SELECT X.TableName, OBJECT_ID('UndoTestDoublesTests.'+X.TableName) ObjectId
+    INTO #OriginalObjectIds
+    FROM (VALUES('aSimpleTable1'),('aSimpleTable2'),('aSimpleTable3')) X (TableName);
+
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable1';
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable2';
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable3';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT X.TableName, OBJECT_ID('UndoTestDoublesTests.'+X.TableName) ObjectId
+    INTO #RestoredObjectIds
+    FROM (VALUES('aSimpleTable1'),('aSimpleTable2'),('aSimpleTable3')) X (TableName);
+
+  EXEC tSQLt.AssertEqualsTable @Expected = '#OriginalObjectIds', @Actual = '#RestoredObjectIds';
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a constraint]
+AS
+BEGIN
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable ( Id INT CONSTRAINT aSimpleTableConstraint CHECK(Id > 0));
+
+  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+    INTO #OriginalObjectIds
+    FROM (VALUES('aSimpleTableConstraint')) X (ObjectName);
+
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+  EXEC tSQLt.ApplyConstraint @TableName = 'UndoTestDoublesTests.aSimpleTable', @ConstraintName = 'aSimpleTableConstraint';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+    INTO #RestoredObjectIds
+    FROM (VALUES('aSimpleTableConstraint')) X (ObjectName);
+
+  EXEC tSQLt.AssertEqualsTable @Expected = '#OriginalObjectIds', @Actual = '#RestoredObjectIds';
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a table that has been faked multiple times]
+AS
+BEGIN
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable ( Id INT );
+
+  DECLARE @OriginalObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleTable');
+
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  DECLARE @RestoredObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleTable');
+  EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a trigger]
+AS
+BEGIN
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable ( Id INT );
+  EXEC('CREATE TRIGGER aSimpleTrigger ON UndoTestDoublesTests.aSimpleTable FOR INSERT AS RETURN;');
+
+  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+    INTO #OriginalObjectIds
+    FROM (VALUES('aSimpleTrigger')) X (ObjectName);
+
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+  EXEC tSQLt.ApplyTrigger @TableName = 'UndoTestDoublesTests.aSimpleTable', @TriggerName = 'aSimpleTrigger';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT X.ObjectName, OBJECT_ID('UndoTestDoublesTests.'+X.ObjectName) ObjectId
+    INTO #RestoredObjectIds
+    FROM (VALUES('aSimpleTrigger')) X (ObjectName);
+
+  EXEC tSQLt.AssertEqualsTable @Expected = '#OriginalObjectIds', @Actual = '#RestoredObjectIds';
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.CreateTableWithTriggersAndConstraints
+  @Number NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+  SELECT @cmd = 'CREATE TABLE UndoTestDoublesTests.aSimpleTable0 ( Id INT CONSTRAINT aSimpleTable0C1 CHECK(Id > 9) CONSTRAINT aSimpleTable0PK PRIMARY KEY);';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+  SET @cmd = 'CREATE TRIGGER aSimpleTrigger0i ON UndoTestDoublesTests.aSimpleTable0 FOR INSERT AS RETURN;';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+  SET @cmd = 'CREATE TRIGGER aSimpleTrigger0u ON UndoTestDoublesTests.aSimpleTable0 FOR UPDATE AS RETURN;';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints
+  @Number NVARCHAR(MAX)
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+  SELECT @cmd = '
+    EXEC tSQLt.FakeTable @TableName=''UndoTestDoublesTests.aSimpleTable0'';
+    EXEC tSQLt.ApplyConstraint @TableName=''UndoTestDoublesTests.aSimpleTable0'', @ConstraintName = ''aSimpleTable0C1'';
+    EXEC tSQLt.ApplyConstraint @TableName=''UndoTestDoublesTests.aSimpleTable0'', @ConstraintName = ''aSimpleTable0PK'';
+    EXEC tSQLt.ApplyTrigger @TableName=''UndoTestDoublesTests.aSimpleTable0'', @TriggerName = ''aSimpleTrigger0i'';
+    EXEC tSQLt.ApplyTrigger @TableName=''UndoTestDoublesTests.aSimpleTable0'', @TriggerName = ''aSimpleTrigger0u'';
+  ';
+  SET @cmd = REPLACE(@cmd,'0',@Number);EXEC(@cmd);
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores objects after multiple fake actions and deletes test doubles]
+AS
+BEGIN
+  EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.CreateTableWithTriggersAndConstraints '3';
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '3';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '3';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '1';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '2';
+  EXEC UndoTestDoublesTests.FakeTableAndApplyTriggersAndConstraints '3';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test tSQLt.Private_RenamedObjectLog is empty after execution]
+AS
+BEGIN
+  CREATE TABLE UndoTestDoublesTests.aSimpleTable ( Id INT );
+
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.Private_RenamedObjectLog';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked stored procedure]
+AS
+BEGIN
+  EXEC ('CREATE PROCEDURE UndoTestDoublesTests.aSimpleSSP @Id INT AS RETURN;');
+  DECLARE @OriginalObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleSSP');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'UndoTestDoublesTests.aSimpleSSP';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  DECLARE @RestoredObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleSSP');
+  EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked view]
+AS
+BEGIN
+  EXEC ('CREATE VIEW UndoTestDoublesTests.aSimpleView AS SELECT NULL X;');
+  DECLARE @OriginalObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleView');
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleView';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  DECLARE @RestoredObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleView');
+  EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
+
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked function]
+AS
+BEGIN
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aSimpleITVF() RETURNS TABLE AS RETURN SELECT NULL X;');
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aSimpleTVF() RETURNS @R TABLE(i INT) AS BEGIN RETURN; END;');
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aSimpleSVF() RETURNS INT AS BEGIN RETURN NULL; END;');
+  EXEC ('CREATE FUNCTION UndoTestDoublesTests.aTempSVF() RETURNS INT AS BEGIN RETURN NULL; END;');
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.FakeFunction @FunctionName = 'UndoTestDoublesTests.aSimpleITVF', @FakeDataSource = '(VALUES(NULL))X(X)';
+  EXEC tSQLt.FakeFunction @FunctionName = 'UndoTestDoublesTests.aSimpleTVF', @FakeDataSource = '(VALUES(NULL))X(X)';
+  EXEC tSQLt.FakeFunction @FunctionName = 'UndoTestDoublesTests.aSimpleSVF', @FakeFunctionName = 'UndoTestDoublesTests.aTempSVF';
+
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test objects renamed by RemoveObject are restored if there is no other object of the same original name]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleTable';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test objects renamed by RemoveObject are restored and conflicting object are deleted]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleTable';
+  EXEC ('CREATE PROCEDURE UndoTestDoublesTests.aSimpleTable AS PRINT ''Who came up with that name?'';');
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+--tSQLt.Run UndoTestDoublesTests
+CREATE PROCEDURE UndoTestDoublesTests.[test synonyms are restored]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+  EXEC ('CREATE SYNONYM UndoTestDoublesTests.aSimpleSynonym FOR UndoTestDoublesTests.aSimpleTable;');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleSynonym';
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleSynonym(i INT);');
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test doubled synonyms are deleted]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+  EXEC ('CREATE VIEW UndoTestDoublesTests.aSimpleObject AS SELECT 1 X;');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleObject';
+  EXEC ('CREATE SYNONYM UndoTestDoublesTests.aSimpleObject FOR UndoTestDoublesTests.aSimpleTable;');
+  
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test if FakeFunctionWithSnapshot exists we need to write tests]
+AS
+BEGIN
+  IF EXISTS (SELECT * FROM sys.objects WHERE UPPER(name) LIKE 'FAKEFUNCTION_%')
+  BEGIN
+    EXEC tSQLt.Fail 'More tests to be written!'
+    -- Also remove tSQLt_TempObject_s
+  END;
+END;
+GO
