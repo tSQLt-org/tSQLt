@@ -276,15 +276,6 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test if FakeFunctionWithSnapshot exists we need to write tests]
-AS
-BEGIN
-  IF EXISTS (SELECT * FROM sys.objects WHERE UPPER(name) LIKE 'FAKEFUNCTION_%')
-  BEGIN
-    EXEC tSQLt.Fail 'More tests to be written!'
-  END;
-END;
-GO
 CREATE PROCEDURE UndoTestDoublesTests.[test objects renamed by RemoveObject are restored if there is no other object of the same original name]
 AS
 BEGIN
@@ -340,9 +331,71 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
-/*--
-TODO
-- Tests for the case in which people are writing their own test case doubles using both tSQLt.RemoveObject
--- no replacement
--- random replacement
---*/
+--tSQLt.Run UndoTestDoublesTests
+CREATE PROCEDURE UndoTestDoublesTests.[test synonyms are restored]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+  EXEC ('CREATE SYNONYM UndoTestDoublesTests.aSimpleSynonym FOR UndoTestDoublesTests.aSimpleTable;');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleSynonym';
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleSynonym(i INT);');
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test doubled synonyms are deleted]
+AS
+BEGIN
+  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
+  EXEC ('CREATE VIEW UndoTestDoublesTests.aSimpleObject AS SELECT 1 X;');
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleObject';
+  EXEC ('CREATE SYNONYM UndoTestDoublesTests.aSimpleObject FOR UndoTestDoublesTests.aSimpleTable;');
+  
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test if FakeFunctionWithSnapshot exists we need to write tests]
+AS
+BEGIN
+  IF EXISTS (SELECT * FROM sys.objects WHERE UPPER(name) LIKE 'FAKEFUNCTION_%')
+  BEGIN
+    EXEC tSQLt.Fail 'More tests to be written!'
+    -- Also remove tSQLt_TempObject_s
+  END;
+END;
+GO

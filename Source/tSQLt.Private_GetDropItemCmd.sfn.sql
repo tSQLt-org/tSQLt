@@ -1,4 +1,4 @@
-IF OBJECT_ID('tSQLt.Private_GetDropItemCmd') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetDropItemCmd;
+IF OBJECT_ID('tSQLt.Private_GetDropItemCmd') IS NOT NULL DROP FUNCTION tSQLt.Private_GetDropItemCmd;
 GO
 ---Build+
 GO
@@ -16,13 +16,14 @@ RETURN
 SELECT
     'DROP ' +
     CASE @ItemType 
-      WHEN 'P' THEN 'PROCEDURE'
-      WHEN 'PC' THEN 'PROCEDURE'
-      WHEN 'U' THEN 'TABLE'
       WHEN 'IF' THEN 'FUNCTION'
       WHEN 'TF' THEN 'FUNCTION'
       WHEN 'FN' THEN 'FUNCTION'
       WHEN 'FT' THEN 'FUNCTION'
+      WHEN 'P' THEN 'PROCEDURE'
+      WHEN 'PC' THEN 'PROCEDURE'
+      WHEN 'SN' THEN 'SYNONYM'
+      WHEN 'U' THEN 'TABLE'
       WHEN 'V' THEN 'VIEW'
       WHEN 'type' THEN 'TYPE'
       WHEN 'xml_schema_collection' THEN 'XML SCHEMA COLLECTION'

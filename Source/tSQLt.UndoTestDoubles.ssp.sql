@@ -39,14 +39,14 @@ BEGIN
         LL.OriginalName,
         FakeO.type ObjectType
       FROM LL
-      JOIN sys.objects FakeO
+      LEFT JOIN sys.objects FakeO
         ON FakeO.object_id = OBJECT_ID(QUOTENAME(LL.SchemaName)+'.'+QUOTENAME(LL.OriginalName))
   )
   SELECT @cmd = 
   (
     SELECT 
-        CASE WHEN L.ParentId IS NULL THEN DC.cmd ELSE '' END+
-        ';EXEC tSQLt.Private_RenameObject '''+L.SchemaName+''','''+L.CurrentName+''','''+L.OriginalName+''';'
+        ISNULL(CASE WHEN L.ParentId IS NULL THEN DC.cmd+';' END,'')+
+        'EXEC tSQLt.Private_RenameObject '''+L.SchemaName+''','''+L.CurrentName+''','''+L.OriginalName+''';'
       FROM L
      CROSS APPLY tSQLt.Private_GetDropItemCmd(QUOTENAME(L.SchemaName)+'.'+QUOTENAME(L.OriginalName),L.ObjectType) DC
      ORDER BY L.SortId DESC, L.Id ASC
