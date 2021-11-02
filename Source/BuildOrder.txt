@@ -68,7 +68,7 @@ tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql
 tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql
 tSQLt.Private_CreateFakeTableStatement.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
-tSQLt.Private_MarkFakeTable.ssp.sql
+tSQLt.Private_MarktSQLtTempObject.ssp.sql
 tSQLt.FakeTable.ssp.sql
 tSQLt.Private_GenerateCreateProcedureSpyStatement.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql

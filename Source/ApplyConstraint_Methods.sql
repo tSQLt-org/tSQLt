@@ -23,7 +23,7 @@ RETURN
         ON newtbl.object_id = p.major_id
        AND p.minor_id = 0
        AND p.class_desc = 'OBJECT_OR_COLUMN'
-       AND p.name = 'tSQLt.FakeTable_OrgTableName'
+       AND p.name = 'tSQLt.Private_TestDouble_OrgObjectName'
         ON OBJECT_NAME(constraints.parent_object_id) = CAST(p.value AS NVARCHAR(4000))
        AND constraints.schema_id = newtbl.schema_id
        AND constraints.object_id = @ConstraintObjectId;

@@ -1,7 +1,7 @@
-IF OBJECT_ID('tSQLt.Private_MarkFakeTable') IS NOT NULL DROP PROCEDURE tSQLt.Private_MarkFakeTable;
+IF OBJECT_ID('tSQLt.Private_MarktSQLtTempObject') IS NOT NULL DROP PROCEDURE tSQLt.Private_MarktSQLtTempObject;
 GO
 ---Build+
-CREATE PROCEDURE tSQLt.Private_MarkFakeTable
+CREATE PROCEDURE tSQLt.Private_MarktSQLtTempObject
   @SchemaName NVARCHAR(MAX),
   @TableName NVARCHAR(MAX),
   @NewNameOfOriginalTable NVARCHAR(4000)
@@ -11,7 +11,13 @@ BEGIN
    DECLARE @UnquotedTableName NVARCHAR(MAX);SET @UnquotedTableName = OBJECT_NAME(OBJECT_ID(@SchemaName+'.'+@TableName));
 
    EXEC sys.sp_addextendedproperty 
-      @name = N'tSQLt.FakeTable_OrgTableName', 
+      @name = N'tSQLt.IsTempObject',
+      @value = 1, 
+      @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
+      @level1type = N'TABLE',  @level1name = @UnquotedTableName;   
+
+   EXEC sys.sp_addextendedproperty 
+      @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
       @value = @NewNameOfOriginalTable, 
       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
       @level1type = N'TABLE',  @level1name = @UnquotedTableName;

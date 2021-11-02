@@ -266,7 +266,7 @@ BEGIN
    WHERE class_desc = 'OBJECT_OR_COLUMN'
      AND major_id = OBJECT_ID(@SchemaName + '.' + @TableName)
      AND minor_id = 0
-     AND name = 'tSQLt.FakeTable_OrgTableName');
+     AND name = 'tSQLt.Private_TestDouble_OrgObjectName');
 END;
 GO
 
@@ -279,7 +279,7 @@ AS
    WHERE class_desc = 'OBJECT_OR_COLUMN'
      AND major_id = @TableObjectId
      AND minor_id = 0
-     AND name = 'tSQLt.FakeTable_OrgTableName';
+     AND name = 'tSQLt.Private_TestDouble_OrgObjectName';
 GO
 
 

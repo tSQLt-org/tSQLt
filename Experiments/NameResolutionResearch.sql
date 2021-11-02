@@ -180,7 +180,7 @@ tSQLt.FakeTable
    EXEC (@cmd);
 
    EXEC sys.sp_addextendedproperty 
-   @name = N'tSQLt.FakeTable_OrgTableName', 
+   @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
    @value = @newName, 
    @level0type = N'SCHEMA', @level0name = @schemaName, -- <use tSQLt.private_getCleanSchemaName>
    @level1type = N'TABLE',  @level1name = @tableName; -- <use tSQLt.[private_getCleanObjectName]>
@@ -210,7 +210,7 @@ tSQLt.ApplyConstraint
    WHERE class_desc = 'OBJECT_OR_COLUMN'
      AND major_id = OBJECT_ID(@schemaName + '.' + @tableName) -- <use tSQLt.private_GetQuotedFullName>
      AND minor_id = 0
-     AND name = 'tSQLt.FakeTable_OrgTableName';
+     AND name = 'tSQLt.Private_TestDouble_OrgObjectName';
 
   SELECT @cmd = 'CONSTRAINT ' + name + ' CHECK' + definition 
     FROM sys.check_constraints
