@@ -661,7 +661,8 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable 'FakeFunctionTests.Expected', @NewTable;
 END;
 GO
--- THIS CODE FEELS UNNECESSARY
+-- THIS CODE CREATES THE SNAPSHOT.
+-- When we revisit creating something like FakeFunctionWithSnapshot, we should refer back.
 -- DECLARE @newTbleName NVARCHAR(MAX);
 -- EXEC tSQLt.Private_PrepareFakeFunctionOutputTable @FakeDataSource, @newTbleName OUTPUT;
 
