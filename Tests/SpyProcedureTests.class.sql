@@ -734,3 +734,26 @@ BEGIN
     
 END;
 GO
+CREATE PROC SpyProcedureTests.[test new Procedure Spy is marked as tSQLt.IsTempObject]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS RETURN;');
+  
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1';
+  
+  SELECT name, value 
+    INTO #Actual
+    FROM sys.extended_properties
+   WHERE class_desc = 'OBJECT_OR_COLUMN'
+     AND major_id = OBJECT_ID('SpyProcedureTests.TempProcedure1')
+     AND name = 'tSQLt.IsTempObject';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('tSQLt.IsTempObject',	1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
+

@@ -25,12 +25,15 @@ BEGIN
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
     
+    DECLARE @NewNameOfOriginalObject NVARCHAR(MAX);
 
-    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId;
+    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId, @NewName = @NewNameOfOriginalObject OUTPUT;
 
     EXEC(@CreateLogTableStatement);
 
     EXEC(@CreateProcedureStatement);
+
+    EXEC tSQLt.Private_MarktSQLtTempObject @ProcedureName, 'PROCEDURE', @NewNameOfOriginalObject;
 
     RETURN 0;
 END;

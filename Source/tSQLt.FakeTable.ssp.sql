@@ -49,7 +49,7 @@ BEGIN
 
    EXEC tSQLt.Private_CreateFakeOfTable @SchemaName, @TableName, @OrigTableFullName, @Identity, @ComputedColumns, @Defaults;
 
-   EXEC tSQLt.Private_MarktSQLtTempObject @SchemaName, @TableName, @NewNameOfOriginalTable;
+   EXEC tSQLt.Private_MarktSQLtTempObject @OrigTableFullName, N'TABLE', @NewNameOfOriginalTable;
 END
 ---Build-
 GO

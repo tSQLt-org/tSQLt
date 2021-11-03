@@ -2,25 +2,32 @@ IF OBJECT_ID('tSQLt.Private_MarktSQLtTempObject') IS NOT NULL DROP PROCEDURE tSQ
 GO
 ---Build+
 CREATE PROCEDURE tSQLt.Private_MarktSQLtTempObject
-  @SchemaName NVARCHAR(MAX),
-  @TableName NVARCHAR(MAX),
-  @NewNameOfOriginalTable NVARCHAR(4000)
+  @ObjectName NVARCHAR(MAX),
+  @ObjectType NVARCHAR(MAX),
+  --@ParentObjectName NVARCHAR(MAX) = NULL,
+  --@ParentObjectType NVARCHAR(MAX) = NULL,
+  @NewNameOfOriginalObject NVARCHAR(4000)
 AS
 BEGIN
-   DECLARE @UnquotedSchemaName NVARCHAR(MAX);SET @UnquotedSchemaName = OBJECT_SCHEMA_NAME(OBJECT_ID(@SchemaName+'.'+@TableName));
-   DECLARE @UnquotedTableName NVARCHAR(MAX);SET @UnquotedTableName = OBJECT_NAME(OBJECT_ID(@SchemaName+'.'+@TableName));
+   DECLARE @UnquotedSchemaName NVARCHAR(MAX);
+   DECLARE @UnquotedObjectName NVARCHAR(MAX);
+   SELECT 
+       @UnquotedSchemaName = SCHEMA_NAME(O.schema_id),
+       @UnquotedObjectName = O.name
+     FROM sys.objects O 
+    WHERE O.object_id = OBJECT_ID(@ObjectName);
 
    EXEC sys.sp_addextendedproperty 
       @name = N'tSQLt.IsTempObject',
       @value = 1, 
       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
-      @level1type = N'TABLE',  @level1name = @UnquotedTableName;   
+      @level1type = @ObjectType,  @level1name = @UnquotedObjectName;   
 
    EXEC sys.sp_addextendedproperty 
       @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
-      @value = @NewNameOfOriginalTable, 
+      @value = @NewNameOfOriginalObject, 
       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
-      @level1type = N'TABLE',  @level1name = @UnquotedTableName;
+      @level1type = @ObjectType,  @level1name = @UnquotedObjectName;
 END;
 ---Build-
 GO
