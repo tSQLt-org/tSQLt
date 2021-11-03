@@ -214,50 +214,10 @@
  </target>
 
  <target name="package.create.tSQLtDrop">
-
-  <echo message="Starting package.create.tSQLtDrop {===" />
-
-  <exec executable="cmd" dir="." failonerror="true">
-   <arg value="/c"/>
-   <arg value="BuildHelper.exe"/>
-   <arg value="../Source/tSQLtDropBuildOrder.txt"/>
-   <arg value="temp/tSQLtBuild/TempDropClass.sql"/>
-   <arg value="---Build"/>
+  <exec dir="." executable="powershell" failonerror="true">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File CreateDropClassStatement.ps1" />
   </exec>
-
-  <antcall target="replace.in.file">
-   <param name="replace.file" value="temp/tSQLtBuild/TempDropClass.sql" />
-   <param name="replace.token" value="tSQLt." />
-   <param name="replace.value" value="#" />
-  </antcall>
-
-  <antcall target="replace.in.file">
-   <param name="replace.file" value="temp/tSQLtBuild/TempDropClass.sql" />
-   <param name="replace.token" value="OBJECT_ID('#" />
-   <param name="replace.value" value="OBJECT_ID('tempdb..#" />
-  </antcall>
-
-  <antcall target="replace.in.file">
-   <param name="replace.file" value="temp/tSQLtBuild/TempDropClass.sql" />
-   <param name="replace.token" value="---Build-" />
-   <param name="replace.value" value="" />
-  </antcall>
-
-  <antcall target="replace.in.file">
-   <param name="replace.file" value="temp/tSQLtBuild/TempDropClass.sql" />
-   <param name="replace.token" value="---Build+" />
-   <param name="replace.value" value="" />
-  </antcall>
-
-  <replaceregexp match="^(?:[\t ]*(?:\r?\n|\r))+" replace="" flags="gm" byline="false" file="temp/tSQLtBuild/TempDropClass.sql" />
-  <replaceregexp match="^\s*GO\s*((\r?\n)\s*GO\s*)+$" replace="GO" flags="gm" byline="false" file="temp/tSQLtBuild/TempDropClass.sql" />
-  <replaceregexp match="(\r?\n)" replace=" " flags="gm" byline="false" file="temp/tSQLtBuild/TempDropClass.sql" />
-  <replaceregexp match="\s+" replace=" " flags="gm" byline="false" file="temp/tSQLtBuild/TempDropClass.sql" />
-  <replaceregexp match="GO\s*$" replace="" flags="gm" byline="false" file="temp/tSQLtBuild/TempDropClass.sql" />
-  <replaceregexp match="^.*?BEGIN" replace="---Build+${line.separator}DECLARE @ClassName NVARCHAR(MAX) ='tSQLt';BEGIN" flags="gm" byline="false" file="temp/tSQLtBuild/TempDropClass.sql" />
-
-  <echo message="Starting package.create.tSQLtDrop {===" />
-
  </target>
 
 

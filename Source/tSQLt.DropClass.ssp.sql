@@ -5,64 +5,60 @@ CREATE PROCEDURE tSQLt.DropClass
     @ClassName NVARCHAR(MAX)
 AS
 BEGIN
+/*SnipStart: CreateDropClassStatement.ps1*/
     DECLARE @Cmd NVARCHAR(MAX);
 
-    WITH ObjectInfo(name, type) AS
+    WITH ObjectInfo(FullName, ItemType) AS
          (
-           SELECT QUOTENAME(SCHEMA_NAME(O.schema_id))+'.'+QUOTENAME(O.name) , O.type
+           SELECT 
+               QUOTENAME(SCHEMA_NAME(O.schema_id))+'.'+QUOTENAME(O.name),
+               O.type
              FROM sys.objects AS O
             WHERE O.schema_id = SCHEMA_ID(@ClassName)
          ),
-         TypeInfo(name) AS
+         TypeInfo(FullName, ItemType) AS
          (
-           SELECT QUOTENAME(SCHEMA_NAME(T.schema_id))+'.'+QUOTENAME(T.name)
+           SELECT 
+               QUOTENAME(SCHEMA_NAME(T.schema_id))+'.'+QUOTENAME(T.name),
+               'type'
              FROM sys.types AS T
             WHERE T.schema_id = SCHEMA_ID(@ClassName)
          ),
-         XMLSchemaInfo(name) AS
+         XMLSchemaInfo(FullName, ItemType) AS
          (
-           SELECT QUOTENAME(SCHEMA_NAME(XSC.schema_id))+'.'+QUOTENAME(XSC.name)
+           SELECT 
+               QUOTENAME(SCHEMA_NAME(XSC.schema_id))+'.'+QUOTENAME(XSC.name),
+               'xml_schema_collection'
              FROM sys.xml_schema_collections AS XSC
             WHERE XSC.schema_id = SCHEMA_ID(@ClassName)
          ),
-         DropStatements(no,cmd) AS
+         SchemaInfo(FullName, ItemType) AS
          (
-           SELECT 10,
-                  'DROP ' +
-                  CASE type WHEN 'P' THEN 'PROCEDURE'
-                            WHEN 'PC' THEN 'PROCEDURE'
-                            WHEN 'U' THEN 'TABLE'
-                            WHEN 'IF' THEN 'FUNCTION'
-                            WHEN 'TF' THEN 'FUNCTION'
-                            WHEN 'FN' THEN 'FUNCTION'
-                            WHEN 'FT' THEN 'FUNCTION'
-                            WHEN 'V' THEN 'VIEW'
-                   END +
-                   ' ' + 
-                   name + 
-                   ';'
+           SELECT 
+               QUOTENAME(S.name),
+               'schema'
+             FROM sys.schemas AS S
+            WHERE S.schema_id = SCHEMA_ID(PARSENAME(@ClassName,1))
+         ),
+         DropStatements(no,FullName,ItemType) AS
+         (
+           SELECT 10, FullName, ItemType
               FROM ObjectInfo
              UNION ALL
-           SELECT 20,
-                  'DROP TYPE ' +
-                   name + 
-                   ';'
+           SELECT 20, FullName, ItemType
               FROM TypeInfo
              UNION ALL
-           SELECT 30,
-                  'DROP XML SCHEMA COLLECTION ' +
-                   name + 
-                   ';'
+           SELECT 30, FullName, ItemType
               FROM XMLSchemaInfo
              UNION ALL
-            SELECT 10000,'DROP SCHEMA ' + QUOTENAME(name) +';'
-              FROM sys.schemas
-             WHERE schema_id = SCHEMA_ID(PARSENAME(@ClassName,1))
+            SELECT 10000, FullName, ItemType
+              FROM SchemaInfo
          ),
          StatementBlob(xml)AS
          (
-           SELECT cmd [text()]
-             FROM DropStatements
+           SELECT GDIC.cmd [text()]
+             FROM DropStatements DS
+            CROSS APPLY tSQLt.Private_GetDropItemCmd(DS.FullName, DS.ItemType) GDIC
             ORDER BY no
               FOR XML PATH(''), TYPE
          )
@@ -71,5 +67,6 @@ BEGIN
 
     EXEC(@Cmd);
 END;
+/*SnipEnd: CreateDropClassStatement.ps1*/
 ---Build-
 GO

@@ -2,6 +2,7 @@ tSQLt._Header.sql
 ../Build/temp/tSQLtBuild/TempDropClass.sql
 tSQLt.schema.sql
 tSQLt.TestClass.user.sql
+tSQLt.Private_GetDropItemCmd.sfn.sql
 tSQLt.DropClass.ssp.sql
 tSQLt.Uninstall.ssp.sql
 tSQLt.TestClasses.view.sql
@@ -35,6 +36,7 @@ tSQLtCLR_CreateProcs.sql
 tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql
 tSQLt.TableToText.ssp.sql
 tSQLt.Private_RenamedObjectLog.tbl.sql
+tSQLt.Private_RenameObject.ssp.sql
 tSQLt.Private_MarkObjectBeforeRename.ssp.sql
 tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
@@ -107,4 +109,6 @@ tSQLt.(at)tSQLt_RunOnlyOnHostPlatform.sfn.sql
 tSQLt.RemoveExternalAccessKey.ssp.sql
 tSQLt.InstallExternalAccessKey.ssp.sql
 tSQLt.Private_InstallationInfo.sfn.sql
+tSQLt.UndoSingleTestDouble.ssp.sql
+tSQLt.UndoTestDoubles.ssp.sql
 tSQLt._Footer.sql
