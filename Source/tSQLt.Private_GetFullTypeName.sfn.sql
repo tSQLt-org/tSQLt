@@ -4,7 +4,9 @@ GO
 CREATE FUNCTION tSQLt.Private_GetFullTypeName(@TypeId INT, @Length INT, @Precision INT, @Scale INT, @CollationName NVARCHAR(MAX))
 RETURNS TABLE
 AS
-RETURN SELECT X.SchemaName + '.' + X.Name + X.Suffix + X.Collation AS TypeName, X.SchemaName, X.Name, X.Suffix, X.is_table_type AS IsTableType
+RETURN 
+/*SnipStart: GenerateGetFullTypeNameStatementFunction.ps1*/
+SELECT X.SchemaName + '.' + X.Name + X.Suffix + X.Collation AS TypeName, X.SchemaName, X.Name, X.Suffix, X.is_table_type AS IsTableType
 FROM(
   SELECT QUOTENAME(SCHEMA_NAME(T.schema_id)) SchemaName, QUOTENAME(T.name) Name,
               CASE WHEN T.max_length = -1
@@ -26,6 +28,8 @@ FROM(
                END Collation,
                T.is_table_type
           FROM tSQLt.Private_SysTypes AS T WHERE T.user_type_id = @TypeId
-          )X;
+          )X
+/*SnipEnd: GenerateGetFullTypeNameStatementFunction.ps1*/
+;
 ---Build-
 GO

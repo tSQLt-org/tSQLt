@@ -139,6 +139,11 @@
    <arg value="type temp\tSQLtBuild\tSQLt.Private_GetAssemblyKeyBytes.sql"/>
   </exec>
 
+  <exec dir="." executable="powershell" failonerror="true">
+      <arg line="-ExecutionPolicy bypass" />
+      <arg line="-File GenerateGetFullTypeNameStatementFunction.ps1" />
+  </exec>
+
   <exec executable="cmd" dir="." failonerror="true">
    <arg value="/c"/>
    <arg value="BuildHelper.exe"/>

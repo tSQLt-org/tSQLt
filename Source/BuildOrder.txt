@@ -71,6 +71,7 @@ tSQLt.Private_CreateFakeTableStatement.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
 tSQLt.Private_MarkFakeTable.ssp.sql
 tSQLt.FakeTable.ssp.sql
+../Build/temp/tSQLtBuild/tSQLt.Private_GetFullTypeNameStatement.sfn.sql
 tSQLt.Private_GenerateCreateProcedureSpyStatement.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql
 tSQLt.SpyProcedure.ssp.sql
