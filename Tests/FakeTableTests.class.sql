@@ -969,7 +969,7 @@ BEGIN
   CREATE TABLE FakeTableTests.TempTable1(c1 INT NULL, c2 BIGINT NULL, c3 VARCHAR(MAX) NULL);
   EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT * FROM FakeTableTests.TempTable1;');
   CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.TempView1;
-  
+
   EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
 
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempSynonym1';  
