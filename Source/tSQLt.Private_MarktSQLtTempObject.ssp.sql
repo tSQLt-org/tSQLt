@@ -3,7 +3,7 @@ GO
 ---Build+
 CREATE PROCEDURE tSQLt.Private_MarktSQLtTempObject
   @ObjectName NVARCHAR(MAX),
-  --@ObjectType NVARCHAR(MAX),
+  @ObjectType NVARCHAR(MAX),
   --@ParentObjectName NVARCHAR(MAX) = NULL,
   --@ParentObjectType NVARCHAR(MAX) = NULL,
   @NewNameOfOriginalObject NVARCHAR(4000)
@@ -17,17 +17,21 @@ BEGIN
      FROM sys.objects O 
     WHERE O.object_id = OBJECT_ID(@ObjectName);
 
+   --SELECT 
+   --@UnquotedSchemaName,
+   --@UnquotedObjectName;
+
    EXEC sys.sp_addextendedproperty 
       @name = N'tSQLt.IsTempObject',
       @value = 1, 
       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
-      @level1type = N'TABLE',  @level1name = @UnquotedObjectName;   
+      @level1type = @ObjectType,  @level1name = @UnquotedObjectName;   
 
    EXEC sys.sp_addextendedproperty 
       @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
       @value = @NewNameOfOriginalObject, 
       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
-      @level1type = N'TABLE',  @level1name = @UnquotedObjectName;
+      @level1type = @ObjectType,  @level1name = @UnquotedObjectName;
 END;
 ---Build-
 GO

@@ -1103,7 +1103,7 @@ BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
   CREATE SYNONYM FakeTableTests.TempSyn1 FOR FakeTableTests.TempTable1;
 
-  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempTable1');
+  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempSyn1');
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempSyn1';
   

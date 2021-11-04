@@ -33,7 +33,7 @@ BEGIN
 
     EXEC(@CreateProcedureStatement);
 
-    EXEC tSQLt.Private_MarktSQLtTempObject @ProcedureName, 'PROCEDURE', @NewNameOfOriginalObject;
+    EXEC tSQLt.Private_MarktSQLtTempObject @ProcedureName, N'PROCEDURE', @NewNameOfOriginalObject;
 
     RETURN 0;
 END;
