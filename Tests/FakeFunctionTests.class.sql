@@ -661,6 +661,29 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable 'FakeFunctionTests.Expected', @NewTable;
 END;
 GO
+CREATE PROC FakeFunctionTests.[test FakeFunction calls tSQLt.Private_MarktSQLtTempObject on new object]
+AS
+BEGIN
+  EXEC('CREATE FUNCTION FakeFunctionTests.AFunction() RETURNS TABLE AS RETURN (SELECT 777 AS a);');
+  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeFunctionTests.AFunction');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
+  
+  EXEC tSQLt.FakeFunction @FunctionName = 'FakeFunctionTests.AFunction', @FakeDataSource = '(VALUES(1)) a(a)';
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[FakeFunctionTests].[AFunction]', N'FUNCTION', OBJECT_NAME(@OriginalObjectId));
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+
 -- THIS CODE CREATES THE SNAPSHOT.
 -- When we revisit creating something like FakeFunctionWithSnapshot, we should refer back.
 -- DECLARE @newTbleName NVARCHAR(MAX);

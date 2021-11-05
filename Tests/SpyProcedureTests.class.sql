@@ -755,5 +755,25 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure calls tSQLt.Private_MarktSQLtTempObject on new object]
+AS
+BEGIN
+  DECLARE @OriginalObjectId INT = OBJECT_ID('tSQLt.Private_MarktSQLtTempObject');
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  --We are testing that SpyProcedure calls this ^^ after spying this ^^, so this line serves as prep and action.
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('tSQLt.Private_MarktSQLtTempObject', N'PROCEDURE', OBJECT_NAME(@OriginalObjectId));
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
 
 

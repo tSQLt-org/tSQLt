@@ -1018,7 +1018,7 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
   TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
   
-  EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
+  EXEC tSQLt.FakeTable '[FakeTableTests].[TempTable1]';
 
   SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
     INTO #Actual 
