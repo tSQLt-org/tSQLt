@@ -16,7 +16,7 @@ ECHO SQLInstanceName: "%SQLInstanceName%"
 SET DBName=%~5
 ECHO DBName: "%DBName%"
 SET DBLogin=-E
-SET AntTarget=All
+SET AntTarget=all
 IF NOT "%~6"=="-v" IF NOT "%~6"=="" SET DBLogin=%~6
 IF NOT "%~7"=="-v" IF NOT "%~7"=="" SET SQLPackagePath=%~7
 IF NOT "%~8"=="-v" IF NOT "%~8"=="" SET AntTarget=%~9
