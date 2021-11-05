@@ -18,8 +18,9 @@ ECHO DBName: "%DBName%"
 SET DBLogin=-E
 IF NOT "%~6"=="-v" IF NOT "%~6"=="" SET DBLogin=%~6
 IF NOT "%~7"=="-v" IF NOT "%~7"=="" SET SQLPackagePath=%~7
+IF NOT "%~8"=="-v" IF NOT "%~8"=="" SET AntTarget=%~9
 SET VerboseOutput=ON
-IF NOT "%~6"=="-v" IF NOT "%~7"=="-v" IF NOT "%~8"=="-v" SET VerboseOutput=OFF
+IF NOT "%~6"=="-v" IF NOT "%~7"=="-v" IF NOT "%~8"=="-v" IF NOT "%~9"=="-v" SET VerboseOutput=OFF
 ECHO DBLogin: "%DBLogin%"
 ECHO SQLPackagePath: "%SQLPackagePath%"
 ECHO VerboseOutput: "%VerboseOutput%"
