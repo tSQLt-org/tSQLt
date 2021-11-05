@@ -16,6 +16,7 @@ ECHO SQLInstanceName: "%SQLInstanceName%"
 SET DBName=%~5
 ECHO DBName: "%DBName%"
 SET DBLogin=-E
+SET AntTarget=All
 IF NOT "%~6"=="-v" IF NOT "%~6"=="" SET DBLogin=%~6
 IF NOT "%~7"=="-v" IF NOT "%~7"=="" SET SQLPackagePath=%~7
 IF NOT "%~8"=="-v" IF NOT "%~8"=="" SET AntTarget=%~9
@@ -76,7 +77,7 @@ ECHO LogTableName: %LogTableName%
 
 IF "%VerboseOutput%"=="ON" @ECHO ON
 @REM -----------------------------------------------------------------------------This space character is utterly important! ----v
-CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" -Dlogtable.name="%LogTableName%" || goto :error
+CALL "%AntHome%\bin\ant" "%AntTarget%" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" -Dlogtable.name="%LogTableName%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+
