@@ -995,7 +995,6 @@ BEGIN
 
 END;
 GO
-
 CREATE PROC FakeTableTests.[test FakeTable works with two parameters, if they are quoted]
 AS
 BEGIN
@@ -1011,113 +1010,25 @@ BEGIN
 
 END;
 GO
-CREATE PROC FakeTableTests.[test new Faked Table is marked as tSQLt.IsTempObject]
-AS
-BEGIN
-  CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
-  
-  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
-  
-  SELECT name, value 
-    INTO #Actual
-    FROM sys.extended_properties
-   WHERE class_desc = 'OBJECT_OR_COLUMN'
-     AND major_id = OBJECT_ID('FakeTableTests.TempTable1')
-     AND name = 'tSQLt.IsTempObject';
-
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  
-  INSERT INTO #Expected VALUES('tSQLt.IsTempObject',	1);
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-CREATE PROC FakeTableTests.[test new Faked Table is marked with tSQLt.Private_TestDouble_OrgObjectName]
+CREATE PROC FakeTableTests.[test FakeTable calls tSQLt.Private_MarktSQLtTempObject on new object]
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
   DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempTable1');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
   
-  EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
-  
-  SELECT name, value 
-    INTO #Actual
-    FROM sys.extended_properties
-   WHERE class_desc = 'OBJECT_OR_COLUMN'
-     AND major_id = OBJECT_ID('FakeTableTests.TempTable1')
-     AND name = 'tSQLt.Private_TestDouble_OrgObjectName';
+  EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
 
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
   
-  INSERT INTO #Expected VALUES('tSQLt.Private_TestDouble_OrgObjectName',	OBJECT_NAME(@OriginalObjectId));
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[FakeTableTests].[TempTable1]', N'TABLE', OBJECT_NAME(@OriginalObjectId));
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-CREATE PROC FakeTableTests.[test new Faked View is marked as tSQLt.IsTempObject]
-AS
-BEGIN
-  EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT 1 X;');
   
-  EXEC tSQLt.FakeTable 'FakeTableTests.TempView1';
-  
-  SELECT name, value
-    INTO #Actual
-    FROM sys.extended_properties
-   WHERE class_desc = 'OBJECT_OR_COLUMN'
-     AND major_id = OBJECT_ID('FakeTableTests.TempView1')
-     AND name = 'tSQLt.IsTempObject';
-
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  
-  INSERT INTO #Expected VALUES('tSQLt.IsTempObject',	1);
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-CREATE PROC FakeTableTests.[test new Faked Synonym is marked as tSQLt.IsTempObject]
-AS
-BEGIN
-  CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
-  CREATE SYNONYM FakeTableTests.TempSyn1 FOR FakeTableTests.TempTable1;
-  
-  EXEC tSQLt.FakeTable 'FakeTableTests.TempSyn1';
-  
-  SELECT name, value
-    INTO #Actual
-    FROM sys.extended_properties
-   WHERE class_desc = 'OBJECT_OR_COLUMN'
-     AND major_id = OBJECT_ID('FakeTableTests.TempSyn1')
-     AND name = 'tSQLt.IsTempObject';
-
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  
-  INSERT INTO #Expected VALUES('tSQLt.IsTempObject',	1);
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-CREATE PROC FakeTableTests.[test new Faked Synonym is marked with tSQLt.Private_TestDouble_OrgObjectName pointing to the target object]
-AS
-BEGIN
-  CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
-  CREATE SYNONYM FakeTableTests.TempSyn1 FOR FakeTableTests.TempTable1;
-
-  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempSyn1');
-  
-  EXEC tSQLt.FakeTable 'FakeTableTests.TempSyn1';
-  
-  SELECT name, value 
-    INTO #Actual
-    FROM sys.extended_properties
-   WHERE class_desc = 'OBJECT_OR_COLUMN'
-     AND major_id = OBJECT_ID('FakeTableTests.TempSyn1')
-     AND name = 'tSQLt.Private_TestDouble_OrgObjectName';
-
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  
-  INSERT INTO #Expected VALUES('tSQLt.Private_TestDouble_OrgObjectName',	OBJECT_NAME(@OriginalObjectId));
-
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
