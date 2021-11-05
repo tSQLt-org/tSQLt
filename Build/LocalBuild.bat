@@ -16,14 +16,15 @@ ECHO SQLInstanceName: "%SQLInstanceName%"
 SET DBName=%~5
 ECHO DBName: "%DBName%"
 SET DBLogin=-E
-SET AntTarget=all
+SET AntTarget="all"
 IF NOT "%~6"=="-v" IF NOT "%~6"=="" SET DBLogin=%~6
 IF NOT "%~7"=="-v" IF NOT "%~7"=="" SET SQLPackagePath=%~7
-IF NOT "%~8"=="-v" IF NOT "%~8"=="" SET AntTarget=%~9
+IF NOT "%~8"=="-v" IF NOT "%~8"=="" SET AntTarget=%~8
 SET VerboseOutput=ON
 IF NOT "%~6"=="-v" IF NOT "%~7"=="-v" IF NOT "%~8"=="-v" IF NOT "%~9"=="-v" SET VerboseOutput=OFF
 ECHO DBLogin: "%DBLogin%"
 ECHO SQLPackagePath: "%SQLPackagePath%"
+ECHO AntTarget: "%AntTarget%"
 ECHO VerboseOutput: "%VerboseOutput%"
 
 REM CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path="%NET4Home%" -verbose || goto :error
