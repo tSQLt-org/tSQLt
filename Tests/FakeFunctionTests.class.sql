@@ -677,7 +677,7 @@ BEGIN
   
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-    VALUES('[FakeFunctionTests].[AFunction]', N'FUNCTION', OBJECT_NAME(@OriginalObjectId));
+    VALUES('FakeFunctionTests.AFunction', N'FUNCTION', OBJECT_NAME(@OriginalObjectId));
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
