@@ -7,7 +7,28 @@ AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
 
+  SELECT @cmd = 'RAISERROR(''Cannot drop '+Collisions.List+' as it is not marked as temporary. Use @Force = 1 to override.'',16,10)'
+    FROM
+    (
+      SELECT
+          QUOTENAME(OBJECT_SCHEMA_NAME(TestDouble.object_id))+'.'+QUOTENAME(TestDouble.name)
+        FROM tSQLt.Private_RenamedObjectLog AS ROL
+        JOIN sys.objects AS TestDouble
+          ON TestDouble.object_id = OBJECT_ID(QUOTENAME(OBJECT_SCHEMA_NAME(ROL.ObjectId))+'.'+QUOTENAME(PARSENAME(ROL.OriginalName,1)))
+        LEFT JOIN sys.extended_properties AS EP
+          ON EP.class_desc = 'OBJECT_OR_COLUMN'
+         AND EP.major_id = TestDouble.object_id
+         AND EP.name = 'tSQLt.IsTempObject'
+         AND EP.value = 1
+       WHERE EP.value IS NULL
+    ) Collisions(List)
+  EXEC(@cmd);
+
   SELECT TOP(0)A.* INTO #RenamedObjects FROM tSQLt.Private_RenamedObjectLog A RIGHT JOIN tSQLt.Private_RenamedObjectLog X ON 1=0;
+
+
+
+
 
   BEGIN TRAN;
   DELETE FROM tSQLt.Private_RenamedObjectLog OUTPUT Deleted.* INTO #RenamedObjects;
@@ -43,7 +64,7 @@ BEGIN
       LEFT JOIN sys.objects FakeO
         ON FakeO.object_id = OBJECT_ID(QUOTENAME(LL.SchemaName)+'.'+QUOTENAME(LL.OriginalName))
       LEFT JOIN sys.extended_properties AS EP
-        ON EP.class_desc = 'TABLE'
+        ON EP.class_desc = 'OBJECT_OR_COLUMN'
        AND EP.major_id = FakeO.object_id
        AND EP.name = 'tSQLt.IsTempObject'
        AND EP.value = 1
@@ -55,7 +76,7 @@ BEGIN
                  WHEN L.ParentId IS NULL THEN 
                    CASE WHEN L.IsTempObject = 1 
                      THEN  DC.cmd+';' 
-                     ELSE 'RAISERROR(''Cannot drop UndoTestDoublesTests.SimpleTable1 as it isn''''t marked as temporary. Use @Force = 1 to override.'',16,10);'
+                     ELSE 'RAISERROR(''SHOULD NOT GET HERE.'',16,10);'
                    END
                  ELSE NULL
                END,'')+

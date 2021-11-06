@@ -14,7 +14,6 @@ CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked table]
 AS
 BEGIN
   CREATE TABLE UndoTestDoublesTests.aSimpleTable ( Id INT );
-
   DECLARE @OriginalObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleTable');
 
   EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleTable';
@@ -23,7 +22,6 @@ BEGIN
 
   DECLARE @RestoredObjectId INT = OBJECT_ID('UndoTestDoublesTests.aSimpleTable');
   EXEC tSQLt.AssertEquals @Expected = @OriginalObjectId, @Actual = @RestoredObjectId;
-
 END;
 GO
 CREATE PROCEDURE UndoTestDoublesTests.[test works with names in need of quotes]
@@ -303,7 +301,7 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test objects renamed by RemoveObject are restored and conflicting object are deleted]
+CREATE PROCEDURE UndoTestDoublesTests.[test objects renamed by RemoveObject are restored and conflicting objects with IsTempObject property are deleted]
 AS
 BEGIN
   EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
@@ -314,7 +312,7 @@ BEGIN
 
   EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleTable';
   EXEC ('CREATE PROCEDURE UndoTestDoublesTests.aSimpleTable AS PRINT ''Who came up with that name?'';');
-
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = 'UndoTestDoublesTests.aSimpleTable', @ObjectType = N'PROCEDURE', @NewNameOfOriginalObject = '';
   EXEC tSQLt.UndoTestDoubles;
 
   SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
@@ -360,7 +358,7 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test doubled synonyms are deleted]
+CREATE PROCEDURE UndoTestDoublesTests.[test doubled synonyms with IsTempObject property are deleted]
 AS
 BEGIN
   EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleTable(i INT);');
@@ -372,6 +370,7 @@ BEGIN
 
   EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleObject';
   EXEC ('CREATE SYNONYM UndoTestDoublesTests.aSimpleObject FOR UndoTestDoublesTests.aSimpleTable;');
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName='UndoTestDoublesTests.aSimpleObject', @ObjectType='SYNONYM', @NewNameOfOriginalObject = '';
   
   EXEC tSQLt.UndoTestDoubles;
 
@@ -402,16 +401,14 @@ GO
 CREATE PROCEDURE UndoTestDoublesTests.[test drops only objects that are marked as temporary (IsTempObject = 1)]
 AS
 BEGIN
-  SELECT '1',@@TRANCOUNT,'test drops only objects that are marked as temporary (IsTempObject = 1)'testname
   CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
 
   EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
   CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot drop UndoTestDoublesTests.SimpleTable1 as it isn''t marked as temporary. Use @Force = 1 to override.', @ExpectedSeverity = 16, @ExpectedState = 10;
-  SELECT '2',@@TRANCOUNT
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot drop [UndoTestDoublesTests].[SimpleTable1] as it is not marked as temporary. Use @Force = 1 to override.', @ExpectedSeverity = 16, @ExpectedState = 10;
+
   EXEC tSQLt.UndoTestDoubles;
-  SELECT '3',@@TRANCOUNT
-  
+
 END;
 GO
