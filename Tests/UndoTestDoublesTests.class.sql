@@ -399,3 +399,19 @@ BEGIN
   END;
 END;
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test drops only objects that are marked as temporary (IsTempObject = 1)]
+AS
+BEGIN
+  SELECT '1',@@TRANCOUNT,'test drops only objects that are marked as temporary (IsTempObject = 1)'testname
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot drop UndoTestDoublesTests.SimpleTable1 as it isn''t marked as temporary. Use @Force = 1 to override.', @ExpectedSeverity = 16, @ExpectedState = 10;
+  SELECT '2',@@TRANCOUNT
+  EXEC tSQLt.UndoTestDoubles;
+  SELECT '3',@@TRANCOUNT
+  
+END;
+GO
