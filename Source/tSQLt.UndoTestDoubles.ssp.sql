@@ -73,11 +73,7 @@ BEGIN
   (
     SELECT 
         ISNULL(CASE 
-                 WHEN L.ParentId IS NULL THEN 
-                   CASE WHEN L.IsTempObject = 1 
-                     THEN  DC.cmd+';' 
-                     ELSE 'RAISERROR(''SHOULD NOT GET HERE.'',16,10);'
-                   END
+                 WHEN L.ParentId IS NULL THEN DC.cmd+';'  
                  ELSE NULL
                END,'')+
         'EXEC tSQLt.Private_RenameObject '''+L.SchemaName+''','''+L.CurrentName+''','''+L.OriginalName+''';'

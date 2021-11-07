@@ -70,3 +70,13 @@ BEGIN
     @ObjectType = N'FUNCTION';
 END;
 GO
+CREATE PROCEDURE Private_MarktSQLtTempObjectTests.[test can mark a constraint]
+AS
+BEGIN
+  CREATE TABLE Private_MarktSQLtTempObjectTests.TempTable1(i INT CONSTRAINT aSimpleTableConstraint CHECK(i > 0));
+
+  EXEC Private_MarktSQLtTempObjectTests.[assert creates two extended properties on object]
+    @ObjectName = 'Private_MarktSQLtTempObjectTests.aSimpleTableConstraint',
+    @ObjectType = N'CONSTRAINT';
+END;
+GO
