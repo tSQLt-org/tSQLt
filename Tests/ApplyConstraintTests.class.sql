@@ -1147,7 +1147,6 @@ BEGIN
   INSERT INTO #Expected
     VALUES('[ApplyConstraintTests].[aSimpleTableConstraint]', N'CONSTRAINT', OBJECT_NAME(@OriginalObjectId));
 
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
 GO

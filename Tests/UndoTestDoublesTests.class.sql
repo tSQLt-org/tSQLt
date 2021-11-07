@@ -412,3 +412,15 @@ BEGIN
 
 END;
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test can handle multiple unmarked objects (IsTempObject is not set or is not 1)]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'write me.';
+END;
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test can handle marked object where IsTempObject is not 1]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'write me.';
+END;
+GO
