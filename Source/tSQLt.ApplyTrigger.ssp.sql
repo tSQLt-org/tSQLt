@@ -7,6 +7,8 @@ CREATE PROCEDURE tSQLt.ApplyTrigger
 AS
 BEGIN
   DECLARE @OrgTableObjectId INT;
+  DECLARE @NewNameOfOriginalTrigger NVARCHAR(MAX);
+
   SELECT @OrgTableObjectId = OrgTableObjectId FROM tSQLt.Private_GetOriginalTableInfo(OBJECT_ID(@TableName)) orgTbl
   IF(@OrgTableObjectId IS NULL)
   BEGIN
@@ -28,9 +30,11 @@ BEGIN
     RAISERROR('%s is not a trigger on %s', 16, 10, @TriggerName, @TableName);
   END;
  
-  EXEC tSQLt.RemoveObject @FullTriggerName;
+  EXEC tSQLt.RemoveObject @ObjectName = @FullTriggerName, @NewName = @NewNameOfOriginalTrigger OUTPUT;
   
   EXEC(@TriggerCode);
+
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @FullTriggerName, @ObjectType = N'TRIGGER', @NewNameOfOriginalObject = @NewNameOfOriginalTrigger;
 END;
 ---Build-
 GO

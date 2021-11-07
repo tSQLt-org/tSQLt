@@ -80,3 +80,14 @@ BEGIN
     @ObjectType = N'CONSTRAINT';
 END;
 GO
+CREATE PROCEDURE Private_MarktSQLtTempObjectTests.[test can mark a trigger]
+AS
+BEGIN
+  CREATE TABLE Private_MarktSQLtTempObjectTests.TempTable1(i INT);
+  EXEC('CREATE TRIGGER Private_MarktSQLtTempObjectTests.TempTrigger ON Private_MarktSQLtTempObjectTests.TempTable1 FOR INSERT AS RETURN;');
+
+  EXEC Private_MarktSQLtTempObjectTests.[assert creates two extended properties on object]
+    @ObjectName = 'Private_MarktSQLtTempObjectTests.TempTrigger',
+    @ObjectType = N'TRIGGERX';
+END;
+GO

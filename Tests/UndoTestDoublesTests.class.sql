@@ -329,7 +329,6 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
---tSQLt.Run UndoTestDoublesTests
 CREATE PROCEDURE UndoTestDoublesTests.[test synonyms are restored]
 AS
 BEGIN
@@ -340,8 +339,8 @@ BEGIN
     INTO #OriginalObjectIds
     FROM sys.objects O;
 
-  EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleSynonym';
-  EXEC ('CREATE TABLE UndoTestDoublesTests.aSimpleSynonym(i INT);');
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.aSimpleSynonym';
+
   EXEC tSQLt.UndoTestDoubles;
 
   SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
