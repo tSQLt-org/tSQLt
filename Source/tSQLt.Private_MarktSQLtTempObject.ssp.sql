@@ -10,6 +10,7 @@ BEGIN
   DECLARE @UnquotedSchemaName NVARCHAR(MAX);
   DECLARE @UnquotedObjectName NVARCHAR(MAX);
   DECLARE @UnquotedParentName NVARCHAR(MAX);
+  DECLARE @TempObjectFlagOn BIT = 1;
   SELECT 
       @UnquotedSchemaName = SCHEMA_NAME(O.schema_id),
       @UnquotedObjectName = O.name,
@@ -21,7 +22,7 @@ BEGIN
   BEGIN
     EXEC sys.sp_addextendedproperty 
        @name = N'tSQLt.IsTempObject',
-       @value = 1, 
+       @value = @TempObjectFlagOn, 
        @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
        @level1type = @ObjectType,  @level1name = @UnquotedObjectName;   
 
@@ -35,7 +36,7 @@ BEGIN
   BEGIN
     EXEC sys.sp_addextendedproperty 
        @name = N'tSQLt.IsTempObject',
-       @value = 1, 
+       @value = @TempObjectFlagOn, 
        @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
        @level1type = N'TABLE',  @level1name = @UnquotedParentName,
        @level2type = @ObjectType,  @level2name = @UnquotedObjectName;

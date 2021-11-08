@@ -88,6 +88,28 @@ BEGIN
 
   EXEC Private_MarktSQLtTempObjectTests.[assert creates two extended properties on object]
     @ObjectName = 'Private_MarktSQLtTempObjectTests.TempTrigger',
-    @ObjectType = N'TRIGGERX';
+    @ObjectType = N'TRIGGER';
+END;
+GO
+CREATE PROCEDURE Private_MarktSQLtTempObjectTests.[test tSQLt.IsTempObject Data Type is BIT]
+AS
+BEGIN
+  CREATE TABLE Private_MarktSQLtTempObjectTests.TempTable1(i INT NOT NULL);
+  EXEC Private_MarktSQLtTempObjectTests.[assert creates two extended properties on object]
+    @ObjectName = 'Private_MarktSQLtTempObjectTests.TempTable1',
+    @ObjectType = N'TABLE';
+  
+  SELECT UPPER(CAST(SQL_VARIANT_PROPERTY(EP.value,'BaseType') AS NVARCHAR(MAX))) IsTempObject_DataType
+    INTO #Actual
+    FROM sys.extended_properties AS EP
+   WHERE EP.class_desc = 'OBJECT_OR_COLUMN'
+     AND EP.major_id = OBJECT_ID('Private_MarktSQLtTempObjectTests.TempTable1')
+     AND EP.name = 'tSQLt.IsTempObject';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES('BIT');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
 END;
 GO

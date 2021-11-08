@@ -3,24 +3,41 @@ GO
 ---Build+
 GO
 CREATE PROCEDURE tSQLt.UndoTestDoubles
+  @Force BIT = 0
 AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
 
-  SELECT @cmd = 'RAISERROR(''Cannot drop '+Collisions.List+' as it is not marked as temporary. Use @Force = 1 to override.'',16,10)'
+  IF (@Force = 1) 
+  BEGIN
+    SET @cmd = 'EXEC tSQLt.Private_Print @Message = ''WARNING: @Force has been set to 1. Dropping the following objects that are not marked as temporary. (%s)'';';
+  END;
+  ELSE
+  BEGIN
+    SET @cmd = 'RAISERROR(''Cannot drop these objects as they are not marked as temporary. Use @Force = 1 to override. (%s)'',16,10)';
+  END;
+
+  SELECT @cmd = REPLACE(@cmd,'%s',Collisions.List)
     FROM
     (
       SELECT
-          QUOTENAME(OBJECT_SCHEMA_NAME(TestDouble.object_id))+'.'+QUOTENAME(TestDouble.name)
-        FROM tSQLt.Private_RenamedObjectLog AS ROL
-        JOIN sys.objects AS TestDouble
-          ON TestDouble.object_id = OBJECT_ID(QUOTENAME(OBJECT_SCHEMA_NAME(ROL.ObjectId))+'.'+QUOTENAME(PARSENAME(ROL.OriginalName,1)))
-        LEFT JOIN sys.extended_properties AS EP
-          ON EP.class_desc = 'OBJECT_OR_COLUMN'
-         AND EP.major_id = TestDouble.object_id
-         AND EP.name = 'tSQLt.IsTempObject'
-         AND EP.value = 1
-       WHERE EP.value IS NULL
+        STUFF (
+        (
+          SELECT
+              ', ' + QUOTENAME(OBJECT_SCHEMA_NAME(TestDouble.object_id))+'.'+QUOTENAME(TestDouble.name)
+            FROM tSQLt.Private_RenamedObjectLog AS ROL
+            JOIN sys.objects AS TestDouble
+              ON TestDouble.object_id = OBJECT_ID(QUOTENAME(OBJECT_SCHEMA_NAME(ROL.ObjectId))+'.'+QUOTENAME(PARSENAME(ROL.OriginalName,1)))
+            LEFT JOIN sys.extended_properties AS EP
+              ON EP.class_desc = 'OBJECT_OR_COLUMN'
+             AND EP.major_id = TestDouble.object_id
+             AND EP.name = 'tSQLt.IsTempObject'
+             AND EP.value = 1
+           WHERE EP.value IS NULL
+           ORDER BY 1
+             FOR XML PATH (''), TYPE
+         ).value('.','NVARCHAR(MAX)'),
+         1,2,'')
     ) Collisions(List)
   EXEC(@cmd);
 
@@ -83,8 +100,31 @@ BEGIN
        FOR XML PATH(''),TYPE
   ).value('.','NVARCHAR(MAX)')
   EXEC(@cmd);
+
+  WITH L AS
+  (
+    SELECT 
+        TempO.Name,
+        SCHEMA_NAME(TempO.schema_id) SchemaName,
+        TempO.type ObjectType
+      FROM sys.objects TempO
+      JOIN sys.extended_properties AS EP
+        ON EP.class_desc = 'OBJECT_OR_COLUMN'
+       AND EP.major_id = TempO.object_id
+       AND EP.name = 'tSQLt.IsTempObject'
+       AND EP.value = 1
+  )
+  SELECT @cmd = 
+  (
+    SELECT 
+        DC.cmd+';'  
+      FROM L
+     CROSS APPLY tSQLt.Private_GetDropItemCmd(QUOTENAME(L.SchemaName)+'.'+QUOTENAME(L.Name),L.ObjectType) DC
+       FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)')
+  EXEC(@cmd);
+
   COMMIT;
 END;
 GO
-
 
