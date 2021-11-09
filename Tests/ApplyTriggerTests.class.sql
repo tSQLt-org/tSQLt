@@ -120,3 +120,29 @@ BEGIN
   
 END;
 GO
+CREATE PROC ApplyTriggerTests.[test ApplyTrigger calls tSQLt.Private_MarktSQLtTempObject on new check constraints]
+AS
+BEGIN
+  CREATE TABLE ApplyTriggerTests.aSimpleTable ( Id INT);
+  EXEC('CREATE TRIGGER ApplyTriggerTests.aSimpleTrigger ON ApplyTriggerTests.aSimpleTable FOR INSERT AS RETURN;'); 
+  DECLARE @OriginalObjectId INT = OBJECT_ID('ApplyTriggerTests.aSimpleTrigger');
+
+  EXEC tSQLt.FakeTable @TableName = 'ApplyTriggerTests.aSimpleTable';
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
+
+  EXEC tSQLt.ApplyTrigger @TableName = 'ApplyTriggerTests.aSimpleTable', @TriggerName = 'aSimpleTrigger';
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[ApplyTriggerTests].[aSimpleTrigger]', N'TRIGGER', OBJECT_NAME(@OriginalObjectId));
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO

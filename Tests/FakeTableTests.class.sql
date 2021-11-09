@@ -17,30 +17,21 @@
 EXEC tSQLt.NewTestClass 'FakeTableTests';
 GO
 
-CREATE PROC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints
-@TableName NVARCHAR(MAX)
+CREATE PROC FakeTableTests.AssertTableIsNewObjectThatHasNoChildObjects
+@TableName NVARCHAR(MAX),
+@OriginalObjectId INT
 AS
 BEGIN
-  DECLARE @OldTableObjectId INT;
-
   IF OBJECT_ID(@TableName) IS NULL
     EXEC tSQLt.Fail 'Table ',@TableName,' does not exist!';
-
-  SELECT @OldTableObjectId = OBJECT_ID(QUOTENAME(OBJECT_SCHEMA_NAME(major_id))+'.'+QUOTENAME(CAST(value AS NVARCHAR(4000))))
-  FROM sys.extended_properties WHERE major_id = OBJECT_ID(@TableName) and name = 'tSQLt.FakeTable_OrgTableName'
-
-  IF @OldTableObjectId IS NULL
-    EXEC tSQLt.Fail 'Table ',@TableName,' is not a fake table!';
   
-  IF OBJECT_ID(@TableName) = @OldTableObjectId
+  IF OBJECT_ID(@TableName) = @OriginalObjectId
     EXEC tSQLt.Fail 'Table ',@TableName,' is not a new object!';
     
-  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(object_id))+'.'+QUOTENAME(OBJECT_NAME(object_id)) ReferencingObjectName 
-  INTO #actual FROM sys.objects WHERE parent_object_id = OBJECT_ID(@TableName);
+  SELECT QUOTENAME(OBJECT_SCHEMA_NAME(object_id))+'.'+QUOTENAME(OBJECT_NAME(object_id)) ReferencingObjectName, type_desc 
+  INTO #ChildObjects FROM sys.objects WHERE parent_object_id = OBJECT_ID(@TableName);
   
-  SELECT TOP(0) * INTO #expected FROM #actual;
-  
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual','Unexpected referencing objects found!';
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ChildObjects', @Message = 'Unexpected child objects found!';
 END
 GO
 
@@ -48,10 +39,13 @@ CREATE PROC FakeTableTests.[test FakeTable works with 2 part names in first para
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT);
+  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempTable1');
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoChildObjects
+    @TableName = 'FakeTableTests.TempTable1',
+    @OriginalObjectId = @OriginalObjectId;
 END;
 GO
 
@@ -59,10 +53,13 @@ CREATE PROC FakeTableTests.[test FakeTable takes 2 nameless parameters containin
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT);
+  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempTable1');
   
   EXEC tSQLt.FakeTable 'FakeTableTests','TempTable1';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoChildObjects
+    @TableName = 'FakeTableTests.TempTable1',
+    @OriginalObjectId = @OriginalObjectId;  
 END;
 GO
 
@@ -161,10 +158,8 @@ CREATE PROC FakeTableTests.[test a faked table has no primary key]
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT PRIMARY KEY);
-  
+    
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
-  
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
@@ -178,7 +173,6 @@ BEGIN
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (5);
 END;
 GO
@@ -187,11 +181,10 @@ CREATE PROC FakeTableTests.[test a faked table has no foreign keys]
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable0(i INT PRIMARY KEY);
-  CREATE TABLE FakeTableTests.TempTable1(i INT REFERENCES FakeTableTests.TempTable0(i));
+  CREATE TABLE FakeTableTests.TempTable1(i INT REFERENCES FakeTableTests.TempTable0(i));  
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
-  
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+      
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (5);
 END;
 GO
@@ -203,12 +196,9 @@ BEGIN
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) DEFAULT VALUES;
   
-  DECLARE @value INT;
-  SELECT @value = i
-    FROM FakeTableTests.TempTable1;
+  DECLARE @value INT = (SELECT i FROM FakeTableTests.TempTable1);
     
   EXEC tSQLt.AssertEquals NULL, @value;
 END;
@@ -221,7 +211,6 @@ BEGIN
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
 END;
@@ -235,7 +224,6 @@ BEGIN
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (1);
 END;
@@ -248,7 +236,6 @@ BEGIN
   
   EXEC tSQLt.FakeTable 'FakeTableTests.TempTable1';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
   INSERT INTO FakeTableTests.TempTable1 (i) VALUES (NULL);
 END;
 GO
@@ -982,7 +969,7 @@ BEGIN
   CREATE TABLE FakeTableTests.TempTable1(c1 INT NULL, c2 BIGINT NULL, c3 VARCHAR(MAX) NULL);
   EXEC('CREATE VIEW FakeTableTests.TempView1 AS SELECT * FROM FakeTableTests.TempTable1;');
   CREATE SYNONYM FakeTableTests.TempSynonym1 FOR FakeTableTests.TempView1;
-  
+
   EXEC tSQLt.FakeTable 'FakeTableTests.TempSynonym1';
 
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.TempTable1', @Actual = 'FakeTableTests.TempSynonym1';  
@@ -1008,34 +995,40 @@ BEGIN
 
 END;
 GO
-
 CREATE PROC FakeTableTests.[test FakeTable works with two parameters, if they are quoted]
 AS
 BEGIN
   CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
   
+  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempTable1');
+    
   EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
   
-  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoChildObjects
+    @TableName = 'FakeTableTests.TempTable1',
+    @OriginalObjectId = @OriginalObjectId;
 
 END;
 GO
-
---CREATE PROC FakeTableTests.[test FakeTable works with cross database synonym]
---AS
---BEGIN
---  CREATE TABLE tempdb.dbo.TempTable1(i INT NOT NULL);
---  CREATE SYNONYM FakeTableTests.TempTable1 FOR tempdb.dbo.TempTable1
+CREATE PROC FakeTableTests.[test FakeTable calls tSQLt.Private_MarktSQLtTempObject on new object]
+AS
+BEGIN
+  CREATE TABLE FakeTableTests.TempTable1(i INT NOT NULL);
+  DECLARE @OriginalObjectId INT = OBJECT_ID('FakeTableTests.TempTable1');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
   
---  EXEC tSQLt.FakeTable '[FakeTableTests]','[TempTable1]';
+  EXEC tSQLt.FakeTable '[FakeTableTests].[TempTable1]';
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
   
---  EXEC FakeTableTests.AssertTableIsNewObjectThatHasNoConstraints 'FakeTableTests.TempTable1';
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[FakeTableTests].[TempTable1]', N'TABLE', OBJECT_NAME(@OriginalObjectId));
 
---END;
---GO
-
-
-
-
---ROLLBACK
-
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO

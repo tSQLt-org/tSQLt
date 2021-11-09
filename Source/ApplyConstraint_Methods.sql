@@ -23,7 +23,7 @@ RETURN
         ON newtbl.object_id = p.major_id
        AND p.minor_id = 0
        AND p.class_desc = 'OBJECT_OR_COLUMN'
-       AND p.name = 'tSQLt.FakeTable_OrgTableName'
+       AND p.name = 'tSQLt.Private_TestDouble_OrgObjectName'
         ON OBJECT_NAME(constraints.parent_object_id) = CAST(p.value AS NVARCHAR(4000))
        AND constraints.schema_id = newtbl.schema_id
        AND constraints.object_id = @ConstraintObjectId;
@@ -70,6 +70,8 @@ CREATE PROCEDURE tSQLt.Private_ApplyCheckConstraint
 AS
 BEGIN
   DECLARE @Cmd NVARCHAR(MAX);
+  DECLARE @NewNameOfOriginalConstraint NVARCHAR(MAX);
+  DECLARE @QuotedFullConstraintName NVARCHAR(MAX);
   SELECT @Cmd = 'CONSTRAINT ' + QUOTENAME(name) + ' CHECK' + definition 
     FROM sys.check_constraints
    WHERE object_id = @ConstraintObjectId;
@@ -78,13 +80,16 @@ BEGIN
   
   SELECT @QuotedTableName = QuotedTableName FROM tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId);
 
-  EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ConstraintObjectId;
-  SELECT @Cmd = 'ALTER TABLE ' + @QuotedTableName + ' ADD ' + @Cmd
+  SELECT @Cmd = 'ALTER TABLE ' + @QuotedTableName + ' ADD ' + @Cmd,
+         @QuotedFullConstraintName = QUOTENAME(SCHEMA_NAME(schema_id))+'.'+QUOTENAME(name)
     FROM sys.objects 
    WHERE object_id = @ConstraintObjectId;
 
+  EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ConstraintObjectId, @NewName = @NewNameOfOriginalConstraint OUT;
+
   EXEC (@Cmd);
 
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @QuotedFullConstraintName, @ObjectType = 'CONSTRAINT', @NewNameOfOriginalObject = @NewNameOfOriginalConstraint;
 END; 
 GO
 
@@ -101,11 +106,15 @@ BEGIN
   DECLARE @AlterTableCmd NVARCHAR(MAX);
   DECLARE @CreateIndexCmd NVARCHAR(MAX);
   DECLARE @FinalCmd NVARCHAR(MAX);
+  DECLARE @NewNameOfOriginalConstraint NVARCHAR(MAX);
+  DECLARE @QuotedFullConstraintName NVARCHAR(MAX);
+
   
   SELECT @SchemaName = SchemaName,
          @OrgTableName = OrgTableName,
          @TableName = TableName,
-         @ConstraintName = OBJECT_NAME(@ConstraintObjectId)
+         @ConstraintName = OBJECT_NAME(@ConstraintObjectId),
+         @QuotedFullConstraintName = QUOTENAME(SchemaName)+'.'+QUOTENAME(OBJECT_NAME(@ConstraintObjectId))
     FROM tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId);
       
   SELECT @CreateFkCmd = cmd, @CreateIndexCmd = CreIdxCmd
@@ -114,8 +123,11 @@ BEGIN
                           ' ADD ' + @CreateFkCmd;
   SELECT @FinalCmd = @CreateIndexCmd + @AlterTableCmd;
 
-  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName;
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName, @NewName = @NewNameOfOriginalConstraint OUTPUT;
   EXEC (@FinalCmd);
+
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @QuotedFullConstraintName, @ObjectType = 'CONSTRAINT', @NewNameOfOriginalObject = @NewNameOfOriginalConstraint;
+
 END;
 GO
 
@@ -124,25 +136,28 @@ CREATE PROCEDURE tSQLt.Private_ApplyUniqueConstraint
 AS
 BEGIN
   DECLARE @SchemaName NVARCHAR(MAX);
-  DECLARE @OrgTableName NVARCHAR(MAX);
   DECLARE @TableName NVARCHAR(MAX);
   DECLARE @ConstraintName NVARCHAR(MAX);
   DECLARE @CreateConstraintCmd NVARCHAR(MAX);
   DECLARE @AlterColumnsCmd NVARCHAR(MAX);
+  DECLARE @NewNameOfOriginalConstraint NVARCHAR(MAX);
+  DECLARE @QuotedFullConstraintName NVARCHAR(MAX);
   
   SELECT @SchemaName = SchemaName,
-         @OrgTableName = OrgTableName,
          @TableName = TableName,
-         @ConstraintName = OBJECT_NAME(@ConstraintObjectId)
+         @ConstraintName = OBJECT_NAME(@ConstraintObjectId),
+         @QuotedFullConstraintName = QUOTENAME(SchemaName)+'.'+QUOTENAME(OBJECT_NAME(@ConstraintObjectId))
     FROM tSQLt.Private_GetQuotedTableNameForConstraint(@ConstraintObjectId);
       
   SELECT @AlterColumnsCmd = NotNullColumnCmd,
          @CreateConstraintCmd = CreateConstraintCmd
     FROM tSQLt.Private_GetUniqueConstraintDefinition(@ConstraintObjectId, QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName));
 
-  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName;
+  EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @ConstraintName, @NewName = @NewNameOfOriginalConstraint OUTPUT;
   EXEC (@AlterColumnsCmd);
   EXEC (@CreateConstraintCmd);
+
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @QuotedFullConstraintName, @ObjectType = 'CONSTRAINT', @NewNameOfOriginalObject = @NewNameOfOriginalConstraint;
 END;
 GO
 

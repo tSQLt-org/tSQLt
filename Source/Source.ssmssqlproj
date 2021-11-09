@@ -2,7 +2,6 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Source">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
-      <Items />
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -390,11 +389,11 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ListTestAnnotations.sfn.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt.Private_MarkFakeTable.ssp.sql">
+        <FileNode Name="tSQLt.Private_MarktSQLtTempObject.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>tSQLt.Private_MarkFakeTable.ssp.sql</FullPath>
+          <FullPath>tSQLt.Private_MarktSQLtTempObject.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_MarkObjectBeforeRename.ssp.sql">
           <AssociatedConnectionMoniker />

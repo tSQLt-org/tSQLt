@@ -216,6 +216,12 @@
           <AssociatedConnUserName />
           <FullPath>Private_InstallationInfoTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_MarktSQLtTempObjectTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_MarktSQLtTempObjectTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_NullCellTableTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

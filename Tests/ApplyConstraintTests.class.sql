@@ -1050,4 +1050,103 @@ BEGIN
     
 END;
 GO
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint calls tSQLt.Private_MarktSQLtTempObject on new check constraints]
+AS
+BEGIN
+  CREATE TABLE ApplyConstraintTests.aSimpleTable ( Id INT CONSTRAINT aSimpleTableConstraint CHECK(Id > 0));
+  DECLARE @OriginalObjectId INT = OBJECT_ID('ApplyConstraintTests.aSimpleTableConstraint');
 
+  EXEC tSQLt.FakeTable @TableName = 'ApplyConstraintTests.aSimpleTable';
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
+
+  EXEC tSQLt.ApplyConstraint @TableName = 'ApplyConstraintTests.aSimpleTable', @ConstraintName = 'aSimpleTableConstraint';
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[ApplyConstraintTests].[aSimpleTableConstraint]', N'CONSTRAINT', OBJECT_NAME(@OriginalObjectId));
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint calls tSQLt.Private_MarktSQLtTempObject on new primary key]
+AS
+BEGIN
+  CREATE TABLE ApplyConstraintTests.aSimpleTable ( Id INT CONSTRAINT aSimpleTableConstraint PRIMARY KEY );
+  DECLARE @OriginalObjectId INT = OBJECT_ID('ApplyConstraintTests.aSimpleTableConstraint');
+
+  EXEC tSQLt.FakeTable @TableName = 'ApplyConstraintTests.aSimpleTable';
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
+
+  EXEC tSQLt.ApplyConstraint @TableName = 'ApplyConstraintTests.aSimpleTable', @ConstraintName = 'aSimpleTableConstraint';
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[ApplyConstraintTests].[aSimpleTableConstraint]', N'CONSTRAINT', OBJECT_NAME(@OriginalObjectId));
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint calls tSQLt.Private_MarktSQLtTempObject on new unique key]
+AS
+BEGIN
+  CREATE TABLE ApplyConstraintTests.aSimpleTable ( Id INT CONSTRAINT aSimpleTableConstraint UNIQUE );
+  DECLARE @OriginalObjectId INT = OBJECT_ID('ApplyConstraintTests.aSimpleTableConstraint');
+
+  EXEC tSQLt.FakeTable @TableName = 'ApplyConstraintTests.aSimpleTable';
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
+
+  EXEC tSQLt.ApplyConstraint @TableName = 'ApplyConstraintTests.aSimpleTable', @ConstraintName = 'aSimpleTableConstraint';
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[ApplyConstraintTests].[aSimpleTableConstraint]', N'CONSTRAINT', OBJECT_NAME(@OriginalObjectId));
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+CREATE PROC ApplyConstraintTests.[test ApplyConstraint calls tSQLt.Private_MarktSQLtTempObject on new foreign key]
+AS
+BEGIN
+  CREATE TABLE ApplyConstraintTests.aForeignTable ( Id INT PRIMARY KEY );
+  CREATE TABLE ApplyConstraintTests.aSimpleTable ( Id INT, fId INT CONSTRAINT aSimpleTableConstraint FOREIGN KEY REFERENCES ApplyConstraintTests.aForeignTable (Id) );
+  DECLARE @OriginalObjectId INT = OBJECT_ID('ApplyConstraintTests.aSimpleTableConstraint');
+
+  EXEC tSQLt.FakeTable @TableName = 'ApplyConstraintTests.aSimpleTable';
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  TRUNCATE TABLE tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;--Quirkiness of testing the framework that you use to run the test
+
+  EXEC tSQLt.ApplyConstraint @TableName = 'ApplyConstraintTests.aSimpleTable', @ConstraintName = 'aSimpleTableConstraint';
+
+  SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
+    INTO #Actual 
+    FROM tSQLt.Private_MarktSQLtTempObject_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    VALUES('[ApplyConstraintTests].[aSimpleTableConstraint]', N'CONSTRAINT', OBJECT_NAME(@OriginalObjectId));
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
+END;
+GO

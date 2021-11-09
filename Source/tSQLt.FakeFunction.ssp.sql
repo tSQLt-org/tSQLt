@@ -12,6 +12,7 @@ BEGIN
   DECLARE @FunctionObjectId INT;
   DECLARE @FakeFunctionObjectId INT;
   DECLARE @IsScalarFunction BIT;
+  DECLARE @NewNameOfOriginalFunction NVARCHAR(MAX);
 
   EXEC tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction 
                @FunctionName = @FunctionName,
@@ -21,7 +22,9 @@ BEGIN
                @FakeFunctionObjectId = @FakeFunctionObjectId OUT,
                @IsScalarFunction = @IsScalarFunction OUT;
 
-  EXEC tSQLt.RemoveObject @ObjectName = @FunctionName;
+  EXEC tSQLt.RemoveObject
+               @ObjectName = @FunctionName,
+               @NewName = @NewNameOfOriginalFunction OUTPUT;
 
   EXEC tSQLt.Private_CreateFakeFunction 
                @FunctionName = @FunctionName,
@@ -30,6 +33,11 @@ BEGIN
                @FunctionObjectId = @FunctionObjectId,
                @FakeFunctionObjectId = @FakeFunctionObjectId,
                @IsScalarFunction = @IsScalarFunction;
+
+  EXEC tSQLt.Private_MarktSQLtTempObject
+               @ObjectName = @FunctionName,
+               @ObjectType = N'FUNCTION',
+               @NewNameOfOriginalObject = @NewNameOfOriginalFunction;
 
 END;
 GO

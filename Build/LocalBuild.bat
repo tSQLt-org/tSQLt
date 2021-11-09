@@ -16,12 +16,15 @@ ECHO SQLInstanceName: "%SQLInstanceName%"
 SET DBName=%~5
 ECHO DBName: "%DBName%"
 SET DBLogin=-E
+SET AntTarget=all
 IF NOT "%~6"=="-v" IF NOT "%~6"=="" SET DBLogin=%~6
 IF NOT "%~7"=="-v" IF NOT "%~7"=="" SET SQLPackagePath=%~7
+IF NOT "%~8"=="-v" IF NOT "%~8"=="" SET AntTarget=%~8
 SET VerboseOutput=ON
-IF NOT "%~6"=="-v" IF NOT "%~7"=="-v" IF NOT "%~8"=="-v" SET VerboseOutput=OFF
+IF NOT "%~6"=="-v" IF NOT "%~7"=="-v" IF NOT "%~8"=="-v" IF NOT "%~9"=="-v" SET VerboseOutput=OFF
 ECHO DBLogin: "%DBLogin%"
 ECHO SQLPackagePath: "%SQLPackagePath%"
+ECHO AntTarget: "%AntTarget%"
 ECHO VerboseOutput: "%VerboseOutput%"
 
 REM CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.experiments.build.xml -Dmsbuild.path="%NET4Home%" -verbose || goto :error
@@ -75,7 +78,7 @@ ECHO LogTableName: %LogTableName%
 
 IF "%VerboseOutput%"=="ON" @ECHO ON
 @REM -----------------------------------------------------------------------------This space character is utterly important! ----v
-CALL "%AntHome%\bin\ant" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" -Dlogtable.name="%LogTableName%" || goto :error
+CALL "%AntHome%\bin\ant" "%AntTarget%" -buildfile Build\tSQLt.validatebuild.xml -Ddb.server="%SQLInstanceName%" -Ddb.name=%DBName% -Ddb.login=" %DBLogin%" -Dsqlcmd.path="%SQLCMDPath%" -Dsqlpackage.path="%SQLPackagePath%" -Dlogtable.name="%LogTableName%" || goto :error
 @ECHO OFF
 
 ECHO +-------------------------+

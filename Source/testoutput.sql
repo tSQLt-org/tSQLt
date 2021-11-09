@@ -95,7 +95,7 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
                    ON refCol.object_id = c.referenced_object_id
                   AND refCol.column_id = c.referenced_column_id
                  LEFT JOIN sys.extended_properties e
-                   ON e.name = 'tSQLt.FakeTable_OrgTableName'
+                   ON e.name = 'tSQLt.Private_TestDouble_OrgObjectName'
                   AND e.value = OBJECT_NAME(c.referenced_object_id)
                  JOIN sys.tables refTab
                    ON COALESCE(e.major_id,refCol.object_id) = refTab.object_id

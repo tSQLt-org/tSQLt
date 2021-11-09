@@ -9,47 +9,47 @@ CREATE PROCEDURE tSQLt.FakeTable
     @Defaults BIT = NULL
 AS
 BEGIN
-   DECLARE @OrigSchemaName NVARCHAR(MAX);
-   DECLARE @OrigTableName NVARCHAR(MAX);
-   DECLARE @NewNameOfOriginalTable NVARCHAR(4000);
-   DECLARE @OrigTableFullName NVARCHAR(MAX); SET @OrigTableFullName = NULL;
-   
-   SELECT @OrigSchemaName = @SchemaName,
-          @OrigTableName = @TableName
-   
-   IF(@OrigTableName NOT IN (PARSENAME(@OrigTableName,1),QUOTENAME(PARSENAME(@OrigTableName,1)))
-      AND @OrigSchemaName IS NOT NULL)
+   DECLARE @OrigObjectCleanQuotedSchemaName NVARCHAR(MAX);
+   DECLARE @OrigObjectCleanQuotedName NVARCHAR(MAX);
+   DECLARE @OrigObjectNewName NVARCHAR(4000);
+   DECLARE @OrigObjectFullName NVARCHAR(MAX) = NULL;
+   DECLARE @TargetObjectFullName NVARCHAR(MAX) = NULL;
+      
+   IF(@TableName NOT IN (PARSENAME(@TableName,1),QUOTENAME(PARSENAME(@TableName,1)))
+      AND @SchemaName IS NOT NULL)
    BEGIN
      RAISERROR('When @TableName is a multi-part identifier, @SchemaName must be NULL!',16,10);
    END
 
-   SELECT @SchemaName = CleanSchemaName,
-          @TableName = CleanTableName
+   SELECT @OrigObjectCleanQuotedSchemaName = CleanSchemaName,
+          @OrigObjectCleanQuotedName = CleanTableName
      FROM tSQLt.Private_ResolveFakeTableNamesForBackwardCompatibility(@TableName, @SchemaName);
    
-   EXEC tSQLt.Private_ValidateFakeTableParameters @SchemaName,@OrigTableName,@OrigSchemaName;
+   EXEC tSQLt.Private_ValidateFakeTableParameters @OrigObjectCleanQuotedSchemaName,@TableName,@SchemaName;
 
-   EXEC tSQLt.Private_RenameObjectToUniqueName @SchemaName, @TableName, @NewNameOfOriginalTable OUTPUT;
+   SET @OrigObjectFullName = @OrigObjectCleanQuotedSchemaName + '.' + @OrigObjectCleanQuotedName;
 
-   SELECT @OrigTableFullName = S.base_object_name
+   EXEC tSQLt.Private_RenameObjectToUniqueName @OrigObjectCleanQuotedSchemaName, @OrigObjectCleanQuotedName, @OrigObjectNewName OUTPUT;
+
+   SELECT @TargetObjectFullName = S.base_object_name
      FROM sys.synonyms AS S 
-    WHERE S.object_id = OBJECT_ID(@SchemaName + '.' + @NewNameOfOriginalTable);
+    WHERE S.object_id = OBJECT_ID(@OrigObjectCleanQuotedSchemaName + '.' + @OrigObjectNewName);
 
-   IF(@OrigTableFullName IS NOT NULL)
+   IF(@TargetObjectFullName IS NOT NULL)
    BEGIN
-     IF(COALESCE(OBJECT_ID(@OrigTableFullName,'U'),OBJECT_ID(@OrigTableFullName,'V')) IS NULL)
+     IF(COALESCE(OBJECT_ID(@TargetObjectFullName,'U'),OBJECT_ID(@TargetObjectFullName,'V')) IS NULL)
      BEGIN
-       RAISERROR('Cannot fake synonym %s.%s as it is pointing to %s, which is not a table or view!',16,10,@SchemaName,@TableName,@OrigTableFullName);
+       RAISERROR('Cannot fake synonym %s as it is pointing to %s, which is not a table or view!',16,10,@OrigObjectFullName,@TargetObjectFullName);
      END;
    END;
    ELSE
    BEGIN
-     SET @OrigTableFullName = @SchemaName + '.' + @NewNameOfOriginalTable;
+     SET @TargetObjectFullName = @OrigObjectCleanQuotedSchemaName + '.' + QUOTENAME(@OrigObjectNewName); --TODO:Test for QUOTENAME
    END;
 
-   EXEC tSQLt.Private_CreateFakeOfTable @SchemaName, @TableName, @OrigTableFullName, @Identity, @ComputedColumns, @Defaults;
+   EXEC tSQLt.Private_CreateFakeOfTable @OrigObjectCleanQuotedSchemaName, @OrigObjectCleanQuotedName, @TargetObjectFullName, @Identity, @ComputedColumns, @Defaults;
 
-   EXEC tSQLt.Private_MarkFakeTable @SchemaName, @TableName, @NewNameOfOriginalTable;
+   EXEC tSQLt.Private_MarktSQLtTempObject @OrigObjectFullName, N'TABLE', @OrigObjectNewName;
 END
 ---Build-
 GO
