@@ -6,7 +6,7 @@ CREATE FUNCTION tSQLt.[@tSQLt:NoTransaction]()
 RETURNS TABLE
 AS
 RETURN
-  SELECT NULL AS AnnotationCmd;
+  SELECT 'INSERT INTO #NoTransaction DEFAULT VALUES;' AS AnnotationCmd;
 GO
 ---Build-
 GO

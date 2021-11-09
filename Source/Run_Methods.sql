@@ -59,8 +59,7 @@ BEGIN
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
     CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
-    --TODO:NoTran
-    ---- CREATE #NoTran
+    CREATE TABLE #NoTransaction(X INT);
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -70,7 +69,7 @@ BEGIN
 
     SELECT @Cmd = 'EXEC ' + @TestName;
     
-    SELECT @TestClassName = OBJECT_SCHEMA_NAME(OBJECT_ID(@TestName)), --tSQLt.Private_GetCleanSchemaName('', @TestName),
+    SELECT @TestClassName = OBJECT_SCHEMA_NAME(OBJECT_ID(@TestName)),
            @TestProcName = tSQLt.Private_GetCleanObjectName(@TestName),
            @TestObjectId = OBJECT_ID(@TestName);
            
@@ -91,21 +90,30 @@ BEGIN
     ---- Move AnnotationProcessing to here?
     ---- Save NoTransaction Status in variable!!!
     ---- Do not start transaction?
-    BEGIN TRAN;
-    SAVE TRAN @TranName;
+    DECLARE @SkipTestFlag BIT = 0;
+    DECLARE @NoTransactionFlag BIT = 0;
+    BEGIN TRY
 
-    SET @PreExecTrancount = @@TRANCOUNT;
+      EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
+      SET @SkipTestFlag = CASE WHEN EXISTS(SELECT 1 FROM #SkipTest) THEN 1 ELSE 0 END;
+      SET @NoTransactionFlag = CASE WHEN EXISTS(SELECT 1 FROM #NoTransaction) THEN 1 ELSE 0 END;
+
+      IF(@NoTransactionFlag = 0)
+      BEGIN
+        BEGIN TRAN;
+        SAVE TRAN @TranName;
+      END;
+
+      SET @PreExecTrancount = @@TRANCOUNT;
 
     
-    TRUNCATE TABLE tSQLt.TestMessage;
+      TRUNCATE TABLE tSQLt.TestMessage;
 
-    BEGIN TRY
-      EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
 
       DECLARE @TmpMsg NVARCHAR(MAX);
       DECLARE @TestEndTime DATETIME2; SET @TestEndTime = NULL;
       BEGIN TRY
-        IF(NOT EXISTS(SELECT 1 FROM #SkipTest))
+        IF(@SkipTestFlag = 0)
         BEGIN
           IF (@SetUp IS NOT NULL) EXEC @SetUp;
           EXEC (@Cmd);
@@ -232,7 +240,10 @@ BEGIN
     ---- Compare @@Trancount, throw up arms if it doesn't match
     --TODO:NoTran
     BEGIN TRY
+      IF(@NoTransactionFlag = 0)
+      BEGIN      
         ROLLBACK TRAN @TranName;
+      END;
     END TRY
     BEGIN CATCH
         DECLARE @PostExecTrancount INT;
@@ -271,7 +282,10 @@ BEGIN
                'Error', 
                'TestResult entry is missing; Original outcome: ' + @Result + ', ' + @Msg;
     END;    
-    COMMIT;
+    IF(@NoTransactionFlag = 0)
+    BEGIN
+      COMMIT;
+    END;
 
     IF(@Verbose = 1)
     BEGIN
