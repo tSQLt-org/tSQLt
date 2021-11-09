@@ -59,6 +59,8 @@ BEGIN
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
     CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
+    --TODO:NoTran
+    ---- CREATE #NoTran
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
@@ -85,6 +87,10 @@ BEGIN
 
 
     SET @Result = 'Success';
+    --TODO:NoTran
+    ---- Move AnnotationProcessing to here?
+    ---- Save NoTransaction Status in variable!!!
+    ---- Do not start transaction?
     BEGIN TRAN;
     SAVE TRAN @TranName;
 
@@ -103,6 +109,8 @@ BEGIN
         BEGIN
           IF (@SetUp IS NOT NULL) EXEC @SetUp;
           EXEC (@Cmd);
+    --TODO:NoTran
+    ----EXEC @CleanUp --Probably further down  both, TestClassName.CleanUp and provided as a parameter to the annotation?
           IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
           BEGIN
             SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
@@ -220,6 +228,9 @@ BEGIN
         SET @Msg = ERROR_MESSAGE();
     END CATCH
 
+    --TODO:NoTran
+    ---- Compare @@Trancount, throw up arms if it doesn't match
+    --TODO:NoTran
     BEGIN TRY
         ROLLBACK TRAN @TranName;
     END TRY
