@@ -92,6 +92,7 @@ BEGIN
     ---- Do not start transaction?
     DECLARE @SkipTestFlag BIT = 0;
     DECLARE @NoTransactionFlag BIT = 0;
+    DECLARE @TransactionStartedFlag BIT = 0;
     BEGIN TRY
 
       EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
@@ -101,6 +102,7 @@ BEGIN
       IF(@NoTransactionFlag = 0)
       BEGIN
         BEGIN TRAN;
+        SET @TransactionStartedFlag = 1;
         SAVE TRAN @TranName;
       END;
 
@@ -240,7 +242,7 @@ BEGIN
     ---- Compare @@Trancount, throw up arms if it doesn't match
     --TODO:NoTran
     BEGIN TRY
-      IF(@NoTransactionFlag = 0)
+      IF(@TransactionStartedFlag = 1)
       BEGIN      
         ROLLBACK TRAN @TranName;
       END;
@@ -282,7 +284,7 @@ BEGIN
                'Error', 
                'TestResult entry is missing; Original outcome: ' + @Result + ', ' + @Msg;
     END;    
-    IF(@NoTransactionFlag = 0)
+    IF(@TransactionStartedFlag = 1)
     BEGIN
       COMMIT;
     END;

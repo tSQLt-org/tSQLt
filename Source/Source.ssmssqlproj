@@ -18,9 +18,6 @@
           <FullPath>ExecutePrepareServer.sql</FullPath>
         </FileNode>
         <FileNode Name="Run_Methods.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>Run_Methods.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql">
@@ -30,10 +27,10 @@
           <FullPath>tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.(at)tSQLt_NoTransaction.sfn.sql">
+          <FullPath>tSQLt.(at)tSQLt_NoTransaction.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.(at)tSQLt_RunOnlyOnHostPlatform.sfn.sql">
           <AssociatedConnectionMoniker />
@@ -42,9 +39,9 @@
           <FullPath>tSQLt.(at)tSQLt_RunOnlyOnHostPlatform.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.(at)tSQLt_SkipTest.sfn.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:localhost,41433:False:tSQLt_sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>localhost,41433</AssociatedConnSrvName>
+          <AssociatedConnUserName>tSQLt_sa</AssociatedConnUserName>
           <FullPath>tSQLt.(at)tSQLt_SkipTest.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.ApplyTrigger.ssp.sql">
@@ -426,9 +423,9 @@
           <FullPath>tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_ProcessTestAnnotations.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:localhost,41433:False:tSQLt_sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>localhost,41433</AssociatedConnSrvName>
+          <AssociatedConnUserName>tSQLt_sa</AssociatedConnUserName>
           <FullPath>tSQLt.Private_ProcessTestAnnotations.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_QuoteClassNameForNewTestClass.sfn.sql">

@@ -28,3 +28,13 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS IN
   
 END;
 GO
+
+/*-- TODO
+
+-- transaction opened during test
+-- transaction commited during test
+-- test skipped?
+-- cleanup execution tables
+-- 
+
+--*/
