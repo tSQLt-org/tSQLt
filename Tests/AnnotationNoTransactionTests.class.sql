@@ -28,15 +28,46 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS IN
   
 END;
 GO
+--[@tSQLt:SkipTest]('TODO: needs other tests first')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test produces meaningful error when pre and post transactions counts don't match]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;
+  ');
 
+  --EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
+
+  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test succeeding test gets correct entry in TestResults table]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RETURN;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+  SELECT * FROM tSQLt.TestResult AS TR
+  EXEC tSQLt.Fail 'TODO: testname, TranName, Result';
+END;
+GO
 /*-- TODO
 
 -- transaction opened during test
 -- transaction commited during test
 -- test skipped?
+-- inner-transaction-free test succeeds
+-- inner-transaction-free test fails
+-- inner-transaction-free test errors
 -- cleanup execution tables
--- SpyProcedureLog table needs to be marked with IsTempObject in extended properties
 -- named cleanup (needs to execute even if there's an error during test execution)
 -- confirm pre and post transaction counts match
+-- [test produces meaningful error when pre and post transactions counts don't match]
 
 --*/

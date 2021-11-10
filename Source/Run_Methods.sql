@@ -49,7 +49,7 @@ BEGIN
     DECLARE @Result NVARCHAR(MAX);
     DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
     DECLARE @TestResultId INT;
-    DECLARE @PreExecTrancount INT;
+    DECLARE @PreExecTrancount INT = NULL;
     DECLARE @TestObjectId INT;
 
     DECLARE @VerboseMsg NVARCHAR(MAX);
@@ -103,7 +103,12 @@ BEGIN
       END;
 
       SET @PreExecTrancount = @@TRANCOUNT;
-
+      --SELECT 1 X, @SkipTestFlag SkipTestFlag, 
+      --       @NoTransactionFlag NoTransactionFlag,
+      --       @TransactionStartedFlag TransactionStartedFlag,
+      --       @PreExecTrancount PreExecTrancount,
+      --       @@TRANCOUNT Trancount,
+      --       @TestName TestName;
     
       TRUNCATE TABLE tSQLt.TestMessage;
 
@@ -115,6 +120,7 @@ BEGIN
         BEGIN
           IF (@SetUp IS NOT NULL) EXEC @SetUp;
           EXEC (@Cmd);
+
     --TODO:NoTran
     ----EXEC @CleanUp --Probably further down, called "<TestClassName>.CleanUp"
           IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
@@ -233,13 +239,25 @@ BEGIN
         SET @Result = 'Error';
         SET @Msg = ERROR_MESSAGE();
     END CATCH
-
+    --SELECT 2 X, @SkipTestFlag SkipTestFlag, 
+    --       @NoTransactionFlag NoTransactionFlag,
+    --       @TransactionStartedFlag TransactionStartedFlag,
+    --       @PreExecTrancount PreExecTrancount,
+    --       @@TRANCOUNT Trancount,
+    --       @TestName TestName;
     --TODO:NoTran
     ---- Compare @@Trancount, throw up arms if it doesn't match
     --TODO:NoTran
     BEGIN TRY
       IF(@TransactionStartedFlag = 1)
-      BEGIN      
+      BEGIN
+      --SELECT 3 X, @SkipTestFlag SkipTestFlag, 
+      --       @NoTransactionFlag NoTransactionFlag,
+      --       @TransactionStartedFlag TransactionStartedFlag,
+      --       @PreExecTrancount PreExecTrancount,
+      --       @@TRANCOUNT Trancount,
+      --       @TestName TestName;
+
         ROLLBACK TRAN @TranName;
       END;
     END TRY

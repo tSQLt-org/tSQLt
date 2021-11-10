@@ -131,3 +131,40 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable '#Actual';
 END;
 GO
+CREATE PROCEDURE Private_MarktSQLtTempObjectTests.[test doesn't set tSQLt.Private_TestDouble_OrgObjectName if @NewNameOfOriginalObject is NULL for child objects]
+AS
+BEGIN
+  CREATE TABLE Private_MarktSQLtTempObjectTests.TempTable1(i INT NOT NULL CONSTRAINT TempConstraint1 PRIMARY KEY);
+  EXEC tSQLt.Private_MarktSQLtTempObject 
+    @ObjectName = 'Private_MarktSQLtTempObjectTests.TempConstraint1',
+    @ObjectType = N'CONSTRAINT',
+    @NewNameOfOriginalObject = NULL;
+  
+  SELECT *
+    INTO #Actual
+    FROM sys.extended_properties AS EP
+   WHERE EP.class_desc = 'OBJECT_OR_COLUMN'
+     AND EP.major_id = OBJECT_ID('Private_MarktSQLtTempObjectTests.TempConstraint1')
+     AND EP.name = 'tSQLt.Private_TestDouble_OrgObjectName';
+  
+  EXEC tSQLt.AssertEmptyTable '#Actual';
+END;
+GO
+CREATE PROCEDURE Private_MarktSQLtTempObjectTests.[test defaults to not setting tSQLt.Private_TestDouble_OrgObjectName]
+AS
+BEGIN
+  CREATE TABLE Private_MarktSQLtTempObjectTests.TempTable1(i INT NOT NULL);
+  EXEC tSQLt.Private_MarktSQLtTempObject 
+    @ObjectName = 'Private_MarktSQLtTempObjectTests.TempTable1',
+    @ObjectType = N'TABLE';
+  
+  SELECT *
+    INTO #Actual
+    FROM sys.extended_properties AS EP
+   WHERE EP.class_desc = 'OBJECT_OR_COLUMN'
+     AND EP.major_id = OBJECT_ID('Private_MarktSQLtTempObjectTests.TempTable1')
+     AND EP.name = 'tSQLt.Private_TestDouble_OrgObjectName';
+  
+  EXEC tSQLt.AssertEmptyTable '#Actual';
+END;
+GO

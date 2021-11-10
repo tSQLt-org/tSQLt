@@ -474,6 +474,10 @@ BEGIN
   EXEC tSQLt.RemoveObject @ObjectName='UndoTestDoublesTests.aSimpleTable';
   EXEC ('CREATE PROCEDURE UndoTestDoublesTests.aSimpleTable AS PRINT ''Who came up with that name?'';');
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+  EXEC sys.sp_dropextendedproperty 
+   @name = N'tSQLt.IsTempObject',
+   @level0type = N'SCHEMA', @level0name = 'tSQLt', 
+   @level1type = N'TABLE',  @level1name = 'Private_Print_SpyProcedureLog';   
 
   EXEC tSQLt.UndoTestDoubles @Force=1;
   

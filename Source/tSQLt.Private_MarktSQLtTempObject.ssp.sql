@@ -4,7 +4,7 @@ GO
 CREATE PROCEDURE tSQLt.Private_MarktSQLtTempObject
   @ObjectName NVARCHAR(MAX),
   @ObjectType NVARCHAR(MAX),
-  @NewNameOfOriginalObject NVARCHAR(4000)
+  @NewNameOfOriginalObject NVARCHAR(4000) = NULL
 AS
 BEGIN
   DECLARE @UnquotedSchemaName NVARCHAR(MAX);
@@ -26,11 +26,14 @@ BEGIN
        @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
        @level1type = @ObjectType,  @level1name = @UnquotedObjectName;   
 
-    EXEC sys.sp_addextendedproperty 
-       @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
-       @value = @NewNameOfOriginalObject, 
-       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
-       @level1type = @ObjectType,  @level1name = @UnquotedObjectName;
+    IF(@NewNameOfOriginalObject IS NOT NULL)
+    BEGIN
+      EXEC sys.sp_addextendedproperty 
+         @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
+         @value = @NewNameOfOriginalObject, 
+         @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
+         @level1type = @ObjectType,  @level1name = @UnquotedObjectName;
+    END;
   END;
   ELSE
   BEGIN
@@ -41,12 +44,15 @@ BEGIN
        @level1type = N'TABLE',  @level1name = @UnquotedParentName,
        @level2type = @ObjectType,  @level2name = @UnquotedObjectName;
 
-    EXEC sys.sp_addextendedproperty 
-       @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
-       @value = @NewNameOfOriginalObject, 
-       @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
-       @level1type = N'TABLE',  @level1name = @UnquotedParentName,
-       @level2type = @ObjectType,  @level2name = @UnquotedObjectName;
+    IF(@NewNameOfOriginalObject IS NOT NULL)
+    BEGIN
+      EXEC sys.sp_addextendedproperty 
+         @name = N'tSQLt.Private_TestDouble_OrgObjectName', 
+         @value = @NewNameOfOriginalObject, 
+         @level0type = N'SCHEMA', @level0name = @UnquotedSchemaName, 
+         @level1type = N'TABLE',  @level1name = @UnquotedParentName,
+         @level2type = @ObjectType,  @level2name = @UnquotedObjectName;
+    END;
   END;
 END;
 ---Build-
