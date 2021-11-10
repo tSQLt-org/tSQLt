@@ -86,10 +86,6 @@ BEGIN
 
 
     SET @Result = 'Success';
-    --TODO:NoTran
-    ---- Move AnnotationProcessing to here?
-    ---- Save NoTransaction Status in variable!!!
-    ---- Do not start transaction?
     DECLARE @SkipTestFlag BIT = 0;
     DECLARE @NoTransactionFlag BIT = 0;
     DECLARE @TransactionStartedFlag BIT = 0;
@@ -120,7 +116,7 @@ BEGIN
           IF (@SetUp IS NOT NULL) EXEC @SetUp;
           EXEC (@Cmd);
     --TODO:NoTran
-    ----EXEC @CleanUp --Probably further down  both, TestClassName.CleanUp and provided as a parameter to the annotation?
+    ----EXEC @CleanUp --Probably further down, called "<TestClassName>.CleanUp"
           IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
           BEGIN
             SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';

@@ -35,6 +35,8 @@ GO
 -- transaction commited during test
 -- test skipped?
 -- cleanup execution tables
--- 
+-- SpyProcedureLog table needs to be marked with IsTempObject in extended properties
+-- named cleanup (needs to execute even if there's an error during test execution)
+-- confirm pre and post transaction counts match
 
 --*/

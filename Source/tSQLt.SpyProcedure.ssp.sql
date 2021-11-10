@@ -34,6 +34,7 @@ BEGIN
     EXEC(@CreateProcedureStatement);
 
     EXEC tSQLt.Private_MarktSQLtTempObject @ProcedureName, N'PROCEDURE', @NewNameOfOriginalObject;
+    EXEC tSQLt.Private_MarktSQLtTempObject @LogTableName, N'TABLE', NULL;
 
     RETURN 0;
 END;

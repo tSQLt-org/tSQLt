@@ -755,12 +755,12 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROC SpyProcedureTests.[test SpyProcedure calls tSQLt.Private_MarktSQLtTempObject on new object]
+CREATE PROC SpyProcedureTests.[test SpyProcedure calls tSQLt.Private_MarktSQLtTempObject on new objects]
 AS
 BEGIN
   DECLARE @OriginalObjectId INT = OBJECT_ID('tSQLt.Private_MarktSQLtTempObject');
 
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  EXEC tSQLt.SpyProcedure @ProcedureName = '[tSQLt].[Private_MarktSQLtTempObject]';
   --We are testing that SpyProcedure calls this ^^ after spying this ^^, so this line serves as prep and action.
 
   SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
@@ -769,10 +769,32 @@ BEGIN
   
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-    VALUES('tSQLt.Private_MarktSQLtTempObject', N'PROCEDURE', OBJECT_NAME(@OriginalObjectId));
+    VALUES('[tSQLt].[Private_MarktSQLtTempObject]', N'PROCEDURE', OBJECT_NAME(@OriginalObjectId)),
+          ('[tSQLt].[Private_MarktSQLtTempObject_SpyProcedureLog]', N'TABLE', NULL);
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
+END;
+GO
+CREATE PROC SpyProcedureTests.[test new SpyProcedureLog table is marked as tSQLt.IsTempObject]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS RETURN;');
+  
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1';
+  
+  SELECT name, value 
+    INTO #Actual
+    FROM sys.extended_properties
+   WHERE class_desc = 'OBJECT_OR_COLUMN'
+     AND major_id = OBJECT_ID('SpyProcedureTests.TempProcedure1_SpyProcedureLog')
+     AND name = 'tSQLt.IsTempObject';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('tSQLt.IsTempObject',	1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 
