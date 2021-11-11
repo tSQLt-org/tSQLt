@@ -98,7 +98,7 @@ BEGIN
       IF(@NoTransactionFlag = 0)
       BEGIN
         EXEC tSQLt.GetNewTranName @TranName OUT;
-        UPDATE we still need to save the TranName as something somewhere.
+        UPDATE tSQLt.TestResult SET TranName = @TranName WHERE Id = @TestResultId;
         BEGIN TRAN;
         SET @TransactionStartedFlag = 1;
         SAVE TRAN @TranName;

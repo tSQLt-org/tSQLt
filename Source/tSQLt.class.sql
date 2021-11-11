@@ -5,7 +5,7 @@ CREATE TABLE tSQLt.TestResult(
     Class NVARCHAR(MAX) NOT NULL,
     TestCase NVARCHAR(MAX) NOT NULL,
     Name AS (QUOTENAME(Class) + '.' + QUOTENAME(TestCase)),
-    TranName NVARCHAR(MAX) NOT NULL,
+    TranName NVARCHAR(MAX) NULL,
     Result NVARCHAR(MAX) NULL,
     Msg NVARCHAR(MAX) NULL,
     TestStartTime DATETIME2 NOT NULL CONSTRAINT [DF:TestResult(TestStartTime)] DEFAULT SYSDATETIME(),
