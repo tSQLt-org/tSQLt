@@ -110,17 +110,57 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS EX
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   
   INSERT INTO #Expected
-  VALUES('Success','Some Obscure Reason');
+  VALUES('Failure','Some Obscure Reason');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test recoverable erroring test gets correct entry in TestResults table]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RAISERROR (''Some Obscure Recoverable Error'', 16, 10);
+  ');
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+  SELECT Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+  VALUES('Error','Some Obscure Recoverable Error[16,10]{MyInnerTests.test should execute outside of transaction,3}');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+--[@tSQLt:SkipTest]('Only works if we run the test without a transaction and ...e doesn''t feel comfortable doing that yet.')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test unrecoverable erroring test gets correct entry in TestResults table]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS SELECT CAST(''Some obscure string'' AS INT);
+  ');
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+  SELECT Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+  VALUES('Error','Some Obscure Recoverable Error[16,10]{MyInnerTests.test should execute outside of transaction,3}');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+
 /*-- TODO
 
 -- transaction opened during test
 -- transaction commited during test
 -- test skipped?
--- inner-transaction-free test succeeds
--- inner-transaction-free test fails
 -- inner-transaction-free test errors
 -- cleanup execution tables
 -- named cleanup (needs to execute even if there's an error during test execution)
