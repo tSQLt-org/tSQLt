@@ -53,8 +53,32 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RE
   ');
 
   EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
-  SELECT * FROM tSQLt.TestResult AS TR
-  EXEC tSQLt.Fail 'TODO: testname, TranName, Result';
+  SELECT Result INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+  VALUES('Success');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test transaction name is NULL in TestResults table]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RETURN;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+  SELECT TranName INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+  VALUES(NULL);
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 /*-- TODO

@@ -47,7 +47,7 @@ BEGIN
     DECLARE @TestClassName NVARCHAR(MAX); SET @TestClassName = '';
     DECLARE @TestProcName NVARCHAR(MAX); SET @TestProcName = '';
     DECLARE @Result NVARCHAR(MAX);
-    DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
+    DECLARE @TranName CHAR(32) = NULL;
     DECLARE @TestResultId INT;
     DECLARE @PreExecTrancount INT = NULL;
     DECLARE @TestObjectId INT;
@@ -97,6 +97,8 @@ BEGIN
 
       IF(@NoTransactionFlag = 0)
       BEGIN
+        EXEC tSQLt.GetNewTranName @TranName OUT;
+        UPDATE we still need to save the TranName as something somewhere.
         BEGIN TRAN;
         SET @TransactionStartedFlag = 1;
         SAVE TRAN @TranName;
