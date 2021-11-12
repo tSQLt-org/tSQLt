@@ -12,10 +12,6 @@ CREATE TABLE tSQLt.TestResult(
     TestEndTime DATETIME2 NULL
 );
 GO
-CREATE TABLE tSQLt.TestMessage(
-    Msg NVARCHAR(MAX)
-);
-GO
 CREATE TABLE tSQLt.Run_LastExecution(
     TestName NVARCHAR(MAX),
     SessionId INT,

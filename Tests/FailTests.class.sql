@@ -93,7 +93,7 @@ BEGIN
 
   DECLARE @TestResultMessage NVARCHAR(MAX);
   SELECT @TestResultMessage = Msg
-    FROM tSQLt.TestMessage;
+    FROM #TestMessage;
 
   DECLARE @ExpectedMessage NVARCHAR(MAX);
   SET @ExpectedMessage = '%Not really a failure - just seeing that fail works%'+CHAR(13)+CHAR(10)+'Warning: Uncommitable transaction detected!%'

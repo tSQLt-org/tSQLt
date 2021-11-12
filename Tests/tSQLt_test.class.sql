@@ -1310,7 +1310,7 @@ BEGIN
     
     SELECT '{' + Msg + '}' AS BracedMsg
       INTO #actual
-      FROM tSQLt.TestMessage;
+      FROM #TestMessage;
       
     SELECT TOP(0) *
       INTO #expected
@@ -1333,7 +1333,7 @@ BEGIN
     
     SELECT '{' + Msg + '}' AS BracedMsg
       INTO #actual
-      FROM tSQLt.TestMessage;
+      FROM #TestMessage;
       
     SELECT TOP(0) *
       INTO #expected

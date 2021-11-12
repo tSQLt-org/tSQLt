@@ -57,6 +57,7 @@ BEGIN
     SET @Verbose = ISNULL((SELECT CAST(Value AS BIT) FROM tSQLt.Private_GetConfiguration('Verbose')),0);
     
     TRUNCATE TABLE tSQLt.CaptureOutputLog;
+    CREATE TABLE #TestMessage(Msg NVARCHAR(MAX));
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
     CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
     CREATE TABLE #NoTransaction(X INT);
@@ -114,10 +115,6 @@ BEGIN
       --       @Result Result,
       --       @Msg Msg;
     
-      TRUNCATE TABLE tSQLt.TestMessage;
-
-
-
       DECLARE @TmpMsg NVARCHAR(MAX);
       DECLARE @TestEndTime DATETIME2; SET @TestEndTime = NULL;
       BEGIN TRY
@@ -149,7 +146,7 @@ BEGIN
           SET @TestEndTime = ISNULL(@TestEndTime,SYSDATETIME());
           IF ERROR_MESSAGE() LIKE '%tSQLt.Failure%'
           BEGIN
-              SELECT @Msg = Msg FROM tSQLt.TestMessage;
+              SELECT @Msg = Msg FROM #TestMessage;
               SET @Result = 'Failure';
           END
           ELSE
