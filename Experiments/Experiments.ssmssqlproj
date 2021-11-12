@@ -2,7 +2,6 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Experiments">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
-      <Items />
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -101,6 +100,9 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>SQLCmdTest.1.sql</FullPath>
+        </FileNode>
+        <FileNode Name="TestingTransactionNames.sql">
+          <FullPath>TestingTransactionNames.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtListObjects.sql">
           <AssociatedConnectionMoniker />

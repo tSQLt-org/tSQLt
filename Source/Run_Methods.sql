@@ -110,9 +110,12 @@ BEGIN
       --       @TransactionStartedFlag TransactionStartedFlag,
       --       @PreExecTrancount PreExecTrancount,
       --       @@TRANCOUNT Trancount,
-      --       @TestName TestName;
+      --       @TestName TestName,
+      --       @Result Result,
+      --       @Msg Msg;
     
       TRUNCATE TABLE tSQLt.TestMessage;
+
 
 
       DECLARE @TmpMsg NVARCHAR(MAX);
@@ -246,7 +249,9 @@ BEGIN
     --       @TransactionStartedFlag TransactionStartedFlag,
     --       @PreExecTrancount PreExecTrancount,
     --       @@TRANCOUNT Trancount,
-    --       @TestName TestName;
+    --       @TestName TestName,
+    --       @Result Result,
+    --       @Msg Msg;
     --TODO:NoTran
     ---- Compare @@Trancount, throw up arms if it doesn't match
     --TODO:NoTran
@@ -258,7 +263,9 @@ BEGIN
       --       @TransactionStartedFlag TransactionStartedFlag,
       --       @PreExecTrancount PreExecTrancount,
       --       @@TRANCOUNT Trancount,
-      --       @TestName TestName;
+      --       @TestName TestName,
+      --       @Result Result,
+      --       @Msg Msg;
 
         ROLLBACK TRAN @TranName;
       END;
@@ -276,6 +283,17 @@ BEGIN
           SET @Result = 'Error';
         END;
     END CATCH;  
+
+    --SELECT 4 X, @SkipTestFlag SkipTestFlag, 
+    --       @NoTransactionFlag NoTransactionFlag,
+    --       @TransactionStartedFlag TransactionStartedFlag,
+    --       @PreExecTrancount PreExecTrancount,
+    --       @@TRANCOUNT Trancount,
+    --       @TestName TestName,
+    --       @Result Result,
+    --       @Msg Msg;
+
+
 
     If(@Result NOT IN ('Success','Skipped'))
     BEGIN

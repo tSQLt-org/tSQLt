@@ -22,8 +22,6 @@ CREATE TABLE tSQLt.Run_LastExecution(
     LoginTime DATETIME
 );
 GO
-CREATE TABLE tSQLt.Private_ExpectException(i INT);
-GO
 CREATE PROCEDURE tSQLt.Private_Print 
     @Message NVARCHAR(MAX),
     @Severity INT = 0

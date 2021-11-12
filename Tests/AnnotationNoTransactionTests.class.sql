@@ -134,24 +134,25 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RA
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
---[@tSQLt:SkipTest]('Only works if we run the test without a transaction and ...e doesn''t feel comfortable doing that yet.')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test unrecoverable erroring test gets correct entry in TestResults table]
+--[@tSQLt:NoTransaction]()
+--[@tSQLt:SkipTest]('TODO: needs other tests first')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:NoTransaction]()
-CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS SELECT CAST(''Some obscure string'' AS INT);
+CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT CAST(''Some obscure string'' AS INT);
   ');
 
   EXEC tSQLt.SetSummaryError 0;
-  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+  EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
   SELECT Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   
   INSERT INTO #Expected
-  VALUES('Error','Some Obscure Recoverable Error[16,10]{MyInnerTests.test should execute outside of transaction,3}');
+  VALUES('Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -168,5 +169,7 @@ GO
 -- [test produces meaningful error when pre and post transactions counts don't match]
 --  we still need to save the TranName as something somewhere.
 -- settings need to be preserved (e.g. SummaryError)
+-- Ctrl+9 is broken with NoTransaction
+-- preserve content of all tSQLt.% tables
 
 --*/
