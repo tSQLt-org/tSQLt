@@ -78,7 +78,6 @@ tSQLt.Private_CreateResultTableForCompareTables.ssp.sql
 tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported.ssp.sql
 tSQLt.Private_CompareTablesFailIfUnequalRowsExists.ssp.sql
 tSQLt.Private_CompareTables.ssp.sql
-tSQLt.Private_NullCellTable.tbl.sql
 tSQLt.AssertObjectExists.ssp.sql
 tSQLt.AssertObjectDoesNotExist.ssp.sql
 tSQLt.AssertEqualsString.ssp.sql

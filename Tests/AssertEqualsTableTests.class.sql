@@ -468,11 +468,10 @@ GO
 CREATE PROCEDURE AssertEqualsTableTests.[test considers NULL values identical]
 AS
 BEGIN
-  SELECT *
-    INTO AssertEqualsTableTests.NullCellTableCopy
-    FROM tSQLt.Private_NullCellTable;
+  SELECT NULL [aNULLColumn] INTO #Actual;
+  SELECT NULL [aNULLColumn] INTO #Expected;
   
-  EXEC tSQLt.AssertEqualsTable 'tSQLt.Private_NullCellTable', 'AssertEqualsTableTests.NullCellTableCopy';
+  EXEC tSQLt.AssertEqualsTable #Expected, #Actual;
 END;
 GO
 
@@ -705,7 +704,6 @@ BEGIN
     EXEC tSQLt.AssertEqualsTable 'expected', 'actual';
 END;
 GO
-
 CREATE PROC AssertEqualsTableTests.test_AssertEqualsTable_works_with_expected_having_identity_column
 AS
 BEGIN

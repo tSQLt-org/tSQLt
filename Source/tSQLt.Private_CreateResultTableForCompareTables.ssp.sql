@@ -10,10 +10,8 @@ AS
 BEGIN
   DECLARE @Cmd NVARCHAR(MAX);
   SET @Cmd = '
-     SELECT ''='' AS ' + @ResultColumn + ', Expected.* INTO ' + @ResultTable + ' 
-       FROM tSQLt.Private_NullCellTable N 
-       LEFT JOIN ' + @BaseTable + ' AS Expected ON N.I <> N.I 
-     TRUNCATE TABLE ' + @ResultTable + ';' --Need to insert an actual row to prevent IDENTITY property from transfering (IDENTITY_COL can't be NULLable);
+     SELECT TOP(0) ''>'' AS ' + @ResultColumn + ', Expected.* INTO ' + @ResultTable + ' 
+       FROM ' + @BaseTable + ' AS Expected RIGHT JOIN ' + @BaseTable + ' AS X ON 1=0; '
   EXEC(@Cmd);
 END
 GO

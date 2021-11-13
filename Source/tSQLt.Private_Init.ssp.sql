@@ -7,8 +7,6 @@ AS
 BEGIN
   EXEC tSQLt.Private_CleanTestResult;
 
-  UPDATE tSQLt.Private_NullCellTable SET I=I WHERE 'Forcing trigger execution.' != '';
-
   DECLARE @enable BIT; SET @enable = 1;
   DECLARE @version_match BIT;SET @version_match = 0;
   BEGIN TRY
