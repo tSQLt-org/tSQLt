@@ -6,6 +6,12 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="_ExploratoryTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>_ExploratoryTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="AnnotationHostPlatformTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -137,12 +143,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>ExpectNoExceptionTests.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="ExploratoryTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>ExploratoryTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="FailTests.class.sql">
           <AssociatedConnectionMoniker />
