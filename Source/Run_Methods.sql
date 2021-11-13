@@ -281,6 +281,7 @@ BEGIN
         END;
     END CATCH;  
 
+
     --SELECT 4 X, @SkipTestFlag SkipTestFlag, 
     --       @NoTransactionFlag NoTransactionFlag,
     --       @TransactionStartedFlag TransactionStartedFlag,
@@ -289,8 +290,9 @@ BEGIN
     --       @TestName TestName,
     --       @Result Result,
     --       @Msg Msg;
-
-
+    DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
+    EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
+    SET @Msg = @Msg + ' ' + @CleanUpErrorMsg;
 
     If(@Result NOT IN ('Success','Skipped'))
     BEGIN

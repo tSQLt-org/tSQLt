@@ -156,15 +156,84 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test calls tSQLt.Private_CleanUp]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;
+  ');
 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT FullTestName INTO #Actual FROM tSQLt.Private_CleanUp_SpyProcedureLog;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+  VALUES('[MyInnerTests].[test1]');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test message returned by tSQLt.Private_CleanUp is appended to tSQLt.TestResult.Msg]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test1] AS PRINT 1/0;
+  ');
+ 
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'SET @ErrorMsg = ''<Example Message>'';'; 
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestResult);
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = '% <Example Message>', @Actual = @Actual;
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test message returned by tSQLt.Private_CleanUp is called before the test result message is printed]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test1] AS RAISERROR(''<In-Test-Error>'',16,10);
+  ');
+ 
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'SET @ErrorMsg = ''<Example Message>'';'; 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT Message FROM tSQLt.Private_Print_SpyProcedureLog WHERE Message LIKE '%<In-Test-Error>%');
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = '% <Example Message>', @Actual = @Actual;
+END;
+GO
 /*-- TODO
+
+-- CLEANUP: named cleanup x 3 (needs to execute even if there's an error during test execution)
+---- there will be three clean up methods, executed in the following order
+---- 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
+---- 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
+---- 3. tSQLt.Private_CleanUp
+---- test for execution in the correct place in Private_RunTest
+---- test errors in any are captured and cause the test to Error
+---- If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
+---- appropriate error messages are appended to the test msg 
+---- tSQLt.Private_CleanUp Tests
+----- Tables --> SELECT * FROM sys.tables WHERE schema_id = SCHEMA_ID('tSQLt');
+----- tSQLt.UndoTestDoubles 
 
 -- transaction opened during test
 -- transaction commited during test
 -- test skipped?
 -- inner-transaction-free test errors
--- cleanup execution tables
--- named cleanup (needs to execute even if there's an error during test execution)
 -- confirm pre and post transaction counts match
 -- [test produces meaningful error when pre and post transactions counts don't match]
 --  we still need to save the TranName as something somewhere.

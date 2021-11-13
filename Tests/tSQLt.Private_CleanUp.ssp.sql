@@ -1,0 +1,10 @@
+IF OBJECT_ID('tSQLt.Private_CleanUp') IS NOT NULL DROP PROCEDURE tSQLt.Private_CleanUp;
+GO
+CREATE PROCEDURE tSQLt.Private_CleanUp
+  @FullTestName NVARCHAR(MAX),
+  @ErrorMsg NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+  RETURN;
+END;
+GO
