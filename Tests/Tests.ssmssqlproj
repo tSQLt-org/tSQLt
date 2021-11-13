@@ -2,6 +2,7 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Tests">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
+      <Items />
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -12,27 +13,27 @@
           <FullPath>AnnotationHostPlatformTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationNoTransactionTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:localhost,41433:False:tSQLt_sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>localhost,41433</AssociatedConnSrvName>
-          <AssociatedConnUserName>tSQLt_sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>AnnotationNoTransactionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationSkipTestTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:localhost,41433:False:tSQLt_sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>localhost,41433</AssociatedConnSrvName>
-          <AssociatedConnUserName>tSQLt_sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>AnnotationSkipTestTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationSqlServerVersionTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:localhost,41433:False:tSQLt_sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>localhost,41433</AssociatedConnSrvName>
-          <AssociatedConnUserName>tSQLt_sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>AnnotationSqlServerVersionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationsTests.class.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:localhost,41433:False:tSQLt_sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>localhost,41433</AssociatedConnSrvName>
-          <AssociatedConnUserName>tSQLt_sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>AnnotationsTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="ApplyConstraintTests.class.sql">
@@ -226,12 +227,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_MarktSQLtTempObjectTests.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Private_NullCellTableTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Private_NullCellTableTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_ProcessTestAnnotationsTests.class.sql">
           <AssociatedConnectionMoniker />

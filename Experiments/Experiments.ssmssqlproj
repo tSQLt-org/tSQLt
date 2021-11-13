@@ -2,6 +2,7 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Experiments">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
+      <Items />
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -34,6 +35,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>CertificateTest.sql</FullPath>
+        </FileNode>
+        <FileNode Name="CollationTests.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>CollationTests.sql</FullPath>
         </FileNode>
         <FileNode Name="EXPERIMENTS.sql">
           <AssociatedConnectionMoniker />
@@ -102,6 +109,9 @@
           <FullPath>SQLCmdTest.1.sql</FullPath>
         </FileNode>
         <FileNode Name="TestingTransactionNames.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>TestingTransactionNames.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtListObjects.sql">
