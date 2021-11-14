@@ -106,14 +106,6 @@ BEGIN
       END;
 
       SET @PreExecTrancount = @@TRANCOUNT;
-      --SELECT 1 X, @SkipTestFlag SkipTestFlag, 
-      --       @NoTransactionFlag NoTransactionFlag,
-      --       @TransactionStartedFlag TransactionStartedFlag,
-      --       @PreExecTrancount PreExecTrancount,
-      --       @@TRANCOUNT Trancount,
-      --       @TestName TestName,
-      --       @Result Result,
-      --       @Msg Msg;
     
       DECLARE @TmpMsg NVARCHAR(MAX);
       DECLARE @TestEndTime DATETIME2; SET @TestEndTime = NULL;
@@ -241,29 +233,13 @@ BEGIN
         SET @Result = 'Error';
         SET @Msg = ERROR_MESSAGE();
     END CATCH
-    --SELECT 2 X, @SkipTestFlag SkipTestFlag, 
-    --       @NoTransactionFlag NoTransactionFlag,
-    --       @TransactionStartedFlag TransactionStartedFlag,
-    --       @PreExecTrancount PreExecTrancount,
-    --       @@TRANCOUNT Trancount,
-    --       @TestName TestName,
-    --       @Result Result,
-    --       @Msg Msg;
+
     --TODO:NoTran
     ---- Compare @@Trancount, throw up arms if it doesn't match
     --TODO:NoTran
     BEGIN TRY
       IF(@TransactionStartedFlag = 1)
       BEGIN
-      --SELECT 3 X, @SkipTestFlag SkipTestFlag, 
-      --       @NoTransactionFlag NoTransactionFlag,
-      --       @TransactionStartedFlag TransactionStartedFlag,
-      --       @PreExecTrancount PreExecTrancount,
-      --       @@TRANCOUNT Trancount,
-      --       @TestName TestName,
-      --       @Result Result,
-      --       @Msg Msg;
-
         ROLLBACK TRAN @TranName;
       END;
     END TRY
@@ -281,18 +257,12 @@ BEGIN
         END;
     END CATCH;  
 
-
-    --SELECT 4 X, @SkipTestFlag SkipTestFlag, 
-    --       @NoTransactionFlag NoTransactionFlag,
-    --       @TransactionStartedFlag TransactionStartedFlag,
-    --       @PreExecTrancount PreExecTrancount,
-    --       @@TRANCOUNT Trancount,
-    --       @TestName TestName,
-    --       @Result Result,
-    --       @Msg Msg;
-    DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
-    EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
-    SET @Msg = @Msg + ' ' + @CleanUpErrorMsg;
+    IF (@NoTransactionFlag = 1)
+    BEGIN
+      DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
+      EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
+      SET @Msg = @Msg + ISNULL(' ' + @CleanUpErrorMsg, '');
+    END;
 
     If(@Result NOT IN ('Success','Skipped'))
     BEGIN
@@ -906,3 +876,14 @@ BEGIN
 END
 GO    
 --Build-
+
+
+
+      --SELECT 3 X, @SkipTestFlag SkipTestFlag, 
+      --       @NoTransactionFlag NoTransactionFlag,
+      --       @TransactionStartedFlag TransactionStartedFlag,
+      --       @PreExecTrancount PreExecTrancount,
+      --       @@TRANCOUNT Trancount,
+      --       @TestName TestName,
+      --       @Result Result,
+      --       @Msg Msg;

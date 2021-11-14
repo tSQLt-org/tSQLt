@@ -164,8 +164,9 @@ BEGIN
 --[@'+'tSQLt:NoTransaction]()
 CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;
   ');
-
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
+
+  EXEC tSQLt.SetSummaryError 0;
   EXEC tSQLt.Run 'MyInnerTests.[test1]';
 
   SELECT FullTestName INTO #Actual FROM tSQLt.Private_CleanUp_SpyProcedureLog;
@@ -175,6 +176,51 @@ CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;
   INSERT INTO #Expected
   VALUES('[MyInnerTests].[test1]');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call tSQLt.Private_CleanUp if not annotated and succeeding]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT * INTO #Actual FROM tSQLt.Private_CleanUp_SpyProcedureLog;
+
+  EXEC tSQLt.AssertEmptyTable '#Actual';
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call tSQLt.Private_CleanUp if not annotated and failing]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE MyInnerTests.[test1] AS EXEC tSQLt.Fail;');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT * INTO #Actual FROM tSQLt.Private_CleanUp_SpyProcedureLog;
+
+  EXEC tSQLt.AssertEmptyTable '#Actual';
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call tSQLt.Private_CleanUp if not annotated and erroring]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE MyInnerTests.[test1] AS RAISERROR(''X'',16,10);');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT * INTO #Actual FROM tSQLt.Private_CleanUp_SpyProcedureLog;
+
+  EXEC tSQLt.AssertEmptyTable '#Actual';
 END;
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test message returned by tSQLt.Private_CleanUp is appended to tSQLt.TestResult.Msg]
@@ -222,8 +268,8 @@ GO
 ---- 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
 ---- 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
 ---- 3. tSQLt.Private_CleanUp
----- test for execution in the correct place in Private_RunTest
----- test errors in any are captured and cause the test to Error
+---- test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch
+---- Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
 ---- If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
 ---- appropriate error messages are appended to the test msg 
 ---- tSQLt.Private_CleanUp Tests

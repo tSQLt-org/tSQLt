@@ -52,6 +52,7 @@ tSQLt.FriendlySQLServerVersion.sfn.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_Init.ssp.sql
 tSQLt.Private_HostPlatform.svw.sql
+tSQLt.Private_CleanUp.ssp.sql
 Run_Methods.sql
 tSQLt.Private_SysTypes.svw.sql
 tSQLt.Private_GetFullTypeName.sfn.sql
@@ -60,6 +61,7 @@ tSQLt.Private_ScriptIndex.sfn.sql
 tSQLt.Private_RemoveSchemaBinding.ssp.sql
 tSQLt.Private_RemoveSchemaBoundReferences.ssp.sql
 tSQLt.Private_GetForeignKeyDefinition.sfn.sql
+tSQLt.Private_MarktSQLtTempObject.ssp.sql
 ApplyConstraint_Methods.sql
 tSQLt.Private_ValidateFakeTableParameters.ssp.sql
 tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
@@ -68,7 +70,6 @@ tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql
 tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql
 tSQLt.Private_CreateFakeTableStatement.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
-tSQLt.Private_MarktSQLtTempObject.ssp.sql
 tSQLt.FakeTable.ssp.sql
 tSQLt.Private_GenerateCreateProcedureSpyStatement.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql

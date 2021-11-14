@@ -216,6 +216,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CleanTestResult.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_CleanUp.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CleanUp.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_CompareTables.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

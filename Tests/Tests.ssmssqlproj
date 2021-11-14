@@ -186,6 +186,12 @@
           <AssociatedConnUserName />
           <FullPath>NewTestClassTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_CleanUpTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_CleanUpTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_CreateFakeFunctionStatementTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

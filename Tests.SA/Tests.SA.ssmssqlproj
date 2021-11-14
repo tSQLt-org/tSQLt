@@ -6,6 +6,12 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="_ExploratoryTests_SA.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>_ExploratoryTests_SA.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="InstallAssemblyKeyTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
