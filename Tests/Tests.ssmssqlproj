@@ -264,6 +264,12 @@
           <AssociatedConnUserName />
           <FullPath>Private_ResetNewTestClassListTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_ResettSQLtTablesTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_ResettSQLtTablesTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_ScriptIndexTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
