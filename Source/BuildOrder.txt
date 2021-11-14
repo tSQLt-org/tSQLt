@@ -52,6 +52,7 @@ tSQLt.FriendlySQLServerVersion.sfn.sql
 tSQLt.Info.sfn.sql
 tSQLt.Private_Init.ssp.sql
 tSQLt.Private_HostPlatform.svw.sql
+tSQLt.Private_ResettSQLtTables.ssp.sql
 tSQLt.Private_CleanUp.ssp.sql
 Run_Methods.sql
 tSQLt.Private_SysTypes.svw.sql

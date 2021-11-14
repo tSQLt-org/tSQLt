@@ -1,9 +1,32 @@
 EXEC tSQLt.NewTestClass 'Private_CleanUpTests';
 GO
-CREATE PROCEDURE Private_CleanUpTests.[test ]
+CREATE PROCEDURE Private_CleanUpTests.[test calls tSQLt.UndoTestDoubles]
 AS
 BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
 
+  EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @ErrorMsg = NULL;
+
+  SELECT _id_, Force INTO #Actual FROM tSQLt.UndoTestDoubles_SpyProcedureLog;
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,0);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROCEDURE Private_CleanUpTests.[test calls tSQLt.Private_ResettSQLtTables]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_ResettSQLtTables';
+
+  EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @ErrorMsg = NULL;
+
+  SELECT _id_ INTO #Actual FROM tSQLt.Private_ResettSQLtTables_SpyProcedureLog;
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 
