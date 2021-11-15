@@ -8,7 +8,7 @@ CREATE PROCEDURE tSQLt.Private_CleanUp
 AS
 BEGIN
   EXEC tSQLt.UndoTestDoubles @Force = 0;
-  EXEC tSQLt.Private_NoTransactionHandleTables;
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
 END;
 GO
 ---Build-

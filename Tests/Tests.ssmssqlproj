@@ -234,6 +234,24 @@
           <AssociatedConnUserName />
           <FullPath>Private_MarktSQLtTempObjectTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_NoTransactionHandleTableTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_NoTransactionHandleTableTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_NoTransactionTableActionTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_NoTransactionTableActionTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_NoTransactionHandleTablesTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_NoTransactionHandleTablesTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_ProcessTestAnnotationsTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -263,18 +281,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_ResetNewTestClassListTests.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Private_NoTransactionTableActionTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Private_NoTransactionTableActionTests.class.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Private_NoTransactionHandleTablesTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Private_NoTransactionHandleTablesTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_ScriptIndexTests.class.sql">
           <AssociatedConnectionMoniker />
