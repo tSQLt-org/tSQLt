@@ -3,10 +3,11 @@ GO
 ---Build+
 GO
 CREATE PROCEDURE tSQLt.Private_NoTransactionHandleTable
+@Action NVARCHAR(MAX),
 @FullTableName NVARCHAR(MAX),
-@Action NVARCHAR(MAX)
+@TableAction NVARCHAR(MAX)
 AS
 BEGIN
-  RETURN;
+  RAISERROR('Invalid Action. @Action parameter must be one of the following: Save, Reset.',16,10);
 END;
 GO

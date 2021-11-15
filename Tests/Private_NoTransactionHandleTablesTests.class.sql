@@ -3,11 +3,10 @@ GO
 CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test does not call tSQLt.Private_NoTransactionHandleTable if tSQLt.Private_NoTransactionTableAction is empty]
 AS
 BEGIN
-  --EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SavetSQLtTable';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTable';
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NoTransactionTableAction';
 
-  EXEC tSQLt.Private_NoTransactionHandleTables;
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
 
   EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.Private_NoTransactionHandleTable_SpyProcedureLog';
 
@@ -16,12 +15,11 @@ GO
 CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test calls tSQLt.Private_NoTransactionHandleTable if tSQLt.Private_NoTransactionTableAction contains a table]
 AS
 BEGIN
-  --EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SavetSQLtTable';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTable';
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NoTransactionTableAction';
   EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl1'',''Restore'');')
 
-  EXEC tSQLt.Private_NoTransactionHandleTables;
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
 
   SELECT FullTableName INTO #Actual FROM tSQLt.Private_NoTransactionHandleTable_SpyProcedureLog;
 
@@ -35,14 +33,13 @@ GO
 CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test calls tSQLt.Private_NoTransactionHandleTable for each table in tSQLt.Private_NoTransactionTableAction]
 AS
 BEGIN
-  --EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SavetSQLtTable';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTable';
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NoTransactionTableAction';
   EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl1'',''Restore'');')
   EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl2'',''Restore'');')
   EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl3'',''Restore'');')
 
-  EXEC tSQLt.Private_NoTransactionHandleTables;
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
 
   SELECT FullTableName INTO #Actual FROM tSQLt.Private_NoTransactionHandleTable_SpyProcedureLog;
 
@@ -53,10 +50,9 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test calls tSQLt.Private_NoTransactionHandleTable only for 'Restore' tables]
+CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test does not call tSQLt.Private_NoTransactionHandleTable for 'Ignore' tables]
 AS
 BEGIN
-  --EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SavetSQLtTable';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTable';
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NoTransactionTableAction';
   EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl1'',''Restore'');')
@@ -64,31 +60,34 @@ BEGIN
   EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl3'',''Restore'');')
   EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl4'',''Other'');')
 
-  EXEC tSQLt.Private_NoTransactionHandleTables @save=0;
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
 
   SELECT FullTableName INTO #Actual FROM tSQLt.Private_NoTransactionHandleTable_SpyProcedureLog;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('tbl1'),('tbl3');
+  VALUES('tbl1'),('tbl3'),('tbl4');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test passes @Action to tSQLt.Private_NoTransactionHandleTable for each table]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTable';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NoTransactionTableAction';
+  EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl1'',''Restore'');')
+  EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl2'',''Restore'');')
+  EXEC('INSERT INTO tSQLt.Private_NoTransactionTableAction VALUES(''tbl3'',''Restore'');')
 
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='A Specific Action';
 
+  SELECT FullTableName, Action INTO #Actual FROM tSQLt.Private_NoTransactionHandleTable_SpyProcedureLog;
 
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('tbl1', 'A Specific Action'),('tbl2', 'A Specific Action'),('tbl3', 'A Specific Action');
 
-/*--
-TODO
-
-- Tables --> SELECT * FROM sys.tables WHERE schema_id = SCHEMA_ID('tSQLt');
-Action   - Table Name
-Restore  - Private_NewTestClassList
-Restore  - Run_LastExecution
-Restore  - Private_Configurations
-Ignore   - CaptureOutputLog
-Ignore   - Private_RenamedObjectLog
-Ignore   - TestResult
-
---*/
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
