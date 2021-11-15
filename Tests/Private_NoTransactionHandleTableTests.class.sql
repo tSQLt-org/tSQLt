@@ -9,3 +9,18 @@ BEGIN
   EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Unexpected Action', @FullTableName = '[someschema].[sometable]', @TableAction = 'Restore';
 END;
 GO
+
+/*--
+TODO
+
+- If TableAction is not Restore, throw an error.
+- Save
+-- TableAction = Restore
+--- Saves an exact copy of the table into a tSQLt Temp Object table
+--- Saves the name of the temp object table into a #temp table
+--- tSQLt Temp Object is marked as IsTempObject = 1
+- Reset
+-- TableAction = Restore
+--- Restores --> truncates original table and uses tSQLt Temp Object table to insert/restore data 
+
+--*/
