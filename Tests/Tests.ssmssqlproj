@@ -264,17 +264,17 @@
           <AssociatedConnUserName />
           <FullPath>Private_ResetNewTestClassListTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_ResettSQLtTableActionTests.class.sql">
+        <FileNode Name="Private_NoTransactionTableActionTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>Private_ResettSQLtTableActionTests.class.sql</FullPath>
+          <FullPath>Private_NoTransactionTableActionTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_ResettSQLtTablesTests.class.sql">
+        <FileNode Name="Private_NoTransactionHandleTablesTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>Private_ResettSQLtTablesTests.class.sql</FullPath>
+          <FullPath>Private_NoTransactionHandleTablesTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_ScriptIndexTests.class.sql">
           <AssociatedConnectionMoniker />

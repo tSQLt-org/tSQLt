@@ -480,23 +480,23 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ResetNewTestClassList.ssp.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt.Private_ResettSQLtTable.ssp.sql">
+        <FileNode Name="tSQLt.Private_NoTransactionHandleTable.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>tSQLt.Private_ResettSQLtTable.ssp.sql</FullPath>
+          <FullPath>tSQLt.Private_NoTransactionHandleTable.ssp.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt.Private_ResettSQLtTableAction.view.sql">
+        <FileNode Name="tSQLt.Private_NoTransactionTableAction.view.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>tSQLt.Private_ResettSQLtTableAction.view.sql</FullPath>
+          <FullPath>tSQLt.Private_NoTransactionTableAction.view.sql</FullPath>
         </FileNode>
-        <FileNode Name="tSQLt.Private_ResettSQLtTables.ssp.sql">
+        <FileNode Name="tSQLt.Private_NoTransactionHandleTables.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>tSQLt.Private_ResettSQLtTables.ssp.sql</FullPath>
+          <FullPath>tSQLt.Private_NoTransactionHandleTables.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_ScriptIndex.sfn.sql">
           <AssociatedConnectionMoniker />

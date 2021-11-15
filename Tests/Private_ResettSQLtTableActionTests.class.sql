@@ -1,9 +1,9 @@
-EXEC tSQLt.NewTestClass 'Private_ResettSQLtTableActionTests';
+EXEC tSQLt.NewTestClass 'Private_NoTransactionTableActionTests';
 GO
-CREATE PROCEDURE Private_ResettSQLtTableActionTests.[test contains all tSQLt tables]
+CREATE PROCEDURE Private_NoTransactionTableActionTests.[test contains all tSQLt tables]
 AS
 BEGIN
-  SELECT Name INTO #Actual FROM tSQLt.Private_ResettSQLtTableAction;
+  SELECT Name INTO #Actual FROM tSQLt.Private_NoTransactionTableAction;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
@@ -13,10 +13,10 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Private_ResettSQLtTableActionTests.[test has the correct actions for all tSQLt tables]
+CREATE PROCEDURE Private_NoTransactionTableActionTests.[test has the correct actions for all tSQLt tables]
 AS
 BEGIN
-  SELECT Name, Action INTO #Actual FROM tSQLt.Private_ResettSQLtTableAction;
+  SELECT Name, Action INTO #Actual FROM tSQLt.Private_NoTransactionTableAction;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected

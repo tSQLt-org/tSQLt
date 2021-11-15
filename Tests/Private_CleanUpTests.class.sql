@@ -14,15 +14,15 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Private_CleanUpTests.[test calls tSQLt.Private_ResettSQLtTables]
+CREATE PROCEDURE Private_CleanUpTests.[test calls tSQLt.Private_NoTransactionHandleTables]
 AS
 BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_ResettSQLtTables';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
 
   EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @ErrorMsg = NULL;
 
-  SELECT _id_ INTO #Actual FROM tSQLt.Private_ResettSQLtTables_SpyProcedureLog;
+  SELECT _id_ INTO #Actual FROM tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog;
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected VALUES(1);
 
