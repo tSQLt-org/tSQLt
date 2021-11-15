@@ -480,6 +480,18 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ResetNewTestClassList.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_ResettSQLtTable.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_ResettSQLtTable.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_ResettSQLtTableAction.view.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_ResettSQLtTableAction.view.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ResettSQLtTables.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

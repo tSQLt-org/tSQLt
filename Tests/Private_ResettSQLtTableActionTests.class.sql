@@ -1,0 +1,31 @@
+EXEC tSQLt.NewTestClass 'Private_ResettSQLtTableActionTests';
+GO
+CREATE PROCEDURE Private_ResettSQLtTableActionTests.[test contains all tSQLt tables]
+AS
+BEGIN
+  SELECT Name INTO #Actual FROM tSQLt.Private_ResettSQLtTableAction;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  SELECT QUOTENAME(SCHEMA_NAME(t.schema_id))+'.'+QUOTENAME(t.name) 
+    FROM sys.tables t WHERE schema_id = SCHEMA_ID('tSQLt') AND name NOT LIKE ('%SpyProcedureLog');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+CREATE PROCEDURE Private_ResettSQLtTableActionTests.[test has the correct actions for all tSQLt tables]
+AS
+BEGIN
+  SELECT Name, Action INTO #Actual FROM tSQLt.Private_ResettSQLtTableAction;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+    SELECT '[tSQLt].[Private_NewTestClassList]','Restore' UNION ALL
+    SELECT '[tSQLt].[Run_LastExecution]',       'Restore' UNION ALL
+    SELECT '[tSQLt].[Private_Configurations]',  'Restore' UNION ALL
+    SELECT '[tSQLt].[CaptureOutputLog]',        'Ignore'  UNION ALL
+    SELECT '[tSQLt].[Private_RenamedObjectLog]','Ignore'  UNION ALL
+    SELECT '[tSQLt].[TestResult]',              'Ignore';
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
