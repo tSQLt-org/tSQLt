@@ -10,10 +10,11 @@ AS
 BEGIN
   IF (@Action = 'Save')
   BEGIN
-    DECLARE @NewQuotedName NVARCHAR(MAX) = '[tSQLt].'+QUOTENAME(tSQLt.Private::CreateUniqueObjectName());
-    DECLARE @Cmd NVARCHAR(MAX) = 'SELECT * INTO '+@NewQuotedName+' FROM '+@FullTableName+';';
+    DECLARE @NewQuotedNameForBackupTable NVARCHAR(MAX) = '[tSQLt].'+QUOTENAME(tSQLt.Private::CreateUniqueObjectName());
+    DECLARE @Cmd NVARCHAR(MAX) = 'SELECT * INTO '+@NewQuotedNameForBackupTable+' FROM '+@FullTableName+';';
     EXEC (@Cmd);
-    INSERT INTO #TableBackupLog (OriginalName, BackupName) VALUES (@FullTableName, @NewQuotedName);
+    INSERT INTO #TableBackupLog (OriginalName, BackupName) VALUES (@FullTableName, @NewQuotedNameForBackupTable);
+    EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @NewQuotedNameForBackupTable, @ObjectType = N'TABLE', @NewNameOfOriginalObject = NULL; 
   END;
   ELSE
   BEGIN

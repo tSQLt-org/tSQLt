@@ -61,6 +61,8 @@ BEGIN
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
     CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
     CREATE TABLE #NoTransaction(X INT);
+    CREATE TABLE #TableBackupLog(OriginalName NVARCHAR(MAX), BackupName NVARCHAR(MAX));
+
 
     IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
     BEGIN
