@@ -8,6 +8,16 @@ CREATE PROCEDURE tSQLt.Private_NoTransactionHandleTable
 @TableAction NVARCHAR(MAX)
 AS
 BEGIN
-  RAISERROR('Invalid Action. @Action parameter must be one of the following: Save, Reset.',16,10);
+  IF (@Action = 'Save')
+  BEGIN
+    DECLARE @NewQuotedName NVARCHAR(MAX) = '[tSQLt].'+QUOTENAME(tSQLt.Private::CreateUniqueObjectName());
+    DECLARE @Cmd NVARCHAR(MAX) = 'SELECT * INTO '+@NewQuotedName+' FROM '+@FullTableName+';';
+    EXEC (@Cmd);
+    INSERT INTO #TableBackupLog (OriginalName, BackupName) VALUES (@FullTableName, @NewQuotedName);
+  END;
+  ELSE
+  BEGIN
+    RAISERROR('Invalid Action. @Action parameter must be one of the following: Save, Reset.',16,10);
+  END;
 END;
 GO
