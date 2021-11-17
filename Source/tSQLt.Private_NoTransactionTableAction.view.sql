@@ -6,10 +6,10 @@ CREATE VIEW tSQLt.Private_NoTransactionTableAction
 AS
 SELECT *
   FROM(
-    VALUES('[tSQLt].[Private_NewTestClassList]','Restore'), -- perhaps Remove is more appropriate
-          ('[tSQLt].[Run_LastExecution]','Restore'), -- perhaps Remove is more appropriate
+    VALUES('[tSQLt].[Private_NewTestClassList]','Remove'),
+          ('[tSQLt].[Run_LastExecution]','Remove'),
           ('[tSQLt].[Private_Configurations]','Restore'),
-          ('[tSQLt].[CaptureOutputLog]','Ignore'), -- technically this should be truncated, but it already is at the beginning of Run.
+          ('[tSQLt].[CaptureOutputLog]','Truncate'),
           ('[tSQLt].[Private_RenamedObjectLog]','Ignore'),
           ('[tSQLt].[TestResult]','Ignore')
   )X(Name, Action);

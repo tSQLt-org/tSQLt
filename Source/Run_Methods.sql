@@ -106,6 +106,7 @@ BEGIN
         SET @TransactionStartedFlag = 1;
         SAVE TRAN @TranName;
       END;
+      EXEC tSQLt.Private_NoTransactionHandleTables @Action = 'Save';
 
       SET @PreExecTrancount = @@TRANCOUNT;
     

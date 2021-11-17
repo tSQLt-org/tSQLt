@@ -1,5 +1,7 @@
 EXEC tSQLt.NewTestClass 'Private_CleanUpTests';
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE Private_CleanUpTests.[test calls tSQLt.UndoTestDoubles]
 AS
 BEGIN
@@ -13,6 +15,8 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE Private_CleanUpTests.[test calls tSQLt.Private_NoTransactionHandleTables]
 AS
@@ -28,6 +32,8 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 
 

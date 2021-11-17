@@ -1,5 +1,7 @@
 EXEC tSQLt.NewTestClass 'AnnotationNoTransactionTests';
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test runs test without transaction]
 AS
 BEGIN
@@ -28,6 +30,8 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS IN
   
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 --[@tSQLt:SkipTest]('TODO: needs other tests first')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test produces meaningful error when pre and post transactions counts don't match]
 AS
@@ -42,6 +46,8 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BE
 
   EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test transaction name is NULL in TestResults table]
 AS
@@ -62,6 +68,8 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RE
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test if not NoTransaction TranName is valued in TestResults table]
 AS
 BEGIN
@@ -74,6 +82,8 @@ BEGIN
 
   EXEC tSQLt.AssertLike @ExpectedPattern = 'tSQLtTran%', @Actual = @ActualTranName;
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test succeeding test gets correct entry in TestResults table]
 AS
@@ -93,6 +103,8 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RE
   VALUES('Success');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test failing test gets correct entry in TestResults table]
 AS
@@ -114,6 +126,8 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS EX
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test recoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
@@ -133,6 +147,8 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RA
   VALUES('Error','Some Obscure Recoverable Error[16,10]{MyInnerTests.test should execute outside of transaction,3}');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 --[@tSQLt:NoTransaction]()
 --[@tSQLt:SkipTest]('TODO: needs other tests first')
@@ -156,6 +172,8 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test calls tSQLt.Private_CleanUp]
 AS
 BEGIN
@@ -178,6 +196,8 @@ CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call tSQLt.Private_CleanUp if not annotated and succeeding]
 AS
 BEGIN
@@ -192,6 +212,8 @@ BEGIN
 
   EXEC tSQLt.AssertEmptyTable '#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call tSQLt.Private_CleanUp if not annotated and failing]
 AS
@@ -208,6 +230,8 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable '#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call tSQLt.Private_CleanUp if not annotated and erroring]
 AS
 BEGIN
@@ -222,6 +246,8 @@ BEGIN
 
   EXEC tSQLt.AssertEmptyTable '#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test message returned by tSQLt.Private_CleanUp is appended to tSQLt.TestResult.Msg]
 AS
@@ -240,6 +266,8 @@ CREATE PROCEDURE MyInnerTests.[test1] AS PRINT 1/0;
 
   EXEC tSQLt.AssertLike @ExpectedPattern = '% <Example Message>', @Actual = @Actual;
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test message returned by tSQLt.Private_CleanUp is called before the test result message is printed]
 AS
@@ -261,30 +289,69 @@ CREATE PROCEDURE MyInnerTests.[test1] AS RAISERROR(''<In-Test-Error>'',16,10);
   EXEC tSQLt.AssertLike @ExpectedPattern = '% <Example Message>', @Actual = @Actual;
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt tables are backed up before test is executed]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction]()
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      INSERT INTO #Actual SELECT Action FROM tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+  SELECT Action INTO #Actual FROM tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog;
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('Save');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
 /*-- TODO
 
--- CLEANUP: named cleanup x 3 (needs to execute even if there's an error during test execution)
----- there will be three clean up methods, executed in the following order
----- 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
----- 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
----- 3. tSQLt.Private_CleanUp
----- test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch
----- Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
----- If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
----- appropriate error messages are appended to the test msg 
----- tSQLt.Private_CleanUp Tests
------ Tables --> SELECT * FROM sys.tables WHERE schema_id = SCHEMA_ID('tSQLt');
------ tSQLt.UndoTestDoubles 
+ CLEANUP: named cleanup x 3 (needs to execute even if there's an error during test execution)
+- there will be three clean up methods, executed in the following order
+- 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
+- 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
+- 3. tSQLt.Private_CleanUp
+- Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
+- If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
+- appropriate error messages are appended to the test msg 
 
--- transaction opened during test
--- transaction commited during test
--- test skipped?
--- inner-transaction-free test errors
--- confirm pre and post transaction counts match
--- [test produces meaningful error when pre and post transactions counts don't match]
---  we still need to save the TranName as something somewhere.
--- settings need to be preserved (e.g. SummaryError)
--- Ctrl+9 is broken with NoTransaction
--- preserve content of all tSQLt.% tables
+Transactions
+- transaction opened during test
+- transaction commited during test
+- inner-transaction-free test errors
+- confirm pre and post transaction counts match
+- [test produces meaningful error when pre and post transactions counts don't match]
+-  we still need to save the TranName as something somewhere.
+
+SkipTest Annotation & NoTransaction Annotation
+- The test is skipped
+- No other objects are dropped or created
+- No handler is called
+- Transaction something something
+
+Preserve content of all tSQLt.% tables
+- Does not call 'Save' if @NoTransactionFlag=0;
+- Does not call 'Save' if @SkipTestFlag = 1
+- Does not call 'Restore' if @NoTransactionFlag=0;
+- Does not call 'Restore' if @SkipTestFlag = 1
+- Not a test: Confirm that [tSQLt].[Private_NewTestClassList] and [tSQLt].[Run_LastExecution] are not being used in critical functionality 'inside the reactor'.
+
+Everything is being called in the right order.
+- test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch
+- Make sure undotestdoubles and handletables are called in the right order
+
 
 --*/
