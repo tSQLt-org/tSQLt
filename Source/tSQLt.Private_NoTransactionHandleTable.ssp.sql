@@ -10,8 +10,10 @@ AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
   BEGIN TRY
-    IF (OBJECT_ID(@FullTableName) IS NULL) RAISERROR('Table %s does not exist.',16,10,@FullTableName);
-
+    IF (OBJECT_ID(@FullTableName) IS NULL AND NOT(@Action='Reset' AND @TableAction='Remove'))
+    BEGIN
+      RAISERROR('Table %s does not exist.',16,10,@FullTableName);
+    END;
     IF (@Action = 'Save')
     BEGIN
       IF (@TableAction = 'Restore')
@@ -49,6 +51,14 @@ BEGIN
         SET @cmd = @cmd + STUFF((SELECT ','+QUOTENAME(name) FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) ORDER BY column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
         SET @cmd = @cmd + ') SELECT * FROM ' + @BackupTableName+';';
         EXEC(@cmd);
+      END;
+      ELSE IF (@TableAction = 'Truncate')
+      BEGIN
+        EXEC('DELETE FROM ' + @FullTableName +';');
+      END;
+      ELSE IF (@TableAction IN ('Ignore','Remove'))
+      BEGIN
+        RETURN;
       END;
       ELSE
       BEGIN

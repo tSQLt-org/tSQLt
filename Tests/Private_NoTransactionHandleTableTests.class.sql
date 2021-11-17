@@ -282,12 +282,42 @@ BEGIN
 
   EXEC tSQLt.AssertEmptyTable @TableName = 'Private_NoTransactionHandleTableTests.Table1';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test does not change the data if @Action is Reset and @TableAction Ignore]
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT, col1 NVARCHAR(MAX));
+  INSERT INTO Private_NoTransactionHandleTableTests.Table1 VALUES(1, 'a'),(2, 'bb'),(3, 'cdce');
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Restore';
+  INSERT INTO Private_NoTransactionHandleTableTests.Table1 VALUES(4, 'jkdf'),(5, 'adfad'),(6, 'yuio');
+  
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Ignore';
 
+  SELECT TOP(0) A.* INTO #Expected FROM Private_NoTransactionHandleTableTests.Table1 A RIGHT JOIN Private_NoTransactionHandleTableTests.Table1 X ON 1=0;
+
+  INSERT INTO #Expected VALUES(1, 'a'),(2, 'bb'),(3, 'cdce'),(4, 'jkdf'),(5, 'adfad'),(6, 'yuio');
+
+  EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = 'Private_NoTransactionHandleTableTests.Table1';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test does not error and does not restore if @Action is Reset and @TableAction Remove]
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT, col1 NVARCHAR(MAX));
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Remove';
+  
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Remove';
+
+  SELECT * INTO #Actual FROM sys.tables WHERE object_id = OBJECT_ID('Private_NoTransactionHandleTableTests.Table1');
+
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+END;
+GO
 /*--
 TODO
-- Reset
--- Ignore
--- Truncate
--- Remove
 
 --*/
