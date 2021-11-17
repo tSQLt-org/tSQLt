@@ -7,7 +7,7 @@ AS
 BEGIN
   CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT);
   
-  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'tSQLt is in an unknown state: Stopping execution. (Invalid @Action parameter value. | Procedure: tSQLt.Private_NoTransactionHandleTable | Line: %)', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%Invalid @Action parameter value.%', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Unexpected Action', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Restore';
 END;
@@ -169,7 +169,7 @@ AS
 BEGIN
   CREATE TABLE Private_NoTransactionHandleTableTests.SomeTable(i INT);
   
-  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'tSQLt is in an unknown state: Stopping execution. (Invalid @TableAction parameter value. | Procedure: tSQLt.Private_NoTransactionHandleTable | Line: %)', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%Invalid @TableAction parameter value.%', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = 'Private_NoTransactionHandleTableTests.SomeTable', @TableAction = 'Unacceptable';
 END;
@@ -256,10 +256,36 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test Reset @Action with unknown @TableAction causes error]
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.SomeTable(i INT);
+  
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%Invalid @TableAction parameter value.%', @ExpectedSeverity = 16, @ExpectedState = 10;
+
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = 'Private_NoTransactionHandleTableTests.SomeTable', @TableAction = 'Unacceptable';
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test Reset @Action with truncate @TableAction deletes all data from the table]
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT IDENTITY (1,1), col1 NVARCHAR(MAX));
+  INSERT INTO Private_NoTransactionHandleTableTests.Table1 VALUES('a'),('bb'),('cdce');
+
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Truncate';
+
+  EXEC tSQLt.AssertEmptyTable @TableName = 'Private_NoTransactionHandleTableTests.Table1';
+END;
+
 /*--
 TODO
 - Reset
--- Error conditions
 -- Ignore
 -- Truncate
 -- Remove

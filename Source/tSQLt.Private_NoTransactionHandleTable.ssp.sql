@@ -49,7 +49,11 @@ BEGIN
         SET @cmd = @cmd + STUFF((SELECT ','+QUOTENAME(name) FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) ORDER BY column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
         SET @cmd = @cmd + ') SELECT * FROM ' + @BackupTableName+';';
         EXEC(@cmd);
-      END
+      END;
+      ELSE
+      BEGIN
+        RAISERROR('Invalid @TableAction parameter value.', 16, 10);
+      END;
     END;
     ELSE
     BEGIN
