@@ -7,8 +7,8 @@ CREATE PROCEDURE tSQLt.Private_CleanUp
   @ErrorMsg NVARCHAR(MAX) OUTPUT
 AS
 BEGIN
-  EXEC tSQLt.UndoTestDoubles @Force = 0;
   EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
+  EXEC tSQLt.UndoTestDoubles @Force = 0;
 END;
 GO
 ---Build-

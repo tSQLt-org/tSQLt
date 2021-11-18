@@ -288,7 +288,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'AssertEqualsTableSchemaTests.Tbl1', @Actual = 'AssertEqualsTableSchemaTests.Tbl2';
 END;
 GO
---[@tSQLt:SkipTest]('Not currently supported. See Issue xxxxx')
+--[@tSQLt:SkipTest]('Not currently supported. See Issue https://github.com/tSQLt-org/tSQLt/issues/119')
 CREATE PROCEDURE AssertEqualsTableSchemaTests.[test calls fail if tables are #temporary and their schema does not match]
 AS
 BEGIN

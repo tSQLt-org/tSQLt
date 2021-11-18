@@ -316,6 +316,47 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[stest using SkipTest and NoTransaction annotation skips the test]
+AS
+BEGIN
+  CREATE TABLE #SkippedTestExecutionLog (Id INT);
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction]()
+    --[@'+'tSQLt:SkipTest]('')
+    CREATE PROCEDURE MyInnerTests.[skippedTest]
+    AS
+    BEGIN
+      INSERT INTO #SkippedTestExecutionLog VALUES (1);
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[skippedTest]';
+
+  EXEC tSQLt.AssertEmptyTable @TableName = '#SkippedTestExecutionLog';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call 'Save' if @NoTransactionFlag=0;]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      INSERT INTO #Actual SELECT Action FROM tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+  SELECT TOP(0) Action INTO #Actual FROM tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog;
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+END;
+GO
 
 /*-- TODO
 
