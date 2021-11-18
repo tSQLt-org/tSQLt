@@ -41,6 +41,9 @@ CREATE PROCEDURE tSQLt.Private_RunTest
    @SetUp NVARCHAR(MAX) = NULL
 AS
 BEGIN
+    DECLARE @OuterPerimeterTrancount INT = @@TRANCOUNT;
+    PRINT '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TRANCOUNT:'+CAST(@OuterPerimeterTrancount AS NVARCHAR(MAX))+REPLICATE('>?>',10+10*@OuterPerimeterTrancount);
+
     DECLARE @Msg NVARCHAR(MAX); SET @Msg = '';
     DECLARE @Msg2 NVARCHAR(MAX); SET @Msg2 = '';
     DECLARE @Cmd NVARCHAR(MAX); SET @Cmd = '';
@@ -108,7 +111,16 @@ BEGIN
       END;
       ELSE
       BEGIN
-        EXEC tSQLt.Private_NoTransactionHandleTables @Action = 'Save';
+        IF(@SkipTestFlag = 0)
+        BEGIN
+  SELECT 'RunMethods:PreSave:1',T.object_id,T.name,X.*, E.* FROM sys.tables T LEFT JOIN sys.extended_properties AS E ON T.object_id = E.major_id AND E.class_desc='OBJECT_OR_COLUMN'
+  OUTER APPLY (SELECT(SELECT QUOTENAME(name)+' ' FROM sys.columns C WHERE T.object_id = C.object_id ORDER BY C.column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'))X(cols)
+  WHERE T.schema_id=SCHEMA_ID('tSQLt') ORDER BY T.object_id, E.name;
+          EXEC tSQLt.Private_NoTransactionHandleTables @Action = 'Save';
+  SELECT 'RunMethods:PreSave:2',T.object_id,T.name,X.*, E.* FROM sys.tables T LEFT JOIN sys.extended_properties AS E ON T.object_id = E.major_id AND E.class_desc='OBJECT_OR_COLUMN'
+  OUTER APPLY (SELECT(SELECT QUOTENAME(name)+' ' FROM sys.columns C WHERE T.object_id = C.object_id ORDER BY C.column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'))X(cols)
+  WHERE T.schema_id=SCHEMA_ID('tSQLt') ORDER BY T.object_id, E.name;
+        END;
       END;
 
       SET @PreExecTrancount = @@TRANCOUNT;
@@ -263,8 +275,9 @@ BEGIN
         END;
     END CATCH;  
 
-    IF (@NoTransactionFlag = 1)
+    IF (@NoTransactionFlag = 1 AND @SkipTestFlag = 0)
     BEGIN
+      PRINT '+++++++++++++++++++++++++++++++++++++++++++++++++++++++ RIGHT BEFORE CLEAN UP ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++';
       DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
       EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
       SET @Msg = @Msg + ISNULL(' ' + @CleanUpErrorMsg, '');
@@ -303,6 +316,8 @@ BEGIN
     SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Finished';
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
     END;
+
+    IF(@OuterPerimeterTrancount != @@TRANCOUNT) RAISERROR('tSQLt is in an invalid state: Stopping Execution. (Mismatching TRANCOUNT: %s <> %s))',16,10,@OuterPerimeterTrancount, @@TRANCOUNT);
 
 END;
 GO

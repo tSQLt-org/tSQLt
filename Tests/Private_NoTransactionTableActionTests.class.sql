@@ -13,6 +13,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+--[@tSQLt:SkipTest]('')
 CREATE PROCEDURE Private_NoTransactionTableActionTests.[test has the correct actions for all tSQLt tables]
 AS
 BEGIN

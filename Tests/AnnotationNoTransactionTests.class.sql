@@ -316,7 +316,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[stest using SkipTest and NoTransaction annotation skips the test]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test using SkipTest and NoTransaction annotation skips the test]
 AS
 BEGIN
   CREATE TABLE #SkippedTestExecutionLog (Id INT);
@@ -357,6 +357,30 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test does not call tSQLt.Private_NoTransactionHandleTables if @NoTransactionFlag=1 and @SkipTestFlag=1]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction]()
+    --[@'+'tSQLt:SkipTest]('''')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog';
+END;
+GO
+
 
 /*-- TODO
 
@@ -384,10 +408,6 @@ SkipTest Annotation & NoTransaction Annotation
 - Transaction something something
 
 Preserve content of all tSQLt.% tables
-- Does not call 'Save' if @NoTransactionFlag=0;
-- Does not call 'Save' if @SkipTestFlag = 1
-- Does not call 'Restore' if @NoTransactionFlag=0;
-- Does not call 'Restore' if @SkipTestFlag = 1
 - Not a test: Confirm that [tSQLt].[Private_NewTestClassList] and [tSQLt].[Run_LastExecution] are not being used in critical functionality 'inside the reactor'.
 
 Everything is being called in the right order.

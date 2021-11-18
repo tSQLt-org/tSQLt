@@ -581,3 +581,10 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
+/*--
+
+TODO
+
+Write a test that ensure that we are restoring objects in the correct order if we first fake them and then remove them.
+
+--*/
