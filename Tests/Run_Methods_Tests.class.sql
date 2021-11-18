@@ -1450,29 +1450,14 @@ BEGIN
     EXEC tSQLt.NewTestClass 'Test Class B';
     EXEC tSQLt.NewTestClass 'Test Class C';
 
-    DECLARE @TestClassCursor CURSOR;
-    EXEC tSQLt.Private_GetCursorForRunNew @TestClassCursor = @TestClassCursor OUT;  
-
-    SELECT Class
-    INTO #Actual
-      FROM tSQLt.TestResult
-     WHERE 1=0;
-
-    DECLARE @TestClass NVARCHAR(MAX);
-    WHILE(1=1)
-    BEGIN
-      FETCH NEXT FROM @TestClassCursor INTO @TestClass;
-      IF(@@FETCH_STATUS<>0)BREAK;
-      INSERT INTO #Actual VALUES(@TestClass);
-    END;
-    CLOSE @TestClassCursor;
-    DEALLOCATE @TestClassCursor;
+    CREATE TABLE #TestClassesForRunCursor(Name NVARCHAR(MAX));
+    EXEC tSQLt.Private_GetCursorForRunNew;
     
-    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    SELECT TOP(0) A.* INTO #Expected FROM #TestClassesForRunCursor A RIGHT JOIN #TestClassesForRunCursor X ON 1=0;
     INSERT INTO #Expected VALUES('Test Class B');    
     INSERT INTO #Expected VALUES('Test Class C');    
      
-    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#TestClassesForRunCursor';
     
 END;
 GO
@@ -1486,29 +1471,13 @@ BEGIN
     EXEC tSQLt.NewTestClass 'Test Class C';
     EXEC tSQLt.DropClass 'Test Class C';
 
-    DECLARE @TestClassCursor CURSOR;
-    EXEC tSQLt.Private_GetCursorForRunNew @TestClassCursor = @TestClassCursor OUT;  
-
-    SELECT Class
-    INTO #Actual
-      FROM tSQLt.TestResult
-     WHERE 1=0;
-
-    DECLARE @TestClass NVARCHAR(MAX);
-    WHILE(1=1)
-    BEGIN
-      FETCH NEXT FROM @TestClassCursor INTO @TestClass;
-      IF(@@FETCH_STATUS<>0)BREAK;
-      INSERT INTO #Actual VALUES(@TestClass);
-    END;
-    CLOSE @TestClassCursor;
-    DEALLOCATE @TestClassCursor;
+    CREATE TABLE #TestClassesForRunCursor(Name NVARCHAR(MAX));
+    EXEC tSQLt.Private_GetCursorForRunNew;
     
-    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    SELECT TOP(0) A.* INTO #Expected FROM #TestClassesForRunCursor A RIGHT JOIN #TestClassesForRunCursor X ON 1=0;
     INSERT INTO #Expected VALUES('Test Class B');    
      
-    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-    
+    EXEC tSQLt.AssertEqualsTable '#Expected','#TestClassesForRunCursor';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test Privat_RunNew calls Private_RunCursor with correct cursor]
@@ -2243,3 +2212,24 @@ BEGIN
   END;
 END
 GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunAll can handle classes with single quotes]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunTestClass';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
+  EXEC('INSERT INTO tSQLt.TestClasses VALUES(''a class with a '''' in the middle'',12321);');
+
+  EXEC tSQLt.RunAll;
+
+  SELECT TestClassName
+  INTO #Actual
+  FROM tSQLt.Private_RunTestClass_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES ('a class with a '' in the middle');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+--ALSO NEEDED: tSQLt.Run and tSQLt.RunTestClass can handle ' in name and the tests get executed!!

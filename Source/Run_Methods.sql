@@ -316,26 +316,17 @@ BEGIN
     DECLARE @SetupProcName NVARCHAR(MAX);
     EXEC tSQLt.Private_GetSetupProcedureName @TestClassId, @SetupProcName OUTPUT;
     
-    DECLARE testCases CURSOR LOCAL FAST_FORWARD 
-        FOR
-     SELECT tSQLt.Private_GetQuotedFullName(object_id)
-       FROM sys.procedures
-      WHERE schema_id = @TestClassId
-        AND LOWER(name) LIKE 'test%';
-
-    OPEN testCases;
-    
-    FETCH NEXT FROM testCases INTO @TestCaseName;
-
-    WHILE @@FETCH_STATUS = 0
-    BEGIN
-        EXEC tSQLt.Private_RunTest @TestCaseName, @SetupProcName;
-
-        FETCH NEXT FROM testCases INTO @TestCaseName;
-    END;
-
-    CLOSE testCases;
-    DEALLOCATE testCases;
+    DECLARE @cmd NVARCHAR(MAX) = (
+      (
+        SELECT 'EXEC tSQLt.Private_RunTest '''+REPLACE(tSQLt.Private_GetQuotedFullName(object_id),'''','''''')+''', '+ISNULL(''''+REPLACE(@SetupProcName,'''','''''')+'''','NULL')+';'
+          FROM sys.procedures
+         WHERE schema_id = @TestClassId
+           AND LOWER(name) LIKE 'test%'
+         ORDER BY NEWID()
+           FOR XML PATH(''),TYPE
+      ).value('.','NVARCHAR(MAX)')
+    );
+    EXEC(@cmd);
 END;
 GO
 
@@ -389,34 +380,28 @@ BEGIN
   DECLARE @TestClassName NVARCHAR(MAX);
   DECLARE @TestProcName NVARCHAR(MAX);
 
-  DECLARE @TestClassCursor CURSOR;
-  EXEC @GetCursorCallback @TestClassCursor = @TestClassCursor OUT;
+  CREATE TABLE #TestClassesForRunCursor(Name NVARCHAR(MAX));
+  EXEC @GetCursorCallback;
 ----  
-  WHILE(1=1)
-  BEGIN
-    FETCH NEXT FROM @TestClassCursor INTO @TestClassName;
-    IF(@@FETCH_STATUS<>0)BREAK;
-
-    EXEC tSQLt.Private_RunTestClass @TestClassName;
-    
-  END;
-  
-  CLOSE @TestClassCursor;
-  DEALLOCATE @TestClassCursor;
+  DECLARE @cmd NVARCHAR(MAX) = (
+    (
+      SELECT 'EXEC tSQLt.Private_RunTestClass '''+Name+''';'
+        FROM #TestClassesForRunCursor
+         FOR XML PATH(''),TYPE
+    ).value('.','NVARCHAR(MAX)')
+  );
+  EXEC(@cmd);
   
   EXEC tSQLt.Private_OutputTestResults @TestResultFormatter;
 END;
 GO
 
 CREATE PROCEDURE tSQLt.Private_GetCursorForRunAll
-  @TestClassCursor CURSOR VARYING OUTPUT
 AS
 BEGIN
-  SET @TestClassCursor = CURSOR LOCAL FAST_FORWARD FOR
+  INSERT INTO #TestClassesForRunCursor
    SELECT Name
      FROM tSQLt.TestClasses;
-
-  OPEN @TestClassCursor;
 END;
 GO
 
@@ -429,16 +414,13 @@ END;
 GO
 
 CREATE PROCEDURE tSQLt.Private_GetCursorForRunNew
-  @TestClassCursor CURSOR VARYING OUTPUT
 AS
 BEGIN
-  SET @TestClassCursor = CURSOR LOCAL FAST_FORWARD FOR
+  INSERT INTO #TestClassesForRunCursor
    SELECT TC.Name
      FROM tSQLt.TestClasses AS TC
      JOIN tSQLt.Private_NewTestClassList AS PNTCL
        ON PNTCL.ClassName = TC.Name;
-
-  OPEN @TestClassCursor;
 END;
 GO
 
