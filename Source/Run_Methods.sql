@@ -385,7 +385,7 @@ BEGIN
 ----  
   DECLARE @cmd NVARCHAR(MAX) = (
     (
-      SELECT 'EXEC tSQLt.Private_RunTestClass '''+Name+''';'
+      SELECT 'EXEC tSQLt.Private_RunTestClass '''+REPLACE(Name, '''' ,'''''')+''';'
         FROM #TestClassesForRunCursor
          FOR XML PATH(''),TYPE
     ).value('.','NVARCHAR(MAX)')

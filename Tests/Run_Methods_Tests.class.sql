@@ -2232,4 +2232,115 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
---ALSO NEEDED: tSQLt.Run and tSQLt.RunTestClass can handle ' in name and the tests get executed!!
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunAll executes tests with single quotes in class and name]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction]()
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
+  EXEC('INSERT INTO tSQLt.TestClasses VALUES(''a class with a '''' in the middle'',12321);');
+
+  EXEC tSQLt.RunAll;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunTestClass executes tests with single quotes in class and name]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction]()
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.RunTestClass @TestClassName = '[a class with a '' in the middle]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Run executes test class with single quotes in name]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction]()
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.Run '[a class with a '' in the middle]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Run executes test with single quotes in class and test names]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction]()
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.Run '[a class with a '' in the middle].[test with a '' in the middle]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunNew executes test class with single quotes in class and test names]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction]()
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NewTestClassList';
+  EXEC('INSERT INTO tSQLt.TestClasses(Name) VALUES(''a class with a '''' in the middle'');');
+  EXEC('INSERT INTO tSQLt.Private_NewTestClassList(ClassName) VALUES(''a class with a '''' in the middle'');');
+
+  EXEC tSQLt.RunNew;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
