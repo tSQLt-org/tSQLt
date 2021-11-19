@@ -7,6 +7,8 @@ CREATE PROCEDURE tSQLt.UndoTestDoubles
 AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
+  DECLARE @ErrorMessageTableList NVARCHAR(MAX);
+  DECLARE @ErrorMessage NVARCHAR(MAX);
 
   IF (@Force = 1) 
   BEGIN
@@ -17,6 +19,7 @@ BEGIN
     SET @cmd = 'RAISERROR(''Cannot drop these objects as they are not marked as temporary. Use @Force = 1 to override. (%s)'',16,10)';
   END;
 
+  /*-- Two non-temp objects, the first of which should be renamed to the second --*/
   SELECT @cmd = REPLACE(@cmd,'%s',Collisions.List)
     FROM
     (
@@ -41,6 +44,8 @@ BEGIN
     ) Collisions(List)
   EXEC(@cmd);
 
+  /*-- Attempting to rename two or more non-temp objects to the same name --*/
+
   IF(EXISTS(
     SELECT ROL.OriginalName, COUNT(1) cnt 
       FROM tSQLt.Private_RenamedObjectLog ROL
@@ -58,11 +63,12 @@ BEGIN
   BEGIN
     WITH S AS(
       SELECT 
+          C.Id,
           C.OriginalName,
           C.CurrentName,
           C.SchemaName
         FROM(
-          SELECT ROL.OriginalName, O.name CurrentName, SCHEMA_NAME(O.schema_id) SchemaName, COUNT(1)OVER(PARTITION BY ROL.OriginalName) Cnt
+          SELECT ROL.OriginalName, ROL.Id, O.name CurrentName, SCHEMA_NAME(O.schema_id) SchemaName, COUNT(1)OVER(PARTITION BY ROL.OriginalName) Cnt
             FROM tSQLt.Private_RenamedObjectLog ROL
             JOIN sys.objects O
               ON ROL.ObjectId = O.object_id
@@ -74,23 +80,29 @@ BEGIN
            WHERE EP.value IS NULL
         )C
        WHERE C.Cnt>1
+    ),
+    ErrorTableLists AS(
+      SELECT '{'+C.CList+'}-->' + QUOTENAME(SO.SchemaName)+'.'+QUOTENAME(PARSENAME(SO.OriginalName,1)) ErrorTableList
+        FROM (SELECT DISTINCT SchemaName, OriginalName FROM S) SO
+       CROSS APPLY (
+         SELECT (
+           STUFF(
+             (
+               SELECT ', '+QUOTENAME(SC.CurrentName)
+                 FROM S AS SC
+                WHERE SC.OriginalName = SO.OriginalName
+                ORDER BY SC.Id
+                  FOR XML PATH(''),TYPE
+             ).value('.','NVARCHAR(MAX)'),
+             1,2,'')
+         ) CList
+       )C
     )
-    SELECT QUOTENAME(S.SchemaName)+'.'+QUOTENAME(S.OriginalName)+'{'+C.CList+'}'
-      FROM S
-     CROSS APPLY (
-       SELECT (
-         STUFF(
-           (
-             SELECT ','+SC.CurrentName
-               FROM S AS SC
-              WHERE SC.OriginalName = S.OriginalName
-              ORDER BY SC.CurrentName
-                FOR XML PATH(''),TYPE
-           ).value('.','NVARCHAR(MAX)'),
-           1,1,'')
-       ) CList
-     )C
-    RAISERROR('Catastrophy Averted!',16,10);
+    SELECT @ErrorMessageTableList = ETL.ErrorTableList
+      FROM ErrorTableLists ETL;
+
+    SELECT @ErrorMessage = REPLACE('Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. (%s)','%s',@ErrorMessageTableList);
+    RAISERROR(@ErrorMessage,16,10);
   END;
 
 

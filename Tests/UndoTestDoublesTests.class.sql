@@ -491,6 +491,8 @@ BEGIN
   
 END;
 GO
+/* --------------------------------------------------------------------------------------------- */
+GO
 CREATE PROCEDURE UndoTestDoublesTests.[test objects that are replaced multiple times by objects not marked as IsTempObject are restored if @Force=1]
 AS
 BEGIN
@@ -629,7 +631,8 @@ BEGIN
   CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
   EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot rename these objects as there are name collisions. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1]{tSQLt_TempObject_9287392, tSQLt_TempObject_9283479278})', @ExpectedSeverity = 16, @ExpectedState = 10;
+  --EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. ({[[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%]}-->[UndoTestDoublesTests].[SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. ({[[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%]}-->[[]UndoTestDoublesTests].[[]SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.UndoTestDoubles;
 END;
