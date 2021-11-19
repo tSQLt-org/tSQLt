@@ -41,6 +41,28 @@ BEGIN
     ) Collisions(List)
   EXEC(@cmd);
 
+  IF(EXISTS(
+    SELECT ROL.OriginalName, COUNT(1) cnt 
+      FROM tSQLt.Private_RenamedObjectLog ROL
+      JOIN sys.objects O
+        ON ROL.ObjectId = O.object_id
+      LEFT JOIN sys.extended_properties AS EP
+        ON EP.class_desc = 'OBJECT_OR_COLUMN'
+       AND EP.major_id = O.object_id
+       AND EP.name = 'tSQLt.IsTempObject'
+       AND EP.value = 1
+     WHERE EP.value IS NULL
+     GROUP BY ROL.OriginalName
+    HAVING COUNT(1)>1
+  ))
+  BEGIN
+    RAISERROR('Catastrophy Averted!',16,10);
+  END;
+
+
+
+
+
   SELECT TOP(0)A.* INTO #RenamedObjects FROM tSQLt.Private_RenamedObjectLog A RIGHT JOIN tSQLt.Private_RenamedObjectLog X ON 1=0;
 
 
@@ -49,6 +71,31 @@ BEGIN
 
   BEGIN TRAN;
   DELETE FROM tSQLt.Private_RenamedObjectLog OUTPUT Deleted.* INTO #RenamedObjects;
+
+  WITH MarkedTestDoubles AS
+  (
+    SELECT 
+        TempO.Name,
+        SCHEMA_NAME(TempO.schema_id) SchemaName,
+        TempO.type ObjectType
+      FROM sys.objects TempO
+      JOIN sys.extended_properties AS EP
+        ON EP.class_desc = 'OBJECT_OR_COLUMN'
+       AND EP.major_id = TempO.object_id
+       AND EP.name = 'tSQLt.IsTempObject'
+       AND EP.value = 1
+  )
+  SELECT @cmd = 
+  (
+    SELECT 
+        DC.cmd+';'  
+      FROM MarkedTestDoubles MTD
+     CROSS APPLY tSQLt.Private_GetDropItemCmd(QUOTENAME(MTD.SchemaName)+'.'+QUOTENAME(MTD.Name),MTD.ObjectType) DC
+       FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)')
+  RAISERROR('>>>>>>>>>>>>>>>>> CMD 1: %s', 0,1, @cmd) WITH NOWAIT;
+  EXEC(@cmd);
+
   WITH LL AS
   (
     SELECT 
@@ -99,30 +146,9 @@ BEGIN
      ORDER BY L.SortId DESC, L.Id ASC
        FOR XML PATH(''),TYPE
   ).value('.','NVARCHAR(MAX)')
+  RAISERROR('>>>>>>>>>>>>>>>>> CMD 2: %s', 0,1, @cmd) WITH NOWAIT;
   EXEC(@cmd);
 
-  WITH L AS
-  (
-    SELECT 
-        TempO.Name,
-        SCHEMA_NAME(TempO.schema_id) SchemaName,
-        TempO.type ObjectType
-      FROM sys.objects TempO
-      JOIN sys.extended_properties AS EP
-        ON EP.class_desc = 'OBJECT_OR_COLUMN'
-       AND EP.major_id = TempO.object_id
-       AND EP.name = 'tSQLt.IsTempObject'
-       AND EP.value = 1
-  )
-  SELECT @cmd = 
-  (
-    SELECT 
-        DC.cmd+';'  
-      FROM L
-     CROSS APPLY tSQLt.Private_GetDropItemCmd(QUOTENAME(L.SchemaName)+'.'+QUOTENAME(L.Name),L.ObjectType) DC
-       FOR XML PATH(''),TYPE
-  ).value('.','NVARCHAR(MAX)')
-  EXEC(@cmd);
 
   COMMIT;
 END;

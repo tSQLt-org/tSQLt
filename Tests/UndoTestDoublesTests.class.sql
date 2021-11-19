@@ -523,17 +523,18 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test drops a marked object even if it is not conflicting with an original object]
+/* --------------------------------------------------------------------------------------------- */
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test non-testdouble object with @IsTempObjects=1 is also dropped]
 AS
 BEGIN
   SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
-    INTO #OriginalObjectIds
-    FROM sys.objects O;
+  INTO #OriginalObjectIds
+  FROM sys.objects O;
 
   CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
-
-  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1', @ObjectType = 'TABLE', @NewNameOfOriginalObject = NULL;
-
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1', @ObjectType=N'TABLE', @NewNameOfOriginalObject=NULL;
+  
   EXEC tSQLt.UndoTestDoubles;
 
   SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
@@ -550,7 +551,9 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test drops multiple marked objects even if they do not conflict with an original object]
+/* --------------------------------------------------------------------------------------------- */
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test multiple non-testdouble objects with @IsTempObjects=1 are all dropped]
 AS
 BEGIN
   SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
@@ -581,10 +584,61 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
 END;
 GO
+/** ------------------------------------------------------------------------------------------- **/
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test recovers table that was first faked and then removed]
+AS
+BEGIN
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.SimpleTable1';
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+
+SELECT * FROM tSQLt.Private_RenamedObjectLog AS PROL;
+SELECT 'UndoTestDoubleTest:1',T.object_id,T.name,X.*, E.* FROM sys.tables T LEFT JOIN sys.extended_properties AS E ON T.object_id = E.major_id AND E.class_desc='OBJECT_OR_COLUMN'
+  OUTER APPLY (SELECT(SELECT QUOTENAME(name)+' ' FROM sys.columns C WHERE T.object_id = C.object_id ORDER BY C.column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'))X(cols)
+  WHERE T.schema_id=SCHEMA_ID('UndoTestDoublesTests') ORDER BY T.object_id, E.name;
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+END;
+GO
+/** ------------------------------------------------------------------------------------------- **/
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test throws useful error if two objects with @IsTempObject<>1 need to be renamed to the same name]
+AS
+BEGIN
+
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot rename these objects as there are name collisions. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1]{tSQLt_TempObject_9287392, tSQLt_TempObject_9283479278})', @ExpectedSeverity = 16, @ExpectedState = 10;
+
+  EXEC tSQLt.UndoTestDoubles;
+END;
+
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
 /*--
-
 TODO
-
-Write a test that ensure that we are restoring objects in the correct order if we first fake them and then remove them.
-
+test: collision between two renamed @IsTempObject<>1 objects is identified before anthing is dropped or renamed so that we can throw an error.
+test: non-testdouble @IsTempObjects=1 are also dropped
 --*/
