@@ -56,6 +56,40 @@ BEGIN
     HAVING COUNT(1)>1
   ))
   BEGIN
+    WITH S AS(
+      SELECT 
+          C.OriginalName,
+          C.CurrentName,
+          C.SchemaName
+        FROM(
+          SELECT ROL.OriginalName, O.name CurrentName, SCHEMA_NAME(O.schema_id) SchemaName, COUNT(1)OVER(PARTITION BY ROL.OriginalName) Cnt
+            FROM tSQLt.Private_RenamedObjectLog ROL
+            JOIN sys.objects O
+              ON ROL.ObjectId = O.object_id
+            LEFT JOIN sys.extended_properties AS EP
+              ON EP.class_desc = 'OBJECT_OR_COLUMN'
+             AND EP.major_id = O.object_id
+             AND EP.name = 'tSQLt.IsTempObject'
+             AND EP.value = 1
+           WHERE EP.value IS NULL
+        )C
+       WHERE C.Cnt>1
+    )
+    SELECT QUOTENAME(S.SchemaName)+'.'+QUOTENAME(S.OriginalName)+'{'+C.CList+'}'
+      FROM S
+     CROSS APPLY (
+       SELECT (
+         STUFF(
+           (
+             SELECT ','+SC.CurrentName
+               FROM S AS SC
+              WHERE SC.OriginalName = S.OriginalName
+              ORDER BY SC.CurrentName
+                FOR XML PATH(''),TYPE
+           ).value('.','NVARCHAR(MAX)'),
+           1,1,'')
+       ) CList
+     )C
     RAISERROR('Catastrophy Averted!',16,10);
   END;
 
