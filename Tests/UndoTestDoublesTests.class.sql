@@ -395,7 +395,7 @@ BEGIN
   EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
   CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot drop these objects as they are not marked as temporary. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Attempting to remove object(s) that is/are not marked as temporary. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.UndoTestDoubles;
 END;
@@ -415,7 +415,7 @@ BEGIN
   CREATE TABLE UndoTestDoublesTests.SimpleTable2 (i INT);
   CREATE TABLE UndoTestDoublesTests.SimpleTable3 (i INT);
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot drop these objects as they are not marked as temporary. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1], [UndoTestDoublesTests].[SimpleTable2], [UndoTestDoublesTests].[SimpleTable3])', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Attempting to remove object(s) that is/are not marked as temporary. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1], [UndoTestDoublesTests].[SimpleTable2], [UndoTestDoublesTests].[SimpleTable3])', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.UndoTestDoubles;
 END;
@@ -433,7 +433,7 @@ BEGIN
        @level0type = N'SCHEMA', @level0name = 'UndoTestDoublesTests', 
        @level1type = N'TABLE',  @level1name = 'SimpleTable1';
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Cannot drop these objects as they are not marked as temporary. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Attempting to remove object(s) that is/are not marked as temporary. Use @Force = 1 to override. ([UndoTestDoublesTests].[SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.UndoTestDoubles;
 END;
@@ -485,7 +485,7 @@ BEGIN
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-  VALUES('WARNING: @Force has been set to 1. Dropping the following objects that are not marked as temporary. ([UndoTestDoublesTests].[aSimpleTable])');
+  VALUES('WARNING: @Force has been set to 1. Overriding the following error(s):Attempting to remove object(s) that is/are not marked as temporary. Use @Force = 1 to override. ([UndoTestDoublesTests].[aSimpleTable])');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
@@ -591,18 +591,14 @@ GO
 CREATE PROCEDURE UndoTestDoublesTests.[test recovers table that was first faked and then removed]
 AS
 BEGIN
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+
   SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
     INTO #OriginalObjectIds
     FROM sys.objects O;
 
-  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
   EXEC tSQLt.FakeTable @TableName = 'UndoTestDoublesTests.SimpleTable1';
   EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
-
-SELECT * FROM tSQLt.Private_RenamedObjectLog AS PROL;
-SELECT 'UndoTestDoubleTest:1',T.object_id,T.name,X.*, E.* FROM sys.tables T LEFT JOIN sys.extended_properties AS E ON T.object_id = E.major_id AND E.class_desc='OBJECT_OR_COLUMN'
-  OUTER APPLY (SELECT(SELECT QUOTENAME(name)+' ' FROM sys.columns C WHERE T.object_id = C.object_id ORDER BY C.column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'))X(cols)
-  WHERE T.schema_id=SCHEMA_ID('UndoTestDoublesTests') ORDER BY T.object_id, E.name;
 
   EXEC tSQLt.UndoTestDoubles;
 
@@ -664,10 +660,37 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test if two objects with @IsTempObject<>1 need to be renamed to the same name and @Force=1 the oldest survives]
+AS
+BEGIN
 
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  INSERT INTO UndoTestDoublesTests.SimpleTable1 VALUES (6);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  INSERT INTO UndoTestDoublesTests.SimpleTable1 VALUES (4);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+
+  EXEC tSQLt.UndoTestDoubles @Force=1;
+  
+  SELECT i INTO #Actual FROM UndoTestDoublesTests.SimpleTable1;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES(6);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/** ------------------------------------------------------------------------------------------- **/
+GO
 /*--
 TODO
 test: collision between two renamed @IsTempObject<>1 objects is identified before anthing is dropped or renamed so that we can throw an error.
 test: non-testdouble @IsTempObjects=1 are also dropped
+
+
+test: two objects with same name in separate schema that were removed will both be restoreds
+
 --*/
 --EXEC tSQLt.Run UndoTestDoublesTests

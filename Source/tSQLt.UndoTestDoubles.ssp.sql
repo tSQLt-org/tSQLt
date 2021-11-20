@@ -103,7 +103,6 @@ BEGIN
       )
     );
     SELECT @ErrorMessage = @ErrorMessage + REPLACE('Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. (%s)','%s',@ErrorMessageTableList);
-    RAISERROR(@ErrorMessage,16,10);
   END;
   IF(@ErrorMessage <> '')
   BEGIN
@@ -150,9 +149,35 @@ BEGIN
       FROM MarkedTestDoubles MTD
      CROSS APPLY tSQLt.Private_GetDropItemCmd(QUOTENAME(MTD.SchemaName)+'.'+QUOTENAME(MTD.Name),MTD.ObjectType) DC
        FOR XML PATH(''),TYPE
-  ).value('.','NVARCHAR(MAX)')
-  RAISERROR('>>>>>>>>>>>>>>>>> CMD 1: %s', 0,1, @cmd) WITH NOWAIT;
+  ).value('.','NVARCHAR(MAX)');
   EXEC(@cmd);
+
+  SELECT @cmd = 
+  (
+    SELECT
+        DC.cmd+';'
+      FROM(
+        SELECT
+            *
+          FROM(
+            SELECT
+                ROL.OriginalName,
+                O.object_id,
+                O.type ObjectType,
+                SCHEMA_NAME(O.schema_id) SchemaName, 
+                O.name CurrentName,
+                ROW_NUMBER()OVER(PARTITION BY ROL.OriginalName ORDER BY ROL.Id) RN
+              FROM #RenamedObjects AS ROL
+              JOIN sys.objects O
+                ON O.object_id = ROL.ObjectId
+          )ROLI
+         WHERE ROLI.RN>1
+      )Deletables
+     CROSS APPLY tSQLt.Private_GetDropItemCmd(QUOTENAME(Deletables.SchemaName)+'.'+QUOTENAME(Deletables.CurrentName),Deletables.ObjectType) DC
+       FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)');
+  EXEC(@cmd);
+
 
   WITH LL AS
   (
@@ -203,8 +228,7 @@ BEGIN
      CROSS APPLY tSQLt.Private_GetDropItemCmd(QUOTENAME(L.SchemaName)+'.'+QUOTENAME(L.OriginalName),L.ObjectType) DC
      ORDER BY L.SortId DESC, L.Id ASC
        FOR XML PATH(''),TYPE
-  ).value('.','NVARCHAR(MAX)')
-  RAISERROR('>>>>>>>>>>>>>>>>> CMD 2: %s', 0,1, @cmd) WITH NOWAIT;
+  ).value('.','NVARCHAR(MAX)');
   EXEC(@cmd);
 
 
