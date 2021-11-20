@@ -684,13 +684,84 @@ END;
 GO
 /** ------------------------------------------------------------------------------------------- **/
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test two objects with @IsTempObject<>1 and the same name but in different schemas are restored]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA RandomSchema1;');
+  CREATE TABLE RandomSchema1.SimpleTable1 (i INT);
+  INSERT INTO RandomSchema1.SimpleTable1 VALUES (4);
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema1.SimpleTable1';
+
+  EXEC('CREATE SCHEMA RandomSchema2;');
+  CREATE TABLE RandomSchema2.SimpleTable1 (i INT);
+  INSERT INTO RandomSchema2.SimpleTable1 VALUES (6);
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema2.SimpleTable1';
+
+  EXEC tSQLt.UndoTestDoubles;
+  
+  SELECT * INTO #Actual
+    FROM(
+      SELECT 'RandomSchema1' [schema_name], i FROM RandomSchema1.SimpleTable1
+      UNION
+      SELECT 'RandomSchema2' [schema_name], i FROM RandomSchema2.SimpleTable1
+    ) A
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('RandomSchema1', 4),('RandomSchema2',6);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/** ------------------------------------------------------------------------------------------- **/
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test throws useful error if there are multiple object tuples in separate schemata but all with the same name]
+AS
+BEGIN
+
+  EXEC('CREATE SCHEMA RandomSchema1;');
+  EXEC('CREATE SCHEMA RandomSchema2;');
+
+  DECLARE @CurrentTableObjectId INT
+  CREATE TABLE RandomSchema1.SimpleTable1 (i INT);
+  SET @CurrentTableObjectId = OBJECT_ID('RandomSchema1.SimpleTable1');
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema1.SimpleTable1';
+  DECLARE @Name1A NVARCHAR(MAX) = OBJECT_NAME(@CurrentTableObjectId);
+
+  CREATE TABLE RandomSchema1.SimpleTable1 (i INT);
+  SET @CurrentTableObjectId = OBJECT_ID('RandomSchema1.SimpleTable1');
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema1.SimpleTable1';
+  DECLARE @Name1B NVARCHAR(MAX) = OBJECT_NAME(@CurrentTableObjectId);
+
+  CREATE TABLE RandomSchema2.SimpleTable1 (i INT);
+  SET @CurrentTableObjectId = OBJECT_ID('RandomSchema2.SimpleTable1');
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema2.SimpleTable1';
+  DECLARE @Name2A NVARCHAR(MAX) = OBJECT_NAME(@CurrentTableObjectId);
+
+  CREATE TABLE RandomSchema2.SimpleTable1 (i INT);
+  SET @CurrentTableObjectId = OBJECT_ID('RandomSchema2.SimpleTable1');
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema2.SimpleTable1';
+  DECLARE @Name2B NVARCHAR(MAX) = OBJECT_NAME(@CurrentTableObjectId);
+
+  DECLARE @ExpectedMessage NVARCHAR(MAX) = 'Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. ({['+@Name1A+'], ['+@Name1B+']}-->[RandomSchema1].[SimpleTable1]; {['+@Name2A+'], ['+@Name2B+']}-->[RandomSchema2].[SimpleTable1])'
+  EXEC tSQLt.ExpectException @ExpectedMessage = @ExpectedMessage, @ExpectedSeverity = 16, @ExpectedState = 10;
+
+  EXEC tSQLt.UndoTestDoubles;
+END;
+GO
+/** ------------------------------------------------------------------------------------------- **/
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test does this missing schema link cause other issues?]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'It might. You better check!';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
 /*--
 TODO
-test: collision between two renamed @IsTempObject<>1 objects is identified before anthing is dropped or renamed so that we can throw an error.
-test: non-testdouble @IsTempObjects=1 are also dropped
-
-
-test: two objects with same name in separate schema that were removed will both be restoreds
 
 --*/
 --EXEC tSQLt.Run UndoTestDoublesTests

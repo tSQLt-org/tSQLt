@@ -38,7 +38,7 @@ BEGIN
   /*-- Attempting to rename two or more non-temp objects to the same name --*/
 
   IF(EXISTS(
-    SELECT ROL.OriginalName, COUNT(1) cnt 
+    SELECT O.schema_id, ROL.OriginalName, COUNT(1) cnt 
       FROM tSQLt.Private_RenamedObjectLog ROL
       JOIN sys.objects O
         ON ROL.ObjectId = O.object_id
@@ -48,7 +48,7 @@ BEGIN
        AND EP.name = 'tSQLt.IsTempObject'
        AND EP.value = 1
      WHERE EP.value IS NULL
-     GROUP BY ROL.OriginalName
+     GROUP BY O.schema_id, ROL.OriginalName
     HAVING COUNT(1)>1
   ))
   BEGIN
@@ -59,7 +59,7 @@ BEGIN
           C.CurrentName,
           C.SchemaName
         FROM(
-          SELECT ROL.OriginalName, ROL.Id, O.name CurrentName, SCHEMA_NAME(O.schema_id) SchemaName, COUNT(1)OVER(PARTITION BY ROL.OriginalName) Cnt
+          SELECT ROL.OriginalName, ROL.Id, O.name CurrentName, SCHEMA_NAME(O.schema_id) SchemaName, COUNT(1)OVER(PARTITION BY O.schema_id, ROL.OriginalName) Cnt
             FROM tSQLt.Private_RenamedObjectLog ROL
             JOIN sys.objects O
               ON ROL.ObjectId = O.object_id
@@ -84,6 +84,7 @@ BEGIN
                SELECT ', '+QUOTENAME(SC.CurrentName)
                  FROM S AS SC
                 WHERE SC.OriginalName = SO.OriginalName
+                  AND SC.SchemaName = SO.SchemaName
                 ORDER BY SC.Id
                   FOR XML PATH(''),TYPE
              ).value('.','NVARCHAR(MAX)'),
@@ -166,7 +167,7 @@ BEGIN
                 O.type ObjectType,
                 SCHEMA_NAME(O.schema_id) SchemaName, 
                 O.name CurrentName,
-                ROW_NUMBER()OVER(PARTITION BY ROL.OriginalName ORDER BY ROL.Id) RN
+                ROW_NUMBER()OVER(PARTITION BY O.schema_id, ROL.OriginalName ORDER BY ROL.Id) RN
               FROM #RenamedObjects AS ROL
               JOIN sys.objects O
                 ON O.object_id = ROL.ObjectId
