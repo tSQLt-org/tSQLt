@@ -8,19 +8,11 @@ AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
   DECLARE @ErrorMessageTableList NVARCHAR(MAX);
-  DECLARE @ErrorMessage NVARCHAR(MAX);
+  DECLARE @ErrorMessage NVARCHAR(MAX) = '';
 
-  IF (@Force = 1) 
-  BEGIN
-    SET @cmd = 'EXEC tSQLt.Private_Print @Message = ''WARNING: @Force has been set to 1. Dropping the following objects that are not marked as temporary. (%s)'';';
-  END;
-  ELSE
-  BEGIN
-    SET @cmd = 'RAISERROR(''Cannot drop these objects as they are not marked as temporary. Use @Force = 1 to override. (%s)'',16,10)';
-  END;
 
   /*-- Two non-temp objects, the first of which should be renamed to the second --*/
-  SELECT @cmd = REPLACE(@cmd,'%s',Collisions.List)
+  SELECT @ErrorMessage = @ErrorMessage + ISNULL(REPLACE('Attempting to remove object(s) that is/are not marked as temporary. Use @Force = 1 to override. (%s)','%s',Collisions.List),'')
     FROM
     (
       SELECT
@@ -42,7 +34,6 @@ BEGIN
          ).value('.','NVARCHAR(MAX)'),
          1,2,'')
     ) Collisions(List)
-  EXEC(@cmd);
 
   /*-- Attempting to rename two or more non-temp objects to the same name --*/
 
@@ -82,7 +73,9 @@ BEGIN
        WHERE C.Cnt>1
     ),
     ErrorTableLists AS(
-      SELECT '{'+C.CList+'}-->' + QUOTENAME(SO.SchemaName)+'.'+QUOTENAME(PARSENAME(SO.OriginalName,1)) ErrorTableList
+      SELECT 
+          '{'+C.CList+'}-->' + QUOTENAME(SO.SchemaName)+'.'+QUOTENAME(PARSENAME(SO.OriginalName,1)) ErrorTableList,
+          QUOTENAME(SO.SchemaName)+'.'+QUOTENAME(PARSENAME(SO.OriginalName,1)) FullOriginalName
         FROM (SELECT DISTINCT SchemaName, OriginalName FROM S) SO
        CROSS APPLY (
          SELECT (
@@ -98,13 +91,32 @@ BEGIN
          ) CList
        )C
     )
-    SELECT @ErrorMessageTableList = ETL.ErrorTableList
-      FROM ErrorTableLists ETL;
-
-    SELECT @ErrorMessage = REPLACE('Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. (%s)','%s',@ErrorMessageTableList);
+    SELECT @ErrorMessageTableList = (
+      STUFF(
+        (
+          SELECT '; '+ETL.ErrorTableList
+            FROM ErrorTableLists ETL
+           ORDER BY ETL.FullOriginalName
+             FOR XML PATH(''),TYPE
+        ).value('.','NVARCHAR(MAX)'),
+        1,2,''
+      )
+    );
+    SELECT @ErrorMessage = @ErrorMessage + REPLACE('Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. (%s)','%s',@ErrorMessageTableList);
     RAISERROR(@ErrorMessage,16,10);
   END;
-
+  IF(@ErrorMessage <> '')
+  BEGIN
+    IF (@Force = 1) 
+    BEGIN
+      SET @ErrorMessage = 'WARNING: @Force has been set to 1. Overriding the following error(s):'+@ErrorMessage;
+      EXEC tSQLt.Private_Print @Message = @ErrorMessage;
+    END;
+    ELSE
+    BEGIN
+      RAISERROR(@ErrorMessage,16,10);
+    END;
+  END;
 
 
 

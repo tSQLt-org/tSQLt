@@ -631,12 +631,37 @@ BEGIN
   CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
   EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
 
-  --EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. ({[[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%]}-->[UndoTestDoublesTests].[SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
   EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. ({[[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%]}-->[[]UndoTestDoublesTests].[[]SimpleTable1])', @ExpectedSeverity = 16, @ExpectedState = 10;
 
   EXEC tSQLt.UndoTestDoubles;
 END;
+GO
+/** ------------------------------------------------------------------------------------------- **/
+GO
+CREATE PROCEDURE UndoTestDoublesTests.[test throws useful error if there are multiple object tuples with @IsTempObject<>1 needing to be renamed to the same name]
+AS
+BEGIN
 
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable2 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable2';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable2 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable2';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable2 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable2';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable3 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable3';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable3 (i INT);
+  EXEC tSQLt.RemoveObject @ObjectName = 'UndoTestDoublesTests.SimpleTable3';
+
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = 'Attempting to rename two or more objects to the same name. Use @Force = 1 to override, only first object of each rename survives. ({[[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%]}-->[[]UndoTestDoublesTests].[[]SimpleTable1]; {[[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%]}-->[[]UndoTestDoublesTests].[[]SimpleTable2]; {[[]tSQLt_tempobject_%], [[]tSQLt_tempobject_%]}-->[[]UndoTestDoublesTests].[[]SimpleTable3])', @ExpectedSeverity = 16, @ExpectedState = 10;
+
+  EXEC tSQLt.UndoTestDoubles;
+END;
+GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
@@ -645,3 +670,4 @@ TODO
 test: collision between two renamed @IsTempObject<>1 objects is identified before anthing is dropped or renamed so that we can throw an error.
 test: non-testdouble @IsTempObjects=1 are also dropped
 --*/
+--EXEC tSQLt.Run UndoTestDoublesTests
