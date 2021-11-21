@@ -27,8 +27,13 @@ BEGIN
     
     DECLARE @NewNameOfOriginalObject NVARCHAR(MAX);
 
-    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId, @NewName = @NewNameOfOriginalObject OUTPUT;
 
+    DECLARE @LogTableObjectId INT = OBJECT_ID(@LogTableName);
+    IF(@LogTableObjectId IS NOT NULL)
+    BEGIN
+      EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ObjectId = @LogTableObjectId;
+    END;
+    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId, @NewName = @NewNameOfOriginalObject OUTPUT;
     EXEC(@CreateLogTableStatement);
 
     EXEC(@CreateProcedureStatement);

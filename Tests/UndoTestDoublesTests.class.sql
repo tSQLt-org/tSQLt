@@ -751,10 +751,72 @@ END;
 GO
 /** ------------------------------------------------------------------------------------------- **/
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test does this missing schema link cause other issues?]
+CREATE PROCEDURE UndoTestDoublesTests.[test can handle the kitchen sink]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'It might. You better check!';
+  EXEC('CREATE SCHEMA RandomSchema1;');
+  EXEC('CREATE SCHEMA RandomSchema2;');
+  CREATE TABLE RandomSchema1.SimpleTable1 (i INT);
+  CREATE TABLE RandomSchema1.SimpleTable2 (i INT CONSTRAINT [s1t2pk] PRIMARY KEY);
+  CREATE TABLE RandomSchema1.SimpleTable3 (i INT);
+
+  CREATE TABLE RandomSchema2.SimpleTable1 (i INT);
+  CREATE TABLE RandomSchema2.SimpleTable2 (i INT);
+  CREATE TABLE RandomSchema2.SimpleTable3 (i INT);
+
+  EXEC('CREATE PROCEDURE RandomSchema1.Proc1 AS RETURN;')
+  EXEC('CREATE PROCEDURE RandomSchema1.Proc2 AS RETURN;')
+  EXEC('CREATE PROCEDURE RandomSchema1.Proc3 AS RETURN;')
+
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #OriginalObjectIds
+    FROM sys.objects O;
+
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema1.SimpleTable1';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable1 (i INT);
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = 'UndoTestDoublesTests.SimpleTable1', @ObjectType = 'TABLE', @NewNameOfOriginalObject = NULL;
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'RandomSchema1.Proc1';
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema1.SimpleTable1';
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema1.SimpleTable3';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'RandomSchema1.Proc1';
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema1.SimpleTable2';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable2 (i INT);
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = 'UndoTestDoublesTests.SimpleTable2', @ObjectType = 'TABLE', @NewNameOfOriginalObject = NULL;
+
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema1.SimpleTable1';
+  EXEC tSQLt.ApplyConstraint @TableName = 'RandomSchema1.SimpleTable2', @ConstraintName = 's1t2pk';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'RandomSchema1.Proc1';
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema2.SimpleTable3';
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema1.Proc3';
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema1.SimpleTable2';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'RandomSchema1.Proc1';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'RandomSchema1.Proc2';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'RandomSchema1.Proc1';
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema2.SimpleTable1';
+  EXEC tSQLt.FakeTable @TableName = 'RandomSchema2.SimpleTable3';
+  CREATE TABLE UndoTestDoublesTests.SimpleTable3 (i INT);
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = 'UndoTestDoublesTests.SimpleTable3', @ObjectType = 'TABLE', @NewNameOfOriginalObject = NULL;
+
+  EXEC tSQLt.ApplyConstraint @TableName = 'RandomSchema1.SimpleTable2', @ConstraintName = 's1t2pk';
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema1.SimpleTable2';
+  EXEC tSQLt.RemoveObject @ObjectName = 'RandomSchema1.SimpleTable1';
+
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
+    INTO #RestoredObjectIds
+    FROM sys.objects O;
+
+  SELECT * INTO #ShouldBeEmpty
+  FROM
+  (
+    SELECT 'Expected' T,* FROM (SELECT * FROM #OriginalObjectIds EXCEPT SELECT * FROM #RestoredObjectIds) E
+    UNION ALL
+    SELECT 'Actual' T,* FROM (SELECT * FROM #RestoredObjectIds EXCEPT SELECT * FROM #OriginalObjectIds) A
+  ) T;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#ShouldBeEmpty';
+
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/

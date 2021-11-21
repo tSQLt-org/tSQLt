@@ -723,7 +723,8 @@ BEGIN
     
     EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcedure';
 
-    EXEC dbo.InnerProcedure @expectedCommand = 'Select 1 [Int]', @actualCommand = 'Select ''c'' [char]';
+    DECLARE @ProcName NVARCHAR(MAX) = 'dbo.InnerProcedure';
+    EXEC @ProcName @expectedCommand = 'Select 1 [Int]', @actualCommand = 'Select ''c'' [char]';
 
     SELECT expectedCommand, actualCommand INTO #Actual FROM dbo.InnerProcedure_SpyProcedureLog;
     SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -776,6 +777,8 @@ BEGIN
   
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROC SpyProcedureTests.[test new SpyProcedureLog table is marked as tSQLt.IsTempObject]
 AS
 BEGIN
@@ -796,6 +799,21 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test can handle existing SpyProcedureLog table]
+AS
+BEGIN
+  CREATE TABLE SpyProcedureTests.TempProcedure1_SpyProcedureLog ([Please don't do this] INT, [but just in case, we can handle it] NVARCHAR(MAX));
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS RETURN;');
+
+  EXEC tSQLt.ExpectNoException;
+    
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1';  
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
 GO
 
 
