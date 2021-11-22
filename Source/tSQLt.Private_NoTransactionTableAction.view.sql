@@ -6,8 +6,8 @@ CREATE VIEW tSQLt.Private_NoTransactionTableAction
 AS
 SELECT *
   FROM(
-    VALUES('[tSQLt].[Private_NewTestClassList]','Remove'),
-          ('[tSQLt].[Run_LastExecution]','Remove'),
+    VALUES('[tSQLt].[Private_NewTestClassList]','Hide'),
+          ('[tSQLt].[Run_LastExecution]','Hide'),
           ('[tSQLt].[Private_Configurations]','Restore'),
           ('[tSQLt].[CaptureOutputLog]','Truncate'),
           ('[tSQLt].[Private_RenamedObjectLog]','Ignore'),

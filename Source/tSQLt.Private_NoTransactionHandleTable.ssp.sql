@@ -10,7 +10,7 @@ AS
 BEGIN
   DECLARE @cmd NVARCHAR(MAX);
   BEGIN TRY
-    IF (OBJECT_ID(@FullTableName) IS NULL AND NOT(@Action='Reset' AND @TableAction='Remove'))
+    IF (OBJECT_ID(@FullTableName) IS NULL AND @TableAction <> 'Hide')
     BEGIN
       RAISERROR('Table %s does not exist.',16,10,@FullTableName);
     END;
@@ -18,15 +18,25 @@ BEGIN
     BEGIN
       IF (@TableAction = 'Restore')
       BEGIN
-        DECLARE @NewQuotedNameForBackupTable NVARCHAR(MAX) = '[tSQLt].'+QUOTENAME(tSQLt.Private::CreateUniqueObjectName());
-        SET @cmd = 'SELECT * INTO '+@NewQuotedNameForBackupTable+' FROM '+@FullTableName+';';
-        EXEC (@Cmd);
-        INSERT INTO #TableBackupLog (OriginalName, BackupName) VALUES (@FullTableName, @NewQuotedNameForBackupTable);
-        EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @NewQuotedNameForBackupTable, @ObjectType = N'TABLE', @NewNameOfOriginalObject = NULL; 
+        IF(NOT EXISTS(SELECT 1 FROM #TableBackupLog TBL WHERE TBL.OriginalName = @FullTableName))
+        BEGIN
+          DECLARE @NewQuotedNameForBackupTable NVARCHAR(MAX) = '[tSQLt].'+QUOTENAME(tSQLt.Private::CreateUniqueObjectName());
+          SET @cmd = 'SELECT * INTO '+@NewQuotedNameForBackupTable+' FROM '+@FullTableName+';';
+          EXEC (@Cmd);
+          INSERT INTO #TableBackupLog (OriginalName, BackupName) VALUES (@FullTableName, @NewQuotedNameForBackupTable);
+          EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @NewQuotedNameForBackupTable, @ObjectType = N'TABLE', @NewNameOfOriginalObject = NULL; 
+        END;
       END;
-      ELSE IF (@TableAction = 'Remove')
+      ELSE IF (@TableAction = 'Hide')
       BEGIN
-        EXEC tSQLt.RemoveObject @ObjectName = @FullTableName;
+        IF (NOT EXISTS (SELECT 1 FROM tSQLt.Private_RenamedObjectLog ROL WHERE QUOTENAME(OBJECT_SCHEMA_NAME(ROL.ObjectId))+'.'+OriginalName = @FullTableName))
+        BEGIN
+          IF(OBJECT_ID(@FullTableName) IS NULL)
+          BEGIN
+            RAISERROR('Table %s does not exist.',16,10,@FullTableName);
+          END;
+          EXEC tSQLt.RemoveObject @ObjectName = @FullTableName;
+        END;
       END;
       ELSE IF (@TableAction IN ('Truncate', 'Ignore'))
       BEGIN
@@ -56,7 +66,7 @@ BEGIN
       BEGIN
         EXEC('DELETE FROM ' + @FullTableName +';');
       END;
-      ELSE IF (@TableAction IN ('Ignore','Remove'))
+      ELSE IF (@TableAction IN ('Ignore','Hide'))
       BEGIN
         RETURN;
       END;

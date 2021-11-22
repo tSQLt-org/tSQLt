@@ -91,7 +91,7 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test is rerunnable]
+CREATE PROCEDURE Private_NoTransactionHandleTablesTests.[test is rerunnable (though it still needs some help from UndoTestDoubles)]
 AS
 BEGIN
 
@@ -100,8 +100,9 @@ BEGIN
     FROM sys.objects O;
 
   EXEC tSQLt.Private_NoTransactionHandleTables @Action='Save';
-  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Restore';
-  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Restore';
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
+  EXEC tSQLt.Private_NoTransactionHandleTables @Action='Reset';
+  EXEC tSQLt.UndoTestDoubles;
 
   SELECT O.object_id,SCHEMA_NAME(O.schema_id) schema_name, O.name object_name, O.type_desc 
     INTO #RestoredObjectIds
