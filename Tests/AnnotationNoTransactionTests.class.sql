@@ -365,6 +365,7 @@ RETURN
   SELECT @TestName TestName
 GO
 --[@tSQLt:NoTransaction]()
+---[@tSQLt:SkipTest]('')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
@@ -378,9 +379,16 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT 
   ');
 
   EXEC tSQLt.SetSummaryError 0;
-  RAISERROR('1', 0, 1) WITH NOWAIT;
-  EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
-  RAISERROR('2', 0, 1) WITH NOWAIT;
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
+  DELETE FROM tSQLt.Private_RenamedObjectLog;
+  BEGIN TRY
+    EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
+  END TRY
+  BEGIN CATCH
+   /*-- more work todo --*/
+  END CATCH;
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
+
   SELECT Name, Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;

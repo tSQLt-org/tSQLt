@@ -462,6 +462,25 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test if @TableAction is Restore, @Action Save, Reset: removes entry from #TableBackupLog]
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT, col1 NVARCHAR(MAX));
+  CREATE TABLE #TableBackupLog(OriginalName NVARCHAR(MAX), BackupName NVARCHAR(MAX));
+  INSERT INTO #TableBackupLog VALUES ('SomeUnrelatedTable','tSQLt_SomeUnrelatedTable_Temp');
+
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Restore';
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Restore';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #TableBackupLog A RIGHT JOIN #TableBackupLog X ON 1=0;
+
+  INSERT INTO #Expected VALUES ('SomeUnrelatedTable','tSQLt_SomeUnrelatedTable_Temp');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#TableBackupLog';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test if @TableAction is Hide, @Action Save, and table has be previously hidden, do nothing]
 AS
 BEGIN
@@ -546,7 +565,8 @@ GO
 /*--
 TODO
 
-I can rerun them and nothing "bad" happens. But what is "bad"? 
+I can rerun them and nothing "bad" happens. But what is "bad"?
+What about when I intersperse calls to Save/Reset with UndoTestDoubles?
 
 Some scenarios to consider
 1: Save, Reset
@@ -574,16 +594,6 @@ Some scenarios to consider
 15: ?*test* Save (Truncate), Save (Truncate), Reset (Truncate), Save (Truncate), Reset (Truncate), Reset (Truncate) -->  Should be idempotent. Any table with TableAction=Truncate should be empty after any number of save, reset actions.
 
 @TableAction = Ignore
-16: ?*test* Save (Ignore), Save (Ignore), Reset (Ignore), Reset (Ignore) --> No Op. ExpectNoException.
-
-
-
-
-
-test that repeated calls to @Action=Save for any of the @TableActions does nothing that can't be "Reset"
-test that repeated calls to @Action=Reset for any of the @TableActions does nothing.
-
-Possible @Action: Save, Reset
-Possible @TableAction: Hide, Restore, Truncate, Ignore
+16: ?*test* Save (Ignore), Save (Ignore), Reset (Ignore), Reset (Ignore) --> No Op. ExpectNoException.s
 
 --*/

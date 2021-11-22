@@ -51,16 +51,22 @@ BEGIN
     BEGIN
       IF (@TableAction = 'Restore')
       BEGIN
-        DECLARE @BackupTableName NVARCHAR(MAX) =(SELECT BackupName FROM #TableBackupLog WHERE OriginalName = @FullTableName);
-        SET @cmd = 'DELETE FROM ' + @FullTableName + ';';
-        IF (EXISTS(SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) AND is_identity = 1))
-        BEGIN
-          SET @cmd = @cmd + 'SET IDENTITY_INSERT ' + @FullTableName + ' ON;';
-        END;
-        SET @cmd = @cmd + 'INSERT INTO ' + @FullTableName +'(';
-        SET @cmd = @cmd + STUFF((SELECT ','+QUOTENAME(name) FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) ORDER BY column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
-        SET @cmd = @cmd + ') SELECT * FROM ' + @BackupTableName+';';
-        EXEC(@cmd);
+        BEGIN TRAN;
+          DECLARE @BackupTableName TABLE(TableName NVARCHAR(MAX)); 
+          DELETE FROM #TableBackupLog OUTPUT DELETED.BackupName INTO @BackupTableName WHERE OriginalName = @FullTableName;
+          IF(EXISTS(SELECT 1 FROM @BackupTableName AS BTN))
+          BEGIN
+            SET @cmd = 'DELETE FROM ' + @FullTableName + ';';
+            IF (EXISTS(SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) AND is_identity = 1))
+            BEGIN
+              SET @cmd = @cmd + 'SET IDENTITY_INSERT ' + @FullTableName + ' ON;';
+            END;
+            SET @cmd = @cmd + 'INSERT INTO ' + @FullTableName +'(';
+            SET @cmd = @cmd + STUFF((SELECT ','+QUOTENAME(name) FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) ORDER BY column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
+            SET @cmd = @cmd + ') SELECT * FROM ' + (SELECT TableName FROM @BackupTableName)+';';
+            EXEC(@cmd);
+          END;
+        COMMIT;
       END;
       ELSE IF (@TableAction = 'Truncate')
       BEGIN
