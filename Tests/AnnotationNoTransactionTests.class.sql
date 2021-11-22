@@ -150,30 +150,6 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:NoTransaction]()
---[@tSQLt:SkipTest]('TODO: needs other tests first')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'MyInnerTests'
-  EXEC('
---[@'+'tSQLt:NoTransaction]()
-CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT CAST(''Some obscure string'' AS INT);
-  ');
-
-  EXEC tSQLt.SetSummaryError 0;
-  EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
-  SELECT Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
-
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  
-  INSERT INTO #Expected
-  VALUES('Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test calls tSQLt.Private_CleanUp]
 AS
 BEGIN
@@ -380,6 +356,34 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:NoTransaction]()
+CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
+AS
+BEGIN
+  EXEC tSQLt.DropClass 'MyInnerTests';
+  EXEC ('CREATE SCHEMA MyInnerTests --AUTHORIZATION [tSQLt.TestClass];');
+  EXEC('
+--[@'+'tSQLt:NoTransaction]()
+CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT CAST(''Some obscure string'' AS INT);
+  ');
+
+  EXEC tSQLt.SetSummaryError 0;
+  RAISERROR('1', 0, 1) WITH NOWAIT;
+  EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
+  RAISERROR('2', 0, 1) WITH NOWAIT;
+  SELECT Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+  VALUES('Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
 
 /*-- TODO
@@ -396,7 +400,7 @@ GO
 Transactions
 - transaction opened during test
 - transaction commited during test
-- inner-transaction-free test errors
+- inner-transaction-free test errors with uncommittable transaction
 - confirm pre and post transaction counts match
 - [test produces meaningful error when pre and post transactions counts don't match]
 -  we still need to save the TranName as something somewhere.
@@ -405,10 +409,7 @@ SkipTest Annotation & NoTransaction Annotation
 - The test is skipped
 - No other objects are dropped or created
 - No handler is called
-- Transaction something something
-
-Preserve content of all tSQLt.% tables
-- Not a test: Confirm that [tSQLt].[Private_NewTestClassList] and [tSQLt].[Run_LastExecution] are not being used in critical functionality 'inside the reactor'.
+- Transaction something something <-- this!
 
 Everything is being called in the right order.
 - test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch
