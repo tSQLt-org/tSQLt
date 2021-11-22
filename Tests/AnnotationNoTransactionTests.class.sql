@@ -365,7 +365,6 @@ RETURN
   SELECT @TestName TestName
 GO
 --[@tSQLt:NoTransaction]()
---[@tSQLt:SkipTest]('')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
@@ -387,7 +386,7 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   
   INSERT INTO #Expected
-  VALUES('MyInnerTests.[test should cause unrecoverable error]', 'Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
+  VALUES('[MyInnerTests].[test should cause unrecoverable error]', 'Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
