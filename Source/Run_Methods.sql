@@ -350,7 +350,7 @@ SET NOCOUNT ON;
     DECLARE @IsSchema BIT;
     DECLARE @SetUp NVARCHAR(MAX);SET @SetUp = NULL;
     
-    SELECT @TestName = tSQLt.Private_GetLastTestNameIfNotProvided(@TestName);
+    SELECT @TestName = TestName FROM tSQLt.Private_GetLastTestNameIfNotProvided(@TestName);
     EXEC tSQLt.Private_SaveTestNameForSession @TestName;
     
     SELECT @TestClassId = schemaId,

@@ -358,10 +358,19 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE FUNCTION AnnotationNoTransactionTests.PassThrough(@TestName NVARCHAR(MAX))
+RETURNS TABLE
+AS
+RETURN
+  SELECT @TestName TestName
+GO
 --[@tSQLt:NoTransaction]()
+--[@tSQLt:SkipTest]('')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetLastTestNameIfNotProvided', @FakeFunctionName = 'AnnotationNoTransactionTests.PassThrough'; /* --<-- Prevent tSQLt-internal turmoil */
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SaveTestNameForSession';/* --<-- Prevent tSQLt-internal turmoil */
   EXEC tSQLt.DropClass 'MyInnerTests';
   EXEC ('CREATE SCHEMA MyInnerTests --AUTHORIZATION [tSQLt.TestClass];');
   EXEC('
@@ -373,12 +382,12 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT 
   RAISERROR('1', 0, 1) WITH NOWAIT;
   EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
   RAISERROR('2', 0, 1) WITH NOWAIT;
-  SELECT Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
+  SELECT Name, Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   
   INSERT INTO #Expected
-  VALUES('Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
+  VALUES('MyInnerTests.[test should cause unrecoverable error]', 'Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO

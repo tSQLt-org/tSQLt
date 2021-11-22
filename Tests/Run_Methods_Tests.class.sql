@@ -2330,17 +2330,10 @@ BEGIN
   --[@'+'tSQLt:NoTransaction]()
   CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
   ');
-  SELECT 1,T.object_id,T.name,X.*, E.* FROM sys.tables T LEFT JOIN sys.extended_properties AS E ON T.object_id = E.major_id AND E.class_desc='OBJECT_OR_COLUMN'
-  OUTER APPLY (SELECT(SELECT QUOTENAME(name)+' ' FROM sys.columns C WHERE T.object_id = C.object_id ORDER BY C.column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'))X(cols)
-  WHERE T.schema_id=SCHEMA_ID('tSQLt') ORDER BY T.object_id, E.name;
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
-  SELECT 2,T.object_id,T.name,X.*, E.* FROM sys.tables T LEFT JOIN sys.extended_properties AS E ON T.object_id = E.major_id AND E.class_desc='OBJECT_OR_COLUMN'
-  OUTER APPLY (SELECT(SELECT QUOTENAME(name)+' ' FROM sys.columns C WHERE T.object_id = C.object_id ORDER BY C.column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'))X(cols)
-  WHERE T.schema_id=SCHEMA_ID('tSQLt') ORDER BY T.object_id, E.name;
+
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NewTestClassList';
-  SELECT 3,T.object_id,T.name,X.*, E.* FROM sys.tables T LEFT JOIN sys.extended_properties AS E ON T.object_id = E.major_id AND E.class_desc='OBJECT_OR_COLUMN'
-  OUTER APPLY (SELECT(SELECT QUOTENAME(name)+' ' FROM sys.columns C WHERE T.object_id = C.object_id ORDER BY C.column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'))X(cols)
-  WHERE T.schema_id=SCHEMA_ID('tSQLt') ORDER BY T.object_id, E.name;
+
   EXEC('INSERT INTO tSQLt.TestClasses(Name) VALUES(''a class with a '''' in the middle'');');
   EXEC('INSERT INTO tSQLt.Private_NewTestClassList(ClassName) VALUES(''a class with a '''' in the middle'');');
 
