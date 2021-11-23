@@ -358,6 +358,60 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[Redact IsTestObject status on all objects]
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+  WITH MarkedTestDoubles AS
+  (
+    SELECT 
+        TempO.Name,
+        SCHEMA_NAME(TempO.schema_id) SchemaName,
+        TempO.type ObjectType
+      FROM sys.tables TempO
+      JOIN sys.extended_properties AS EP
+        ON EP.class_desc = 'OBJECT_OR_COLUMN'
+       AND EP.major_id = TempO.object_id
+       AND EP.name = 'tSQLt.IsTempObject'
+       AND EP.value = 1
+  )
+  SELECT @cmd = 
+  (
+    SELECT 
+        'EXEC sp_updateextendedproperty ''tSQLt.IsTempObject'',-1342,''SCHEMA'', '''+MTD.SchemaName+''', ''TABLE'', '''+MTD.Name+''';'  
+      FROM MarkedTestDoubles MTD
+       FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)');
+  EXEC(@cmd);
+END;
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[Restore IsTestObject status on all objects]
+AS
+BEGIN
+  DECLARE @cmd NVARCHAR(MAX);
+  WITH MarkedTestDoubles AS
+  (
+    SELECT 
+        TempO.Name,
+        SCHEMA_NAME(TempO.schema_id) SchemaName,
+        TempO.type ObjectType
+      FROM sys.tables TempO
+      JOIN sys.extended_properties AS EP
+        ON EP.class_desc = 'OBJECT_OR_COLUMN'
+       AND EP.major_id = TempO.object_id
+       AND EP.name = 'tSQLt.IsTempObject'
+       AND EP.value = -1342
+  )
+  SELECT @cmd = 
+  (
+    SELECT 
+        'EXEC sp_updateextendedproperty ''tSQLt.IsTempObject'',1,''SCHEMA'', '''+MTD.SchemaName+''', ''TABLE'', '''+MTD.Name+''';'  
+      FROM MarkedTestDoubles MTD
+       FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)');
+  EXEC(@cmd);
+END;
+GO
 CREATE FUNCTION AnnotationNoTransactionTests.PassThrough(@TestName NVARCHAR(MAX))
 RETURNS TABLE
 AS
@@ -365,7 +419,7 @@ RETURN
   SELECT @TestName TestName
 GO
 --[@tSQLt:NoTransaction]()
----[@tSQLt:SkipTest]('')
+--[@tSQLt:SkipTest]('')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
@@ -380,13 +434,18 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT 
 
   EXEC tSQLt.SetSummaryError 0;
   EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
+
+
   DELETE FROM tSQLt.Private_RenamedObjectLog;
+
+  EXEC AnnotationNoTransactionTests.[Redact IsTestObject status on all objects];
   BEGIN TRY
     EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
   END TRY
   BEGIN CATCH
    /*-- more work todo --*/
   END CATCH;
+  EXEC AnnotationNoTransactionTests.[Restore IsTestObject status on all objects];
   EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
 
   SELECT Name, Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
