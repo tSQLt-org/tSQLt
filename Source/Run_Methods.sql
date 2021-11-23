@@ -123,6 +123,9 @@ BEGIN
       BEGIN TRY
         IF(@SkipTestFlag = 0)
         BEGIN
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+DECLARE @TempMsg127 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(127) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg);RAISERROR(@TempMsg127, 0,1) WITH NOWAIT;
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
           IF (@SetUp IS NOT NULL) EXEC @SetUp;
           EXEC (@Cmd);
 
@@ -245,6 +248,9 @@ BEGIN
         SET @Msg = ERROR_MESSAGE();
     END CATCH
 
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+DECLARE @TempMsg249 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(249) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg);RAISERROR(@TempMsg249, 0,1) WITH NOWAIT;
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
     --TODO:NoTran
     ---- Compare @@Trancount, throw up arms if it doesn't match
     --TODO:NoTran
@@ -267,6 +273,10 @@ BEGIN
           SET @Result = 'Error';
         END;
     END CATCH;  
+
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+DECLARE @TempMsg270 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(270) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg);RAISERROR(@TempMsg270, 0,1) WITH NOWAIT;
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
 
     IF (@NoTransactionFlag = 1 AND @SkipTestFlag = 0)
     BEGIN

@@ -92,7 +92,7 @@ BEGIN
     DECLARE @ErrorMessage NVARCHAR(MAX) = ERROR_MESSAGE();
     DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
     DECLARE @ErrorState INT = ERROR_STATE();
-    RAISERROR('tSQLt is in an unknown state: Stopping execution. (%s | Procedure: %s | Line: %i)', @ErrorSeverity, @ErrorState, @ErrorMessage, @ErrorProcedure, @ErrorLine);
+    RAISERROR('tSQLt is in an unknown state: Stopping execution. (%s | Procedure: %s | Line: %i | tSQLt.Private_NoTransactionHandleTable)', @ErrorSeverity, @ErrorState, @ErrorMessage, @ErrorProcedure, @ErrorLine);
   END CATCH;
 END;
 GO

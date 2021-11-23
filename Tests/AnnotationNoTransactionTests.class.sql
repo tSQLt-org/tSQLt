@@ -418,13 +418,14 @@ AS
 RETURN
   SELECT @TestName TestName
 GO
---[@tSQLt:NoTransaction]()
---[@tSQLt:SkipTest]('')
+---[@tSQLt:NoTransaction]()
+---[@tSQLt:SkipTest]('')
+/* This test must be NoTransaction because */
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
-  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetLastTestNameIfNotProvided', @FakeFunctionName = 'AnnotationNoTransactionTests.PassThrough'; /* --<-- Prevent tSQLt-internal turmoil */
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SaveTestNameForSession';/* --<-- Prevent tSQLt-internal turmoil */
+  --EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetLastTestNameIfNotProvided', @FakeFunctionName = 'AnnotationNoTransactionTests.PassThrough'; /* --<-- Prevent tSQLt-internal turmoil */
+  --EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SaveTestNameForSession';/* --<-- Prevent tSQLt-internal turmoil */
   EXEC tSQLt.DropClass 'MyInnerTests';
   EXEC ('CREATE SCHEMA MyInnerTests --AUTHORIZATION [tSQLt.TestClass];');
   EXEC('
@@ -433,20 +434,20 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT 
   ');
 
   EXEC tSQLt.SetSummaryError 0;
-  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
+  --EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
 
 
-  DELETE FROM tSQLt.Private_RenamedObjectLog;
+  --DELETE FROM tSQLt.Private_RenamedObjectLog;
 
-  EXEC AnnotationNoTransactionTests.[Redact IsTestObject status on all objects];
-  BEGIN TRY
+  --EXEC AnnotationNoTransactionTests.[Redact IsTestObject status on all objects];
+  --BEGIN TRY
     EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
-  END TRY
-  BEGIN CATCH
-   /*-- more work todo --*/
-  END CATCH;
-  EXEC AnnotationNoTransactionTests.[Restore IsTestObject status on all objects];
-  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
+  --END TRY
+  --BEGIN CATCH
+  -- /*-- more work todo --*/
+  --END CATCH;
+  --EXEC AnnotationNoTransactionTests.[Restore IsTestObject status on all objects];
+  --EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
 
   SELECT Name, Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
 
