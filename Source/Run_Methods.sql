@@ -124,7 +124,7 @@ BEGIN
         IF(@SkipTestFlag = 0)
         BEGIN
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
-DECLARE @TempMsg127 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(127) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg);RAISERROR(@TempMsg127, 0,1) WITH NOWAIT;
+DECLARE @TempMsg127 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(127) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s, XACT_STATE = %i, SummaryError = %i',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg127, 0,1) WITH NOWAIT;
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
           IF (@SetUp IS NOT NULL) EXEC @SetUp;
           EXEC (@Cmd);
@@ -249,7 +249,7 @@ DECLARE @TempMsg127 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(127) - 
     END CATCH
 
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
-DECLARE @TempMsg249 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(249) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg);RAISERROR(@TempMsg249, 0,1) WITH NOWAIT;
+DECLARE @TempMsg249 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(249) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s, XACT_STATE = %i, SummaryError = %i',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg249, 0,1) WITH NOWAIT;
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
     --TODO:NoTran
     ---- Compare @@Trancount, throw up arms if it doesn't match
@@ -275,7 +275,7 @@ DECLARE @TempMsg249 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(249) - 
     END CATCH;  
 
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
-DECLARE @TempMsg270 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(270) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg);RAISERROR(@TempMsg270, 0,1) WITH NOWAIT;
+DECLARE @TempMsg277 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(277) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s, XACT_STATE = %i, SummaryError = %i',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg277, 0,1) WITH NOWAIT;
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
 
     IF (@NoTransactionFlag = 1 AND @SkipTestFlag = 0)
@@ -284,6 +284,12 @@ DECLARE @TempMsg270 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(270) - 
       EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
       SET @Msg = @Msg + ISNULL(' ' + @CleanUpErrorMsg, '');
     END;
+
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+DECLARE @TempMsg289 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(289) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s, XACT_STATE = %i, SummaryError = %i',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg289, 0,1) WITH NOWAIT;
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+  
+
 
     If(@Result NOT IN ('Success','Skipped'))
     BEGIN
@@ -308,6 +314,12 @@ DECLARE @TempMsg270 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(270) - 
                'Error', 
                'TestResult entry is missing; Original outcome: ' + @Result + ', ' + @Msg;
     END;    
+
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+DECLARE @TempMsg316 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(316) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s, XACT_STATE = %i, SummaryError = %i',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg316, 0,1) WITH NOWAIT;
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+
+
     IF(@TransactionStartedFlag = 1)
     BEGIN
       COMMIT;
@@ -318,6 +330,10 @@ DECLARE @TempMsg270 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(270) - 
     SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Finished';
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
     END;
+
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+DECLARE @TempMsg333 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(333) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s, XACT_STATE = %i, SummaryError = %i',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg333, 0,1) WITH NOWAIT;
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
 
     IF(@OuterPerimeterTrancount != @@TRANCOUNT) RAISERROR('tSQLt is in an invalid state: Stopping Execution. (Mismatching TRANCOUNT: %s <> %s))',16,10,@OuterPerimeterTrancount, @@TRANCOUNT);
 

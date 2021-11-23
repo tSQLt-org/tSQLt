@@ -421,18 +421,20 @@ GO
 ---[@tSQLt:NoTransaction]()
 ---[@tSQLt:SkipTest]('')
 /* This test must be NoTransaction because */
-CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
 AS
 BEGIN
   --EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetLastTestNameIfNotProvided', @FakeFunctionName = 'AnnotationNoTransactionTests.PassThrough'; /* --<-- Prevent tSQLt-internal turmoil */
   --EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SaveTestNameForSession';/* --<-- Prevent tSQLt-internal turmoil */
-  EXEC tSQLt.DropClass 'MyInnerTests';
-  EXEC ('CREATE SCHEMA MyInnerTests --AUTHORIZATION [tSQLt.TestClass];');
+  --EXEC tSQLt.DropClass 'MyInnerTests';
+--  EXEC ('CREATE SCHEMA MyInnerTests --AUTHORIZATION [tSQLt.TestClass];');
+  EXEC ('CREATE SCHEMA MyInnerTests;');
   EXEC('
 --[@'+'tSQLt:NoTransaction]()
 CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT CAST(''Some obscure string'' AS INT);
   ');
 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
   EXEC tSQLt.SetSummaryError 0;
   --EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
 
