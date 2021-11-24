@@ -6,6 +6,7 @@
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DatabaseName,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $RemoteDatabaseName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlCmdPath,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlPackagePath
@@ -32,6 +33,9 @@ $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerName
 $DacpacFileName = $DacpacsPath + "tSQLt."+$FriendlySQLServerVersion+".dacpac";
 
 $AdditionalParameters = '-v NewDbName="'+$DatabaseName+'"';
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames ($BuildPath+"CreateBuildDb.sql") -DatabaseName 'tempdb' -AdditionalParameters $AdditionalParameters;
+
+$AdditionalParameters = '-v NewDbName="'+$RemoteDatabaseName+'"';
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames ($BuildPath+"CreateBuildDb.sql") -DatabaseName 'tempdb' -AdditionalParameters $AdditionalParameters;
 
 $SqlConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login $LoginTrimmed -DatabaseName $DatabaseName;

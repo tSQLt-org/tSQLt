@@ -45,7 +45,8 @@ BEGIN
          @CreateProcedureStatement = @CreateProcedureStatement OUT,
          @LogTableName = NULL,
          @CommandToExecute = NULL,
-         @CreateLogTableStatement = NULL;
+         @CreateLogTableStatement = NULL,
+         @RemoteObjectName = NULL;
   
   EXEC Facade.CreateSchemaIfNotExists @FacadeDbName = @FacadeDbName, @SchemaName = @SchemaName;
 

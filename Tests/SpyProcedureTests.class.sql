@@ -837,7 +837,7 @@ GO
 CREATE PROC SpyProcedureTests.[test SpyProcedure works with synonym pointing to proc in different database]
 AS
 BEGIN
-    DECLARE @RemoteDB NVARCHAR(MAX)= 'tSQLt_dev_remote';
+    DECLARE @RemoteDB NVARCHAR(MAX)= (SELECT RemoteDbName FROM tSQLt_testutil.Private_RemoteDatabaseInfo);
 	DECLARE @cmd NVARCHAR(MAX) = @RemoteDB+'.sys.sp_executesql';
     EXEC @cmd N'EXEC(''CREATE PROC dbo.InnerProcedure AS RETURN;'');', N'';
 
@@ -859,7 +859,7 @@ GO
 CREATE PROC SpyProcedureTests.[test SpyProcedure works with synonym pointing to proc with params in different database]
 AS
 BEGIN
-    DECLARE @RemoteDB NVARCHAR(MAX)= 'tSQLt_dev_remote';
+    DECLARE @RemoteDB NVARCHAR(MAX)= (SELECT RemoteDbName FROM tSQLt_testutil.Private_RemoteDatabaseInfo);
 	DECLARE @cmd NVARCHAR(MAX) = @RemoteDB+'.sys.sp_executesql';
     EXEC @cmd N'EXEC(''CREATE PROC dbo.InnerProcedure @p1 INT, @p2 VARCHAR(13) AS RETURN;'');', N'';
 
@@ -880,6 +880,8 @@ END;
 GO
 /*
 TODO:
+-- create private tsqlt configuration table during the build and pass the remote database name there so it will
+--    be accessible from tests. This should be done to the TestUtils (maybe tsqlt.remote name)
 -- tackle different database
 	-- procs types P,X,RF,PC
 -- tackle linked server

@@ -21,8 +21,10 @@
 
  <target name="set.database.name.variables">
    <property name="run.tSQLt.database" value="${db.name}" />
+   <property name="run.tSQLt.remote.database" value="${db.name}_remote" />
    <property name="run.Dacpac.src.database" value="${db.name}_dacpac_src" />
    <property name="run.Dacpac.validate.database" value="${db.name}_dacpac_tgt" />
+   <property name="run.Dacpac.validate.remote.database" value="${db.name}_dacpac_remote" />
    <property name="run.Facade.database" value="${db.name}_facade" />
    <property name="run.Example.database" value="tSQLt_Example" /> <!-- do not change, hard coded in deployment -->
 
@@ -47,9 +49,11 @@
  <target name="run.all" depends="set.database.name.variables, Preparation">
   <antcall target="deployAndValidate.tSQLt">
    <param name="deployAndValidate.tSQLt.database" value="${run.tSQLt.database}" />
+   <param name="deployAndValidate.tSQLt.remote.database" value="${run.tSQLt.remote.database}" />
   </antcall>
   <antcall target="deployAndValidate.Dacpac">
    <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.validate.database}" />
+   <param name="deployAndValidate.Dacpac.remote.database" value="${run.Dacpac.validate.remote.database}" />
   </antcall>
   <antcall target="deployAndValidate.Facade">
    <param name="deployAndValidate.Facade.database" value="${run.Facade.database}" />
@@ -90,6 +94,7 @@
   <echo message="Selected Database: [${run.Dacpac.validate.database}]" />
   <antcall target="deployAndValidate.Dacpac">
    <param name="deployAndValidate.Dacpac.database" value="${run.Dacpac.validate.database}" />
+   <param name="deployAndValidate.Dacpac.remote.database" value="${run.Dacpac.validate.remote.database}" />
   </antcall>
   <antcall target="process.testresults">
    <param name="process.testresults.database" value="${run.Dacpac.validate.database}" />
@@ -144,10 +149,12 @@
   <antcall target="prepare.server" />
   <antcall target="deploy.tSQLt">
    <param name="deploy.tSQLt.database" value="${deployAndValidate.tSQLt.database}" />
+   <param name="deploy.tSQLt.remote.database" value="${deployAndValidate.tSQLt.remote.database}" />
   </antcall>
   <antcall target="run.AllTests">
    <param name="run.AllTests.ResultFilePrefix" value="tSQLt" />
    <param name="run.AllTests.database" value="${deployAndValidate.tSQLt.database}" />
+   <param name="run.AllTests.remote.database" value="${deployAndValidate.tSQLt.remote.database}" />
   </antcall>
  </target>
  <target name="deployAndValidate.Dacpac">
@@ -155,10 +162,12 @@
   <antcall target="prepare.server" />
   <antcall target="deploy.tSQLt.Dacpac">
    <param name="deploy.tSQLt.Dacpac.database" value="${deployAndValidate.Dacpac.database}" />
+   <param name="deploy.tSQLt.Dacpac.remote.database" value="${deployAndValidate.Dacpac.remote.database}" />
   </antcall>
   <antcall target="run.AllTests">
    <param name="run.AllTests.ResultFilePrefix" value="tSQLtDacPac" />
    <param name="run.AllTests.database" value="${deployAndValidate.Dacpac.database}" />
+   <param name="run.AllTests.remote.database" value="${deployAndValidate.Dacpac.remote.database}" />
   </antcall>
  </target>
  <target name="deployAndValidate.Example">
@@ -177,6 +186,7 @@
       <arg line="-File FacadeValidate.ps1" />
       <arg line="-ServerName &quot;${db.server}&quot;" />
       <arg line="-DatabaseName &quot;${deployAndValidate.Facade.database}&quot;" />
+      <arg line="-RemoteDatabaseName &quot;tempdb&quot;" />
       <arg line="-Login &quot;${db.login}&quot;" />
       <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
       <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
@@ -413,6 +423,7 @@
   <echo message="  +----> statement: ${execute.sql.statement}" />
   <echo message="  +----> statement: ${execute.sql.database}" />
   <echo message="  +----> statement: ${execute.sql.newDatabase}" />
+  <echo message="  +----> statement: ${execute.sql.remote.database}" />
 
   <condition property="execute.sql.statement_or_file.permissions.elevated">
    <equals arg1="${execute.sql.elevated}" arg2="true" />
@@ -451,7 +462,7 @@
   <echo message="  +----> outputfile: ${execute.sql.outputfile}" />
   <echo message="  +----> executeas: ${execute.sql.executeas}" />
   <echo message="  +----> sqlconnect: ${execute.sql.sqlconnect}" />
-  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${execute.sql.newDatabase} DbName=${execute.sql.database} BuildLogTableName=&quot;${logtable.name}&quot; ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
+  <property name="execute.sql.sqlcmd" value="&quot;${sqlcmd.path}&quot;\sqlcmd ${execute.sql.sqlconnect} -I -i &quot;${execute.sql.executeas}&quot; ${execute.sql.filename} -v NewDbName=${execute.sql.newDatabase} DbName=${execute.sql.database} RemoteDbName=${execute.sql.remote.database} BuildLogTableName=&quot;${logtable.name}&quot; ExecuteStatement=&quot;${execute.sql.statement}&quot; -V11" />
   <echo message="${execute.sql.sqlcmd}" />
   <condition property="execute.sql.statement_or_file.output.tofile">
    <not>
@@ -525,6 +536,12 @@
   </antcall>
 
   <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="tempdb" />
+   <param name="execute.sql.newDatabase" value="${run.tSQLt.remote.database}" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/temp_prepare_server.sql" />
+  </antcall>
+
+  <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${deploy.tSQLt.database}" />
    <param name="execute.sql.filename" value="temp/Validate/tSQLt/tSQLt.class.sql" />
   </antcall>
@@ -538,6 +555,7 @@
       <arg line="-File DacpacDeploy.ps1" />
       <arg line="-ServerName &quot;${db.server}&quot;" />
       <arg line="-DatabaseName &quot;${deploy.tSQLt.Dacpac.database}&quot;" />
+      <arg line="-RemoteDatabaseName &quot;${deploy.tSQLt.Dacpac.remote.database}&quot;" />
       <arg line="-Login &quot;${db.login}&quot;" />
       <arg line="-SqlCmdPath &quot;${sqlcmd.path}&quot;" />
       <arg line="-SqlPackagePath &quot;${sqlpackage.path}&quot;"/>
@@ -564,6 +582,7 @@
    <param name="execute.sql.elevated" value="${deployandrun.tests.elevated}" />
    <param name="execute.sql.outputfile" value="${deployandrun.tests.outputfile}" />
    <param name="execute.sql.database" value="${deployandrun.tests.database}" />
+   <param name="execute.sql.remote.database" value="${deployandrun.tests.remote.database}" />
    <param name="execute.sql.testcasefilename" value="${deployandrun.tests.filename}" />
    <param name="execute.sql.statement" value="EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;" />
   </antcall>
@@ -603,6 +622,7 @@
   <!-- Install TestUtil -->
   <antcall target="execute.sql.file">
    <param name="execute.sql.database" value="${run.AllTests.database}" />
+   <param name="execute.sql.remote.database" value="${run.AllTests.remote.database}" />
    <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/TestUtil.sql" />
   </antcall>
 
@@ -633,6 +653,7 @@
   <antcall target="deployandrun.tests">
    <param name="deployandrun.tests.elevated" value="false" />
    <param name="deployandrun.tests.database" value="${run.AllTests.database}" />
+   <param name="deployandrun.tests.remote.database" value="${run.AllTests.remote.database}" />
    <param name="deployandrun.tests.filename" value="temp/Validate/tSQLt.tests/AllTests.Main.sql" />
    <param name="deployandrun.tests.outputfile" value="temp/Validate/TestResults/TestResults_${run.AllTests.ResultFilePrefix}.xml" />
   </antcall>
