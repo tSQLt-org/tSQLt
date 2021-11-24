@@ -2,7 +2,7 @@ IF OBJECT_ID('tSQLt.[@tSQLt:NoTransaction]') IS NOT NULL DROP FUNCTION tSQLt.[@t
 GO
 ---Build+
 GO
-CREATE FUNCTION tSQLt.[@tSQLt:NoTransaction]()
+CREATE FUNCTION tSQLt.[@tSQLt:NoTransaction](@CleanUpProcedureName NVARCHAR(MAX) = NULL)
 RETURNS TABLE
 AS
 RETURN

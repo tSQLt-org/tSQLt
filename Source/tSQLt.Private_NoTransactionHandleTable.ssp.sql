@@ -8,10 +8,6 @@ CREATE PROCEDURE tSQLt.Private_NoTransactionHandleTable
 @TableAction NVARCHAR(MAX)
 AS
 BEGIN
---XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
---DECLARE @TempMsg12 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(12) - @Action = %s, @FullTableName = %s, @TableAction = %s, XACT_STATE = %i, SummaryError = %i', @Action, @FullTableName, @TableAction, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg12, 0,1) WITH NOWAIT;
---XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
-
   DECLARE @cmd NVARCHAR(MAX);
   BEGIN TRY
     IF (OBJECT_ID(@FullTableName) IS NULL AND @TableAction <> 'Hide')
@@ -58,10 +54,6 @@ BEGIN
         BEGIN TRAN;
           DECLARE @BackupTableName TABLE(TableName NVARCHAR(MAX)); 
           DELETE FROM #TableBackupLog OUTPUT DELETED.BackupName INTO @BackupTableName WHERE OriginalName = @FullTableName;
---XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
---DECLARE @TempMsg58 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(58) - @BackupTableName = %s, @FullTableName = %s, XACT_STATE = %i, SummaryError = %i',(SELECT TableName FROM @BackupTableName), @FullTableName, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg58, 0,1) WITH NOWAIT;
---XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
-
           IF(EXISTS(SELECT 1 FROM @BackupTableName AS BTN))
           BEGIN
             SET @cmd = 'DELETE FROM ' + @FullTableName + ';';
@@ -73,7 +65,6 @@ BEGIN
             DECLARE @ColumnList NVARCHAR(MAX) = STUFF((SELECT ','+QUOTENAME(name) FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) AND is_computed = 0 ORDER BY column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
             SET @cmd = @cmd + @ColumnList;
             SET @cmd = @cmd + ') SELECT ' + @ColumnList + ' FROM ' + (SELECT TableName FROM @BackupTableName)+';';
-            PRINT @cmd;
             EXEC(@cmd);
           END;
         COMMIT;
@@ -106,3 +97,7 @@ BEGIN
   END CATCH;
 END;
 GO
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+--DECLARE @TempMsg58 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(58) - @BackupTableName = %s, @FullTableName = %s, XACT_STATE = %i, SummaryError = %i',(SELECT TableName FROM @BackupTableName), @FullTableName, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg58, 0,1) WITH NOWAIT;
+--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
+

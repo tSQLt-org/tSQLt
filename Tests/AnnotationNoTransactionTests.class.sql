@@ -419,37 +419,22 @@ RETURN
   SELECT @TestName TestName
 GO
 --[@tSQLt:NoTransaction]()
---[@tSQLt:SkipTest]('')
-/* This test must be NoTransaction because */
+/* This test must be NoTransaction because the inner test will invalidate any open transaction causing chaos and turmoil in the reactor. */
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
 AS
 BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetLastTestNameIfNotProvided', @FakeFunctionName = 'AnnotationNoTransactionTests.PassThrough'; /* --<-- Prevent tSQLt-internal turmoil */
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SaveTestNameForSession';/* --<-- Prevent tSQLt-internal turmoil */
-  EXEC tSQLt.DropClass 'MyInnerTests';
---  EXEC ('CREATE SCHEMA MyInnerTests --AUTHORIZATION [tSQLt.TestClass];');
-  EXEC ('CREATE SCHEMA MyInnerTests;');
+  EXEC ('CREATE SCHEMA MyInnerTests AUTHORIZATION [tSQLt.TestClass];');
   EXEC('
 --[@'+'tSQLt:NoTransaction]()
-CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS SELECT CAST(''Some obscure string'' AS INT);
+CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS PRINT CAST(''Some obscure string'' AS INT);
   ');
 
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'IF(@FullTestName <> ''[MyInnerTests].[test should cause unrecoverable error]'')BEGIN EXEC tSQLt.Private_NoTransactionHandleTables @Action=''Reset'';EXEC tSQLt.UndoTestDoubles @Force = 0;END;';
   EXEC tSQLt.SetSummaryError 0;
-  --EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
 
-
-  --DELETE FROM tSQLt.Private_RenamedObjectLog;
-
-  --EXEC AnnotationNoTransactionTests.[Redact IsTestObject status on all objects];
-  --BEGIN TRY
-    EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]';
-  --END TRY
-  --BEGIN CATCH
-  -- /*-- more work todo --*/
-  --END CATCH;
-  --EXEC AnnotationNoTransactionTests.[Restore IsTestObject status on all objects];
-  --EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName='tSQLt.Private_RenamedObjectLog', @TableAction = 'Restore';
+  EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 
   SELECT Name, Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
 
@@ -462,6 +447,39 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test calls user supplied clean up procedure after test completes]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp1]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''UserCleanUp1'');
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp1]'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''test1'');
+    END;
+  ');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), col1 NVARCHAR(MAX));
+
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES(1, 'test1'), (2, 'UserCleanUp1');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
 
 /*-- TODO
@@ -469,11 +487,17 @@ GO
  CLEANUP: named cleanup x 3 (needs to execute even if there's an error during test execution)
 - there will be three clean up methods, executed in the following order
 - 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
+- 1.a [<TESTCLASS>].[<TESTNAME>.CleanUp]
+- 1.b --[@tSQLt:NoTransaction]('[<SCHEMANAME>].[<SPNAME>]')
+--[@tSQLt:NoTransaction](DEFAULT)
 - 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
 - 3. tSQLt.Private_CleanUp
 - Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
 - If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
 - appropriate error messages are appended to the test msg 
+
+- tSQLt.SpyProcedure needs a "call original" option
+- test that the three cleanups are running in the correct order. might need ^^ to wrok. (duplicate of line 455)
 
 Transactions
 - transaction opened during test

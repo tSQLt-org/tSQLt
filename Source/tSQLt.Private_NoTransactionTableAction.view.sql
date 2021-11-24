@@ -11,6 +11,6 @@ SELECT *
           ('[tSQLt].[Private_Configurations]','Restore'),
           ('[tSQLt].[CaptureOutputLog]','Truncate'),
           ('[tSQLt].[Private_RenamedObjectLog]','Ignore'),
-          ('[tSQLt].[TestResult]','Ignore')
+          ('[tSQLt].[TestResult]','Restore')
   )X(Name, Action);
 GO
