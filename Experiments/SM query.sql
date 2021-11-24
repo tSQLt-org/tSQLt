@@ -1,5 +1,5 @@
 SELECT 
-    R.RowNumber,
+    R.EventSequence,
     TE.name,
     TSV.subclass_name,
     R.ObjectName,
@@ -10,13 +10,13 @@ SELECT
     R.Error,
     R.Severity,
     R.NestLevel,
+    R.RowNumber,
     R.EventClass,
     R.EventSubClass,
     R.ApplicationName,
     R.ClientProcessID,
     R.DatabaseID,
     R.DatabaseName,
-    R.EventSequence,
     R.GroupID,
     R.HostName,
     R.IsSystem,
@@ -51,11 +51,11 @@ SELECT
     R.OwnerID,
     R.ObjectID2,
     R.BigintData1
-  FROM dbo.run1 R
-  JOIN sys.trace_events AS TE
+  FROM dbo.run4 R
+  LEFT JOIN sys.trace_events AS TE
     ON R.EventClass = TE.trace_event_id
   LEFT JOIN sys.trace_subclass_values AS TSV
     ON TSV.trace_event_id = TE.trace_event_id
    AND R.EventSubClass = TSV.subclass_value
-  WHERE R.ObjectName NOT IN ('Private_Print','sp_rename', 'sp_validname','GetTestResultFormatter')
+  WHERE ISNULL(R.ObjectName,'???') NOT IN ('Private_Print','sp_rename', 'sp_validname','GetTestResultFormatter','sp_addextendedproperty','sp_updateextendedproperty')
   ORDER BY R.EventSequence
