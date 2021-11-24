@@ -259,6 +259,25 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test can restore table with computed column]
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT, compcol AS UPPER(col1), col1 NVARCHAR(MAX));
+  INSERT INTO Private_NoTransactionHandleTableTests.Table1 VALUES(1,'a'),(2,'bb'),(3,'cdce');
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Restore';
+
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = 'Private_NoTransactionHandleTableTests.Table1', @TableAction = 'Restore';
+
+  SELECT * INTO #Actual FROM Private_NoTransactionHandleTableTests.Table1;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1, 'a'),(2, 'bb'),(3, 'cdce');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test Reset @Action with unknown @TableAction causes error]
 AS
 BEGIN

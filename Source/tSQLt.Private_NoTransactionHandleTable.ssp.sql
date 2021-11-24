@@ -9,7 +9,7 @@ CREATE PROCEDURE tSQLt.Private_NoTransactionHandleTable
 AS
 BEGIN
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
-DECLARE @TempMsg12 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(12) - @Action = %s, @FullTableName = %s, @TableAction = %s, XACT_STATE = %i, SummaryError = %i', @Action, @FullTableName, @TableAction, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg12, 0,1) WITH NOWAIT;
+--DECLARE @TempMsg12 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(12) - @Action = %s, @FullTableName = %s, @TableAction = %s, XACT_STATE = %i, SummaryError = %i', @Action, @FullTableName, @TableAction, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg12, 0,1) WITH NOWAIT;
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
 
   DECLARE @cmd NVARCHAR(MAX);
@@ -59,7 +59,7 @@ DECLARE @TempMsg12 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(12) - @Action = %s
           DECLARE @BackupTableName TABLE(TableName NVARCHAR(MAX)); 
           DELETE FROM #TableBackupLog OUTPUT DELETED.BackupName INTO @BackupTableName WHERE OriginalName = @FullTableName;
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
-DECLARE @TempMsg58 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(58) - @BackupTableName = %s, @FullTableName = %s, XACT_STATE = %i, SummaryError = %i',(SELECT TableName FROM @BackupTableName), @FullTableName, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg58, 0,1) WITH NOWAIT;
+--DECLARE @TempMsg58 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(58) - @BackupTableName = %s, @FullTableName = %s, XACT_STATE = %i, SummaryError = %i',(SELECT TableName FROM @BackupTableName), @FullTableName, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg58, 0,1) WITH NOWAIT;
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
 
           IF(EXISTS(SELECT 1 FROM @BackupTableName AS BTN))
@@ -100,7 +100,7 @@ DECLARE @TempMsg58 NVARCHAR(MAX) = FORMATMESSAGE('HandleTable(58) - @BackupTable
     DECLARE @ErrorMessage NVARCHAR(MAX) = ERROR_MESSAGE();
     DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
     DECLARE @ErrorState INT = ERROR_STATE();
-    RAISERROR('tSQLt is in an unknown state: Stopping execution. (%s | Procedure: %s | Line: %i | tSQLt.Private_NoTransactionHandleTable)', @ErrorSeverity, @ErrorState, @ErrorMessage, @ErrorProcedure, @ErrorLine);
+    RAISERROR('tSQLt is in an unknown state: Stopping execution. (%s | Procedure: %s | Line: %i)', @ErrorSeverity, @ErrorState, @ErrorMessage, @ErrorProcedure, @ErrorLine);
   END CATCH;
 END;
 GO
