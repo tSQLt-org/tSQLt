@@ -335,7 +335,7 @@ BEGIN
 --DECLARE @TempMsg333 NVARCHAR(MAX) = FORMATMESSAGE('tSQLt.Private_RunTest(333) - @TestName = %s, @NoTransactionFlag = %i, @SkipTestFlag = %i, @TransactionStartedFlag = %i, @Msg = %s, XACT_STATE = %i, SummaryError = %i',@TestName, CAST(@NoTransactionFlag AS INT), CAST(@SkipTestFlag AS INT), CAST(@TransactionStartedFlag AS INT), @Msg, XACT_STATE(), CAST((SELECT PGC.Value FROM tSQLt.Private_GetConfiguration('SummaryError') AS PGC) AS INT));RAISERROR(@TempMsg333, 0,1) WITH NOWAIT;
 --XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--XX--
 
-    IF(@OuterPerimeterTrancount != @@TRANCOUNT) RAISERROR('tSQLt is in an invalid state: Stopping Execution. (Mismatching TRANCOUNT: %s <> %s))',16,10,@OuterPerimeterTrancount, @@TRANCOUNT);
+    IF(@OuterPerimeterTrancount != @@TRANCOUNT) RAISERROR('tSQLt is in an invalid state: Stopping Execution. (Mismatching TRANCOUNT: %i <> %i))',16,10,@OuterPerimeterTrancount, @@TRANCOUNT);
 
 END;
 GO

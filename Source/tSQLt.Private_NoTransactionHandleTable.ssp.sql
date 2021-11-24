@@ -70,8 +70,10 @@ BEGIN
               SET @cmd = @cmd + 'SET IDENTITY_INSERT ' + @FullTableName + ' ON;';
             END;
             SET @cmd = @cmd + 'INSERT INTO ' + @FullTableName +'(';
-            SET @cmd = @cmd + STUFF((SELECT ','+QUOTENAME(name) FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) ORDER BY column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
-            SET @cmd = @cmd + ') SELECT * FROM ' + (SELECT TableName FROM @BackupTableName)+';';
+            DECLARE @ColumnList NVARCHAR(MAX) = STUFF((SELECT ','+QUOTENAME(name) FROM sys.columns WHERE object_id = OBJECT_ID(@FullTableName) AND is_computed = 0 ORDER BY column_id FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,1,'');
+            SET @cmd = @cmd + @ColumnList;
+            SET @cmd = @cmd + ') SELECT ' + @ColumnList + ' FROM ' + (SELECT TableName FROM @BackupTableName)+';';
+            PRINT @cmd;
             EXEC(@cmd);
           END;
         COMMIT;
