@@ -448,7 +448,6 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test calls user supplied clean up procedure after test completes]
 AS
 BEGIN
@@ -482,6 +481,62 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test calls user supplied clean up procedure if it has a single quote in its name]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserClean''Up1]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''UserClean''''Up1'');
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserClean''''Up1]'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN
+    END;
+  ');
+
+  CREATE TABLE #Actual (col1 NVARCHAR(MAX));
+
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('UserClean''Up1');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test throw appropriate error if specified TestCleanUpProcedure does not exist]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaXction](''[MyInnerTests].[UserCleanUpDoesNotExist]'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN
+    END;
+  ');
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Some error goes here.', @ExpectedSeverity = 16, @ExpectedState = 10;
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  --needs to check TestResult instead of tee because it is an inner test.
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
 
 /*-- TODO
@@ -497,6 +552,12 @@ GO
 - Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
 - If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
 - appropriate error messages are appended to the test msg 
+
+- handle multiple TestCleanUpProcedures
+- ? handle TestCleanUpProcedures with ' in name
+- error in annotation if specified TestCleanUpProcedure does not exist
+- error in annotation if specified TestCleanUpProcedure is not a procedure (any of the 4ish types)
+
 
 - tSQLt.SpyProcedure needs a "call original" option
 - test that the three cleanups are running in the correct order. might need ^^ to wrok. (duplicate of line 455)

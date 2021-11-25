@@ -6,7 +6,10 @@ CREATE FUNCTION tSQLt.[@tSQLt:NoTransaction](@CleanUpProcedureName NVARCHAR(MAX)
 RETURNS TABLE
 AS
 RETURN
-  SELECT 'INSERT INTO #NoTransaction DEFAULT VALUES;' AS AnnotationCmd;
+  SELECT
+      'IF(OBJECT_ID('+X.QuotedName+') IS NULL) BEGIN RAISERROR(''sss'',16,10); END;'+
+    'INSERT INTO #NoTransaction VALUES('+X.QuotedName+');' AS AnnotationCmd
+    FROM (VALUES(''''+REPLACE(@CleanUpProcedureName,'''','''''')+''''))X(QuotedName);
 GO
 ---Build-
 GO

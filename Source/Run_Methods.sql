@@ -62,7 +62,7 @@ BEGIN
     CREATE TABLE #TestMessage(Msg NVARCHAR(MAX));
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
     CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
-    CREATE TABLE #NoTransaction(X INT);
+    CREATE TABLE #NoTransaction(CleanUpProcedureName NVARCHAR(MAX));
     CREATE TABLE #TableBackupLog(OriginalName NVARCHAR(MAX), BackupName NVARCHAR(MAX));
 
 
@@ -93,6 +93,7 @@ BEGIN
     SET @Result = 'Success';
     DECLARE @SkipTestFlag BIT = 0;
     DECLARE @NoTransactionFlag BIT = 0;
+    DECLARE @NoTransactionTestCleanUpProcedureName NVARCHAR(MAX) = NULL;
     DECLARE @TransactionStartedFlag BIT = 0;
     BEGIN TRY
 
@@ -270,6 +271,11 @@ BEGIN
 
     IF (@NoTransactionFlag = 1 AND @SkipTestFlag = 0)
     BEGIN
+      SET @NoTransactionTestCleanUpProcedureName = (
+        SELECT 'EXEC '+ NT.CleanUpProcedureName
+          FROM #NoTransaction NT
+      );
+      EXEC(@NoTransactionTestCleanUpProcedureName);
 
       DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
       EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
