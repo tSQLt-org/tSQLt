@@ -418,8 +418,13 @@ AS
 RETURN
   SELECT @TestName TestName
 GO
---[@tSQLt:NoTransaction](DEFAULT)
---[@tSQLt:SkipTest]('')
+CREATE PROCEDURE AnnotationNoTransactionTests.[CLEANUP: test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
+AS
+BEGIN
+  EXEC tSQLt.DropClass MyInnerTests;
+END;
+GO
+--[@tSQLt:NoTransaction]('AnnotationNoTransactionTests.[CLEANUP: test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]')
 /* This test must be NoTransaction because the inner test will invalidate any open transaction causing chaos and turmoil in the reactor. */
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
 AS
@@ -514,12 +519,12 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test throw appropriate error if specified TestCleanUpProcedure does not exist]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test throws appropriate error if specified TestCleanUpProcedure does not exist]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
-    --[@'+'tSQLt:NoTransaXction](''[MyInnerTests].[UserCleanUpDoesNotExist]'')
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUpDoesNotExist]'')
     CREATE PROCEDURE MyInnerTests.[test1]
     AS
     BEGIN
@@ -527,36 +532,89 @@ BEGIN
     END;
   ');
 
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'Some error goes here.', @ExpectedSeverity = 16, @ExpectedState = 10;
+  
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 
-  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+  SELECT TR.Name,
+         TR.Result,
+         TR.Msg
+    INTO #Actual
+    FROM tSQLt.TestResult AS TR
 
-  --needs to check TestResult instead of tee because it is an inner test.
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
 
+  INSERT INTO #Expected VALUES (
+        '[MyInnerTests].[test1]',
+        'Error', 
+        'There is a problem with this annotation: [@tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUpDoesNotExist]'')
+Original Error: {16,10;(null)} Test CleanUp Procedure [MyInnerTests].[UserCleanUpDoesNotExist] does not exist or is not a procedure.')
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test throws appropriate error if specified TestCleanUpProcedure is not a procedure]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE VIEW [MyInnerTests].[NotAProcedure] AS SELECT 1 X;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[NotAProcedure]'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestResult AS TR);
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%Test CleanUp Procedure [[]MyInnerTests].[[]NotAProcedure] does not exist or is not a procedure.', @Actual = @Actual;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test does not throw error if specified TestCleanUpProcedure is a CLR stored procedure]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''tSQLt_testutil.AClrSsp'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN
+    END;
+  ');
+  EXEC tSQLt.SetSummaryError @SummaryError = 1;
+
+  EXEC tSQLt.ExpectNoException;
+  
+  EXEC tSQLt.Run 'MyInnerTests.[test1]'--, @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
-
 /*-- TODO
 
  CLEANUP: named cleanup x 3 (needs to execute even if there's an error during test execution)
 - there will be three clean up methods, executed in the following order
-- 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
-- 1.a [<TESTCLASS>].[<TESTNAME>.CleanUp]
-- 1.b --[@tSQLt:NoTransaction]('[<SCHEMANAME>].[<SPNAME>]')
+- 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter "--[@tSQLt:NoTransaction]('[<SCHEMANAME>].[<SPNAME>]')"
 --[@tSQLt:NoTransaction](DEFAULT)
 - 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
 - 3. tSQLt.Private_CleanUp
 - Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
 - If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
 - appropriate error messages are appended to the test msg 
+- If a test errors (even catastrophically), all indicated CleanUp procedures run.
 
 - handle multiple TestCleanUpProcedures
 - ? handle TestCleanUpProcedures with ' in name
-- error in annotation if specified TestCleanUpProcedure does not exist
-- error in annotation if specified TestCleanUpProcedure is not a procedure (any of the 4ish types)
+- ? error in annotation if specified TestCleanUpProcedure does not exist
+- ? error in annotation if specified TestCleanUpProcedure is not a procedure (any of the 4ish types)
 
 
 - tSQLt.SpyProcedure needs a "call original" option
