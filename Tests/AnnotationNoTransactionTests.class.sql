@@ -7,7 +7,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS INSERT INTO #TranCount VALUES(''I'',@@TRANCOUNT);;
   ');
 
@@ -38,7 +38,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;
   ');
 
@@ -54,7 +54,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RETURN;
   ');
 
@@ -90,7 +90,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RETURN;
   ');
 
@@ -111,7 +111,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS EXEC tSQLt.Fail ''Some Obscure Reason'';
   ');
 
@@ -133,7 +133,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RAISERROR (''Some Obscure Recoverable Error'', 16, 10);
   ');
 
@@ -155,7 +155,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;
   ');
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
@@ -230,7 +230,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test1] AS PRINT 1/0;
   ');
  
@@ -250,7 +250,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test1] AS RAISERROR(''<In-Test-Error>'',16,10);
   ');
  
@@ -272,7 +272,7 @@ AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
-    --[@'+'tSQLt:NoTransaction]()
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
     CREATE PROCEDURE MyInnerTests.[test1]
     AS
     BEGIN
@@ -298,7 +298,7 @@ BEGIN
   CREATE TABLE #SkippedTestExecutionLog (Id INT);
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
-    --[@'+'tSQLt:NoTransaction]()
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
     --[@'+'tSQLt:SkipTest]('')
     CREATE PROCEDURE MyInnerTests.[skippedTest]
     AS
@@ -342,7 +342,7 @@ BEGIN
 
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
-    --[@'+'tSQLt:NoTransaction]()
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
     --[@'+'tSQLt:SkipTest]('''')
     CREATE PROCEDURE MyInnerTests.[test1]
     AS
@@ -418,7 +418,8 @@ AS
 RETURN
   SELECT @TestName TestName
 GO
---[@tSQLt:NoTransaction]()
+--[@tSQLt:NoTransaction](DEFAULT)
+--[@tSQLt:SkipTest]('')
 /* This test must be NoTransaction because the inner test will invalidate any open transaction causing chaos and turmoil in the reactor. */
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
 AS
@@ -427,7 +428,7 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_SaveTestNameForSession';/* --<-- Prevent tSQLt-internal turmoil */
   EXEC ('CREATE SCHEMA MyInnerTests AUTHORIZATION [tSQLt.TestClass];');
   EXEC('
---[@'+'tSQLt:NoTransaction]()
+--[@'+'tSQLt:NoTransaction](DEFAULT)
 CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS PRINT CAST(''Some obscure string'' AS INT);
   ');
 
@@ -447,6 +448,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+--[@tSQLt:SkipTest]('')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test calls user supplied clean up procedure after test completes]
 AS
 BEGIN

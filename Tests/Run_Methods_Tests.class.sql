@@ -2240,7 +2240,7 @@ BEGIN
   CREATE TABLE #Actual (Id INT);
   EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
   EXEC ('
-  --[@'+'tSQLt:NoTransaction]()
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
   CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
   ');
 
@@ -2264,7 +2264,7 @@ BEGIN
   CREATE TABLE #Actual (Id INT);
   EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
   EXEC ('
-  --[@'+'tSQLt:NoTransaction]()
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
   CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
   ');
 
@@ -2285,7 +2285,7 @@ BEGIN
   CREATE TABLE #Actual (Id INT);
   EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
   EXEC ('
-  --[@'+'tSQLt:NoTransaction]()
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
   CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
   ');
 
@@ -2306,7 +2306,7 @@ BEGIN
   CREATE TABLE #Actual (Id INT);
   EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
   EXEC ('
-  --[@'+'tSQLt:NoTransaction]()
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
   CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
   ');
 
@@ -2327,7 +2327,7 @@ BEGIN
   CREATE TABLE #Actual (Id INT);
   EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
   EXEC ('
-  --[@'+'tSQLt:NoTransaction]()
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
   CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
   ');
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
