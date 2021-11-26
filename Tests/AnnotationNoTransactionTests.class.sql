@@ -727,6 +727,38 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test error in test CleanUp procedure causes test result to be Error]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp1]
+    AS
+    BEGIN
+      RAISERROR(''This is an error ;)'',16,10);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp1]'')
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  SELECT TR.Name, TR.Result INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('[MyInnerTests].[test1]','Error');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
 /*-- TODO
 
