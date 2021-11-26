@@ -727,19 +727,19 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test error in test CleanUp procedure causes test result to be Error]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test error in schema CleanUp procedure causes test result to be Error]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
-    CREATE PROCEDURE [MyInnerTests].[UserCleanUp1]
+    CREATE PROCEDURE [MyInnerTests].[CleanUp]
     AS
     BEGIN
       RAISERROR(''This is an error ;)'',16,10);
     END;
   ');
   EXEC('
-    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp1]'')
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
     CREATE PROCEDURE [MyInnerTests].[test1]
     AS
     BEGIN
@@ -759,6 +759,65 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test writes an appropriate message to the tSQLt.TestResult table if schema CleanUp errors]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[CleanUp]
+    AS
+    BEGIN
+      RAISERROR(''This is an error ;)'',16,10);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
+  
+  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is an error ;) | Procedure: [MyInnerTests].[CleanUp] | Line: 4 | Severity, State: 16, 10)', @Actual = @FriendlyMsg;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test writes an appropriate message to the tSQLt.TestResult table if schema CleanUp has a different error]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyOtherInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyOtherInnerTests].[CleanUp]
+    AS
+    BEGIN
+      /*wasting lines...*/
+      RAISERROR(''This is another error ;)'',15,12);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyOtherInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyOtherInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
+  
+  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is another error ;) | Procedure: MyOtherInnerTests.CleanUp | Line: 6 | Severity, State: 15, 12)', @Actual = @FriendlyMsg;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
 /*-- TODO
 
@@ -767,9 +826,12 @@ GO
 - X 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
 -- X "--[@tSQLt:NoTransaction]('[<SCHEMANAME>].[<SPNAME>]')"
 -- X --[@tSQLt:NoTransaction](DEFAULT)
+
 - 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
 -- X ' in schema name
 -- X different case for cLEANuP
+-- If the ERROR_PROCEDURE is somehow returning null, we still get the rest of the error message
+
 - 3. tSQLt.Private_CleanUp
 - Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
 - If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
@@ -780,8 +842,6 @@ GO
 - X handle TestCleanUpProcedures with ' in name
 - X error in annotation if specified TestCleanUpProcedure does not exist
 - X error in annotation if specified TestCleanUpProcedure is not a procedure (any of the 4ish types)
-
-
 
 
 Transactions
@@ -804,5 +864,6 @@ Everything is being called in the right order.
 
 - tSQLt.SpyProcedure needs a "call original" option
 - What happens when we have multiple annotations for other non-NoTransaction annotations? Did we test this???
+- Simulate Clippy if someone tries to use AssertEquals instead of AssertEqualsString
 
 --*/

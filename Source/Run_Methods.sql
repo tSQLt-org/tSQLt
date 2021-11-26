@@ -273,7 +273,7 @@ BEGIN
            OR @PostExecTrancount <> 0
           )
         BEGIN
-          SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '})';
+          SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR(MAX)), '<ERROR_LINE() is NULL>') + '})';
           SET @Result = 'Error';
         END;
     END CATCH;  
@@ -292,7 +292,13 @@ BEGIN
 
       IF(@CleanUp IS NOT NULL)
       BEGIN
-        EXEC @CleanUp;
+        BEGIN TRY
+          EXEC @CleanUp;
+        END TRY
+        BEGIN CATCH
+          SET @Result = 'Error';
+          SET @Msg = 'Error during clean up: (' + ERROR_MESSAGE() + ' | Procedure: ' + ERROR_PROCEDURE() + ' | Line: ' + CAST(ERROR_LINE() AS NVARCHAR(MAX)) + ' | Severity, State: ' + CAST(ERROR_SEVERITY() AS NVARCHAR(MAX)) + ', ' + CAST(ERROR_STATE() AS NVARCHAR(MAX)) + ')';
+        END CATCH;
       END;
 
       DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
