@@ -783,7 +783,7 @@ BEGIN
 
   DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
   
-  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is an error ;) | Procedure: [MyInnerTests].[CleanUp] | Line: 4 | Severity, State: 16, 10)', @Actual = @FriendlyMsg;
+  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is an error ;) | Procedure: MyInnerTests.CleanUp | Line: 5 | Severity, State: 16, 10)', @Actual = @FriendlyMsg;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -818,6 +818,66 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test writes an appropriate message to the tSQLt.TestResult if the ERROR_PROCEDURE for the schema CleanUp error is null]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyOtherInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyOtherInnerTests].[CleanUp]
+    AS
+    BEGIN
+      /*wasting lines...*/
+      EXEC(''RAISERROR(''''This is another error ;)'''',15,12)'');
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyOtherInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyOtherInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
+  
+  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is another error ;) | Procedure: <NULL> | Line: 1 | Severity, State: 15, 12)', @Actual = @FriendlyMsg;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test appends message to any test error if schema CleanUp errors]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[CleanUp]
+    AS
+    BEGIN
+      RAISERROR(''This is a CleanUp error ;)'',15,12);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RAISERROR(''This is a Test error ;)'',16,10);
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
+  
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%This is a Test error ;)% || %This is a CleanUp error ;)%', @Actual = @FriendlyMsg;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
 
 /*-- TODO
 
@@ -830,13 +890,14 @@ GO
 - 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
 -- X ' in schema name
 -- X different case for cLEANuP
--- If the ERROR_PROCEDURE is somehow returning null, we still get the rest of the error message
+-- X If the ERROR_PROCEDURE is somehow returning null, we still get the rest of the error message
 
 - 3. tSQLt.Private_CleanUp
 - Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
 - If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
 - appropriate error messages are appended to the test msg 
 - If a test errors (even catastrophically), all indicated CleanUp procedures run.
+- Unify Error Message Generation Across all code
 
 - X handle multiple TestCleanUpProcedures
 - X handle TestCleanUpProcedures with ' in name
@@ -865,5 +926,6 @@ Everything is being called in the right order.
 - tSQLt.SpyProcedure needs a "call original" option
 - What happens when we have multiple annotations for other non-NoTransaction annotations? Did we test this???
 - Simulate Clippy if someone tries to use AssertEquals instead of AssertEqualsString
+- add 100x'=' + test status (if not PASS) followed by empty line after test-end message (if verbose)
 
 --*/

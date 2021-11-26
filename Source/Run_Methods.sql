@@ -297,7 +297,7 @@ BEGIN
         END TRY
         BEGIN CATCH
           SET @Result = 'Error';
-          SET @Msg = 'Error during clean up: (' + ERROR_MESSAGE() + ' | Procedure: ' + ERROR_PROCEDURE() + ' | Line: ' + CAST(ERROR_LINE() AS NVARCHAR(MAX)) + ' | Severity, State: ' + CAST(ERROR_SEVERITY() AS NVARCHAR(MAX)) + ', ' + CAST(ERROR_STATE() AS NVARCHAR(MAX)) + ')';
+          SET @Msg = (CASE WHEN @Msg <> '' THEN @Msg + ' || ' ELSE '' END) + 'Error during clean up: (' + ERROR_MESSAGE() + ' | Procedure: ' + ISNULL(ERROR_PROCEDURE(),'<NULL>') + ' | Line: ' + CAST(ERROR_LINE() AS NVARCHAR(MAX)) + ' | Severity, State: ' + CAST(ERROR_SEVERITY() AS NVARCHAR(MAX)) + ', ' + CAST(ERROR_STATE() AS NVARCHAR(MAX)) + ')';
         END CATCH;
       END;
 
