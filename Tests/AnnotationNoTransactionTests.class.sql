@@ -597,28 +597,160 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test executes multiple TestCleanUpProcedure in the order they are specified]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE [MyInnerTests].[CleanUp7] AS BEGIN INSERT INTO #Actual VALUES (''CleanUp7''); END;');
+  EXEC('CREATE PROCEDURE [MyInnerTests].[CleanUp3] AS BEGIN INSERT INTO #Actual VALUES (''CleanUp3''); END;');
+  EXEC('CREATE PROCEDURE [MyInnerTests].[CleanUp9] AS BEGIN INSERT INTO #Actual VALUES (''CleanUp9''); END;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''MyInnerTests.CleanUp7'')
+    --[@'+'tSQLt:NoTransaction](''MyInnerTests.CleanUp3'')
+    --[@'+'tSQLt:NoTransaction](''MyInnerTests.CleanUp9'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''test1'');
+    END;
+  ');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), col1 NVARCHAR(MAX));
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES(1, 'test1'), (2, 'CleanUp7'),(3, 'CleanUp3'), (4, 'CleanUp9');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test executes schema CleanUp after test CleanUp]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE [MyInnerTests].[TestCleanUp] AS BEGIN INSERT INTO #Actual VALUES (''TestCleanUp''); END;');
+  EXEC('CREATE PROCEDURE [MyInnerTests].[CleanUp] AS BEGIN INSERT INTO #Actual VALUES (''(Schema)CleanUp''); END;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''MyInnerTests.TestCleanUp'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''test1'');
+    END;
+  ');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), col1 NVARCHAR(MAX));
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES(1, 'test1'), (2, 'TestCleanUp'),(3, '(Schema)CleanUp');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test executes schema CleanUp only if it is a stored procedure]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE VIEW [MyInnerTests].[CleanUp] AS SELECT 1 X;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.ExpectNoException;
+  
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test executes schema CleanUp if schema name contains single quote]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInner''Tests'
+  EXEC('CREATE PROCEDURE [MyInner''Tests].[CleanUp] AS BEGIN INSERT INTO #Actual VALUES (''[MyInner''''Tests].[CleanUp]''); END;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInner''Tests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), col1 NVARCHAR(MAX));
+
+  EXEC tSQLt.Run '[MyInner''Tests].[test1]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES(1, '[MyInner''Tests].[CleanUp]');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test executes schema CleanUp even if name is differently cased]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE [MyInnerTests].[clEaNuP] AS BEGIN INSERT INTO #Actual VALUES (''[MyInnerTests].[clEaNuP]''); END;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), col1 NVARCHAR(MAX));
+
+  EXEC tSQLt.Run '[MyInnerTests].[test1]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES(1, '[MyInnerTests].[clEaNuP]');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
 /*-- TODO
 
  CLEANUP: named cleanup x 3 (needs to execute even if there's an error during test execution)
 - there will be three clean up methods, executed in the following order
-- 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter "--[@tSQLt:NoTransaction]('[<SCHEMANAME>].[<SPNAME>]')"
---[@tSQLt:NoTransaction](DEFAULT)
+- X 1. User defined clean up for an individual test as specified in the NoTransaction annotation parameter
+-- X "--[@tSQLt:NoTransaction]('[<SCHEMANAME>].[<SPNAME>]')"
+-- X --[@tSQLt:NoTransaction](DEFAULT)
 - 2. User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
+-- X ' in schema name
+-- X different case for cLEANuP
 - 3. tSQLt.Private_CleanUp
 - Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
 - If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
 - appropriate error messages are appended to the test msg 
 - If a test errors (even catastrophically), all indicated CleanUp procedures run.
 
-- handle multiple TestCleanUpProcedures
-- ? handle TestCleanUpProcedures with ' in name
-- ? error in annotation if specified TestCleanUpProcedure does not exist
-- ? error in annotation if specified TestCleanUpProcedure is not a procedure (any of the 4ish types)
+- X handle multiple TestCleanUpProcedures
+- X handle TestCleanUpProcedures with ' in name
+- X error in annotation if specified TestCleanUpProcedure does not exist
+- X error in annotation if specified TestCleanUpProcedure is not a procedure (any of the 4ish types)
 
 
-- tSQLt.SpyProcedure needs a "call original" option
-- test that the three cleanups are running in the correct order. might need ^^ to wrok. (duplicate of line 455)
+
 
 Transactions
 - transaction opened during test
@@ -638,5 +770,7 @@ Everything is being called in the right order.
 - test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch
 - Make sure undotestdoubles and handletables are called in the right order
 
+- tSQLt.SpyProcedure needs a "call original" option
+- What happens when we have multiple annotations for other non-NoTransaction annotations? Did we test this???
 
 --*/

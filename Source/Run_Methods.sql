@@ -1,4 +1,4 @@
-IF OBJECT_ID('tSQLt.Private_GetSetupProcedureName') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetSetupProcedureName;
+IF OBJECT_ID('tSQLt.Private_GetClassHelperProcedureName') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetClassHelperProcedureName;
 IF OBJECT_ID('tSQLt.Private_RunTest') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTest;
 IF OBJECT_ID('tSQLt.Private_RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTestClass;
 IF OBJECT_ID('tSQLt.Private_Run') IS NOT NULL DROP PROCEDURE tSQLt.Private_Run;
@@ -24,21 +24,27 @@ IF OBJECT_ID('tSQLt.Private_PrepareTestResultForOutput') IS NOT NULL DROP FUNCTI
 GO
 ---Build+
 
-CREATE PROCEDURE tSQLt.Private_GetSetupProcedureName
+CREATE PROCEDURE tSQLt.Private_GetClassHelperProcedureName
   @TestClassId INT = NULL,
-  @SetupProcName NVARCHAR(MAX) OUTPUT
+  @SetupProcName NVARCHAR(MAX) OUTPUT,
+  @CleanUpProcName NVARCHAR(MAX) OUTPUT
 AS
 BEGIN
     SELECT @SetupProcName = tSQLt.Private_GetQuotedFullName(object_id)
       FROM sys.procedures
      WHERE schema_id = @TestClassId
        AND LOWER(name) = 'setup';
+    SELECT @CleanUpProcName = tSQLt.Private_GetQuotedFullName(object_id)
+      FROM sys.procedures
+     WHERE schema_id = @TestClassId
+       AND LOWER(name) = 'cleanup';
 END;
 GO
 
 CREATE PROCEDURE tSQLt.Private_RunTest
    @TestName NVARCHAR(MAX),
-   @SetUp NVARCHAR(MAX) = NULL
+   @SetUp NVARCHAR(MAX) = NULL,
+   @CleanUp NVARCHAR(MAX) = NULL
 AS
 BEGIN
     DECLARE @OuterPerimeterTrancount INT = @@TRANCOUNT;
@@ -62,7 +68,7 @@ BEGIN
     CREATE TABLE #TestMessage(Msg NVARCHAR(MAX));
     CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
     CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
-    CREATE TABLE #NoTransaction(CleanUpProcedureName NVARCHAR(MAX));
+    CREATE TABLE #NoTransaction(OrderId INT IDENTITY(1,1),CleanUpProcedureName NVARCHAR(MAX));
     CREATE TABLE #TableBackupLog(OriginalName NVARCHAR(MAX), BackupName NVARCHAR(MAX));
 
 
@@ -124,7 +130,10 @@ BEGIN
       BEGIN TRY
         IF(@SkipTestFlag = 0)
         BEGIN
-          IF (@SetUp IS NOT NULL) EXEC @SetUp;
+          IF (@SetUp IS NOT NULL)
+          BEGIN
+            EXEC @SetUp;
+          END;
           EXEC (@Cmd);
 
     --TODO:NoTran
@@ -272,10 +281,19 @@ BEGIN
     IF (@NoTransactionFlag = 1 AND @SkipTestFlag = 0)
     BEGIN
       SET @NoTransactionTestCleanUpProcedureName = (
-        SELECT 'EXEC '+ NT.CleanUpProcedureName
-          FROM #NoTransaction NT
+        (
+          SELECT 'EXEC '+ NT.CleanUpProcedureName +';'
+            FROM #NoTransaction NT
+           ORDER BY OrderId
+             FOR XML PATH(''),TYPE
+        ).value('.','NVARCHAR(MAX)')
       );
       EXEC(@NoTransactionTestCleanUpProcedureName);
+
+      IF(@CleanUp IS NOT NULL)
+      BEGIN
+        EXEC @CleanUp;
+      END;
 
       DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
       EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
@@ -329,11 +347,12 @@ BEGIN
     DECLARE @TestCaseName NVARCHAR(MAX);
     DECLARE @TestClassId INT; SET @TestClassId = tSQLt.Private_GetSchemaId(@TestClassName);
     DECLARE @SetupProcName NVARCHAR(MAX);
-    EXEC tSQLt.Private_GetSetupProcedureName @TestClassId, @SetupProcName OUTPUT;
+    DECLARE @CleanUpProcName NVARCHAR(MAX);
+    EXEC tSQLt.Private_GetClassHelperProcedureName @TestClassId, @SetupProcName OUT, @CleanUpProcName OUT;
     
     DECLARE @cmd NVARCHAR(MAX) = (
       (
-        SELECT 'EXEC tSQLt.Private_RunTest '''+REPLACE(tSQLt.Private_GetQuotedFullName(object_id),'''','''''')+''', '+ISNULL(''''+REPLACE(@SetupProcName,'''','''''')+'''','NULL')+';'
+        SELECT 'EXEC tSQLt.Private_RunTest '''+REPLACE(tSQLt.Private_GetQuotedFullName(object_id),'''','''''')+''', '+ISNULL(''''+REPLACE(@SetupProcName,'''','''''')+'''','NULL')+', '+ISNULL(''''+REPLACE(@CleanUpProcName,'''','''''')+'''','NULL')+';'
           FROM sys.procedures
          WHERE schema_id = @TestClassId
            AND LOWER(name) LIKE 'test%'
@@ -376,9 +395,10 @@ SET NOCOUNT ON;
     IF @IsTestCase = 1
     BEGIN
       DECLARE @SetupProcName NVARCHAR(MAX);
-      EXEC tSQLt.Private_GetSetupProcedureName @TestClassId, @SetupProcName OUTPUT;
+      DECLARE @CleanUpProcName NVARCHAR(MAX);
+      EXEC tSQLt.Private_GetClassHelperProcedureName @TestClassId, @SetupProcName OUT, @CleanUpProcName OUT;
 
-      EXEC tSQLt.Private_RunTest @FullName, @SetupProcName;
+      EXEC tSQLt.Private_RunTest @FullName, @SetupProcName, @CleanUpProcName;
     END;
 
     EXEC tSQLt.Private_OutputTestResults @TestResultFormatter;
