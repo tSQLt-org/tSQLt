@@ -68,3 +68,13 @@ BEGIN
 
 END;
 GO
+CREATE PROCEDURE [_ExploratoryTests].[test FOR XML returns NULL for empty result set]
+AS
+BEGIN
+  SELECT ((SELECT 1 WHERE 1 = 0 FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)')) [FOR XML FROM EMPTY] INTO #Actual;
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES(NULL);
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO

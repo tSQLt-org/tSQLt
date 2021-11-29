@@ -288,7 +288,16 @@ BEGIN
              FOR XML PATH(''),TYPE
         ).value('.','NVARCHAR(MAX)')
       );
-      EXEC(@NoTransactionTestCleanUpProcedureName);
+      IF(@NoTransactionTestCleanUpProcedureName IS NOT NULL)
+      BEGIN
+        BEGIN TRY
+          EXEC(@NoTransactionTestCleanUpProcedureName);
+        END TRY
+        BEGIN CATCH
+          SET @Result = 'Error';
+          SET @Msg = (CASE WHEN @Msg <> '' THEN @Msg + ' || ' ELSE '' END) + 'Error during clean up: (' + ERROR_MESSAGE() + ' | Procedure: ' + ISNULL(ERROR_PROCEDURE(),'<NULL>') + ' | Line: ' + CAST(ERROR_LINE() AS NVARCHAR(MAX)) + ' | Severity, State: ' + CAST(ERROR_SEVERITY() AS NVARCHAR(MAX)) + ', ' + CAST(ERROR_STATE() AS NVARCHAR(MAX)) + ')';
+        END CATCH;
+      END;
 
       IF(@CleanUp IS NOT NULL)
       BEGIN
