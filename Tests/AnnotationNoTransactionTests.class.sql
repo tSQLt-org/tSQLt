@@ -486,20 +486,20 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp is executed even if it has a single quote in its name]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp is executed even if it has a single quote in its name and/or its schema name]
 AS
 BEGIN
-  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC tSQLt.NewTestClass 'MyInner''Tests'
   EXEC('
-    CREATE PROCEDURE [MyInnerTests].[UserClean''Up1]
+    CREATE PROCEDURE [MyInner''Tests].[UserClean''Up1]
     AS
     BEGIN
       INSERT INTO #Actual VALUES (''UserClean''''Up1'');
     END;
   ');
   EXEC('
-    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserClean''''Up1]'')
-    CREATE PROCEDURE MyInnerTests.[test1]
+    --[@'+'tSQLt:NoTransaction](''[MyInner''''Tests].[UserClean''''Up1]'')
+    CREATE PROCEDURE [MyInner''Tests].[test''1]
     AS
     BEGIN
       RETURN
@@ -509,7 +509,7 @@ BEGIN
   CREATE TABLE #Actual (col1 NVARCHAR(MAX));
 
 
-  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+  EXEC tSQLt.Run '[MyInner''Tests].[test''1]';
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   
@@ -1088,17 +1088,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp appends all individual error messages]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp is executed if schema name contains single quote]
 AS
 BEGIN
   EXEC tSQLt.Fail 'TODO';

@@ -282,7 +282,7 @@ BEGIN
     BEGIN
       SET @NoTransactionTestCleanUpProcedureName = (
         (
-          SELECT 'EXEC '+ NT.CleanUpProcedureName +';'
+          SELECT 'EXEC tSQLt.Private_CleanUpProcedureHandler '''+ REPLACE(NT.CleanUpProcedureName,'''','''''') +''', @Result OUT, @Msg OUT;'
             FROM #NoTransaction NT
            ORDER BY OrderId
              FOR XML PATH(''),TYPE
@@ -290,24 +290,12 @@ BEGIN
       );
       IF(@NoTransactionTestCleanUpProcedureName IS NOT NULL)
       BEGIN
-        BEGIN TRY
-          EXEC(@NoTransactionTestCleanUpProcedureName);
-        END TRY
-        BEGIN CATCH
-          SET @Result = 'Error';
-          SET @Msg = (CASE WHEN @Msg <> '' THEN @Msg + ' || ' ELSE '' END) + 'Error during clean up: (' + ERROR_MESSAGE() + ' | Procedure: ' + ISNULL(ERROR_PROCEDURE(),'<NULL>') + ' | Line: ' + CAST(ERROR_LINE() AS NVARCHAR(MAX)) + ' | Severity, State: ' + CAST(ERROR_SEVERITY() AS NVARCHAR(MAX)) + ', ' + CAST(ERROR_STATE() AS NVARCHAR(MAX)) + ')';
-        END CATCH;
+        EXEC sys.sp_executesql @NoTransactionTestCleanUpProcedureName, N'@Result NVARCHAR(MAX) OUTPUT, @Msg NVARCHAR(MAX) OUTPUT', @Result OUT, @Msg OUT;
       END;
 
       IF(@CleanUp IS NOT NULL)
       BEGIN
-        BEGIN TRY
-          EXEC @CleanUp;
-        END TRY
-        BEGIN CATCH
-          SET @Result = 'Error';
-          SET @Msg = (CASE WHEN @Msg <> '' THEN @Msg + ' || ' ELSE '' END) + 'Error during clean up: (' + ERROR_MESSAGE() + ' | Procedure: ' + ISNULL(ERROR_PROCEDURE(),'<NULL>') + ' | Line: ' + CAST(ERROR_LINE() AS NVARCHAR(MAX)) + ' | Severity, State: ' + CAST(ERROR_SEVERITY() AS NVARCHAR(MAX)) + ', ' + CAST(ERROR_STATE() AS NVARCHAR(MAX)) + ')';
-        END CATCH;
+        EXEC tSQLt.Private_CleanUpProcedureHandler @CleanUp, @Result OUT, @Msg OUT;
       END;
 
       DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
