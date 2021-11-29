@@ -1037,6 +1037,67 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp is executed if previous Test-CleanUp errors]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp1]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''UserCleanUp1'');
+    END;
+  ');
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp2]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''UserCleanUp2'');
+      RAISERROR(''some error in UserCleanUp2'',16,10);
+    END;
+  ');
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp3]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''UserCleanUp3'');
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp1]'')
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp2]'')
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp3]'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      INSERT INTO #Actual VALUES (''test1'');
+    END;
+  ');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), col1 NVARCHAR(MAX));
+
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', 'tSQLt.NullTestResultFormatter';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES(1, 'test1'), (2, 'UserCleanUp1'), (3, 'UserCleanUp2'), (4, 'UserCleanUp3');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp appends all individual error messages]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp is executed if schema name contains single quote]
 AS
 BEGIN
