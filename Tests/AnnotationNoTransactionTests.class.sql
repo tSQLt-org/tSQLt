@@ -32,23 +32,6 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO: needs other tests first')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test produces meaningful error when pre and post transactions counts don't match]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'MyInnerTests'
-  EXEC('
---[@'+'tSQLt:NoTransaction](DEFAULT)
-CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;
-  ');
-
-  --EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
-
-  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test transaction name is NULL in TestResults table]
 AS
 BEGIN
@@ -174,7 +157,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp is not called if not annotated and succeeding]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp is not called if test is not annotated and passing]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -191,7 +174,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp is not called if not annotated and failing]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp is not called if test is not annotated and failing]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -208,7 +191,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp is not called if not annotated and erroring]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp is not called if test is not annotated and erroring]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -245,7 +228,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp error message is called before the test result message is printed]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_CleanUp is called before the test result message is printed]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -1091,70 +1074,243 @@ GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp appends all individual error messages]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[CleanUp]
+    AS
+    BEGIN
+      RAISERROR(''some error in Schema-CleanUp'',16,10);
+    END;
+  ');
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp1]
+    AS
+    BEGIN
+      RAISERROR(''some error in UserCleanUp1'',16,10);
+    END;
+  ');
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp2]
+    AS
+    BEGIN
+      RAISERROR(''some error in UserCleanUp2'',16,10);
+    END;
+  ');
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp3]
+    AS
+    BEGIN
+      RAISERROR(''some error in UserCleanUp3'',16,10);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp1]'')
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp2]'')
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp3]'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      EXEC tSQLt.Fail ''MyInnerTests.test1 has failed.'';
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', 'tSQLt.NullTestResultFormatter';
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestResult);
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%MyInnerTests.test1%UserCleanUp1%UserCleanUp2%UserCleanUp3%Schema-CleanUp%', @Actual = @Actual;
+
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp is executed only if it is a stored procedure]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
---[@tSQLt:SkipTest]('TODO')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp error causes failing test to be set to Error]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[TestCleanUp1]
+    AS
+    BEGIN
+      RAISERROR(''This is an error ;)'',16,10);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[TestCleanUp1]'')
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      EXEC tSQLt.Fail;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  SELECT TR.Name, TR.Result INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('[MyInnerTests].[test1]','Error');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp error causes passing test to be set to Error]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[TestCleanUp1]
+    AS
+    BEGIN
+      RAISERROR(''This is an error ;)'',16,10);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[TestCleanUp1]'')
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  SELECT TR.Name, TR.Result INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('[MyInnerTests].[test1]','Error');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp error and test error still results in Error]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[TestCleanUp1]
+    AS
+    BEGIN
+      RAISERROR(''This is an error ;)'',16,10);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[TestCleanUp1]'')
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RAISERROR(''test error'',16,10);
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  SELECT TR.Name, TR.Result INTO #Actual FROM tSQLt.TestResult AS TR;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('[MyInnerTests].[test1]','Error');
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp error causes an appropriate message to be written to tSQLt.TestResult even if ERROR_PROCEDURE is null]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.NewTestClass 'MyOtherInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyOtherInnerTests].[TestCleanUp1]
+    AS
+    BEGIN
+      /*wasting lines...*/
+      EXEC(''RAISERROR(''''This is another error ;)'''',15,12)'');
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyOtherInnerTests].[TestCleanUp1]'')
+    CREATE PROCEDURE [MyOtherInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.Run 'MyOtherInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
+  
+  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is another error ;) | Procedure: <NULL> | Line: 1 | Severity, State: 15, 12)', @Actual = @FriendlyMsg;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp error stops execution of all subsequent tests]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction](DEFAULT)
+CREATE PROCEDURE MyInnerTests.[test1] AS INSERT INTO #Actual DEFAULT VALUES;
+  ');
+  EXEC('
+--[@'+'tSQLt:NoTransaction](DEFAULT)
+CREATE PROCEDURE MyInnerTests.[test2] AS INSERT INTO #Actual DEFAULT VALUES;
+  ');
+  CREATE TABLE #Actual(Id CHAR(1) DEFAULT '*');
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'RAISERROR(''Error during Private_CleanUp'',16,10);'; 
+  BEGIN TRY
+  EXEC tSQLt.Run 'MyInnerTests';
+  END TRY
+  BEGIN CATCH
+  /*Not interested in the specific error here.*/
+  END CATCH;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('*');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp error message gets written to tSQLt.TestResult before tSQLt stops]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO -- This test might exist already. Search for >>SpyProcedure @ProcedureName = ''tSQLt.Private_CleanUp''';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 --[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp error causes an appropriate message to be written to the tSQLt.TestResult table]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp error prevents any subsequent tSQLt.Run% calls.]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.Fail 'TODO -- also needs a good error message';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp error causes an appropriate message to be written to the tSQLt.TestResult table if there is a different error]
+--[@tSQLt:SkipTest]('TODO: needs other tests first')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test produces meaningful error when pre and post transactions counts don't match]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction](DEFAULT)
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;
+  ');
+
+  --EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
+
+  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
