@@ -282,7 +282,7 @@ BEGIN
     BEGIN
       SET @NoTransactionTestCleanUpProcedureName = (
         (
-          SELECT 'EXEC tSQLt.Private_CleanUpProcedureHandler '''+ REPLACE(NT.CleanUpProcedureName,'''','''''') +''', @Result OUT, @Msg OUT;'
+          SELECT 'EXEC tSQLt.Private_CleanUpCmdHandler ''EXEC '+ REPLACE(NT.CleanUpProcedureName,'''','''''') +';'', @Result OUT, @Msg OUT;'
             FROM #NoTransaction NT
            ORDER BY OrderId
              FOR XML PATH(''),TYPE
@@ -295,11 +295,11 @@ BEGIN
 
       IF(@CleanUp IS NOT NULL)
       BEGIN
-        EXEC tSQLt.Private_CleanUpProcedureHandler @CleanUp, @Result OUT, @Msg OUT;
+        EXEC tSQLt.Private_CleanUpCmdHandler @CleanUp, @Result OUT, @Msg OUT;
       END;
 
       DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
-      EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT, @Result = @Result OUT;
+      EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @Result = @Result OUT, @ErrorMsg = @CleanUpErrorMsg OUT;
       SET @Msg = @Msg + ISNULL(' ' + @CleanUpErrorMsg, '');
     END;
 

@@ -55,7 +55,7 @@ tSQLt.Private_HostPlatform.svw.sql
 tSQLt.Private_NoTransactionTableAction.view.sql
 tSQLt.Private_NoTransactionHandleTable.ssp.sql
 tSQLt.Private_NoTransactionHandleTables.ssp.sql
-tSQLt.Private_CleanUpProcedureHandler.ssp.sql
+tSQLt.Private_CleanUpCmdHandler.ssp.sql
 tSQLt.Private_CleanUp.ssp.sql
 Run_Methods.sql
 tSQLt.Private_SysTypes.svw.sql

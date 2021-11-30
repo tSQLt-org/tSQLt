@@ -1,14 +1,14 @@
-IF OBJECT_ID('tSQLt.Private_CleanUpProcedureHandler') IS NOT NULL DROP PROCEDURE tSQLt.Private_CleanUpProcedureHandler;
+IF OBJECT_ID('tSQLt.Private_CleanUpCmdHandler') IS NOT NULL DROP PROCEDURE tSQLt.Private_CleanUpCmdHandler;
 GO
 ---Build+
-CREATE PROCEDURE tSQLt.Private_CleanUpProcedureHandler
-  @CleanUpProcedureName NVARCHAR(MAX),
+CREATE PROCEDURE tSQLt.Private_CleanUpCmdHandler
+  @CleanUpCmd NVARCHAR(MAX),
   @TestResult NVARCHAR(MAX) OUTPUT,
   @TestMsg NVARCHAR(MAX) OUTPUT
 AS
 BEGIN
   BEGIN TRY
-    EXEC @CleanUpProcedureName;
+    EXEC(@CleanUpCmd);
   END TRY
   BEGIN CATCH
     SET @TestResult = 'Error';

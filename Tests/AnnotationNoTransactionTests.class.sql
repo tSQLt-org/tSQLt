@@ -1281,7 +1281,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp @Result OUTPUT gets written to tSQLt.TestResult before tSQLt stops]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_CleanUp @Result OUTPUT gets written to tSQLt.TestResult before tSQLt stops]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -1315,7 +1315,7 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 --[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp error prevents any subsequent tSQLt.Run% calls.]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_CleanUp error prevents any subsequent tSQLt.Run% calls.]
 AS
 BEGIN
   EXEC tSQLt.Fail 'TODO -- also needs a good error message';
