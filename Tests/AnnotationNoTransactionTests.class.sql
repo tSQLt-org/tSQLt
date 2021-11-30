@@ -1281,10 +1281,35 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp error message gets written to tSQLt.TestResult before tSQLt stops]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp @Result OUTPUT gets written to tSQLt.TestResult before tSQLt stops]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO -- This test might exist already. Search for >>SpyProcedure @ProcedureName = ''tSQLt.Private_CleanUp''';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction](DEFAULT)
+CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;
+  ');
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'SET @Result = ''V1234'';'; 
+
+  EXEC tSQLt.Run 'MyInnerTests';
+
+  SELECT Result INTO #Actual FROM tSQLt.TestResult
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES('V1234');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Any cleanup that potentially alters the test result adds the previous result to the error message]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/

@@ -299,7 +299,7 @@ BEGIN
       END;
 
       DECLARE @CleanUpErrorMsg NVARCHAR(MAX);
-      EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT;
+      EXEC tSQLt.Private_CleanUp @FullTestName = @TestName, @ErrorMsg = @CleanUpErrorMsg OUT, @Result = @Result OUT;
       SET @Msg = @Msg + ISNULL(' ' + @CleanUpErrorMsg, '');
     END;
 

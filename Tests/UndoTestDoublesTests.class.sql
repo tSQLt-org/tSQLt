@@ -821,6 +821,41 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE UndoTestDoublesTests.[test UndoTestDoubles error is appended to message]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE UndoTestDoublesTests.[test UndoTestDoubles error causes Result to be set to Error]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE UndoTestDoublesTests.[test HandleTables error is appended to message]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE UndoTestDoublesTests.[test HandleTables error causes Result to be set to FATAL]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
 /*--
 TODO
