@@ -11,8 +11,9 @@ BEGIN
 
   EXEC tSQLt.Private_CleanUpCmdHandler 
          @CleanUpCmd = 'EXEC tSQLt.Private_NoTransactionHandleTables @Action=''Reset'';',
-         @TestResult = NULL,
-         @TestMsg = @ErrorMsg OUT;
+         @TestResult = @Result OUT,
+         @TestMsg = @ErrorMsg OUT,
+         @ResultInCaseOfError = 'FATAL';
 
   EXEC tSQLt.Private_CleanUpCmdHandler 
          @CleanUpCmd = 'EXEC tSQLt.UndoTestDoubles @Force = 0;',

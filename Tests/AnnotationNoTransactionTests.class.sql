@@ -1305,8 +1305,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Any cleanup that potentially alters the test result adds the previous result to the error message]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test any cleanup that potentially alters the test result adds the previous result to the error message]
 AS
 BEGIN
   EXEC tSQLt.Fail 'TODO';
