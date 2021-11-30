@@ -68,7 +68,37 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles', @CommandToExecute = 'RAISERROR(''some cleanup error'',16, 10)';
 
   DECLARE @ErrorMsg NVARCHAR(MAX) = 'previous error';
-  EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @Result = NULL, @ErrorMsg = @ErrorMsg;
+  EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @Result = NULL, @ErrorMsg = @ErrorMsg OUT;
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = 'previous error%some cleanup error%', @Actual = @ErrorMsg;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Private_CleanUpTests.[test UndoTestDoubles error causes @Result to be set to Error]
+AS
+BEGIN
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles', @CommandToExecute = 'RAISERROR(''some cleanup error'',16, 10)';
+
+  DECLARE @Result NVARCHAR(MAX) = 'NOT ERROR';
+  EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @Result = @Result OUT, @ErrorMsg = NULL;
+
+  EXEC tSQLt.AssertEqualsString @Expected = 'Error', @Actual = @Result;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Private_CleanUpTests.[test HandleTables error is appended to @ErrorMsg]
+AS
+BEGIN
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'RAISERROR(''some cleanup error'',16, 10)';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+
+  DECLARE @ErrorMsg NVARCHAR(MAX) = 'previous error';
+  EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @Result = NULL, @ErrorMsg = @ErrorMsg OUT;
 
   EXEC tSQLt.AssertLike @ExpectedPattern = 'previous error%some cleanup error%', @Actual = @ErrorMsg;
 
@@ -76,29 +106,17 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE Private_CleanUpTests.[test UndoTestDoubles error causes @Result to be set to Error]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE Private_CleanUpTests.[test HandleTables error is appended to @ErrorMsg]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
---[@tSQLt:SkipTest]('TODO')
 CREATE PROCEDURE Private_CleanUpTests.[test HandleTables error causes @Result to be set to FATAL]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'RAISERROR(''some cleanup error'',16, 10)';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+
+  DECLARE @Result NVARCHAR(MAX) = 'NOT ERROR';
+  EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @Result = @Result OUT, @ErrorMsg = NULL;
+
+  EXEC tSQLt.AssertEqualsString @Expected = 'FATAL', @Actual = @Result;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
