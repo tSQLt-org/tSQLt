@@ -1305,17 +1305,11 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp is executed through tSQLt.Private_CleanUpCmdHandler only]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp is executed through tSQLt.Private_CleanUpCmdHandler]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
-  EXEC('
-    CREATE PROCEDURE [MyInnerTests].[CleanUp]
-    AS
-    BEGIN
-      RETURN;
-    END;
-  ');
+  EXEC('CREATE PROCEDURE [MyInnerTests].[CleanUp] AS BEGIN RETURN; END;');
   EXEC('
     --[@'+'tSQLt:NoTransaction](DEFAULT)
     CREATE PROCEDURE [MyInnerTests].[test1]
@@ -1337,19 +1331,17 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp is not executed outside tSQLt.Private_CleanUpCmdHandler]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Test-CleanUp is executed through tSQLt.Private_CleanUpCmdHandler]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE [MyInnerTests].[Test-CleanUp1] AS BEGIN RETURN; END;');
+  EXEC('CREATE PROCEDURE [MyInnerTests].[Test-CleanUp2] AS BEGIN RETURN; END;');
+  EXEC('CREATE PROCEDURE [MyInnerTests].[Test-CleanUp3] AS BEGIN RETURN; END;');
   EXEC('
-    CREATE PROCEDURE [MyInnerTests].[CleanUp]
-    AS
-    BEGIN
-      RETURN;
-    END;
-  ');
-  EXEC('
-    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[Test-CleanUp1]'')
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[Test-CleanUp2]'')
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[Test-CleanUp3]'')
     CREATE PROCEDURE [MyInnerTests].[test1]
     AS
     BEGIN
@@ -1357,14 +1349,72 @@ BEGIN
     END;
   ');
 
-  EXEC tSQLt.SpyProcedure @ProcedureName = '[MyInnerTests].[CleanUp]';
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUpCmdHandler';
 
   EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 
+  SELECT _id_, CleanUpCmd INTO #Actual FROM tSQLt.Private_CleanUpCmdHandler_SpyProcedureLog
+   WHERE(NOT EXISTS(SELECT 1 FROM tSQLt.Private_CleanUpCmdHandler_SpyProcedureLog WHERE CleanUpCmd LIKE '%MyInnerTests%Test-CleanUp1%'))
+      OR(NOT EXISTS(SELECT 1 FROM tSQLt.Private_CleanUpCmdHandler_SpyProcedureLog WHERE CleanUpCmd LIKE '%MyInnerTests%Test-CleanUp2%'))
+      OR(NOT EXISTS(SELECT 1 FROM tSQLt.Private_CleanUpCmdHandler_SpyProcedureLog WHERE CleanUpCmd LIKE '%MyInnerTests%Test-CleanUp3%'));
 
-  EXEC tSQLt.AssertEmptyTable @TableName = '[MyInnerTests].[CleanUp_SpyProcedureLog]'
-  EXEC tSQLt.Fail 'prove that this can fail!'
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual', @Message = 'Expected a call for MyInnerTests.Test-Cleanup(s)';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp is executed only once even if it is also specified as test-cleanup]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE [MyInnerTests].[CleanUp] AS BEGIN INSERT INTO #Actual DEFAULT VALUES; END;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[CleanUp]'')
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  CREATE TABLE #Actual(WasCalled BIT DEFAULT 1);
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES(1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp is executed only once even if it is specified as test-cleanup with different quoting]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('CREATE PROCEDURE [MyInnerTests].[CleanUp] AS BEGIN INSERT INTO #Actual DEFAULT VALUES; END;');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''MyInnerTests.CleanUp'')
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  CREATE TABLE #Actual(WasCalled BIT DEFAULT 1);
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES(1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/

@@ -284,6 +284,7 @@ BEGIN
         (
           SELECT 'EXEC tSQLt.Private_CleanUpCmdHandler ''EXEC '+ REPLACE(NT.CleanUpProcedureName,'''','''''') +';'', @Result OUT, @Msg OUT;'
             FROM #NoTransaction NT
+           WHERE NT.CleanUpProcedureName <> ISNULL(@CleanUp,'')
            ORDER BY OrderId
              FOR XML PATH(''),TYPE
         ).value('.','NVARCHAR(MAX)')
