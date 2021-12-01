@@ -625,6 +625,13 @@
    <param name="execute.sql.remote.database" value="${run.AllTests.remote.database}" />
    <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/TestUtil.sql" />
   </antcall>
+  
+  <!-- This code is the root of the failure -->
+  <antcall target="execute.sql.file">
+   <param name="execute.sql.database" value="${run.AllTests.remote.database}" />
+   <param name="execute.sql.remote.database" value="${run.AllTests.database}" />
+   <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/TestUtil.sql" />
+  </antcall>
 
   <!-- Set SummaryError Off, PrepMultiRun -->
   <antcall target="execute.sql.statement">

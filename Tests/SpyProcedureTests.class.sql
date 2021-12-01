@@ -878,10 +878,31 @@ BEGIN
     
 END;
 GO
+CREATE PROC SpyProcedureTests.[test SpyProcedure works with synonym pointing to CLR proc in different database]
+AS
+BEGIN
+    DECLARE @RemoteDB NVARCHAR(MAX)= (SELECT RemoteDbName FROM tSQLt_testutil.Private_RemoteDatabaseInfo);
+	DECLARE @cmd NVARCHAR(MAX) = @RemoteDB+'.sys.sp_executesql';
+
+	EXEC('CREATE SYNONYM dbo.InnerProcSynonym FOR '+@RemoteDB+'.dbo.InnerProcedure')
+
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcSynonym';
+
+    EXEC dbo.InnerProcSynonym 123, 'Some Val'
+
+    SELECT p1, p2 INTO #Actual FROM dbo.InnerProcSynonym_SpyProcedureLog;
+
+    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    INSERT INTO #Expected
+    VALUES(123, 'Some Val');
+
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    
+END;
+GO
 /*
 TODO:
--- create private tsqlt configuration table during the build and pass the remote database name there so it will
---    be accessible from tests. This should be done to the TestUtils (maybe tsqlt.remote name)
+-- fix failing build: <!-- This code is the root of the failure --> (C:\demo\3\tSQLt\Build\tSQLt.validatebuild.xml)
 -- tackle different database
 	-- procs types P,X,RF,PC
 -- tackle linked server

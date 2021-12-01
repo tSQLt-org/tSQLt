@@ -45,13 +45,13 @@ if($LASTEXITCODE -ne 0) {
 
 Set-Location $FacadeFilesPath;
 
-$AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt" DacpacTargetDb="'+$DacpacDatabaseName+'"';
+$AdditionalParameters = '-v FacadeSourceDb="'+$DatabaseName+'_src" FacadeTargetDb="'+$DatabaseName+'_tgt" DacpacTargetDb="'+$DacpacDatabaseName+'" RemoteDbName ="'+$RemoteDatabaseName+'"';
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames "DeployFacadeTests.sql" -AdditionalParameters $AdditionalParameters;
 
 Set-Location '../tSQLt.tests';
 
 $SourceDatabaseName = $DatabaseName+"_src";
-Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames ($TempPath + "/tSQLt.tests/TestUtil.sql") -DatabaseName $SourceDatabaseName -RemoteDbName $RemoteDatabaseName -AdditionalParameters $AdditionalParameters;
+Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -FileNames ($TempPath + "/tSQLt.tests/TestUtil.sql") -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt.RunAll;" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
 Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login $LoginTrimmed -SqlCmdPath $SqlCmdPath -Query "EXEC tSQLt_testutil.LogMultiRunResult 'DeployFacadeTests.sql';" -DatabaseName $SourceDatabaseName -AdditionalParameters $AdditionalParameters;
