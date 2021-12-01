@@ -1305,6 +1305,70 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp is executed through tSQLt.Private_CleanUpCmdHandler only]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[CleanUp]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUpCmdHandler';
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+  SELECT _id_, CleanUpCmd INTO #Actual FROM tSQLt.Private_CleanUpCmdHandler_SpyProcedureLog
+   WHERE(NOT EXISTS(SELECT 1 FROM tSQLt.Private_CleanUpCmdHandler_SpyProcedureLog WHERE CleanUpCmd LIKE '%MyInnerTests%CleanUp%'));
+
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual', @Message = 'Expected a call for MyInnerTests.Cleanup1';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp is not executed outside tSQLt.Private_CleanUpCmdHandler]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[CleanUp]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = '[MyInnerTests].[CleanUp]';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUpCmdHandler';
+
+  EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+
+  EXEC tSQLt.AssertEmptyTable @TableName = '[MyInnerTests].[CleanUp_SpyProcedureLog]'
+  EXEC tSQLt.Fail 'prove that this can fail!'
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test any cleanup that potentially alters the test result adds the previous result to the error message]
 AS
 BEGIN
