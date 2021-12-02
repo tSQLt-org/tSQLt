@@ -136,8 +136,6 @@ BEGIN
           END;
           EXEC (@Cmd);
 
-    --TODO:NoTran
-    ----EXEC @CleanUp --Probably further down, called "<TestClassName>.CleanUp"
           IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
           BEGIN
             SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
@@ -284,7 +282,6 @@ BEGIN
         (
           SELECT 'EXEC tSQLt.Private_CleanUpCmdHandler ''EXEC '+ REPLACE(NT.CleanUpProcedureName,'''','''''') +';'', @Result OUT, @Msg OUT;'
             FROM #NoTransaction NT
-           WHERE NT.CleanUpProcedureName <> ISNULL(@CleanUp,'')
            ORDER BY OrderId
              FOR XML PATH(''),TYPE
         ).value('.','NVARCHAR(MAX)')
