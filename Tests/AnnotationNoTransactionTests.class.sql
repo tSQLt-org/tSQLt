@@ -405,8 +405,11 @@ CREATE PROCEDURE AnnotationNoTransactionTests.[CLEANUP: test an unrecoverable er
 AS
 BEGIN
   EXEC tSQLt.DropClass MyInnerTests;
+  --EXEC tSQLt.UndoTestDoubles;
+  --ROLLBACK
 END;
 GO
+---[@tSQLt:SkipTest]('')
 --[@tSQLt:NoTransaction]('AnnotationNoTransactionTests.[CLEANUP: test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]')
 /* This test must be NoTransaction because the inner test will invalidate any open transaction causing chaos and turmoil in the reactor. */
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
@@ -1437,6 +1440,23 @@ BEGIN
          @ResultInCaseOfError = 'NewResult';
  
   EXEC tSQLt.AssertLike @ExpectedPattern = 'BeforeMessage [[]Result: BeforeResult] || %NewMessage%', @Actual = @TestMessage;
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test any CleanUp adds the previous result to the error message even if the previous result is NULL]
+AS
+BEGIN
+  DECLARE @TestMessage NVARCHAR(MAX) = 'BeforeMessage';
+
+  EXEC tSQLt.Private_CleanUpCmdHandler 
+         @CleanUpCmd='RAISERROR(''NewMessage'',16,10)', 
+         @TestMsg = @TestMessage OUT, 
+         @TestResult = NULL , 
+         @ResultInCaseOfError = 'NewResult';
+ 
+  EXEC tSQLt.AssertLike @ExpectedPattern = 'BeforeMessage [[]Result: <NULL>] || %NewMessage%', @Actual = @TestMessage;
 
 END;
 GO
