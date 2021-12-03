@@ -890,33 +890,28 @@ BEGIN
         FETCH NEXT FROM @Cursor2 INTO @AnotherInt;
       CLOSE @Cursor2; 
       DEALLOCATE @Cursor2; 
-      SET @Cursor1 = CURSOR FOR SELECT @NotACursor AA, @AnotherInt BB;
+      SET @Cursor1 = CURSOR FOR SELECT @NotACursor, @AnotherInt;
+      OPEN @Cursor1;
     END;'
   );
 
-
---  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
 
   DECLARE @InputOnlyInt INT = 17;
-  DECLARE @Cursor1 CURSOR;
-  DECLARE @Cursor2 CURSOR; SET @Cursor2 = CURSOR FOR SELECT 42;
+  DECLARE @Cursor11 CURSOR;
+  DECLARE @Cursor22 CURSOR; SET @Cursor22 = CURSOR FOR SELECT 42; 
   DECLARE @ProcedureNameVariableSoWeDoNotGetAWarning NVARCHAR(MAX) = 'SpyProcedureTests.TempProcedure1';
 
-  EXEC @ProcedureNameVariableSoWeDoNotGetAWarning @Cursor1 OUT, @InputOnlyInt, @Cursor2;
-
+  EXEC @ProcedureNameVariableSoWeDoNotGetAWarning @Cursor11 OUTPUT, @InputOnlyInt, @Cursor22;
 
   DECLARE @OutputInt1 INT;
   DECLARE @OutputInt2 INT;
 
-  EXEC sp_executesql N'
-    OPEN @Cursor1; 
-    FETCH NEXT FROM @Cursor1 INTO @OutputInt1, @OutputInt2;
-    CLOSE Cursor1;
-    DEALLOCATE @Cursor1;',
-    N'@Cursor1 CURSOR VARYING OUTPUT, @OutputInt1 INT OUTPUT, @OutputInt2 OUTPUT',
-    @Cursor1,@OutputInt1,@OutputInt2;
+  FETCH NEXT FROM @Cursor11 INTO @OutputInt1, @OutputInt2;
+  CLOSE @Cursor11;
+  DEALLOCATE @Cursor11;
 
-  SELECT @OutputInt1 AS OutputInt1, @OutputInt1 AS OutputInt2 INTO #Actual;
+  SELECT @OutputInt1 AS OutputInt1, @OutputInt2 AS OutputInt2 INTO #Actual;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected VALUES(17, 42);
@@ -926,7 +921,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-EXEC tSQLt.Run 'SpyProcedureTests.[test calls original procedure with cursor parameters if @CallOriginal = 1]'
+--EXEC tSQLt.Run 'SpyProcedureTests.[test calls original procedure with cursor parameters if @CallOriginal = 1]'
 /* Tests for consideration
 
 - different parameter types including table valued parameters and cursors(?)
