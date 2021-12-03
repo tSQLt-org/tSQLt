@@ -784,3 +784,74 @@ BEGIN
   EXEC AssertEqualsTableTests.[Assert that AssertEqualsTable can NOT handle a datatype] 'GEOGRAPHY', 'geography::STGeomFromText(''LINESTRING(-10.10 10.10, -50.10 50.10)'', 4326),geography::STGeomFromText(''LINESTRING(-11.11 11.11, -50.11 50.11)'', 4326),geography::STGeomFromText(''LINESTRING(-12.12 12.12, -50.12 50.12)'', 4326)';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC AssertEqualsTableTests.[test RC table is marked as tSQLt.IsTempObject]
+AS
+BEGIN
+  CREATE TABLE #Table1 (id INT);
+  CREATE TABLE #Table2 (id INT);
+
+  SELECT name,
+         object_id,
+         schema_id
+    INTO #TableListBefore
+    FROM sys.tables
+   WHERE name LIKE 'tSQLt[_]tempobject[_]%';
+  
+  EXEC tSQLt.AssertEqualsTable '#Table1','#Table2';
+  
+  SELECT QUOTENAME(SCHEMA_NAME(NewTable.schema_id))+'.'+QUOTENAME(NewTable.name) TableName, EP.value AS [tSQLt.IsTempObject]
+    INTO #Actual
+    FROM(
+      SELECT name, object_id, schema_id FROM sys.tables WHERE name LIKE 'tSQLt[_]tempobject[_]%'
+      EXCEPT
+      SELECT name, object_id, schema_id FROM #TableListBefore AS TLB
+    ) NewTable
+    LEFT JOIN sys.extended_properties EP
+      ON EP.class_desc = 'OBJECT_OR_COLUMN'
+     AND EP.name = 'tSQLt.IsTempObject'
+     AND NewTable.object_id = EP.major_id
+ 
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected SELECT TableName, 1 FROM #Actual;
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC AssertEqualsTableTests.[test RC table is created in the tSQLt schema]
+AS
+BEGIN
+  CREATE TABLE #Table1 (id INT);
+  CREATE TABLE #Table2 (id INT);
+
+  SELECT name,
+         object_id,
+         schema_id
+    INTO #TableListBefore
+    FROM sys.tables
+   WHERE name LIKE 'tSQLt[_]tempobject[_]%';
+  
+  EXEC tSQLt.AssertEqualsTable '#Table1','#Table2';
+  
+  SELECT SCHEMA_NAME(NewTable.schema_id) SchemaName, NewTable.name TableName
+    INTO #Actual
+    FROM(
+      SELECT name, object_id, schema_id FROM sys.tables WHERE name LIKE 'tSQLt[_]tempobject[_]%'
+      EXCEPT
+      SELECT name, object_id, schema_id FROM #TableListBefore AS TLB
+    ) NewTable
+ 
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected SELECT 'tSQLt', TableName FROM #Actual;
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+

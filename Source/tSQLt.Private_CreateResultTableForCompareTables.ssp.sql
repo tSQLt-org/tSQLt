@@ -13,6 +13,7 @@ BEGIN
      SELECT TOP(0) ''>'' AS ' + @ResultColumn + ', Expected.* INTO ' + @ResultTable + ' 
        FROM ' + @BaseTable + ' AS Expected RIGHT JOIN ' + @BaseTable + ' AS X ON 1=0; '
   EXEC(@Cmd);
+  EXEC tSQLt.Private_MarktSQLtTempObject @ObjectName = @ResultTable, @ObjectType = N'TABLE';
 END
 GO
 ---Build-

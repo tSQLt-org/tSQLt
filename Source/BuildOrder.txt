@@ -57,6 +57,7 @@ tSQLt.Private_NoTransactionHandleTable.ssp.sql
 tSQLt.Private_NoTransactionHandleTables.ssp.sql
 tSQLt.Private_CleanUpCmdHandler.ssp.sql
 tSQLt.Private_CleanUp.ssp.sql
+tSQLt.Private_AssertNoSideEffects.ssp.sql
 Run_Methods.sql
 tSQLt.Private_SysTypes.svw.sql
 tSQLt.Private_GetFullTypeName.sfn.sql

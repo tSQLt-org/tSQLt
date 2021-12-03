@@ -210,6 +210,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.PrepareServer.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_AssertNoSideEffects.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_AssertNoSideEffects.ssp.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_CleanTestResult.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -401,6 +407,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ListTestAnnotations.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_Lock.tbl.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_Lock.tbl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_MarktSQLtTempObject.ssp.sql">
           <AssociatedConnectionMoniker />

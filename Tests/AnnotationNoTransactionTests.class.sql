@@ -219,6 +219,7 @@ CREATE PROCEDURE MyInnerTests.[test1] AS PRINT 1/0;
  
   EXEC tSQLt.SetSummaryError 0;
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'SET @ErrorMsg = ''<Example Message>'';'; 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
   EXEC tSQLt.Run 'MyInnerTests.[test1]';
 
   DECLARE @Actual NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestResult);
@@ -240,6 +241,7 @@ CREATE PROCEDURE MyInnerTests.[test1] AS RAISERROR(''<In-Test-Error>'',16,10);
   EXEC tSQLt.SetSummaryError 0;
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'SET @ErrorMsg = ''<Example Message>'';'; 
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_Print';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
 
   EXEC tSQLt.Run 'MyInnerTests.[test1]';
 
@@ -263,6 +265,7 @@ BEGIN
     END;
   ');
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
   SELECT Action INTO #Actual FROM tSQLt.Private_NoTransactionHandleTables_SpyProcedureLog;
 
   EXEC tSQLt.Run 'MyInnerTests.[test1]';
@@ -1268,6 +1271,7 @@ CREATE PROCEDURE MyInnerTests.[test2] AS INSERT INTO #Actual DEFAULT VALUES;
 
   EXEC tSQLt.SetSummaryError 0;
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'RAISERROR(''Error during Private_CleanUp'',16,10);'; 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
   BEGIN TRY
   EXEC tSQLt.Run 'MyInnerTests';
   END TRY
@@ -1295,6 +1299,7 @@ CREATE PROCEDURE MyInnerTests.[test1] AS RETURN;
 
   EXEC tSQLt.SetSummaryError 0;
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'SET @Result = ''V1234'';'; 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
 
   EXEC tSQLt.Run 'MyInnerTests';
 

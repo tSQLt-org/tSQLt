@@ -119,8 +119,8 @@ BEGIN
       BEGIN
         IF(@SkipTestFlag = 0)
         BEGIN
-          EXEC tSQLt.Private_NoTransactionHandleTables @Action = 'Save';
           SELECT object_id ObjectId, SCHEMA_NAME(schema_id) SchemaName, name ObjectName, type_desc ObjectType INTO #BeforeExecutionObjectSnapshot FROM sys.objects;
+          EXEC tSQLt.Private_NoTransactionHandleTables @Action = 'Save';
         END;
       END;
 
@@ -302,20 +302,12 @@ BEGIN
       SET @Msg = @Msg + ISNULL(' ' + @CleanUpErrorMsg, '');
 
       SELECT object_id ObjectId, SCHEMA_NAME(schema_id) SchemaName, name ObjectName, type_desc ObjectType INTO #AfterExecutionObjectSnapshot FROM sys.objects;
-      SELECT * INTO #ObjectDiscrepancies
-        FROM(
-          (SELECT 'Deleted' [Status], B.* FROM #BeforeExecutionObjectSnapshot AS B EXCEPT SELECT 'Deleted' [Status],* FROM #AfterExecutionObjectSnapshot AS A)
-           UNION ALL
-          (SELECT 'Added' [Status], A.* FROM #AfterExecutionObjectSnapshot AS A EXCEPT SELECT 'Added' [Status], * FROM #BeforeExecutionObjectSnapshot AS B)
-        )D;
-      EXEC tSQLt.Private_CleanUpCmdHandler '
-        IF(EXISTS(SELECT 1 FROM #ObjectDiscrepancies))
-        BEGIN
-          DECLARE @TableToText NVARCHAR(MAX);
-          EXEC tSQLt.TableToText @TableName = ''#ObjectDiscrepancies'' ,@txt = @TableToText OUTPUT;
-          RAISERROR(''After the test executed, there were unexpected or missing objects in the database: %s'',16,10,@TableToText);
-        END;', @Result OUT, @Msg OUT;
-    END;
+      EXEC tSQLt.Private_AssertNoSideEffects
+             @BeforeExecutionObjectSnapshotTableName ='#BeforeExecutionObjectSnapshot',
+             @AfterExecutionObjectSnapshotTableName = '#AfterExecutionObjectSnapshot',
+             @TestResult = @Result OUT,
+             @TestMsg = @Msg OUT
+  END;
 
     If(@Result NOT IN ('Success','Skipped'))
     BEGIN
