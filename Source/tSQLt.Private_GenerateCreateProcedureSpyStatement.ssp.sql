@@ -11,23 +11,20 @@ CREATE PROCEDURE tSQLt.Private_GenerateCreateProcedureSpyStatement
     @CreateLogTableStatement NVARCHAR(MAX) OUTPUT
 AS
 BEGIN
-    DECLARE @ProcParmListForInsert NVARCHAR(MAX),
-            @ProcParmListForCall NVARCHAR(MAX),
-            @TableColList NVARCHAR(MAX),
-            @ProcParmTypeList NVARCHAR(MAX),
-            @TableColTypeList NVARCHAR(MAX);
+    DECLARE @ProcParmListForInsert NVARCHAR(MAX) = '';
+    DECLARE @ProcParmListForCall NVARCHAR(MAX) = '';
+    DECLARE @TableColList NVARCHAR(MAX) = '';
+    DECLARE @ProcParmTypeList NVARCHAR(MAX) = '';
+    DECLARE @TableColTypeList NVARCHAR(MAX) = '';
+
+    DECLARE @Separator CHAR(1) = '';
+    DECLARE @ProcParmTypeListSeparator CHAR(1) = '';
+    DECLARE @ParamName sysname;
+    DECLARE @TypeName sysname;
+    DECLARE @IsOutput BIT;
+    DECLARE @IsCursorRef BIT;
+    DECLARE @IsTableType BIT;
             
-    DECLARE @Separator CHAR(1),
-            @ProcParmTypeListSeparator CHAR(1),
-            @ParamName sysname,
-            @TypeName sysname,
-            @IsOutput BIT,
-            @IsCursorRef BIT,
-            @IsTableType BIT;
-      
-    SELECT @Separator = '', @ProcParmTypeListSeparator = '', 
-           @ProcParmListForInsert = '', @TableColList = '', @ProcParmTypeList = '', @TableColTypeList = '';
-      
     DECLARE Parameters CURSOR FOR
      SELECT p.name, t.TypeName, p.is_output, p.is_cursor_ref, t.IsTableType
        FROM sys.parameters p
@@ -46,7 +43,7 @@ BEGIN
                                      THEN '(SELECT * FROM '+@ParamName+' FOR XML PATH(''row''),TYPE,ROOT('''+STUFF(@ParamName,1,1,'')+'''))' 
                                      ELSE @ParamName 
                                    END, 
---                   @ProcParmListForCall = @ProcParmListForCall + @Separator + @ParmList,                                   
+                   @ProcParmListForCall = @ProcParmListForCall + @Separator + @ParamName + CASE WHEN @IsOutput = 1 THEN ' OUT' ELSE '' END,                                   
                    @TableColList = @TableColList + @Separator + '[' + STUFF(@ParamName,1,1,'') + ']', 
                    @ProcParmTypeList = @ProcParmTypeList + @ProcParmTypeListSeparator + @ParamName + ' ' + @TypeName + 
                                        CASE WHEN @IsTableType = 1 THEN ' READONLY' ELSE ' = NULL ' END+ 
@@ -91,7 +88,7 @@ BEGIN
              ' AS BEGIN ' + 
                 ISNULL(@InsertStmt,'') + 
                 CASE WHEN @CallOriginal = 1 
-                     THEN 'EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+';'
+                     THEN 'EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+' ' + @ProcParmListForCall + ';'
                      ELSE ''
                 END +
                 ISNULL(@CommandToExecute + ';', '') +

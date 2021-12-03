@@ -855,6 +855,78 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROC SpyProcedureTests.[test calls original procedure with OUTPUT parameters if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @AnInt INT OUTPUT, @AString NVARCHAR(MAX) OUTPUT AS BEGIN SELECT @AnInt = 8383, @AString = ''424242''; END;');
+
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  DECLARE @InputOutputInt INT = -17;
+  DECLARE @InputOutputString NVARCHAR(MAX) = '007';
+  DECLARE @ProcedureNameVariableSoWeDoNotGetAWarning NVARCHAR(MAX) = 'SpyProcedureTests.TempProcedure1';
+  EXEC @ProcedureNameVariableSoWeDoNotGetAWarning @InputOutputInt OUT, @InputOutputString OUT;
+
+  SELECT @InputOutputInt AS AnInt, @InputOutputString AS AString INTO #Actual;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(8383, '424242');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls original procedure with cursor parameters if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('
+    CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @Cursor1 CURSOR VARYING OUTPUT, @NotACursor INT, @Cursor2 CURSOR VARYING OUTPUT
+    AS 
+    BEGIN 
+      DECLARE @AnotherInt INT;
+      OPEN @Cursor2; 
+        FETCH NEXT FROM @Cursor2 INTO @AnotherInt;
+      CLOSE @Cursor2; 
+      DEALLOCATE @Cursor2; 
+      SET @Cursor1 = CURSOR FOR SELECT @NotACursor AA, @AnotherInt BB;
+    END;'
+  );
+
+
+--  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  DECLARE @InputOnlyInt INT = 17;
+  DECLARE @Cursor1 CURSOR;
+  DECLARE @Cursor2 CURSOR; SET @Cursor2 = CURSOR FOR SELECT 42;
+  DECLARE @ProcedureNameVariableSoWeDoNotGetAWarning NVARCHAR(MAX) = 'SpyProcedureTests.TempProcedure1';
+
+  EXEC @ProcedureNameVariableSoWeDoNotGetAWarning @Cursor1 OUT, @InputOnlyInt, @Cursor2;
+
+
+  DECLARE @OutputInt1 INT;
+  DECLARE @OutputInt2 INT;
+
+  EXEC sp_executesql N'
+    OPEN @Cursor1; 
+    FETCH NEXT FROM @Cursor1 INTO @OutputInt1, @OutputInt2;
+    CLOSE Cursor1;
+    DEALLOCATE @Cursor1;',
+    N'@Cursor1 CURSOR VARYING OUTPUT, @OutputInt1 INT OUTPUT, @OutputInt2 OUTPUT',
+    @Cursor1,@OutputInt1,@OutputInt2;
+
+  SELECT @OutputInt1 AS OutputInt1, @OutputInt1 AS OutputInt2 INTO #Actual;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(17, 42);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+EXEC tSQLt.Run 'SpyProcedureTests.[test calls original procedure with cursor parameters if @CallOriginal = 1]'
 /* Tests for consideration
 
 - different parameter types including table valued parameters and cursors(?)
