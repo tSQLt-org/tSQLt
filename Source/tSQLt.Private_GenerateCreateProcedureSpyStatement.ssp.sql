@@ -6,11 +6,13 @@ CREATE PROCEDURE tSQLt.Private_GenerateCreateProcedureSpyStatement
     @OriginalProcedureName NVARCHAR(MAX),
     @LogTableName NVARCHAR(MAX),
     @CommandToExecute NVARCHAR(MAX),
+    @CallOriginal BIT,
     @CreateProcedureStatement NVARCHAR(MAX) OUTPUT,
     @CreateLogTableStatement NVARCHAR(MAX) OUTPUT
 AS
 BEGIN
-    DECLARE @ProcParmList NVARCHAR(MAX),
+    DECLARE @ProcParmListForInsert NVARCHAR(MAX),
+            @ProcParmListForCall NVARCHAR(MAX),
             @TableColList NVARCHAR(MAX),
             @ProcParmTypeList NVARCHAR(MAX),
             @TableColTypeList NVARCHAR(MAX);
@@ -24,7 +26,7 @@ BEGIN
             @IsTableType BIT;
       
     SELECT @Separator = '', @ProcParmTypeListSeparator = '', 
-           @ProcParmList = '', @TableColList = '', @ProcParmTypeList = '', @TableColTypeList = '';
+           @ProcParmListForInsert = '', @TableColList = '', @ProcParmTypeList = '', @TableColTypeList = '';
       
     DECLARE Parameters CURSOR FOR
      SELECT p.name, t.TypeName, p.is_output, p.is_cursor_ref, t.IsTableType
@@ -39,11 +41,12 @@ BEGIN
     BEGIN
         IF @IsCursorRef = 0
         BEGIN
-            SELECT @ProcParmList = @ProcParmList + @Separator + 
+            SELECT @ProcParmListForInsert = @ProcParmListForInsert + @Separator + 
                                    CASE WHEN @IsTableType = 1 
                                      THEN '(SELECT * FROM '+@ParamName+' FOR XML PATH(''row''),TYPE,ROOT('''+STUFF(@ParamName,1,1,'')+'''))' 
                                      ELSE @ParamName 
                                    END, 
+--                   @ProcParmListForCall = @ProcParmListForCall + @Separator + @ParmList,                                   
                    @TableColList = @TableColList + @Separator + '[' + STUFF(@ParamName,1,1,'') + ']', 
                    @ProcParmTypeList = @ProcParmTypeList + @ProcParmTypeListSeparator + @ParamName + ' ' + @TypeName + 
                                        CASE WHEN @IsTableType = 1 THEN ' READONLY' ELSE ' = NULL ' END+ 
@@ -78,7 +81,7 @@ BEGIN
     DECLARE @InsertStmt NVARCHAR(MAX);
     SELECT @InsertStmt = 'INSERT INTO ' + @LogTableName + 
                          CASE WHEN @TableColList = '' THEN ' DEFAULT VALUES'
-                              ELSE ' (' + @TableColList + ') SELECT ' + @ProcParmList
+                              ELSE ' (' + @TableColList + ') SELECT ' + @ProcParmListForInsert
                          END + ';';
                          
     SELECT @CreateLogTableStatement = 'CREATE TABLE ' + @LogTableName + ' (_id_ int IDENTITY(1,1) PRIMARY KEY CLUSTERED ' + @TableColTypeList + ');';
@@ -87,6 +90,10 @@ BEGIN
              'CREATE PROCEDURE ' + @OriginalProcedureName + ' ' + @ProcParmTypeList + 
              ' AS BEGIN ' + 
                 ISNULL(@InsertStmt,'') + 
+                CASE WHEN @CallOriginal = 1 
+                     THEN 'EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+';'
+                     ELSE ''
+                END +
                 ISNULL(@CommandToExecute + ';', '') +
              ' RETURN;' +
              ' END;';

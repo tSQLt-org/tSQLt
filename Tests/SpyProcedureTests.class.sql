@@ -685,6 +685,7 @@ BEGIN
            @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
            @LogTableName = NULL,
            @CommandToExecute = NULL,
+           @CallOriginal = 0,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
 
@@ -707,6 +708,7 @@ BEGIN
            @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
            @LogTableName = NULL,
            @CommandToExecute = NULL,
+           @CallOriginal = 0,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
 
@@ -815,5 +817,49 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROC SpyProcedureTests.[test calls the original procedure if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
 
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'SpyProcedureTests.TempProcedure1 called');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls original procedure with parameters if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @AnInt INT, @AString NVARCHAR(MAX) AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1(''+CAST(@AnInt AS NVARCHAR(MAX))+'',''+@AString+'') called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  EXEC('EXEC SpyProcedureTests.TempProcedure1 42,''XYZ'';');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'SpyProcedureTests.TempProcedure1(42,XYZ) called');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+/* Tests for consideration
+
+- different parameter types including table valued parameters and cursors(?)
+- @CommandToExecute is executed before the original procedure when @CallOriginal=1
+- CLR data type parameters?
+- does not call original if @CallOriginal <> 1 (NULL or 0) and also if not specified
+
+*/
