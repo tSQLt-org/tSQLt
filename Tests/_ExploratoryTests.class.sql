@@ -68,6 +68,8 @@ BEGIN
 
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE [_ExploratoryTests].[test FOR XML returns NULL for empty result set]
 AS
 BEGIN
@@ -78,3 +80,70 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE [_ExploratoryTests].[test CURSOR_STATUS indicates wheter a cursor variable is set (and other things)]
+AS
+BEGIN
+  CREATE TABLE #Actual (Situation NVARCHAR(MAX), [Cursor Status] INT, [Fetch Status] INT);
+  EXEC('INSERT INTO #Actual SELECT ''Variable not defined'', CURSOR_STATUS(''variable'',''@ACursor''), @@FETCH_STATUS;');
+  DECLARE @ACursor CURSOR;
+  INSERT INTO #Actual SELECT 'Variable defined', CURSOR_STATUS('variable','@ACursor'), @@FETCH_STATUS;
+  SET @ACursor = CURSOR FOR SELECT 1;
+  INSERT INTO #Actual SELECT 'Variable set', CURSOR_STATUS('variable','@ACursor'), @@FETCH_STATUS;
+  OPEN @ACursor;
+  INSERT INTO #Actual SELECT 'Cursor opened', CURSOR_STATUS('variable','@ACursor'), @@FETCH_STATUS;
+  DECLARE @IgnoreThis INT; 
+  FETCH NEXT FROM @ACursor INTO @IgnoreThis;
+  INSERT INTO #Actual SELECT 'Cursor after fetch', CURSOR_STATUS('variable','@ACursor'), @@FETCH_STATUS;
+  FETCH NEXT FROM @ACursor INTO @IgnoreThis;
+  INSERT INTO #Actual SELECT 'Cursor after final fetch', CURSOR_STATUS('variable','@ACursor'), @@FETCH_STATUS;
+  CLOSE @ACursor;
+  INSERT INTO #Actual SELECT 'Cursor closed', CURSOR_STATUS('variable','@ACursor'), @@FETCH_STATUS;
+  DEALLOCATE @ACursor;
+  INSERT INTO #Actual SELECT 'Cursor deallocated', CURSOR_STATUS('variable','@ACursor'), @@FETCH_STATUS;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected
+  VALUES
+      ('Variable not defined',-3,-1),
+      ('Variable defined',-2,-1),
+      ('Variable set',-1,-1),
+      ('Cursor opened',1,-1),
+      ('Cursor after fetch',1,0),
+      ('Cursor after final fetch',1,-1),
+      ('Cursor closed',-1,-1),
+      ('Cursor deallocated',-2,-1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE [_ExploratoryTests].[test CURSOR OUTPUT parameter requires @Cursor to be opened inside the proc to be visible after call]
+AS
+BEGIN
+EXEC tSQLt.Fail 'multibe test';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE [_ExploratoryTests].[test a @Cursor variable with the CURSOR SET (-1) cannot be passed to a proc with OUTPUT specified in call]
+AS
+BEGIN
+EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE [_ExploratoryTests].[test CURSOR_STATUS indicates whether a cursor variable is set (and other things)]
+AS
+BEGIN
+EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
+--EXEC tSQLt.Run [_ExploratoryTests]
