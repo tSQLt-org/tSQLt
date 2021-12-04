@@ -17,8 +17,8 @@ BEGIN
     DECLARE @ProcParmTypeList NVARCHAR(MAX) = '';
     DECLARE @TableColTypeList NVARCHAR(MAX) = '';
 
-    DECLARE @Separator CHAR(1) = '';
-    DECLARE @ProcParmTypeListSeparator CHAR(1) = '';
+    DECLARE @SeparatorWithoutCursor CHAR(1) = '';
+    DECLARE @SeparatorWithCursor CHAR(1) = '';
     DECLARE @ParamName sysname;
     DECLARE @TypeName sysname;
     DECLARE @IsOutput BIT;
@@ -38,14 +38,13 @@ BEGIN
     BEGIN
         IF @IsCursorRef = 0
         BEGIN
-            SELECT @ProcParmListForInsert = @ProcParmListForInsert + @Separator + 
+            SELECT @ProcParmListForInsert = @ProcParmListForInsert + @SeparatorWithoutCursor + 
                                    CASE WHEN @IsTableType = 1 
                                      THEN '(SELECT * FROM '+@ParamName+' FOR XML PATH(''row''),TYPE,ROOT('''+STUFF(@ParamName,1,1,'')+'''))' 
                                      ELSE @ParamName 
                                    END, 
-                   @ProcParmListForCall = @ProcParmListForCall + @Separator + @ParamName + CASE WHEN @IsOutput = 1 THEN ' OUT' ELSE '' END,                                   
-                   @TableColList = @TableColList + @Separator + '[' + STUFF(@ParamName,1,1,'') + ']', 
-                   @ProcParmTypeList = @ProcParmTypeList + @ProcParmTypeListSeparator + @ParamName + ' ' + @TypeName + 
+                   @TableColList = @TableColList + @SeparatorWithoutCursor + '[' + STUFF(@ParamName,1,1,'') + ']', 
+                   @ProcParmTypeList = @ProcParmTypeList + @SeparatorWithCursor + @ParamName + ' ' + @TypeName + 
                                        CASE WHEN @IsTableType = 1 THEN ' READONLY' ELSE ' = NULL ' END+ 
                                        CASE WHEN @IsOutput = 1 THEN ' OUT' ELSE '' END, 
                    @TableColTypeList = @TableColTypeList + ',[' + STUFF(@ParamName,1,1,'') + '] ' + 
@@ -60,15 +59,29 @@ BEGIN
                                ELSE @TypeName
                           END + ' NULL';
 
-            SELECT @Separator = ',';        
-            SELECT @ProcParmTypeListSeparator = ',';
+            SELECT @SeparatorWithoutCursor = ',';        
         END
         ELSE
         BEGIN
-            SELECT @ProcParmTypeList = @ProcParmTypeListSeparator + @ParamName + ' CURSOR VARYING OUTPUT';
-            SELECT @ProcParmTypeListSeparator = ',';
+            SELECT @ProcParmTypeList = @ProcParmTypeList + @SeparatorWithCursor + @ParamName + ' CURSOR VARYING OUTPUT';
         END;
-        
+        SELECT 
+            @ProcParmListForCall = @ProcParmListForCall + @SeparatorWithCursor + @ParamName + 
+            CASE 
+              WHEN @IsOutput = 1 
+                THEN CASE 
+                       WHEN @IsCursorRef = 1
+                         THEN CASE
+                                WHEN(EXISTS(SELECT 1 FROM sys.dm_exec_cursors(@@SPID) WHERE name = @ParamName))
+                                  THEN ''
+                                ELSE ' OUT'
+                              END
+                       ELSE ' OUT' 
+                     END
+              ELSE '' 
+            END;
+        SELECT @SeparatorWithCursor = ',';
+
         FETCH NEXT FROM Parameters INTO @ParamName, @TypeName, @IsOutput, @IsCursorRef, @IsTableType;
     END;
     
@@ -88,12 +101,13 @@ BEGIN
              ' AS BEGIN ' + 
                 ISNULL(@InsertStmt,'') + 
                 CASE WHEN @CallOriginal = 1 
-                     THEN 'EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+' ' + @ProcParmListForCall + ';'
+                     THEN 'DECLARE @'+OBJECT_NAME(@ProcedureObjectId)+' NVARCHAR(MAX) = ''EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+' ' + @ProcParmListForCall + ';'';EXEC(@'+OBJECT_NAME(@ProcedureObjectId)+');'
                      ELSE ''
                 END +
                 ISNULL(@CommandToExecute + ';', '') +
              ' RETURN;' +
              ' END;';
+    RAISERROR(@CreateProcedureStatement, 0, 1) WITH NOWAIT;
 
     RETURN;
 END;
