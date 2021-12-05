@@ -93,13 +93,13 @@ BEGIN
              ' AS BEGIN ' + 
                 ISNULL(@InsertStmt,'') + 
                 CASE WHEN @CallOriginal = 1 
-                     THEN 'EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+' ' + @ProcParmListForCall + ';'
+                     THEN 'EXEC '+QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId))+'.'+QUOTENAME(OBJECT_NAME(@ProcedureObjectId))+' ' + @ProcParmListForCall + ';'
                      ELSE ''
                 END +
                 ISNULL(@CommandToExecute + ';', '') +
              ' RETURN;' +
              ' END;';
-    RAISERROR(@CreateProcedureStatement, 0, 1) WITH NOWAIT;
+    --RAISERROR(@CreateProcedureStatement, 0, 1) WITH NOWAIT;
 
     RETURN;
 END;
