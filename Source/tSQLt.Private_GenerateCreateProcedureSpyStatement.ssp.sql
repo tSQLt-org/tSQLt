@@ -100,7 +100,7 @@ BEGIN
                 END +
              ' RETURN;' +
              ' END;';
-    RAISERROR(@CreateProcedureStatement, 0, 1) WITH NOWAIT;
+    --RAISERROR(@CreateProcedureStatement, 0, 1) WITH NOWAIT;
 
     RETURN;
 END;

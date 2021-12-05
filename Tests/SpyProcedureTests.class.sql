@@ -351,6 +351,30 @@ BEGIN
 END;
 GO
 
+CREATE PROC SpyProcedureTests.[test SpyProcedure handles procedure and schema names with single quotes]
+AS
+BEGIN
+  DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
+
+  EXEC('CREATE SCHEMA [Tes''tSchema];');
+  EXEC('CREATE PROC [Tes''tSchema].[Spye''e Proc] @testParam1 INT AS RETURN 0;');
+
+  EXEC tSQLt.SpyProcedure '[Tes''tSchema].[Spye''e Proc]';
+    
+  DECLARE @InnerProcedure VARCHAR(MAX) = '[Tes''tSchema].[Spye''e Proc]';
+  EXEC @InnerProcedure 27;
+  
+  SELECT testParam1
+    INTO #Actual
+    FROM [Tes'tSchema].[Spye'e Proc_SpyProcedureLog];
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(27);
+    
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
 CREATE PROC SpyProcedureTests.[test SpyProcedure calls tSQLt.Private_RenameObjectToUniqueName on original proc]
 AS
 BEGIN
@@ -1082,7 +1106,7 @@ CREATE PROC SpyProcedureTests.[test @SpyProcedureOriginalObjectName contains ori
 AS
 BEGIN
   EXEC('CREATE SCHEMA [I''nn''er Test.Schema 1];');
-  EXEC('CREATE PROCEDURE [I''nn''er Test.Schema 1].[T''emp Proc.edure 1] @I INT = NULL AS BEGIN RETURN END;');--INSERT INTO #Actual VALUES (''[I''''nn''''er Test.Schema 1].[T''''emp Proc.edure 1] called'', @I); END;');
+  EXEC('CREATE PROCEDURE [I''nn''er Test.Schema 1].[T''emp Proc.edure 1] @I INT = NULL AS BEGIN INSERT INTO #Actual VALUES (''[I''''nn''''er Test.Schema 1].[T''''emp Proc.edure 1] called'', @I); END;');
 
   CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX), I INT);
 RAISERROR('GH',0,1)WITH NOWAIT;
@@ -1100,11 +1124,9 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
-
-
---EXEC tSQLt.Run 'SpyProcedureTests.[test calls original procedure with table valued parameters if @CallOriginal = 1]'
+--EXEC tSQLt.Run 'SpyProcedureTests.[test SpyProcedure handles procedure and schema names with single quotes]'
 /* Tests for consideration
-
+- do we need a test checking that we can run schema.procs with single quotes?
 - provide full name of original procedure in @SpyProcedureOriginalObjectName variable
 --- quoting required, contains '
 - TODO?: We need to document how cursors are handled and how the user can work around. local, global, and variable.

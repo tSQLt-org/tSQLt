@@ -20,7 +20,6 @@ BEGIN
 
     DECLARE @NewNameOfOriginalObject NVARCHAR(MAX);
 
-
     DECLARE @LogTableObjectId INT = OBJECT_ID(@LogTableName);
     IF(@LogTableObjectId IS NOT NULL)
     BEGIN
@@ -36,7 +35,6 @@ BEGIN
            @CallOriginal = @CallOriginal,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
-
 
     EXEC(@CreateLogTableStatement);
 

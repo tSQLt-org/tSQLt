@@ -78,6 +78,7 @@ tSQLt.Private_CreateFakeOfTable.ssp.sql
 tSQLt.FakeTable.ssp.sql
 tSQLt.Private_GenerateCreateProcedureSpyStatement.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql
+tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure.ssp.sql
 tSQLt.SpyProcedure.ssp.sql
 tSQLt.Private_GetCommaSeparatedColumnList.sfn.sql
 tSQLt.Private_CreateResultTableForCompareTables.ssp.sql
