@@ -881,6 +881,8 @@ GO
 CREATE PROC SpyProcedureTests.[test calls original procedure with cursor parameters if @CallOriginal = 1]
 AS
 BEGIN
+  EXEC tSQLt.Fail 'This test needs rewriting, as we do not allow OUTPUT on the call to original anymore';
+
   EXEC('
     CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @Cursor1 CURSOR VARYING OUTPUT, @NotACursor INT, @Cursor2 CURSOR VARYING OUTPUT
     AS 
@@ -925,8 +927,11 @@ GO
 /* Tests for consideration
 
 - different parameter types including table valued parameters and cursors(?)
+- procedure name or schema requires quoting
 - @CommandToExecute is executed before the original procedure when @CallOriginal=1
 - CLR data type parameters?
 - does not call original if @CallOriginal <> 1 (NULL or 0) and also if not specified
-
+- provide full name of original procedure in @SpyProcedureOriginalObjectName variable
+--- quoting required, contains '
+- 
 */

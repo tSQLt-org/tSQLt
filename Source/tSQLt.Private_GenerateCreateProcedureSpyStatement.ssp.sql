@@ -68,16 +68,8 @@ BEGIN
         SELECT 
             @ProcParmListForCall = @ProcParmListForCall + @SeparatorWithCursor + @ParamName + 
             CASE 
-              WHEN @IsOutput = 1 
-                THEN CASE 
-                       WHEN @IsCursorRef = 1
-                         THEN CASE
-                                WHEN(EXISTS(SELECT 1 FROM sys.dm_exec_cursors(@@SPID) WHERE name = @ParamName))
-                                  THEN ''
-                                ELSE ' OUT'
-                              END
-                       ELSE ' OUT' 
-                     END
+              WHEN @IsOutput = 1 AND @IsCursorRef <> 1
+                THEN ' OUT' 
               ELSE '' 
             END;
         SELECT @SeparatorWithCursor = ',';
@@ -101,7 +93,7 @@ BEGIN
              ' AS BEGIN ' + 
                 ISNULL(@InsertStmt,'') + 
                 CASE WHEN @CallOriginal = 1 
-                     THEN 'DECLARE @'+OBJECT_NAME(@ProcedureObjectId)+' NVARCHAR(MAX) = ''EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+' ' + @ProcParmListForCall + ';'';EXEC(@'+OBJECT_NAME(@ProcedureObjectId)+');'
+                     THEN 'EXEC '+OBJECT_SCHEMA_NAME(@ProcedureObjectId)+'.'+OBJECT_NAME(@ProcedureObjectId)+' ' + @ProcParmListForCall + ';'
                      ELSE ''
                 END +
                 ISNULL(@CommandToExecute + ';', '') +
