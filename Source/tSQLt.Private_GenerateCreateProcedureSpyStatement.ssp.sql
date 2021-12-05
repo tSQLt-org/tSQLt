@@ -92,14 +92,15 @@ BEGIN
              'CREATE PROCEDURE ' + @OriginalProcedureName + ' ' + @ProcParmTypeList + 
              ' AS BEGIN ' + 
                 ISNULL(@InsertStmt,'') + 
+                'DECLARE @SpyProcedureOriginalObjectName NVARCHAR(MAX) = '''+REPLACE(QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId))+'.'+QUOTENAME(OBJECT_NAME(@ProcedureObjectId)),'''','''''')+''';'+
+                ISNULL(@CommandToExecute + ';', '') +
                 CASE WHEN @CallOriginal = 1 
                      THEN 'EXEC '+QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId))+'.'+QUOTENAME(OBJECT_NAME(@ProcedureObjectId))+' ' + @ProcParmListForCall + ';'
                      ELSE ''
                 END +
-                ISNULL(@CommandToExecute + ';', '') +
              ' RETURN;' +
              ' END;';
-    --RAISERROR(@CreateProcedureStatement, 0, 1) WITH NOWAIT;
+    RAISERROR(@CreateProcedureStatement, 0, 1) WITH NOWAIT;
 
     RETURN;
 END;
