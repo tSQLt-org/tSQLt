@@ -1467,7 +1467,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_CleanUp error prevents subsequent tSQLt.Run% calls]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test FATAL error prevents subsequent tSQLt.Run% calls]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -1479,12 +1479,13 @@ BEGIN
       RETURN;
     END;
   ');
-  
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Reset'')RAISERROR(''Some Fatal Error'',16,10);';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Reset'')BEGIN RAISERROR(''Some Fatal Error'',16,10);END;';
 
   EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
   
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'asdasdasdas';
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt is in an invalid state. Please reinstall tSQLt.';
   EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 
 END;

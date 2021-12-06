@@ -344,6 +344,11 @@ BEGIN
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
     END;
 
+    IF(@Result = 'FATAL')
+    BEGIN
+      INSERT INTO tSQLt.Private_Seize VALUES(1);      
+    END;
+
     IF(@OuterPerimeterTrancount != @@TRANCOUNT) RAISERROR('tSQLt is in an invalid state: Stopping Execution. (Mismatching TRANCOUNT: %i <> %i))',16,10,@OuterPerimeterTrancount, @@TRANCOUNT);
 
 END;

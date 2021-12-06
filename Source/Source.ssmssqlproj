@@ -522,6 +522,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ScriptIndex.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_Seize.tbl.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_Seize.tbl.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_SetConfiguration.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

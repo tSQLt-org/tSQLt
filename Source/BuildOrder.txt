@@ -50,6 +50,7 @@ tSQLt.Private_SqlVersion.sfn.sql
 tSQLt.Private_SplitSqlVersion.sfn.sql
 tSQLt.FriendlySQLServerVersion.sfn.sql
 tSQLt.Info.sfn.sql
+tSQLt.Private_Seize.tbl.sql
 tSQLt.Private_Init.ssp.sql
 tSQLt.Private_HostPlatform.svw.sql
 tSQLt.Private_NoTransactionTableAction.view.sql

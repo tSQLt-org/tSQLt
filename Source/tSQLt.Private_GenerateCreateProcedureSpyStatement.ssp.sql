@@ -94,6 +94,7 @@ BEGIN
                 ISNULL(@InsertStmt,'') + 
                 'DECLARE @SpyProcedureOriginalObjectName NVARCHAR(MAX) = '''+REPLACE(QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId))+'.'+QUOTENAME(OBJECT_NAME(@ProcedureObjectId)),'''','''''')+''';'+
                 ISNULL(@CommandToExecute + ';', '') +
+                CHAR(13)+CHAR(10)+/*CR,LF*/
                 CASE WHEN @CallOriginal = 1 
                      THEN 'EXEC '+QUOTENAME(OBJECT_SCHEMA_NAME(@ProcedureObjectId))+'.'+QUOTENAME(OBJECT_NAME(@ProcedureObjectId))+' ' + @ProcParmListForCall + ';'
                      ELSE ''

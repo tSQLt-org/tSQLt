@@ -17,7 +17,7 @@ BEGIN
     RETURN;
   END CATCH;
   SELECT @version_match = CASE WHEN I.SqlVersion = I.InstalledOnSqlVersion THEN 1 ELSE 0 END FROM tSQLt.Info() AS I WHERE @version_match = 1;
-  IF(@version_match = 0)
+  IF(@version_match = 0 OR EXISTS(SELECT 1 FROM tSQLt.Private_Seize))
   BEGIN
     RAISERROR('tSQLt is in an invalid state. Please reinstall tSQLt.',16,10);
     RETURN;

@@ -288,6 +288,12 @@
           <AssociatedConnUserName />
           <FullPath>Private_ScriptIndexTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_SeizeTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_SeizeTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_SplitSqlVersionTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

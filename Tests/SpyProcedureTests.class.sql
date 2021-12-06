@@ -1102,21 +1102,45 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROC SpyProcedureTests.[test @SpyProcedureOriginalObjectName contains original proc name even if there are single quotes involved]
+CREATE PROC SpyProcedureTests.[test @SpyProcedureOriginalObjectName contains original proc name even if it has single quotes, dots, or spaces]
 AS
 BEGIN
   EXEC('CREATE SCHEMA [I''nn''er Test.Schema 1];');
-  EXEC('CREATE PROCEDURE [I''nn''er Test.Schema 1].[T''emp Proc.edure 1] @I INT = NULL AS BEGIN INSERT INTO #Actual VALUES (''[I''''nn''''er Test.Schema 1].[T''''emp Proc.edure 1] called'', @I); END;');
+  EXEC('CREATE PROCEDURE [I''nn''er Test.Schema 1].[T''emp Proc.edure 1] @I INT = NULL 
+        AS 
+        BEGIN 
+          INSERT INTO #Actual VALUES (''[I''''nn''''er Test.Schema 1].[T''''emp Proc.edure 1] called'', @I); 
+        END;'
+      );
 
-  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX), I INT);
-RAISERROR('GH',0,1)WITH NOWAIT;
+  CREATE TABLE #Actual (Msg NVARCHAR(MAX), I INT);
+
   EXEC tSQLt.SpyProcedure @ProcedureName = '[I''nn''er Test.Schema 1].[T''emp Proc.edure 1]', @CommandToExecute='EXEC @SpyProcedureOriginalObjectName 42;';
-RAISERROR('GH2',0,1)WITH NOWAIT;
+
 
   EXEC('[I''nn''er Test.Schema 1].[T''emp Proc.edure 1]');
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES(1,'[I''nn''er Test.Schema 1].[T''emp Proc.edure 1] called',42);
+  INSERT INTO #Expected VALUES('[I''nn''er Test.Schema 1].[T''emp Proc.edure 1] called',42);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls the original procedure even if @CommandToExecute contains inline comment]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CommandToExecute='DECLARE @II INT = 1;--PRINT @II;', @CallOriginal = 1;
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'SpyProcedureTests.TempProcedure1 called');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
@@ -1124,10 +1148,3 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
---EXEC tSQLt.Run 'SpyProcedureTests.[test SpyProcedure handles procedure and schema names with single quotes]'
-/* Tests for consideration
-- do we need a test checking that we can run schema.procs with single quotes?
-- provide full name of original procedure in @SpyProcedureOriginalObjectName variable
---- quoting required, contains '
-- TODO?: We need to document how cursors are handled and how the user can work around. local, global, and variable.
-*/
