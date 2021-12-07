@@ -14,8 +14,13 @@ AS
 RETURN
 /*SnipStart: CreateDropClassStatement.ps1*/
 SELECT
+    CASE @ItemType
+      WHEN 'F' THEN 'ALTER TABLE '+(SELECT SCHEMA_NAME(schema_id)+'.'+OBJECT_NAME(parent_object_id) FROM sys.objects WHERE OBJECT_ID = OBJECT_ID(@FullName))+' '
+      ELSE ''
+    END+
     'DROP ' +
     CASE @ItemType 
+      WHEN 'F' THEN 'CONSTRAINT'
       WHEN 'IF' THEN 'FUNCTION'
       WHEN 'TF' THEN 'FUNCTION'
       WHEN 'FN' THEN 'FUNCTION'
@@ -30,7 +35,10 @@ SELECT
       WHEN 'schema' THEN 'SCHEMA'
      END+
      ' ' + 
-     @FullName + 
+     CASE @ItemType
+       WHEN 'F' THEN OBJECT_NAME(OBJECT_ID(@FullName))
+       ELSE @FullName
+     END+
      ';' AS cmd
 /*SnipEnd: CreateDropClassStatement.ps1*/
 GO
@@ -40,7 +48,7 @@ Object type:
   AF = Aggregate function (CLR)
 -  C = CHECK constraint
 -  D = DEFAULT (constraint or stand-alone)
--  F = FOREIGN KEY constraint
++  F = FOREIGN KEY constraint
 +  FN = SQL scalar function
   FS = Assembly (CLR) scalar-function
 +  FT = Assembly (CLR) table-valued function

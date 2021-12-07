@@ -1525,9 +1525,9 @@ GO
 -- X If the ERROR_PROCEDURE is somehow returning null, we still get the rest of the error message
 
 - 3. tSQLt.Private_CleanUp
-- Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
-- If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
-- appropriate error messages are appended to the test msg 
+- X Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
+- X If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
+- X appropriate error messages are appended to the test msg 
 - If a test errors (even catastrophically), all indicated CleanUp procedures run.
 - Unify Error Message Generation Across all code
 
