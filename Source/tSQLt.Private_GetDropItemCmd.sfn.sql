@@ -15,7 +15,7 @@ RETURN
 /*SnipStart: CreateDropClassStatement.ps1*/
 SELECT
     CASE @ItemType
-      WHEN 'F' THEN 'ALTER TABLE '+(SELECT SCHEMA_NAME(schema_id)+'.'+OBJECT_NAME(parent_object_id) FROM sys.objects WHERE OBJECT_ID = OBJECT_ID(@FullName))+' '
+      WHEN 'F' THEN 'ALTER TABLE '+(SELECT QUOTENAME(SCHEMA_NAME(schema_id))+'.'+QUOTENAME(OBJECT_NAME(parent_object_id)) FROM sys.objects WHERE OBJECT_ID = OBJECT_ID(@FullName))+' '
       ELSE ''
     END+
     'DROP ' +
@@ -36,7 +36,7 @@ SELECT
      END+
      ' ' + 
      CASE @ItemType
-       WHEN 'F' THEN OBJECT_NAME(OBJECT_ID(@FullName))
+       WHEN 'F' THEN QUOTENAME(OBJECT_NAME(OBJECT_ID(@FullName)))
        ELSE @FullName
      END+
      ';' AS cmd

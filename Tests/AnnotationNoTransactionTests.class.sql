@@ -438,6 +438,7 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS PRINT C
   INSERT INTO #Expected
   VALUES('[MyInnerTests].[test should cause unrecoverable error]', 'Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  EXEC tSQLt.Fail 'This test is not done.';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/

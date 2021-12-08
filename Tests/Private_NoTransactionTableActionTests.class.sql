@@ -25,6 +25,8 @@ BEGIN
     SELECT '[tSQLt].[Private_Configurations]',  'Restore' UNION ALL
     SELECT '[tSQLt].[CaptureOutputLog]',        'Truncate'  UNION ALL
     SELECT '[tSQLt].[Private_RenamedObjectLog]','Ignore'  UNION ALL
+    SELECT '[tSQLt].[Private_Seize]','Ignore'  UNION ALL
+    SELECT '[tSQLt].[Private_Seize_NoTruncate]','Ignore'  UNION ALL
     SELECT '[tSQLt].[TestResult]',              'Restore';
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
