@@ -13,6 +13,16 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+IF OBJECT_ID('tSQLt.ResultSetFilter') IS NOT NULL DROP PROCEDURE tSQLt.ResultSetFilter;
+IF OBJECT_ID('tSQLt.AssertResultSetsHaveSameMetaData') IS NOT NULL DROP PROCEDURE tSQLt.AssertResultSetsHaveSameMetaData;
+IF OBJECT_ID('tSQLt.NewConnection') IS NOT NULL DROP PROCEDURE tSQLt.NewConnection;
+IF OBJECT_ID('tSQLt.CaptureOutput') IS NOT NULL DROP PROCEDURE tSQLt.CaptureOutput;
+IF OBJECT_ID('tSQLt.SuppressOutput') IS NOT NULL DROP PROCEDURE tSQLt.SuppressOutput;
+IF OBJECT_ID('tSQLt.Private_GetAnnotationList') IS NOT NULL DROP FUNCTION tSQLt.Private_GetAnnotationList;
+IF TYPE_ID('tSQLt.[Private]') IS NOT NULL DROP TYPE tSQLt.[Private];
+
+GO
+
 GO
 ---Build+
 GO

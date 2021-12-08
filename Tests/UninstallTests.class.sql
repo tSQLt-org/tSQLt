@@ -141,7 +141,7 @@ BEGIN
                           @Message = @FailureMessage;
 END;
 GO
-CREATE PROCEDURE UninstallTests.[-test Uninstall does not fail if the tSQLtCLR assembly is missing]
+CREATE PROCEDURE UninstallTests.[test Uninstall does not fail if the tSQLtCLR assembly is missing]
 AS
 BEGIN
   DECLARE @id INT;
@@ -149,6 +149,14 @@ BEGIN
   BEGIN TRAN;
   DECLARE @TranName CHAR(32); EXEC tSQLt.GetNewTranName @TranName OUT;
   SAVE TRAN @TranName;
+
+  DROP PROCEDURE tSQLt.ResultSetFilter;
+  DROP PROCEDURE tSQLt.AssertResultSetsHaveSameMetaData;
+  DROP PROCEDURE tSQLt.NewConnection;
+  DROP PROCEDURE tSQLt.CaptureOutput;
+  DROP PROCEDURE tSQLt.SuppressOutput;
+  DROP FUNCTION tSQLt.Private_GetAnnotationList;
+  DROP TYPE tSQLt.[Private];
 
   DROP ASSEMBLY tSQLtCLR;
 
