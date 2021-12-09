@@ -2346,3 +2346,36 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test produces meaningful error when pre and post transactions counts don't match]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+--[@'+'tSQLt:NoTransaction](DEFAULT)
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;
+  ');
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
+
+  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+
+/*--
+  Transaction Tests
+  
+  - NoTransaction, but suddenly has transaction
+  - with transaction, but creates additional transaction
+  - transaction, but is committed (FATAL)
+  - what should we do if the original transaction was rolled back and a new one was created?
+  - what should we do if the original transaction was committed and a new one was created?
+  - we still need to save the TranName as something somewhere.
+  - review existing tests for transactions
+
+--*/
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO

@@ -407,6 +407,7 @@ GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[CLEANUP: test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
 AS
 BEGIN
+  EXEC tSQLt.SetSummaryError 1;
   EXEC tSQLt.DropClass MyInnerTests;
   --EXEC tSQLt.UndoTestDoubles;
   --ROLLBACK
@@ -426,7 +427,20 @@ BEGIN
 CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS PRINT CAST(''Some obscure string'' AS INT);
   ');
 
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'IF(@FullTestName <> ''[MyInnerTests].[test should cause unrecoverable error]'')BEGIN EXEC tSQLt.Private_NoTransactionHandleTables @Action=''Reset'';EXEC tSQLt.UndoTestDoubles @Force = 0;END;';
+  /*******************************************************************************************************************************/
+  /************************* MESSING WITH THIS CODE WILL PUT tSQLt INTO AN INVALID STATE! ****************************************/
+  /**/CREATE TABLE #CleanUpProcedures_StopExecutionForInnerTests(I INT);
+  /**/EXEC tSQLt.SpyProcedure 
+  /**/       @ProcedureName = 'tSQLt.Private_CleanUp', 
+  /**/       @CommandToExecute = 'IF(OBJECT_ID(''tempdb..#CleanUpProcedures_StopExecutionForInnerTests'')IS NOT NULL)BEGIN RETURN;END;', 
+  /**/       @CallOriginal = 1;
+  /**/EXEC tSQLt.SpyProcedure 
+  /**/       @ProcedureName = 'tSQLt.Private_AssertNoSideEffects', 
+  /**/       @CommandToExecute = 'IF(OBJECT_ID(''tempdb..#CleanUpProcedures_StopExecutionForInnerTests'')IS NOT NULL)BEGIN RETURN;END;', 
+  /**/       @CallOriginal = 1;
+  /************************* MESSING WITH THIS CODE WILL PUT tSQLt INTO AN INVALID STATE! ****************************************/
+  /*******************************************************************************************************************************/
+
   EXEC tSQLt.SetSummaryError 0;
 
   EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
@@ -438,7 +452,6 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS PRINT C
   INSERT INTO #Expected
   VALUES('[MyInnerTests].[test should cause unrecoverable error]', 'Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-  EXEC tSQLt.Fail 'This test is not done.';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -1493,19 +1506,28 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO: needs other tests first')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test produces meaningful error when pre and post transactions counts don't match]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch]
 AS
 BEGIN
-  EXEC tSQLt.NewTestClass 'MyInnerTests'
-  EXEC('
---[@'+'tSQLt:NoTransaction](DEFAULT)
-CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;
-  ');
-
-  --EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
-
-  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test no other objects are dropped or created if SkipTest Annotation & NoTransaction annotations are used]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test no handler is called if SkipTest Annotation & NoTransaction annotations are used]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -1513,52 +1535,12 @@ GO
 
 /*-- TODO
 
- CLEANUP: named cleanup x 3 (needs to execute even if there's an error during test execution)
-- there will be three clean up methods, executed in the following order
-- X 1. (Test-CleanUp) User defined clean up for an individual test as specified in the NoTransaction annotation parameter
--- X "--[@tSQLt:NoTransaction]('[<SCHEMANAME>].[<SPNAME>]')"
--- X --[@tSQLt:NoTransaction](DEFAULT)
--- 
-
-- 2. (Schema.CleanUp) User defined clean up for a test class as specified by [<TESTCLASS>].CleanUp
--- X ' in schema name
--- X different case for cLEANuP
--- X If the ERROR_PROCEDURE is somehow returning null, we still get the rest of the error message
-
-- 3. tSQLt.Private_CleanUp
-- X Errors thrown in any of the CleanUp methods are captured and causes the test @Result to be set to Error
-- X If a previous CleanUp method errors or fails, it does not cause any following CleanUps to be skipped.
-- X appropriate error messages are appended to the test msg 
-- If a test errors (even catastrophically), all indicated CleanUp procedures run.
-- Unify Error Message Generation Across all code
-
-- X handle multiple Test-CleanUps
-- X handle Test-CleanUps with ' in name
-- X error in annotation if specified Test-CleanUp does not exist
-- X error in annotation if specified Test-CleanUp is not a procedure (any of the 4ish types)
-
-
-Transactions
-- transaction opened during test
-- transaction commited during test
-- inner-transaction-free test errors with uncommittable transaction
-- confirm pre and post transaction counts match
-- [test produces meaningful error when pre and post transactions counts don't match]
--  we still need to save the TranName as something somewhere.
-
-SkipTest Annotation & NoTransaction Annotation
-- The test is skipped
-- No other objects are dropped or created
-- No handler is called
-- Transaction something something <-- this!
-
-Everything is being called in the right order.
-- test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch
-- Make sure undotestdoubles and handletables are called in the right order
-
-- tSQLt.SpyProcedure needs a "call original" option
+Add to github
+- |19|[AnnotationNoTransactionTests].[test Schema-CleanUp error causes an appropr<...>essage to be written to the tSQLt.TestResult if there is a different error]|     94|Success|
+  This shouldn't happen:                                                          ^^^
 - What happens when we have multiple annotations for other non-NoTransaction annotations? Did we test this???
-- Simulate Clippy if someone tries to use AssertEquals instead of AssertEqualsString
 - add 100x'=' + test status (if not PASS) followed by empty line after test-end message (if verbose)
+
+
 
 --*/
