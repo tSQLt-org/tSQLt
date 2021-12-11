@@ -2247,10 +2247,7 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
   EXEC('INSERT INTO tSQLt.TestClasses VALUES(''a class with a '''' in the middle'',12321);');
 
-  DECLARE @XXXX NVARCHAR(MAX) = OBJECT_DEFINITION(OBJECT_ID('tSQLt.Private_AssertNoSideEffects'));
-  RAISERROR('>>>FINDME<<< %s',0,1,@XXXX)WITH NOWAIT;
-
-  EXEC tSQLt.Fail 'TODO: Does this just need a SummaryError = 0, or is the build broken?';
+  EXEC tSQLt.SetSummaryError 0;
 
   EXEC tSQLt.RunAll;
 
@@ -2341,6 +2338,8 @@ BEGIN
 
   EXEC('INSERT INTO tSQLt.TestClasses(Name) VALUES(''a class with a '''' in the middle'');');
   EXEC('INSERT INTO tSQLt.Private_NewTestClassList(ClassName) VALUES(''a class with a '''' in the middle'');');
+
+  EXEC tSQLt.SetSummaryError 0;
 
   EXEC tSQLt.RunNew;
 
