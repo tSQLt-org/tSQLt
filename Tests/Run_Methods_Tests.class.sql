@@ -2247,6 +2247,11 @@ BEGIN
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
   EXEC('INSERT INTO tSQLt.TestClasses VALUES(''a class with a '''' in the middle'',12321);');
 
+  DECLARE @XXXX NVARCHAR(MAX) = OBJECT_DEFINITION(OBJECT_ID('tSQLt.Private_AssertNoSideEffects'));
+  RAISERROR('>>>FINDME<<< %s',0,1,@XXXX)WITH NOWAIT;
+
+  EXEC tSQLt.Fail 'TODO: Does this just need a SummaryError = 0, or is the build broken?';
+
   EXEC tSQLt.RunAll;
 
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -2349,7 +2354,7 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 --[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test produces meaningful error when pre and post transactions counts don't match]
+CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'

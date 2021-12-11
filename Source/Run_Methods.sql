@@ -106,7 +106,10 @@ BEGIN
       EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
       SET @SkipTestFlag = CASE WHEN EXISTS(SELECT 1 FROM #SkipTest) THEN 1 ELSE 0 END;
       SET @NoTransactionFlag = CASE WHEN EXISTS(SELECT 1 FROM #NoTransaction) THEN 1 ELSE 0 END;
-
+      /* Everything below the ----line and above the next one should not be executed if @SkipTestFlag = 1
+         Move the annotation processing into its own TRY/CATCH block
+         Move everything between the lines into a tored procedure */
+-------------------------------------------------------------------------------------------------------------------------
       IF(@NoTransactionFlag = 0)
       BEGIN
         EXEC tSQLt.GetNewTranName @TranName OUT;
@@ -307,8 +310,9 @@ BEGIN
              @AfterExecutionObjectSnapshotTableName = '#AfterExecutionObjectSnapshot',
              @TestResult = @Result OUT,
              @TestMsg = @Msg OUT
-  END;
+    END;
 
+----------------------------------------------------------------------------------------------
     If(@Result NOT IN ('Success','Skipped'))
     BEGIN
       SET @Msg2 = @TestName + ' failed: (' + @Result + ') ' + @Msg;

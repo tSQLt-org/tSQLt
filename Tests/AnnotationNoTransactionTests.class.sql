@@ -1506,11 +1506,64 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test for execution in the correct place in Private_RunTest, after the outer-most test execution try catch]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Cleanup is executed after the outer-most test execution try catch and before writing to TestResult]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Save'')RAISERROR(''Error caught in outermost try-catch'', 16, 10);';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    CREATE PROCEDURE [MyInnerTests].[UserCleanUp1]
+    AS
+    BEGIN
+      RAISERROR(''Error in UserCleanUp1'', 16, 10);
+    END;
+  ');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](''[MyInnerTests].[UserCleanUp1]'')
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestResult);
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%Error caught in outermost try-catch%Error in UserCleanUp1%', @Actual = @Actual;
 END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_AssertNoSideEffects is executed after all CleanUps and throws an error if they are new, missing, or renamed objects]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC ('CREATE TABLE MyInnerTests.TestTable1 (Id INT);');
+  EXEC ('CREATE TABLE MyInnerTests.TestTable2 (Id INT);');
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'DROP TABLE MyInnerTests.TestTable1; CREATE TABLE MyInnerTests.TestTable1 (Id INT); EXEC sys.sp_rename ''MyInnerTests.TestTable2'', ''TestTable3'';';
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT Msg FROM tSQLt.TestResult);
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%Added%TestTable1%Added%TestTable3%Deleted%TestTable1%Deleted%TestTable2%', @Actual = @Actual;
+
+END;
+GO
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
@@ -1535,6 +1588,8 @@ GO
 
 /*-- TODO
 
+Mark NoTransaction tests somehow in TestResult
+
 Add to github
 - |19|[AnnotationNoTransactionTests].[test Schema-CleanUp error causes an appropr<...>essage to be written to the tSQLt.TestResult if there is a different error]|     94|Success|
   This shouldn't happen:                                                          ^^^
@@ -1544,3 +1599,4 @@ Add to github
 
 
 --*/
+

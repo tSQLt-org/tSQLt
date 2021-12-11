@@ -19,7 +19,7 @@ BEGIN
     IF(EXISTS(SELECT 1 FROM #ObjectDiscrepancies))
     BEGIN
       DECLARE @TableToText NVARCHAR(MAX);
-      EXEC tSQLt.TableToText @TableName = ''#ObjectDiscrepancies'' ,@txt = @TableToText OUTPUT;
+      EXEC tSQLt.TableToText @TableName = ''#ObjectDiscrepancies'' ,@txt = @TableToText OUTPUT, @OrderBy = ''[Status] ASC, SchemaName ASC, ObjectName ASC'';
       RAISERROR(''After the test executed, there were unexpected or missing objects in the database: %s'',16,10,@TableToText);
     END;';
   EXEC tSQLt.Private_CleanUpCmdHandler @cmd, @TestResult OUT, @TestMsg OUT;
