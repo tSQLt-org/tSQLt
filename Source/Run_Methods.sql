@@ -100,10 +100,7 @@ BEGIN
           ELSE
           BEGIN
             DECLARE @ErrorInfo NVARCHAR(MAX);
-            SELECT @ErrorInfo = 
-              COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + 
-              '[' +COALESCE(LTRIM(STR(ERROR_SEVERITY())), '<ERROR_SEVERITY() is NULL>') + ','+COALESCE(LTRIM(STR(ERROR_STATE())), '<ERROR_STATE() is NULL>') + ']' +
-              '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR), '<ERROR_LINE() is NULL>') + '}';
+            SELECT @ErrorInfo = FormattedError FROM tSQLt.Private_GetFormattedErrorInfo();
 
             IF(EXISTS(SELECT 1 FROM #ExpectException))
             BEGIN
@@ -208,7 +205,7 @@ BEGIN
            OR @PostExecTrancount <> 0
           )
         BEGIN
-          SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + COALESCE(ERROR_MESSAGE(), '<ERROR_MESSAGE() is NULL>') + '{' + COALESCE(ERROR_PROCEDURE(), '<ERROR_PROCEDURE() is NULL>') + ',' + COALESCE(CAST(ERROR_LINE() AS NVARCHAR(MAX)), '<ERROR_LINE() is NULL>') + '})';
+          SELECT @Msg = COALESCE(@Msg, '<NULL>') + ' (There was also a ROLLBACK ERROR --> ' + FormattedError + ')' FROM tSQLt.Private_GetFormattedErrorInfo();
           SET @Result = 'Error';
         END;
     END CATCH;  

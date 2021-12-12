@@ -348,6 +348,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetForeignKeyDefinition.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_GetFormattedErrorInfo.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetFormattedErrorInfo.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_GetFullTypeName.sfn.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
