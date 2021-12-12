@@ -1,5 +1,6 @@
 IF OBJECT_ID('tSQLt.Private_GetClassHelperProcedureName') IS NOT NULL DROP PROCEDURE tSQLt.Private_GetClassHelperProcedureName;
 IF OBJECT_ID('tSQLt.Private_RunTest') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTest;
+IF OBJECT_ID('tSQLt.Private_RunTest_TestExecution') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTest_TestExecution;
 IF OBJECT_ID('tSQLt.Private_RunTestClass') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunTestClass;
 IF OBJECT_ID('tSQLt.Private_Run') IS NOT NULL DROP PROCEDURE tSQLt.Private_Run;
 IF OBJECT_ID('tSQLt.Private_RunCursor') IS NOT NULL DROP PROCEDURE tSQLt.Private_RunCursor;
@@ -41,120 +42,52 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE tSQLt.Private_RunTest
-   @TestName NVARCHAR(MAX),
-   @SetUp NVARCHAR(MAX) = NULL,
-   @CleanUp NVARCHAR(MAX) = NULL
+CREATE PROCEDURE tSQLt.Private_RunTest_TestExecution
+  @TestName NVARCHAR(MAX),
+  @SetUp NVARCHAR(MAX),
+  @CleanUp NVARCHAR(MAX),
+  @NoTransactionFlag BIT,
+  @TranName CHAR(32),
+  @Result NVARCHAR(MAX) OUTPUT,
+  @Msg NVARCHAR(MAX) OUTPUT,
+  @TestEndTime DATETIME2 OUTPUT
 AS
 BEGIN
-    DECLARE @OuterPerimeterTrancount INT = @@TRANCOUNT;
+  DECLARE @TransactionStartedFlag BIT = 0;
+  DECLARE @PreExecTrancount INT = NULL;
+  DECLARE @TestExecutionCmd NVARCHAR(MAX) = 'EXEC ' + @TestName;
+  DECLARE @CleanUpProcedureExecutionCmd NVARCHAR(MAX) = NULL;
 
-    DECLARE @Msg NVARCHAR(MAX); SET @Msg = '';
-    DECLARE @Msg2 NVARCHAR(MAX); SET @Msg2 = '';
-    DECLARE @Cmd NVARCHAR(MAX); SET @Cmd = '';
-    DECLARE @TestClassName NVARCHAR(MAX); SET @TestClassName = '';
-    DECLARE @TestProcName NVARCHAR(MAX); SET @TestProcName = '';
-    DECLARE @Result NVARCHAR(MAX);
-    DECLARE @TranName CHAR(32) = NULL;
-    DECLARE @TestResultId INT;
-    DECLARE @PreExecTrancount INT = NULL;
-    DECLARE @TestObjectId INT;
-
-    DECLARE @VerboseMsg NVARCHAR(MAX);
-    DECLARE @Verbose BIT;
-    SET @Verbose = ISNULL((SELECT CAST(Value AS BIT) FROM tSQLt.Private_GetConfiguration('Verbose')),0);
-    
-    TRUNCATE TABLE tSQLt.CaptureOutputLog;
-    CREATE TABLE #TestMessage(Msg NVARCHAR(MAX));
-    CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
-    CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
-    CREATE TABLE #NoTransaction(OrderId INT IDENTITY(1,1),CleanUpProcedureName NVARCHAR(MAX));
-    CREATE TABLE #TableBackupLog(OriginalName NVARCHAR(MAX), BackupName NVARCHAR(MAX));
-
-
-    IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
-    BEGIN
-      RAISERROR('Test system is in an invalid state. SetFakeViewOff must be called if SetFakeViewOn was called. Call SetFakeViewOff after creating all test case procedures.', 16, 10) WITH NOWAIT;
-      RETURN -1;
-    END;
-
-    SELECT @Cmd = 'EXEC ' + @TestName;
-    
-    SELECT @TestClassName = OBJECT_SCHEMA_NAME(OBJECT_ID(@TestName)),
-           @TestProcName = tSQLt.Private_GetCleanObjectName(@TestName),
-           @TestObjectId = OBJECT_ID(@TestName);
-           
-    INSERT INTO tSQLt.TestResult(Class, TestCase, TranName, Result) 
-        SELECT @TestClassName, @TestProcName, @TranName, 'A severe error happened during test execution. Test did not finish.'
-        OPTION(MAXDOP 1);
-    SELECT @TestResultId = SCOPE_IDENTITY();
-
-    IF(@Verbose = 1)
-    BEGIN
-      SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Starting';
-      EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
-    END;
-
-
-    SET @Result = 'Success';
-    DECLARE @SkipTestFlag BIT = 0;
-    DECLARE @NoTransactionFlag BIT = 0;
-    DECLARE @NoTransactionTestCleanUpProcedureName NVARCHAR(MAX) = NULL;
-    DECLARE @TransactionStartedFlag BIT = 0;
     BEGIN TRY
 
-      EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
-      SET @SkipTestFlag = CASE WHEN EXISTS(SELECT 1 FROM #SkipTest) THEN 1 ELSE 0 END;
-      SET @NoTransactionFlag = CASE WHEN EXISTS(SELECT 1 FROM #NoTransaction) THEN 1 ELSE 0 END;
-      /* Everything below the ----line and above the next one should not be executed if @SkipTestFlag = 1
-         Move the annotation processing into its own TRY/CATCH block
-         Move everything between the lines into a tored procedure */
--------------------------------------------------------------------------------------------------------------------------
       IF(@NoTransactionFlag = 0)
       BEGIN
-        EXEC tSQLt.GetNewTranName @TranName OUT;
-        UPDATE tSQLt.TestResult SET TranName = @TranName WHERE Id = @TestResultId;
         BEGIN TRAN;
         SET @TransactionStartedFlag = 1;
         SAVE TRAN @TranName;
       END;
       ELSE
       BEGIN
-        IF(@SkipTestFlag = 0)
-        BEGIN
-          SELECT object_id ObjectId, SCHEMA_NAME(schema_id) SchemaName, name ObjectName, type_desc ObjectType INTO #BeforeExecutionObjectSnapshot FROM sys.objects;
-          EXEC tSQLt.Private_NoTransactionHandleTables @Action = 'Save';
-        END;
+        SELECT object_id ObjectId, SCHEMA_NAME(schema_id) SchemaName, name ObjectName, type_desc ObjectType INTO #BeforeExecutionObjectSnapshot FROM sys.objects;
+        EXEC tSQLt.Private_NoTransactionHandleTables @Action = 'Save';
       END;
 
       SET @PreExecTrancount = @@TRANCOUNT;
     
       DECLARE @TmpMsg NVARCHAR(MAX);
-      DECLARE @TestEndTime DATETIME2; SET @TestEndTime = NULL;
+      SET @TestEndTime = NULL;
       BEGIN TRY
-        IF(@SkipTestFlag = 0)
+        IF (@SetUp IS NOT NULL)
         BEGIN
-          IF (@SetUp IS NOT NULL)
-          BEGIN
-            EXEC @SetUp;
-          END;
-          EXEC (@Cmd);
+          EXEC @SetUp;
+        END;
+        EXEC (@TestExecutionCmd);
 
-          IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
-          BEGIN
-            SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
-            EXEC tSQLt.Fail @TmpMsg;
-          END
-        END;
-        ELSE
+        IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
         BEGIN
-          SELECT 
-              @Result = 'Skipped',
-              @Msg = ST.SkipTestMessage 
-            FROM #SkipTest AS ST;
-          SET @TmpMsg = '-->'+@TestName+' skipped: '+@Msg;
-          EXEC tSQLt.Private_Print @Message = @TmpMsg;
-        END;
+          SET @TmpMsg = COALESCE((SELECT FailMessage FROM #ExpectException)+' ','')+'Expected an error to be raised.';
+          EXEC tSQLt.Fail @TmpMsg;
+        END
         SET @TestEndTime = SYSDATETIME();
       END TRY
       BEGIN CATCH
@@ -280,9 +213,9 @@ BEGIN
         END;
     END CATCH;  
 
-    IF (@NoTransactionFlag = 1 AND @SkipTestFlag = 0)
+    IF (@NoTransactionFlag = 1)
     BEGIN
-      SET @NoTransactionTestCleanUpProcedureName = (
+      SET @CleanUpProcedureExecutionCmd = (
         (
           SELECT 'EXEC tSQLt.Private_CleanUpCmdHandler ''EXEC '+ REPLACE(NT.CleanUpProcedureName,'''','''''') +';'', @Result OUT, @Msg OUT;'
             FROM #NoTransaction NT
@@ -290,9 +223,9 @@ BEGIN
              FOR XML PATH(''),TYPE
         ).value('.','NVARCHAR(MAX)')
       );
-      IF(@NoTransactionTestCleanUpProcedureName IS NOT NULL)
+      IF(@CleanUpProcedureExecutionCmd IS NOT NULL)
       BEGIN
-        EXEC sys.sp_executesql @NoTransactionTestCleanUpProcedureName, N'@Result NVARCHAR(MAX) OUTPUT, @Msg NVARCHAR(MAX) OUTPUT', @Result OUT, @Msg OUT;
+        EXEC sys.sp_executesql @CleanUpProcedureExecutionCmd, N'@Result NVARCHAR(MAX) OUTPUT, @Msg NVARCHAR(MAX) OUTPUT', @Result OUT, @Msg OUT;
       END;
 
       IF(@CleanUp IS NOT NULL)
@@ -312,6 +245,109 @@ BEGIN
              @TestMsg = @Msg OUT
     END;
 
+    IF(@TransactionStartedFlag = 1)
+    BEGIN
+      COMMIT;
+    END;
+END;
+GO
+
+CREATE PROCEDURE tSQLt.Private_RunTest
+   @TestName NVARCHAR(MAX),
+   @SetUp NVARCHAR(MAX) = NULL,
+   @CleanUp NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    DECLARE @OuterPerimeterTrancount INT = @@TRANCOUNT;
+
+    DECLARE @Msg NVARCHAR(MAX); SET @Msg = '';
+    DECLARE @Msg2 NVARCHAR(MAX); SET @Msg2 = '';
+    DECLARE @TestClassName NVARCHAR(MAX); SET @TestClassName = '';
+    DECLARE @TestProcName NVARCHAR(MAX); SET @TestProcName = '';
+    DECLARE @Result NVARCHAR(MAX);
+    DECLARE @TranName CHAR(32) = NULL;
+    DECLARE @TestResultId INT;
+    DECLARE @TestObjectId INT;
+    DECLARE @TestEndTime DATETIME2 = NULL;
+
+    DECLARE @VerboseMsg NVARCHAR(MAX);
+    DECLARE @Verbose BIT;
+    SET @Verbose = ISNULL((SELECT CAST(Value AS BIT) FROM tSQLt.Private_GetConfiguration('Verbose')),0);
+    
+    TRUNCATE TABLE tSQLt.CaptureOutputLog;
+    CREATE TABLE #TestMessage(Msg NVARCHAR(MAX));
+    CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
+    CREATE TABLE #SkipTest(SkipTestMessage NVARCHAR(MAX) DEFAULT '');
+    CREATE TABLE #NoTransaction(OrderId INT IDENTITY(1,1),CleanUpProcedureName NVARCHAR(MAX));
+    CREATE TABLE #TableBackupLog(OriginalName NVARCHAR(MAX), BackupName NVARCHAR(MAX));
+
+
+    IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE name = N'SetFakeViewOnTrigger')
+    BEGIN
+      RAISERROR('Test system is in an invalid state. SetFakeViewOff must be called if SetFakeViewOn was called. Call SetFakeViewOff after creating all test case procedures.', 16, 10) WITH NOWAIT;
+      RETURN -1;
+    END;
+
+    
+    SELECT @TestClassName = OBJECT_SCHEMA_NAME(OBJECT_ID(@TestName)),
+           @TestProcName = tSQLt.Private_GetCleanObjectName(@TestName),
+           @TestObjectId = OBJECT_ID(@TestName);
+           
+    INSERT INTO tSQLt.TestResult(Class, TestCase, TranName, Result) 
+        SELECT @TestClassName, @TestProcName, @TranName, 'A severe error happened during test execution. Test did not finish.'
+        OPTION(MAXDOP 1);
+    SELECT @TestResultId = SCOPE_IDENTITY();
+
+    IF(@Verbose = 1)
+    BEGIN
+      SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Starting';
+      EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
+    END;
+
+
+    SET @Result = 'Success';
+    DECLARE @SkipTestFlag BIT = 0;
+    DECLARE @NoTransactionFlag BIT = 0;
+
+    BEGIN TRY
+      EXEC tSQLt.Private_ProcessTestAnnotations @TestObjectId=@TestObjectId;
+      SET @SkipTestFlag = CASE WHEN EXISTS(SELECT 1 FROM #SkipTest) THEN 1 ELSE 0 END;
+      SET @NoTransactionFlag = CASE WHEN EXISTS(SELECT 1 FROM #NoTransaction) THEN 1 ELSE 0 END;
+
+      IF(@SkipTestFlag = 0)
+      BEGIN
+        IF(@NoTransactionFlag = 0)
+        BEGIN
+          EXEC tSQLt.GetNewTranName @TranName OUT;
+          UPDATE tSQLt.TestResult SET TranName = @TranName WHERE Id = @TestResultId;
+        END;
+        EXEC tSQLt.Private_RunTest_TestExecution
+          @TestName,
+          @SetUp,
+          @CleanUp,
+          @NoTransactionFlag,
+          @TranName,
+          @Result OUT,
+          @Msg OUT,
+          @TestEndTime OUT
+      END;
+      ELSE
+      BEGIN
+        DECLARE @TmpMsg NVARCHAR(MAX);
+        SELECT 
+            @Result = 'Skipped',
+            @Msg = ST.SkipTestMessage 
+          FROM #SkipTest AS ST;
+        SET @TmpMsg = '-->'+@TestName+' skipped: '+@Msg;
+        EXEC tSQLt.Private_Print @Message = @TmpMsg;
+        SET @TestEndTime = SYSDATETIME();
+      END;
+    END TRY
+    BEGIN CATCH
+      SET @Result = 'Error';
+      SET @Msg = ISNULL(@Msg,'')+' '+ERROR_MESSAGE();
+      --SET @TestEndTime = SYSDATETIME();
+    END CATCH;
 ----------------------------------------------------------------------------------------------
     If(@Result NOT IN ('Success','Skipped'))
     BEGIN
@@ -337,10 +373,7 @@ BEGIN
                'TestResult entry is missing; Original outcome: ' + @Result + ', ' + @Msg;
     END;    
 
-    IF(@TransactionStartedFlag = 1)
-    BEGIN
-      COMMIT;
-    END;
+
 
     IF(@Verbose = 1)
     BEGIN
