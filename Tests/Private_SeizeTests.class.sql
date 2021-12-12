@@ -17,7 +17,7 @@ GO
 CREATE PROCEDURE Private_SeizeTests.[test cannot insert <> 1]
 AS
 BEGIN
-  EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%"CHK:Private_Seize"%';
+  EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%"Private_Seize:CHK"%';
   INSERT INTO tSQLt.Private_Seize(Kaput) VALUES(0);
 
 END;

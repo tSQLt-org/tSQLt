@@ -7,7 +7,7 @@ CREATE PROCEDURE tSQLt.Private_RenameObjectToUniqueName
     @NewName NVARCHAR(MAX) = NULL OUTPUT
 AS
 BEGIN
-   SET @NewName=tSQLt.Private::CreateUniqueObjectName();
+   SET @NewName=ISNULL(@NewName, tSQLt.Private::CreateUniqueObjectName());
    
    EXEC tSQLt.Private_MarkObjectBeforeRename @SchemaName, @ObjectName;
 

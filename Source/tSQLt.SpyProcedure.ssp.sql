@@ -18,26 +18,26 @@ BEGIN
     DECLARE @CreateProcedureStatement NVARCHAR(MAX);
     DECLARE @CreateLogTableStatement NVARCHAR(MAX);
 
-    DECLARE @NewNameOfOriginalObject NVARCHAR(MAX);
-
-    DECLARE @LogTableObjectId INT = OBJECT_ID(@LogTableName);
-    IF(@LogTableObjectId IS NOT NULL)
-    BEGIN
-      EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ObjectId = @LogTableObjectId;
-    END;
-    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId, @NewName = @NewNameOfOriginalObject OUTPUT;
+    DECLARE @NewNameOfOriginalObject NVARCHAR(MAX) =  tSQLt.Private::CreateUniqueObjectName();
 
     EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
            @ProcedureObjectId = @ProcedureObjectId,
            @OriginalProcedureName = @ProcedureName,
+           @UnquotedNewNameOfProcedure = @NewNameOfOriginalObject,
            @LogTableName = @LogTableName,
            @CommandToExecute = @CommandToExecute,
            @CallOriginal = @CallOriginal,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
 
+    DECLARE @LogTableObjectId INT = OBJECT_ID(@LogTableName);
+    IF(@LogTableObjectId IS NOT NULL)
+    BEGIN
+      EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ObjectId = @LogTableObjectId;
+    END;
     EXEC(@CreateLogTableStatement);
 
+    EXEC tSQLt.Private_RenameObjectToUniqueNameUsingObjectId @ProcedureObjectId, @NewName = @NewNameOfOriginalObject OUTPUT;
     EXEC(@CreateProcedureStatement);
 
     EXEC tSQLt.Private_MarktSQLtTempObject @ProcedureName, N'PROCEDURE', @NewNameOfOriginalObject;

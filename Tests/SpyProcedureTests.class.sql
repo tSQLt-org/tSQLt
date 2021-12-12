@@ -706,7 +706,7 @@ BEGIN
 
     EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
            @ProcedureObjectId = @ProcedureObjectId,
-           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @OriginalProcedureName = 'dbo.OriginalInnerProcedure',
            @LogTableName = NULL,
            @CommandToExecute = NULL,
            @CallOriginal = 0,
@@ -720,7 +720,7 @@ GO
 CREATE PROC SpyProcedureTests.[test Private_CreateProcedureSpy does create spy when @LogTableName is NULL]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;');
+    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;'); /* This is the simulated rename of dbo.SpiedInnerProcedure */
 
     DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.OriginalInnerProcedure');
 
@@ -729,7 +729,7 @@ BEGIN
 
     EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
            @ProcedureObjectId = @ProcedureObjectId,
-           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',
            @LogTableName = NULL,
            @CommandToExecute = NULL,
            @CallOriginal = 0,
