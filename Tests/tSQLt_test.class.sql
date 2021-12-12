@@ -96,6 +96,7 @@ GO
 CREATE PROC tSQLt_test.test_Run_handles_uncommitable_transaction
 AS
 BEGIN
+EXEC tSQLt.Fail 'TODO: Rewrite to produce more helpful failure message, split in two tests';
     DECLARE @TranName sysname; 
     DECLARE @ProductMajorVersion INT;
     EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
@@ -113,7 +114,7 @@ BEGIN
                        AND Result = 'Error'
                        AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{'+
                                      CASE WHEN @ProductMajorVersion >= 14 THEN 'tSQLt_test.' ELSE '' END+
-                                     'testUncommitable00A1030051764AE7A946E827159E7063,1}%'
+                                     'testUncommitable00A1030051764AE7A946E827159E7063 (1)%'
                        AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
                    )
       BEGIN

@@ -342,7 +342,7 @@ BEGIN
     END TRY
     BEGIN CATCH
       SET @Result = 'Error';
-      SET @Msg = ISNULL(@Msg,'')+' '+ERROR_MESSAGE();
+      SET @Msg = ISNULL(NULLIF(@Msg,'') + ' ','')+ERROR_MESSAGE();
       --SET @TestEndTime = SYSDATETIME();
     END CATCH;
 ----------------------------------------------------------------------------------------------
@@ -381,6 +381,10 @@ BEGIN
     IF(@Result = 'FATAL')
     BEGIN
       INSERT INTO tSQLt.Private_Seize VALUES(1);      
+    END;
+    IF(@Result = 'Abort')
+    BEGIN
+      RAISERROR('Aborting current execution of tSQLt.', 16, 10);
     END;
 
     IF(@OuterPerimeterTrancount != @@TRANCOUNT) RAISERROR('tSQLt is in an invalid state: Stopping Execution. (Mismatching TRANCOUNT: %i <> %i))',16,10,@OuterPerimeterTrancount, @@TRANCOUNT);

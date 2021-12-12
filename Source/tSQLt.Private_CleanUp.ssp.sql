@@ -18,7 +18,8 @@ BEGIN
   EXEC tSQLt.Private_CleanUpCmdHandler 
          @CleanUpCmd = 'EXEC tSQLt.UndoTestDoubles @Force = 0;',
          @TestResult = @Result OUT,
-         @TestMsg = @ErrorMsg OUT;
+         @TestMsg = @ErrorMsg OUT,
+         @ResultInCaseOfError = 'Abort';
 
 END;
 GO

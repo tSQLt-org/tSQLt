@@ -111,9 +111,21 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE FUNCTION AnnotationNoTransactionTests.[Return 42424242 prefix before ERROR_MESSAGE()]()
+RETURNS TABLE
+AS
+RETURN
+  SELECT '42424242:'+ERROR_MESSAGE() FormattedError;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test recoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetFormattedErrorInfo', @FakeFunctionName = 'AnnotationNoTransactionTests.[Return 42424242 prefix before ERROR_MESSAGE()]';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:NoTransaction](DEFAULT)
@@ -127,7 +139,7 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS RA
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   
   INSERT INTO #Expected
-  VALUES('Error','Some Obscure Recoverable Error[16,10]{MyInnerTests.test should execute outside of transaction,3}');
+  VALUES('Error','42424242:Some Obscure Recoverable Error');
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
@@ -416,7 +428,7 @@ GO
 ---[@tSQLt:SkipTest]('')
 --[@tSQLt:NoTransaction]('AnnotationNoTransactionTests.[CLEANUP: test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]')
 /* This test must be NoTransaction because the inner test will invalidate any open transaction causing chaos and turmoil in the reactor. */
-CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
 AS
 BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetLastTestNameIfNotProvided', @FakeFunctionName = 'AnnotationNoTransactionTests.PassThrough'; /* --<-- Prevent tSQLt-internal turmoil */
@@ -442,16 +454,11 @@ CREATE PROCEDURE MyInnerTests.[test should cause unrecoverable error] AS PRINT C
   /*******************************************************************************************************************************/
 
   EXEC tSQLt.SetSummaryError 0;
-
   EXEC tSQLt.Run 'MyInnerTests.[test should cause unrecoverable error]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 
-  SELECT Name, Result, Msg INTO #Actual FROM tSQLt.TestResult AS TR;
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT ISNULL(Result,'<NULL>')+'<><><>'+ISNULL(Msg,'<NULL>') FROM tSQLt.TestResult WHERE Name = '[MyInnerTests].[test should cause unrecoverable error]');
 
-  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  
-  INSERT INTO #Expected
-  VALUES('[MyInnerTests].[test should cause unrecoverable error]', 'Error','Conversion failed when converting the varchar value ''Some obscure string'' to data type int.[16,1]{MyInnerTests.test should cause unrecoverable error,3}');
-  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+  EXEC tSQLt.AssertLike @ExpectedPattern = 'Error<><><>%Conversion failed when converting the varchar value ''Some obscure string'' to data type int.%', @Actual = @Actual;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -787,7 +794,7 @@ BEGIN
 
   DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
   
-  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is an error ;) | Procedure: MyInnerTests.CleanUp | Line: 5 | Severity, State: 16, 10)', @Actual = @FriendlyMsg;
+  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (Message: This is an error ;) | Procedure: MyInnerTests.CleanUp (5) | Severity, State: 16, 10 | Number: 50000)', @Actual = @FriendlyMsg;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -817,7 +824,7 @@ BEGIN
 
   DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
   
-  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is another error ;) | Procedure: MyOtherInnerTests.CleanUp | Line: 6 | Severity, State: 15, 12)', @Actual = @FriendlyMsg;
+  EXEC tSQLt.AssertLike @ExpectedPattern = 'Error during clean up: (%This is another error ;)%)', @Actual = @FriendlyMsg;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -847,7 +854,7 @@ BEGIN
 
   DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
   
-  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is another error ;) | Procedure: <NULL> | Line: 1 | Severity, State: 15, 12)', @Actual = @FriendlyMsg;
+  EXEC tSQLt.AssertLike @ExpectedPattern = 'Error during clean up: (%This is another error ;)%Procedure: <NULL>%)', @Actual = @FriendlyMsg;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -1263,8 +1270,7 @@ BEGIN
   EXEC tSQLt.Run 'MyOtherInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 
   DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
-  
-  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (This is another error ;) | Procedure: <NULL> | Line: 1 | Severity, State: 15, 12)', @Actual = @FriendlyMsg;
+  EXEC tSQLt.AssertLike @ExpectedPattern = 'Error during clean up: (%This is another error ;)%Procedure: <NULL>%)', @Actual = @FriendlyMsg;  
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
@@ -1284,7 +1290,7 @@ CREATE PROCEDURE MyInnerTests.[test2] AS INSERT INTO #Actual DEFAULT VALUES;
   CREATE TABLE #Actual(Id CHAR(1) DEFAULT '*');
 
   EXEC tSQLt.SetSummaryError 0;
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'RAISERROR(''Error during Private_CleanUp'',16,10);'; 
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp', @CommandToExecute = 'SET @Result = ''Abort''; SET @ErrorMsg = ''Error in Private_CleanUp'';'; 
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
   BEGIN TRY
   EXEC tSQLt.Run 'MyInnerTests';
@@ -1564,6 +1570,31 @@ BEGIN
 
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp when @Result = FATAL, it is not overwritten by another Result]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp @Result is not overwritten by an error in Private_AssertNoSideEffects]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:SkipTest]('TODO')
+CREATE PROCEDURE AnnotationNoTransactionTests.[test when @Result=Abort appropriate error message is raised]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
+END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
@@ -1571,6 +1602,8 @@ GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test no other objects are dropped or created if SkipTest Annotation & NoTransaction annotations are used]
 AS
 BEGIN
+/* When we write the function to manage the error messages, that function should have the logic to make sure that @Result can't get from a bad state to a better state
+  e.g. FATAL --> Abort --> Error --> Failure --> Success */
   EXEC tSQLt.Fail 'TODO';
 END;
 GO
