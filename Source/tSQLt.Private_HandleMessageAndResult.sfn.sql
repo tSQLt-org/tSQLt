@@ -11,7 +11,7 @@ CREATE FUNCTION tSQLt.Private_HandleMessageAndResult (
 RETURNS TABLE
 AS
 RETURN
-  SELECT 'NotYetEmpty' Message;
+  SELECT '<NULL> [Result: <NULL>] || '+ISNULL(@NewMessage,'<NULL>') Message;
 GO
 ---Build-
 GO
