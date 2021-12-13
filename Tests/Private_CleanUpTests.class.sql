@@ -75,7 +75,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE Private_CleanUpTests.[test UndoTestDoubles error causes @Result to be set to Error]
+CREATE PROCEDURE Private_CleanUpTests.[test UndoTestDoubles error causes @Result to be set to Abort]
 AS
 BEGIN
 
@@ -85,7 +85,7 @@ BEGIN
   DECLARE @Result NVARCHAR(MAX) = 'NOT ERROR';
   EXEC tSQLt.Private_CleanUp @FullTestName = NULL, @Result = @Result OUT, @ErrorMsg = NULL;
 
-  EXEC tSQLt.AssertEqualsString @Expected = 'Error', @Actual = @Result;
+  EXEC tSQLt.AssertEqualsString @Expected = 'Abort', @Actual = @Result;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/

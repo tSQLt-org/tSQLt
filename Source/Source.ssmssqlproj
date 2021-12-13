@@ -378,6 +378,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_HandleMessageAndResult.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_HandleMessageAndResult.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_HostPlatform.stub.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

@@ -42,6 +42,7 @@ tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.RemoveObject.ssp.sql
 tSQLt.RemoveObjectIfExists.ssp.sql
 tSQLt.Private_GetFormattedErrorInfo.sfn.sql
+tSQLt.Private_HandleMessageAndResult.sfn.sql
 tSQLt.Private_CleanTestResult.ssp.sql
 tSQLt.Private_ListTestAnnotations.sfn.sql
 tSQLt.Private_ProcessTestAnnotations.ssp.sql

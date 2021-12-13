@@ -216,6 +216,12 @@
           <AssociatedConnUserName />
           <FullPath>Private_GetSQLProductMajorVersionTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_HandleMessageAndResultTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_HandleMessageAndResultTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_InitTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

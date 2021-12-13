@@ -81,27 +81,35 @@ GO
 CREATE PROC Run_Methods_Tests.test_Run_handles_test_names_with_spaces
 AS
 BEGIN
-    DECLARE @ProductMajorVersion INT;
-    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+  DECLARE @ProductMajorVersion INT;
+  EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
 
-    EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
+  EXEC('CREATE SCHEMA MyTestClass;');
+  EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''<><><> GotHere <><><>'',16,10);');
     
-    BEGIN TRY
-        EXEC tSQLt.Run 'MyTestClass.Test Case A';
-    END TRY
-    BEGIN CATCH
-      --This space left intentionally blank
-    END CATCH
-    SELECT Class, TestCase, Msg 
-      INTO Run_Methods_Tests.actual
-      FROM tSQLt.TestResult;
-    SELECT TOP(0)* INTO Run_Methods_Tests.expected FROM  Run_Methods_Tests.actual;
+  BEGIN TRY
+      EXEC tSQLt.Run 'MyTestClass.Test Case A';
+  END TRY
+  BEGIN CATCH
+    --This space left intentionally blank
+  END CATCH
+  SELECT Class, TestCase, Msg 
+    INTO #Actual
+    FROM tSQLt.TestResult;
 
-    INSERT INTO Run_Methods_Tests.expected
-    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{'+CASE WHEN @ProductMajorVersion >= 14 THEN 'MyTestClass.' ELSE '' END+'Test Case A,1}' Msg
+  SELECT TOP(0) A.Class,A.TestCase,A.Msg AS [%Msg] INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, '%<><><> GotHere <><><>%' Msg
+
+  SELECT * INTO #Compare
+    FROM(
+      SELECT '>' _R_,* FROM #Actual AS A WHERE NOT EXISTS(SELECT 1 FROM #Expected E WHERE A.Class = E.Class AND A.TestCase = E.TestCase AND A.Msg LIKE E.[%Msg])
+       UNION ALL
+      SELECT '<' _R_,* FROM #Expected AS E WHERE NOT EXISTS(SELECT 1 FROM #Actual A WHERE A.Class = E.Class AND A.TestCase = E.TestCase AND A.Msg LIKE E.[%Msg])
+    )X
     
-    EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.expected', 'Run_Methods_Tests.actual';
+    EXEC tSQLt.AssertEmptyTable '#Compare';
 END;
 GO
 
