@@ -3,6 +3,7 @@ tSQLt._Header.sql
 tSQLt.schema.sql
 tSQLt.TestClass.user.sql
 tSQLt.Private_GetDropItemCmd.sfn.sql
+tSQLt.Private_Results.view.sql
 tSQLt.DropClass.ssp.sql
 tSQLt.Uninstall.ssp.sql
 tSQLt.TestClasses.view.sql
