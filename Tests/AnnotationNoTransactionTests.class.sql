@@ -770,9 +770,33 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE FUNCTION AnnotationNoTransactionTests.[return 42134213 if correct error]()
+RETURNS TABLE
+AS
+RETURN
+  SELECT '42134213' FormattedError WHERE ERROR_MESSAGE() = 'This is an error ;)';
+GO
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE FUNCTION AnnotationNoTransactionTests.[return 42424242+@NewMessage, @NewResult](
+  @PrevMessage NVARCHAR(MAX),
+  @PrevResult NVARCHAR(MAX),
+  @NewMessage NVARCHAR(MAX),
+  @NewResult NVARCHAR(MAX)
+)
+RETURNS TABLE
+AS
+RETURN
+  SELECT '42424242:'+@NewMessage Message, @NewResult Result
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp error causes an appropriate message to be written to the tSQLt.TestResult table]
 AS
 BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetFormattedErrorInfo', @FakeFunctionName = 'AnnotationNoTransactionTests.[return 42134213 if correct error]';
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_HandleMessageAndResult', @FakeFunctionName = 'AnnotationNoTransactionTests.[return 42424242+@NewMessage, @NewResult]';
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
     CREATE PROCEDURE [MyInnerTests].[CleanUp]
@@ -792,9 +816,12 @@ BEGIN
 
   EXEC tSQLt.Run 'MyInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
 
-  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
+  SELECT TR.Msg, TR.Result INTO #Actual FROM tSQLt.TestResult AS TR;
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES('42424242:42134213','Error');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
-  EXEC tSQLt.AssertEqualsString @Expected = 'Error during clean up: (Message: This is an error ;) | Procedure: MyInnerTests.CleanUp (5) | Severity, State: 16, 10 | Number: 50000)', @Actual = @FriendlyMsg;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
