@@ -136,6 +136,17 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
+CREATE PROCEDURE Private_HandleMessageAndResultTests.[test returns only the @NewMessage if @PrevMessage is empty and @PrevResult is Success]
+AS
+BEGIN
+  DECLARE @Message NVARCHAR(MAX);
+  SET @Message = (SELECT Message FROM tSQLt.Private_HandleMessageAndResult ('', 'Success', 'this is the new message', DEFAULT));
+  EXEC tSQLt.AssertEqualsString @Expected = 'this is the new message', @Actual = @Message;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
 CREATE PROCEDURE Private_HandleMessageAndResultTests.[test returns ??? if @PrevResult is NULL]
 AS
 BEGIN

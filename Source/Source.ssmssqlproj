@@ -229,6 +229,9 @@
           <FullPath>tSQLt.Private_CleanUp.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CleanUpCmdHandler.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CleanUpCmdHandler.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CompareTables.ssp.sql">
@@ -376,6 +379,9 @@
           <FullPath>tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_HandleMessageAndResult.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_HandleMessageAndResult.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_HostPlatform.stub.sql">
@@ -511,6 +517,9 @@
           <FullPath>tSQLt.Private_NoTransactionHandleTable.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_NoTransactionTableAction.view.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_NoTransactionTableAction.view.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_NoTransactionHandleTables.ssp.sql">
@@ -520,6 +529,9 @@
           <FullPath>tSQLt.Private_NoTransactionHandleTables.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_Results.view.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_Results.view.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_ScriptIndex.sfn.sql">

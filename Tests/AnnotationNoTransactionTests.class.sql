@@ -797,6 +797,8 @@ AS
 BEGIN
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetFormattedErrorInfo', @FakeFunctionName = 'AnnotationNoTransactionTests.[return 42134213 if correct error]';
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_HandleMessageAndResult', @FakeFunctionName = 'AnnotationNoTransactionTests.[return 42424242+@NewMessage, @NewResult]';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_CleanUp';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
     CREATE PROCEDURE [MyInnerTests].[CleanUp]
@@ -818,72 +820,13 @@ BEGIN
 
   SELECT TR.Msg, TR.Result INTO #Actual FROM tSQLt.TestResult AS TR;
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
-  INSERT INTO #Expected VALUES('42424242:42134213','Error');
+  INSERT INTO #Expected VALUES('42424242:Error during clean up: (42134213)','Error');
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
 END;
 GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp error causes an appropriate message to be written to the tSQLt.TestResult if there is a different error]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'MyOtherInnerTests'
-  EXEC('
-    CREATE PROCEDURE [MyOtherInnerTests].[CleanUp]
-    AS
-    BEGIN
-      /*wasting lines...*/
-      RAISERROR(''This is another error ;)'',15,12);
-    END;
-  ');
-  EXEC('
-    --[@'+'tSQLt:NoTransaction](DEFAULT)
-    CREATE PROCEDURE [MyOtherInnerTests].[test1]
-    AS
-    BEGIN
-      RETURN;
-    END;
-  ');
 
-  EXEC tSQLt.Run 'MyOtherInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
-
-  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
-  
-  EXEC tSQLt.AssertLike @ExpectedPattern = 'Error during clean up: (%This is another error ;)%)', @Actual = @FriendlyMsg;
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Schema-CleanUp error causes an appropriate message to be written to tSQLt.TestResult even if ERROR_PROCEDURE is null]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'MyOtherInnerTests'
-  EXEC('
-    CREATE PROCEDURE [MyOtherInnerTests].[CleanUp]
-    AS
-    BEGIN
-      /*wasting lines...*/
-      EXEC(''RAISERROR(''''This is another error ;)'''',15,12)'');
-    END;
-  ');
-  EXEC('
-    --[@'+'tSQLt:NoTransaction](DEFAULT)
-    CREATE PROCEDURE [MyOtherInnerTests].[test1]
-    AS
-    BEGIN
-      RETURN;
-    END;
-  ');
-
-  EXEC tSQLt.Run 'MyOtherInnerTests.[test1]', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
-
-  DECLARE @FriendlyMsg NVARCHAR(MAX) = (SELECT TR.Msg FROM tSQLt.TestResult AS TR);
-  
-  EXEC tSQLt.AssertLike @ExpectedPattern = 'Error during clean up: (%This is another error ;)%Procedure: <NULL>%)', @Actual = @FriendlyMsg;
-END;
-GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test appends message to any test error if Schema-CleanUp errors]

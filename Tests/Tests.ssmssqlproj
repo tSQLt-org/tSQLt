@@ -19,6 +19,9 @@
           <FullPath>AnnotationHostPlatformTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationNoTransactionTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>AnnotationNoTransactionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationSkipTestTests.class.sql">
@@ -183,6 +186,12 @@
           <AssociatedConnUserName />
           <FullPath>NewTestClassTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_CleanUpCmdHandlerTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_CleanUpCmdHandlerTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_CleanUpTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -201,6 +210,12 @@
           <AssociatedConnUserName />
           <FullPath>Private_GetAnnotationListTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_GetFormattedErrorInfoTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_GetFormattedErrorInfoTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_GetFullTypeNameTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -214,6 +229,9 @@
           <FullPath>Private_GetSQLProductMajorVersionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_HandleMessageAndResultTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>Private_HandleMessageAndResultTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_InitTests.class.sql">
