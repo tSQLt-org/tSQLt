@@ -2360,6 +2360,87 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE Run_Methods_Tests.[test FATAL error prevents subsequent tSQLt.Run% calls]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Reset'')BEGIN RAISERROR(''Some Fatal Error'',16,10);END;';
+
+  BEGIN TRY
+    EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+  END TRY
+  BEGIN CATCH
+    /* not interested in this error */
+  END CATCH;
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt is in an invalid state. Please reinstall tSQLt.';
+  EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test when @Result=FATAL an appropriate error message is raised]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Reset'')BEGIN RAISERROR(''Some Fatal Error'',16,10);END;';
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'The last test has invalidated the current installation of tSQLt. Please reinstall tSQLt.';
+  EXEC tSQLt.Run 'MyInnerTests';
+  
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test when @Result=Abort an appropriate error message is raised]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles', @CommandToExecute = 'RAISERROR(''Some Fatal Error'',16,10);';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Aborting the current execution of tSQLt due to a severe error.';
+  EXEC tSQLt.Run 'MyInnerTests';
+  
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
 --[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction')
 CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match]
 AS

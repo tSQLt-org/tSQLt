@@ -380,11 +380,12 @@ BEGIN
 
     IF(@Result = 'FATAL')
     BEGIN
-      INSERT INTO tSQLt.Private_Seize VALUES(1);      
+      INSERT INTO tSQLt.Private_Seize VALUES(1);   
+      RAISERROR('The last test has invalidated the current installation of tSQLt. Please reinstall tSQLt.',16,10);
     END;
     IF(@Result = 'Abort')
     BEGIN
-      RAISERROR('Aborting current execution of tSQLt.', 16, 10);
+      RAISERROR('Aborting the current execution of tSQLt due to a severe error.', 16, 10);
     END;
 
     IF(@OuterPerimeterTrancount != @@TRANCOUNT) RAISERROR('tSQLt is in an invalid state: Stopping Execution. (Mismatching TRANCOUNT: %i <> %i))',16,10,@OuterPerimeterTrancount, @@TRANCOUNT);

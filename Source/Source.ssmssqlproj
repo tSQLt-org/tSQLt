@@ -2,7 +2,8 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Source">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
-      <Items />
+      <Items>
+      </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -19,9 +20,6 @@
           <FullPath>ExecutePrepareServer.sql</FullPath>
         </FileNode>
         <FileNode Name="Run_Methods.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>Run_Methods.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql">
@@ -211,10 +209,10 @@
           <FullPath>tSQLt.PrepareServer.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_AssertNoSideEffects.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_AssertNoSideEffects.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_AssertNoSideEffects_GenerateCommand.sfn.sql">
+          <FullPath>tSQLt.Private_AssertNoSideEffects_GenerateCommand.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CleanTestResult.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -229,9 +227,6 @@
           <FullPath>tSQLt.Private_CleanUp.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CleanUpCmdHandler.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CleanUpCmdHandler.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CompareTables.ssp.sql">
@@ -397,9 +392,6 @@
           <FullPath>tSQLt.Private_HostPlatform.svw.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_Init.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_Init.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_InstallationInfo.sfn.sql">

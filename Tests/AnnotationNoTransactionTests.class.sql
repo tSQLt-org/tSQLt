@@ -1457,31 +1457,6 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test FATAL error prevents subsequent tSQLt.Run% calls]
-AS
-BEGIN
-  EXEC tSQLt.NewTestClass 'MyInnerTests'
-  EXEC('
-    --[@'+'tSQLt:NoTransaction](DEFAULT)
-    CREATE PROCEDURE [MyInnerTests].[test1]
-    AS
-    BEGIN
-      RETURN;
-    END;
-  ');
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Reset'')BEGIN RAISERROR(''Some Fatal Error'',16,10);END;';
-
-  EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
-  
-  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt is in an invalid state. Please reinstall tSQLt.';
-  EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
-
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Cleanup is executed after the outer-most test execution try catch and before writing to TestResult]
 AS
 BEGIN
@@ -1567,32 +1542,29 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_AssertNoSideEffects is using Private_CleanUpCmdHandler]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_RunTest_TestExecution is not called if SkipTest & NoTransaction]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.Fail 'This test has gone horribly wrong and kills tSQLt.';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    --[@'+'tSQLt:SkipTest](DEFAULT)
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunTest_TestExecution', @CallOriginal=1;
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  SELECT * INTO #Actual FROM tSQLt.Private_RunTest_TestExecution_SpyProcedureLog;
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
 END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test when @Result=Abort appropriate error message is raised]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test no other objects are dropped or created if SkipTest Annotation & NoTransaction annotations are used]
-AS
-BEGIN
-/* When we write the function to manage the error messages, that function should have the logic to make sure that @Result can't get from a bad state to a better state
-  e.g. FATAL --> Abort --> Error --> Failure --> Success */
-  EXEC tSQLt.Fail 'TODO';
-END;
-GO
+GO 
 /*-----------------------------------------------------------------------------------------------*/
 GO
 --[@tSQLt:SkipTest]('TODO')
