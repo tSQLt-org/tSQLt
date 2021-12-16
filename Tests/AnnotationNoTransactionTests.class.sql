@@ -1513,7 +1513,7 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_AssertNoSideEffects is executed after all CleanUps and throws an error if they are new, missing, or renamed objects]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_AssertNoSideEffects is executed after all CleanUps and throws an error if there are new/missing/renamed objects]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
@@ -1545,13 +1545,29 @@ GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp when @Result = FATAL, it is not overwritten by another Result]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE MyInnerTests.[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action=''Reset'')RAISERROR(''AFatalError'',16,10);';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles', @CommandToExecute = 'RAISERROR(''AnAbortError'',16,10);';
+
+  EXEC tSQLt.SetSummaryError 0;
+  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+
+  DECLARE @Actual NVARCHAR(MAX) = (SELECT Result FROM tSQLt.TestResult);
+
+  EXEC tSQLt.AssertEqualsString @Expected = 'FATAL', @Actual = @Actual;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test Private-CleanUp @Result is not overwritten by an error in Private_AssertNoSideEffects]
+CREATE PROCEDURE AnnotationNoTransactionTests.[test Private_AssertNoSideEffects is using Private_CleanUpCmdHandler]
 AS
 BEGIN
   EXEC tSQLt.Fail 'TODO';

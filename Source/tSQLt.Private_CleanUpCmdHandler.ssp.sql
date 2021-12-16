@@ -12,9 +12,6 @@ BEGIN
     EXEC(@CleanUpCmd);
   END TRY
   BEGIN CATCH
-    --SET @TestMsg = (CASE WHEN @TestMsg <> '' THEN @TestMsg + ' [Result: '+ ISNULL(@TestResult,'<NULL>') + '] || ' ELSE '' END) + 'Error during clean up: (' + (SELECT FormattedError FROM tSQLt.Private_GetFormattedErrorInfo())  + ')';
-    --SET @TestResult = @ResultInCaseOfError;
-    
     DECLARE @NewMsg NVARCHAR(MAX) = 'Error during clean up: (' + (SELECT FormattedError FROM tSQLt.Private_GetFormattedErrorInfo())  + ')';
     SELECT @TestMsg = Message, @TestResult = Result FROM tSQLt.Private_HandleMessageAndResult(@TestMsg /*PrevMsg*/, @TestResult /*PrevResult*/, @NewMsg /*NewMsg*/, @ResultInCaseOfError /*NewResult*/);
   END CATCH;

@@ -108,7 +108,7 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
-CREATE PROCEDURE Private_HandleMessageAndResultTests.[test returns @PrevResult??? if @NewResult is not known]
+CREATE PROCEDURE Private_HandleMessageAndResultTests.[test returns @PrevResult if @NewResult is not known]
 AS
 BEGIN
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_Results';
@@ -147,22 +147,28 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
-CREATE PROCEDURE Private_HandleMessageAndResultTests.[test returns ??? if @PrevResult is NULL]
+CREATE PROCEDURE Private_HandleMessageAndResultTests.[test returns only the @NewMessage if @PrevMessage is NULL and @PrevResult is Success]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO: what shoud this do?';
+  DECLARE @Message NVARCHAR(MAX);
+  SET @Message = (SELECT Message FROM tSQLt.Private_HandleMessageAndResult (NULL, 'Success', 'this is the new message', DEFAULT));
+  EXEC tSQLt.AssertEqualsString @Expected = 'this is the new message', @Actual = @Message;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
-CREATE PROCEDURE Private_HandleMessageAndResultTests.[test tSQLt.Private_Results double ledger]
+CREATE PROCEDURE Private_HandleMessageAndResultTests.[test returns @NewResult if @PrevResult is NULL]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO: (Needs to live in its own class)';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_Results';
+  EXEC ('INSERT INTO tSQLt.Private_Results(Result, Severity)VALUES(''SomeNewResult'',3)');
+
+  DECLARE @Result NVARCHAR(MAX);
+  SET @Result = (SELECT Result FROM tSQLt.Private_HandleMessageAndResult (DEFAULT, NULL, DEFAULT, 'SomeNewResult'));
+  EXEC tSQLt.AssertEqualsString @Expected = 'SomeNewResult', @Actual = @Result;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
- 
