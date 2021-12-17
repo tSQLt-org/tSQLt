@@ -1533,7 +1533,12 @@ BEGIN
   EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles', @CommandToExecute = 'RAISERROR(''AnAbortError'',16,10);';
 
   EXEC tSQLt.SetSummaryError 0;
-  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+  BEGIN TRY
+    EXEC tSQLt.Run 'MyInnerTests.[test1]';
+  END TRY
+  BEGIN CATCH
+    /*-- not really interested in this error --*/
+  END CATCH;
 
   DECLARE @Actual NVARCHAR(MAX) = (SELECT Result FROM tSQLt.TestResult);
 
@@ -1545,7 +1550,7 @@ GO
 CREATE PROCEDURE AnnotationNoTransactionTests.[test tSQLt.Private_RunTest_TestExecution is not called if SkipTest & NoTransaction]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'This test has gone horribly wrong and kills tSQLt.';
+  --EXEC tSQLt.Fail 'This test has gone horribly wrong and kills tSQLt.';
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
     --[@'+'tSQLt:NoTransaction](DEFAULT)
@@ -1556,24 +1561,22 @@ BEGIN
       RETURN;
     END;
   ');
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunTest_TestExecution', @CallOriginal=1;
 
-  EXEC tSQLt.SetSummaryError 0;
-  EXEC tSQLt.Run 'MyInnerTests.[test1]';
+  DECLARE @Actual TABLE(_id_ INT, TestName NVARCHAR(MAX));/*-- @TableVariables persist regardless of transaction rollbacks --*/
+  DECLARE @TranName CHAR(32);EXEC tSQLt.GetNewTranName @TranName=@TranName OUT;
+  SAVE TRAN @TranName;
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunTest_TestExecution', @CallOriginal=1;
+    EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles'; /*--<-- only needed if test fails, so we get a clearer fail message --<--*/
 
-  SELECT * INTO #Actual FROM tSQLt.Private_RunTest_TestExecution_SpyProcedureLog;
+    EXEC tSQLt.SetSummaryError 0;
+    EXEC tSQLt.Run 'MyInnerTests.[test1]';
+    INSERT INTO @Actual SELECT _id_,TestName FROM tSQLt.Private_RunTest_TestExecution_SpyProcedureLog;
+  ROLLBACK TRAN @TranName; /*-- Rolling back just the last 5 lines (though, not the insert into @Actual). --*/
+
+  SELECT * INTO #Actual FROM @Actual;
   EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
 END;
 GO 
-/*-----------------------------------------------------------------------------------------------*/
-GO
---[@tSQLt:SkipTest]('TODO')
-CREATE PROCEDURE AnnotationNoTransactionTests.[test no handler is called if SkipTest Annotation & NoTransaction annotations are used]
-AS
-BEGIN
-  EXEC tSQLt.Fail 'TODO';
-END;
-GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
@@ -1582,9 +1585,6 @@ GO
 Mark NoTransaction tests somehow in TestResult
 
 Add to github
-- |19|[AnnotationNoTransactionTests].[test Schema-CleanUp error causes an appropr<...>essage to be written to the tSQLt.TestResult if there is a different error]|     94|Success|
-  This shouldn't happen:                                                          ^^^
-- What happens when we have multiple annotations for other non-NoTransaction annotations? Did we test this???
 - add 100x'=' + test status (if not PASS) followed by empty line after test-end message (if verbose)
 
 

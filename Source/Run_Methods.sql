@@ -374,8 +374,10 @@ BEGIN
 
     IF(@Verbose = 1)
     BEGIN
-    SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Finished';
+      SET @VerboseMsg = 'tSQLt.Run '''+@TestName+'''; --Finished';
       EXEC tSQLt.Private_Print @Message =@VerboseMsg, @Severity = 0;
+      --DECLARE @AsciiArtLine NVARCHAR(MAX) = CASE WHEN @Result<>'Success' THEN REPLICATE(CHAR(168),150)+' '+CHAR(155)+CHAR(155)+' '+@Result + ' ' +CHAR(139)+CHAR(139) ELSE '' END + CHAR(13)+CHAR(10) + CHAR(173);
+      --EXEC tSQLt.Private_Print @Message = @AsciiArtLine, @Severity = 0;
     END;
 
     IF(@Result = 'FATAL')
