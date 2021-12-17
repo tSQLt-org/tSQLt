@@ -2441,7 +2441,7 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
---[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction')
+---[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction')
 CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match]
 AS
 BEGIN

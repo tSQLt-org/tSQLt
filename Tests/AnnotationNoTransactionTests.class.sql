@@ -1584,10 +1584,5 @@ GO
 
 Mark NoTransaction tests somehow in TestResult
 
-Add to github
-- add 100x'=' + test status (if not PASS) followed by empty line after test-end message (if verbose)
-
-
-
 --*/
 
