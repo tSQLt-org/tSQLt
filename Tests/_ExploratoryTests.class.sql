@@ -357,7 +357,7 @@ GO
 --CREATE PROCEDURE [_ExploratoryTests].[test TBD]
 --AS
 --BEGIN
---  EXEC tSQLt.Fail 'TODO';
+--  EXEC tSQLt.Fail 'TemplateTest';
 --END;
 GO
 /*-----------------------------------------------------------------------------------------------*/

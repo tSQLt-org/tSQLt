@@ -425,7 +425,7 @@ BEGIN
   --ROLLBACK
 END;
 GO
----[@tSQLt:SkipTest]('')
+
 --[@tSQLt:NoTransaction]('AnnotationNoTransactionTests.[CLEANUP: test an unrecoverable erroring test gets correct (Success/Failure but not Error) entry in TestResults table]')
 /* This test must be NoTransaction because the inner test will invalidate any open transaction causing chaos and turmoil in the reactor. */
 CREATE PROCEDURE AnnotationNoTransactionTests.[test an unrecoverable erroring test gets correct entry in TestResults table]
@@ -1579,10 +1579,3 @@ END;
 GO 
 /*-----------------------------------------------------------------------------------------------*/
 GO
-
-/*-- TODO
-
-Mark NoTransaction tests somehow in TestResult
-
---*/
-

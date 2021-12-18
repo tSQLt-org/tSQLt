@@ -579,7 +579,10 @@ GO
 GO
 
 
-
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test TODO]
+AS
+BEGIN
+  EXEC tSQLt.Fail 'TODO';
 --tSQLt.Run 'Private_NoTransactionHandleTableTests'.[test if @TableAction is Restore, @Action Save, Save: the second Save does nothing]'
 /*--
 TODO
@@ -616,3 +619,7 @@ Some scenarios to consider
 16: ?*test* Save (Ignore), Save (Ignore), Reset (Ignore), Reset (Ignore) --> No Op. ExpectNoException.s
 
 --*/
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO

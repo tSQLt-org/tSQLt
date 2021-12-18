@@ -159,5 +159,3 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 
---TODO:
--- include minimum supported version, like column with the lowest number that we run CI tests on (hardcoded)
