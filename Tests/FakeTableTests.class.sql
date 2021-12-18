@@ -377,7 +377,7 @@ BEGIN
 END;
 GO
  
-CREATE PROC FakeTableTests.[test FakeTable works with ugly column and table names]
+CREATE PROC FakeTableTests.[test FakeTable works with special characters in column and table names]
 AS
 BEGIN
   IF OBJECT_ID('dbo.[tst!@#$%^&*()_+ 1]') IS NOT NULL DROP TABLE dbo.[tst!@#$%^&*()_+ 1];
@@ -1030,5 +1030,16 @@ BEGIN
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
+END;
+GO
+CREATE PROC FakeTableTests.[test FakeTable works if new name of original table requires quoting]
+AS
+BEGIN
+  CREATE TABLE FakeTableTests.TempTable1(i INT NULL);
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RenameObjectToUniqueName', @CommandToExecute = 'SET @NewName = ''A Name.Needs''''Quoting'';',@CallOriginal = 1;
+
+  EXEC tSQLt.FakeTable @TableName = 'FakeTableTests.TempTable1';
+
+  EXEC tSQLt.AssertEqualsTableSchema @Expected = 'FakeTableTests.[A Name.Needs''Quoting]', @Actual = 'FakeTableTests.TempTable1';
 END;
 GO

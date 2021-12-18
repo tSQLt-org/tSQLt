@@ -337,6 +337,23 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE [_ExploratoryTests].[test sp_addextendedproperty can handle odd values]
+AS
+BEGIN
+  CREATE TABLE [_ExploratoryTests].ATable(I INT);
+
+  EXEC sys.sp_addextendedproperty 
+     @name = N'ATestProperty', 
+     @value = 'a string.with''special chars', 
+     @level0type = N'SCHEMA', @level0name = '_ExploratoryTests', 
+     @level1type = 'TABLE',  @level1name = 'ATable';
+
+  SELECT * FROM sys.extended_properties AS EP WHERE EP.major_id = OBJECT_ID('[_ExploratoryTests].ATable');
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 --CREATE PROCEDURE [_ExploratoryTests].[test TBD]
 --AS
 --BEGIN

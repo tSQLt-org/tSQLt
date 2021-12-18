@@ -184,4 +184,14 @@ BEGIN
   END;
 END;
 GO
+
+CREATE PROC tSQLtclr_test.[test name returned by tSQLt.Private::CreateUniqueObjectName() should not require quoting]
+AS
+BEGIN
+  DECLARE @NewName NVARCHAR(MAX) = tSQLt.Private::CreateUniqueObjectName();
+
+  EXEC tSQLt.ExpectNoException;  
+  EXEC('CREATE TABLE tSQLtclr_test.'+@NewName+'(I INT);');
+END;
+GO
 --ROLLBACK
