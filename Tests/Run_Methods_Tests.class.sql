@@ -2441,33 +2441,42 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
----[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction')
 CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match]
 AS
 BEGIN
-  EXEC tSQLt.NewTestClass 'MyInnerTests'
-  EXEC('
---[@'+'tSQLt:NoTransaction](DEFAULT)
-CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
-  ');
+  EXEC tSQLt.NewTestClass 'MyInnerTestsA'
+  EXEC('CREATE PROCEDURE MyInnerTestsA.[test should execute outside of transaction] AS BEGIN TRAN;');
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
-
-  BEGIN TRY
-  EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
-  END TRY
-  BEGIN CATCH
-  SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
-  END CATCH;
-
+  EXEC tSQLt.Run 'MyInnerTestsA.[test should execute outside of transaction]';
 
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-EXEC tSQLt.Run 'Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don''t match]';
+
+--[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction for NoTransaction tests')
+CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match in NoTransaction test]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTestsB'
+  EXEC('
+--[@'+'tSQLt:NoTransaction](DEFAULT)
+CREATE PROCEDURE MyInnerTestsB.[test should execute outside of transaction] AS BEGIN TRAN;SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
+  ');
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
+
+  BEGIN TRY
+    EXEC tSQLt.Run 'MyInnerTestsB.[test should execute outside of transaction]';
+  END TRY
+  BEGIN CATCH
+    SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
+  END CATCH;
+END;
 GO
-SELECT * FROM tSQLt.TestResult;
+/*-----------------------------------------------------------------------------------------------*/
+GO
 /*--
   Transaction Tests
   
