@@ -209,7 +209,6 @@ BEGIN
           SET @Result = 'Error';
         END;
     END CATCH;  
-
     IF (@NoTransactionFlag = 1)
     BEGIN
       SET @CleanUpProcedureExecutionCmd = (
@@ -241,7 +240,6 @@ BEGIN
              @TestResult = @Result OUT,
              @TestMsg = @Msg OUT
     END;
-
     IF(@TransactionStartedFlag = 1)
     BEGIN
       COMMIT;
@@ -326,7 +324,8 @@ BEGIN
           @TranName,
           @Result OUT,
           @Msg OUT,
-          @TestEndTime OUT
+          @TestEndTime OUT;
+
       END;
       ELSE
       BEGIN
@@ -351,7 +350,6 @@ BEGIN
       SET @Msg2 = @TestName + ' failed: (' + @Result + ') ' + @Msg;
       EXEC tSQLt.Private_Print @Message = @Msg2, @Severity = 0;
     END;
-
     IF EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Id = @TestResultId)
     BEGIN
         UPDATE tSQLt.TestResult SET
@@ -369,8 +367,6 @@ BEGIN
                'Error', 
                'TestResult entry is missing; Original outcome: ' + @Result + ', ' + @Msg;
     END;    
-
-
 
     IF(@Verbose = 1)
     BEGIN

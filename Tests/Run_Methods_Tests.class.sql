@@ -2448,13 +2448,26 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:NoTransaction](DEFAULT)
-CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;
+CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BEGIN TRAN;SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
   ');
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
 
+  BEGIN TRY
   EXEC tSQLt.Run 'MyInnerTests.[test should execute outside of transaction]';
+  END TRY
+  BEGIN CATCH
+  SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
+  END CATCH;
 
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+EXEC tSQLt.Run 'Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don''t match]';
+GO
+SELECT * FROM tSQLt.TestResult;
 /*--
   Transaction Tests
   
@@ -2464,11 +2477,6 @@ CREATE PROCEDURE MyInnerTests.[test should execute outside of transaction] AS BE
   - what should we do if the original transaction was rolled back and a new one was created?
   - what should we do if the original transaction was committed and a new one was created?
   - we still need to save the TranName as something somewhere.
-  - review existing tests for transactions
+  - do existing tests already cover some of the scenarios described above?
 
 --*/
-
-END;
-GO
-/*-----------------------------------------------------------------------------------------------*/
-GO
