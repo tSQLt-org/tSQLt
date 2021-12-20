@@ -2441,6 +2441,7 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
+--[@tSQLt:SkipTest]('TODO: tSQLt should handle this, but does not at the moment because of the issue with transactions started within a try-catch block')
 CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match]
 AS
 BEGIN
@@ -2455,37 +2456,47 @@ GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 
---[@tSQLt:SkipTest]('TODO: need to review handling of unexpected changes to the tSQLt transaction for NoTransaction tests')
+--[@tSQLt:SkipTest]('TODO: tSQLt should handle this, but does not at the moment because of the issue with transactions started within a try-catch block')
 CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match in NoTransaction test]
 AS
 BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTestsB'
   EXEC('
 --[@'+'tSQLt:NoTransaction](DEFAULT)
-CREATE PROCEDURE MyInnerTestsB.[test should execute outside of transaction] AS BEGIN TRAN;SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
+CREATE PROCEDURE MyInnerTestsB.[test should execute outside of transaction] AS BEGIN TRAN;
   ');
 
   EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
+  EXEC tSQLt.Run 'MyInnerTestsB.[test should execute outside of transaction]';
 
-  BEGIN TRY
-    EXEC tSQLt.Run 'MyInnerTestsB.[test should execute outside of transaction]';
-  END TRY
-  BEGIN CATCH
-    SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
-  END CATCH;
+  -- FOR FUTURE DEBUGGING
+  --BEGIN TRY
+  --  EXEC tSQLt.Run 'MyInnerTestsB.[test should execute outside of transaction]';
+  --END TRY
+  --BEGIN CATCH
+  --  SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
+  --END CATCH;
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
 /*--
-  Transaction Tests
-  
-  - NoTransaction, but suddenly has transaction
-  - with transaction, but creates additional transaction
-  - transaction, but is committed (FATAL)
-  - what should we do if the original transaction was rolled back and a new one was created?
-  - what should we do if the original transaction was committed and a new one was created?
-  - we still need to save the TranName as something somewhere.
+  Transaction Tests to be considered
+
+  1. NoTransaction test starts a transaction
+  1a. The transaction is commitable (THIS FEELS UNLIKELY GIVEN OUR RESEARCH.)
+  1b. The transaction is not commitable 
+
+  2. Transaction test rolls-back tSQLt transaction(s)
+  2a. No transaction after test (ROLLBACK, but no new transactions created within the test)
+  2b. New transaction after test (ROLLBACK, but new one created within the test)
+
+  3. Transaction test commits tSQLt transactions(s)
+  3a. No transaction after test (COMMIT, but no new transactions created within the test)
+  3b. New transaction after test (COMMIT, but new one created within the test)
+
+  4. Transaction test renders transaction uncommitable (Won't be able to write to anything, including tSQLt.TestResults or a variety of temp tables.)
+
   - do existing tests already cover some of the scenarios described above?
 
 --*/
