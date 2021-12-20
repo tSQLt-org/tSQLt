@@ -81,6 +81,7 @@ BEGIN
         BEGIN
           EXEC @SetUp;
         END;
+
         EXEC (@TestExecutionCmd);
 
         IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
