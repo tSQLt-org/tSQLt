@@ -82,14 +82,7 @@ BEGIN
           EXEC @SetUp;
         END;
 
-        BEGIN TRY
-          SELECT XACT_STATE(),@@TRANCOUNT,@TestExecutionCmd;
-          EXEC (@TestExecutionCmd);
-        END TRY
-        BEGIN CATCH
-        SELECT XACT_STATE(),@@TRANCOUNT,@TestExecutionCmd;
-          THROW;
-        END CATCH;
+        EXEC (@TestExecutionCmd);
 
         IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
         BEGIN
