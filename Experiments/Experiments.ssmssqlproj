@@ -66,6 +66,12 @@
           <AssociatedConnUserName />
           <FullPath>LIKE4000.sql</FullPath>
         </FileNode>
+        <FileNode Name="MSSQL Defect Try-Catch Invalidates Transaction.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>MSSQL Defect Try-Catch Invalidates Transaction.sql</FullPath>
+        </FileNode>
         <FileNode Name="NameResolutionResearch.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
