@@ -86,7 +86,7 @@ stages:
 
     - task: AzureKeyVault@1
       inputs:
-        azureSubscription: 'tSQLt CI Service Principal'
+        azureSubscription: 'tSQLtPipelineServicePrincipal (Manual)'
         KeyVaultName: 'tSQLtSigningKey'
         SecretsFilter: '*'
         RunAsPreJob: false
@@ -114,7 +114,7 @@ stages:
         SQLPORTMINIMUM: $(SqlPortMinimum)
         SQLPORTMAXIMUM: $(SqlPortMaximum)
       inputs:
-        azureSubscription: 'tSQLt CI Service Principal'
+        azureSubscription: 'tSQLtPipelineServicePrincipal (Manual)'
         azurePowerShellVersion: 'LatestVersion'
         scriptType: ps
         scriptLocation: inlineScript
@@ -201,7 +201,7 @@ stages:
 
     - task: AzureKeyVault@1
       inputs:
-        azureSubscription: 'tSQLt CI Service Principal'
+        azureSubscription: 'tSQLtPipelineServicePrincipal (Manual)'
         KeyVaultName: 'tSQLtSigningKey'
 
     - task: PowerShell@2
@@ -409,7 +409,7 @@ stages:
 
     - task: AzureKeyVault@1
       inputs:
-        azureSubscription: 'tSQLt CI Service Principal'
+        azureSubscription: 'tSQLtPipelineServicePrincipal (Manual)'
         KeyVaultName: 'tSQLtSigningKey'
 
     - task: PowerShell@2
@@ -648,7 +648,7 @@ stages:
     - task: AzureCLI@2
       name: DeleteAzureVM
       inputs:
-        azureSubscription: 'tSQLt CI Service Principal'
+        azureSubscription: 'tSQLtPipelineServicePrincipal (Manual)'
         azurePowerShellVersion: 'LatestVersion'
         scriptType: ps
         scriptLocation: inlineScript
