@@ -86,8 +86,10 @@ stages:
 
     - task: AzureKeyVault@1
       inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azureSubscription: 'tSQLt CI Service Principal'
         KeyVaultName: 'tSQLtSigningKey'
+        SecretsFilter: '*'
+        RunAsPreJob: false
 
     - task: PowerShell@2
       name: CreateResourceGroupName
@@ -112,7 +114,7 @@ stages:
         SQLPORTMINIMUM: $(SqlPortMinimum)
         SQLPORTMAXIMUM: $(SqlPortMaximum)
       inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azureSubscription: 'tSQLt CI Service Principal'
         azurePowerShellVersion: 'LatestVersion'
         scriptType: ps
         scriptLocation: inlineScript
@@ -199,7 +201,7 @@ stages:
 
     - task: AzureKeyVault@1
       inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azureSubscription: 'tSQLt CI Service Principal'
         KeyVaultName: 'tSQLtSigningKey'
 
     - task: PowerShell@2
@@ -407,7 +409,7 @@ stages:
 
     - task: AzureKeyVault@1
       inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azureSubscription: 'tSQLt CI Service Principal'
         KeyVaultName: 'tSQLtSigningKey'
 
     - task: PowerShell@2
@@ -646,7 +648,7 @@ stages:
     - task: AzureCLI@2
       name: DeleteAzureVM
       inputs:
-        azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+        azureSubscription: 'tSQLt CI Service Principal'
         azurePowerShellVersion: 'LatestVersion'
         scriptType: ps
         scriptLocation: inlineScript
