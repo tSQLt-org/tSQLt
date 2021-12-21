@@ -73,8 +73,9 @@ BEGIN
       BEGIN
         EXEC('DELETE FROM ' + @FullTableName +';');
       END;
-      ELSE IF (@TableAction IN ('Ignore','Hide'))
+      ELSE IF (@TableAction IN ('Ignore','Hide')) 
       BEGIN
+        /* Hidden tables will be restored by UndoTestDoubles. */
         RETURN;
       END;
       ELSE

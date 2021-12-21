@@ -2496,7 +2496,8 @@ GO
   3b. New transaction after test (COMMIT, but new one created within the test)
 
   4. Transaction test renders transaction uncommitable (Won't be able to write to anything, including tSQLt.TestResults or a variety of temp tables.)
-
+   
+  - currently AssertNoSideEffects causes additional problems if executed inside an uncommittable transaction (It tries to write to a new temp table) <-- does this need to be changed?
   - do existing tests already cover some of the scenarios described above?
 
 --*/

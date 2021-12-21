@@ -577,49 +577,69 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-
-
-CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test TODO]
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test if @TableAction is Hide, @Action Save, Save: do nothing on second save]
 AS
 BEGIN
-  EXEC tSQLt.Fail 'TODO';
---tSQLt.Run 'Private_NoTransactionHandleTableTests'.[test if @TableAction is Restore, @Action Save, Save: the second Save does nothing]'
-/*--
-TODO
+  CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT, col1 NVARCHAR(MAX));
+  INSERT INTO Private_NoTransactionHandleTableTests.Table1 VALUES (2,'c'), (3,'a');
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Hide';
 
-I can rerun them and nothing "bad" happens. But what is "bad"?
-What about when I intersperse calls to Save/Reset with UndoTestDoubles?
+  SELECT object_id, SCHEMA_NAME(schema_id) [schema_name], name INTO #Before FROM sys.tables; 
 
-Some scenarios to consider
-1: Save, Reset
-2: Save, Save, Reset
-3: Save, Reset, Reset
-4: Save, Save, Reset, Reset
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Hide';
 
-@TableAction = Restore
-5: ?*test* Save (Restore), Save (Restore) --> The second save does nothing, because it checks the #TableBackupLog.
-6: Save (Restore), Save (Restore) Eclipsed #TableBackupLog --> The second save takes a new backup because it cannot see #TableBackupLog.
-7: ?*test* Save (Restore), Save (Restore) Eclipsed #TableBackupLog, Reset (Restore) Eclipsed #TableBackupLog, Reset (Restore) --> Should be equivalent to scenario 1.
-8: ?*test* Save (Restore), Save (Restore), Reset (Restore), Reset (Restore) --> Should be equivalent to scenario 1.
-9: ?*test* Save (Restore), Save (Restore) Eclipsed #TableBackupLog, Reset (Restore) --> Should be equivalent to scenario 1.
-17: ?*test* Save (Restore), Reset (Restore), Reset (Restore) --> Should be equivalent to scenario 1.
-
-@TableAction = Hide
-10: ?*test* Save (Hide), Save (Hide) --> We can't hide something we can't see. Check to see if the object is already hidden, if so do nothing. If not, throw an error.
-11: Save (Hide), Save (Hide) Eclipsed #TableBackupLog --> Same as scenario 10.
-12: Save (Hide), Save (Hide) Eclipsed #TableBackupLog, Reset (Hide) Eclipsed #TableBackupLog, Reset (Hide) --> Should be equivalent to Scenario 1.
-13: Save (Hide), Save (Hide), Reset (Hide), Reset (Hide) -->  Should be equivalent to Scenario 1.
-14: Save (Hide), Save (Hide) Eclipsed #TableBackupLog, Reset (Hide) -->  Should be equivalent to Scenario 1.
-18: Save (Hide), Reset (Hide), Reset (Hide) --> Should be equivalent to scenario 1.
-
-@TableAction = Truncate
-15: ?*test* Save (Truncate), Save (Truncate), Reset (Truncate), Save (Truncate), Reset (Truncate), Reset (Truncate) -->  Should be idempotent. Any table with TableAction=Truncate should be empty after any number of save, reset actions.
-
-@TableAction = Ignore
-16: ?*test* Save (Ignore), Save (Ignore), Reset (Ignore), Reset (Ignore) --> No Op. ExpectNoException.s
-
---*/
+  SELECT * INTO #Actual
+    FROM (
+      (
+        SELECT 'Extra'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
+        EXCEPT
+        SELECT 'Extra'[?],* FROM #Before
+      )
+      UNION ALL
+      (
+        SELECT 'Missing'[?],* FROM #Before
+        EXCEPT
+        SELECT 'Missing'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
+      )
+    ) X;
+    
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
 END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test if @TableAction is Hide, @Action Save, Save, Reset, Reset: does nothing in total]
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.Table1 (Id INT, col1 NVARCHAR(MAX));
+  INSERT INTO Private_NoTransactionHandleTableTests.Table1 VALUES (2,'c'), (3,'a');
+
+  SELECT object_id, SCHEMA_NAME(schema_id) [schema_name], name INTO #Before FROM sys.tables; 
+
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Hide';
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Hide';
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Hide';
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Reset', @FullTableName = '[Private_NoTransactionHandleTableTests].[Table1]', @TableAction = 'Hide';
+  EXEC tSQLt.UndoTestDoubles;
+
+  SELECT * INTO #Actual
+    FROM (
+      (
+        SELECT 'Extra'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
+        EXCEPT
+        SELECT 'Extra'[?],* FROM #Before
+      )
+      UNION ALL
+      (
+        SELECT 'Missing'[?],* FROM #Before
+        EXCEPT
+        SELECT 'Missing'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
+      )
+    ) X;
+    
+  EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
