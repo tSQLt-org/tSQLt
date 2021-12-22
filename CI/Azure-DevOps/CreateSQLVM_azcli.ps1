@@ -154,7 +154,7 @@ $output = az deployment group create --resource-group $ResourceGroupName --templ
 if (!$output) {
     Write-Error "Error creating SqlVM";
     return;
-}
+}   
 $SQLVM|Out-String|Log-Output;
 Log-Output 'DONE: Applying SqlVM Config'
 
