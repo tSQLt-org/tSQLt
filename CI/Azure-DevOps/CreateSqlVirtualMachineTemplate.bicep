@@ -1,7 +1,12 @@
 param sqlConnectivityType string = 'Public'
 param sqlPortNumber int = 41433
-param sqlStorageWorkloadType string = 'DW'
-param sqlStorageDisksConfigurationType string = 'ADD'
+param sqlStorageWorkloadType string = 'General'
+param sqlStorageDisksConfigurationType string = 'NEW'
+param sqlDataSettingsDefaultFilePath string = 'F:\\SQLData'
+param sqlDataSettingsLUNs array = array(1)
+param sqlLogSettingsDefaultFilePath string = 'G:\\SQLData'
+param sqlLogSettingsLUNs array = array(1)
+param sqlTempDbSettingsDefaultFilePath string = 'H:\\SQLData'
 param sqlAutopatchingDayOfWeek string = 'Sunday'
 param sqlAutopatchingStartHour int = 2
 param sqlAutopatchingWindowDuration int = 60
@@ -29,6 +34,17 @@ resource newVMName_resource 'Microsoft.SqlVirtualMachine/SqlVirtualMachines@2017
     }
     storageConfigurationSettings: {
       diskConfigurationType: sqlStorageDisksConfigurationType
+      sqlDataSettings : {
+        luns: sqlDataSettingsLUNs
+        defaultFilePath: sqlDataSettingsDefaultFilePath
+      }
+      sqlLogSettings: {
+        luns: sqlLogSettingsLUNs
+        defaultFilePath: sqlLogSettingsDefaultFilePath
+      }
+      sqlTempDbSettings: {
+        defaultFilePath: sqlTempDbSettingsDefaultFilePath
+      }
       storageWorkloadType: sqlStorageWorkloadType
     }
     serverConfigurationsManagementSettings: {
