@@ -1,7 +1,7 @@
 param sqlConnectivityType string = 'Public'
 param sqlPortNumber int = 41433
 param sqlStorageWorkloadType string = 'DW'
-param sqlStorageDisksConfigurationType string = 'NEW'
+param sqlStorageDisksConfigurationType string = 'ADD'
 param sqlAutopatchingDayOfWeek string = 'Sunday'
 param sqlAutopatchingStartHour int = 2
 param sqlAutopatchingWindowDuration int = 60
