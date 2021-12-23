@@ -2,11 +2,14 @@ param sqlConnectivityType string = 'Public'
 param sqlPortNumber int = 41433
 param sqlStorageWorkloadType string = 'General'
 param sqlStorageDisksConfigurationType string = 'NEW'
-param sqlDataSettingsDefaultFilePath string = 'D:/SQLData'
-param sqlDataSettingsLUNs array = array(0)
-param sqlLogSettingsDefaultFilePath string = 'C:\\SQLData'
-param sqlLogSettingsLUNs array = array(1)
-param sqlTempDbSettingsDefaultFilePath string = 'C:\\SQLData'
+param sqlDataSettingsDefaultFilePath string = 'F:\\data'
+param sqlDataSettingsLUNs array = [
+  0
+]
+param sqlLogSettingsDefaultFilePath string = 'F:\\log'
+param sqlLogSettingsLUNs array = [
+  0
+]
 param sqlAutopatchingDayOfWeek string = 'Sunday'
 param sqlAutopatchingStartHour int = 2
 param sqlAutopatchingWindowDuration int = 60
@@ -34,17 +37,14 @@ resource newVMName_resource 'Microsoft.SqlVirtualMachine/SqlVirtualMachines@2017
     }
     storageConfigurationSettings: {
       diskConfigurationType: sqlStorageDisksConfigurationType
-      // sqlDataSettings : {
-      //   luns: sqlDataSettingsLUNs
-      //   defaultFilePath: sqlDataSettingsDefaultFilePath
-      // }
-      // sqlLogSettings: {
-      //   luns: sqlLogSettingsLUNs
-      //   // defaultFilePath: sqlLogSettingsDefaultFilePath
-      // }
-      // sqlTempDbSettings: {
-      //   // defaultFilePath: sqlTempDbSettingsDefaultFilePath
-      // }
+      sqlDataSettings : {
+        luns: sqlDataSettingsLUNs
+        defaultFilePath: sqlDataSettingsDefaultFilePath
+      }
+      sqlLogSettings: {
+        luns: sqlLogSettingsLUNs
+        defaultFilePath: sqlLogSettingsDefaultFilePath
+      }
       storageWorkloadType: sqlStorageWorkloadType
     }
     serverConfigurationsManagementSettings: {
