@@ -4,11 +4,11 @@ param sqlStorageWorkloadType string = 'General'
 param sqlStorageDisksConfigurationType string = 'NEW'
 param sqlDataSettingsDefaultFilePath string = 'c:\\data'
 param sqlDataSettingsLUNs array = [
-  
+  0
 ]
 param sqlLogSettingsDefaultFilePath string = 'c:\\log'
 param sqlLogSettingsLUNs array = [
-  
+  0
 ]
 param sqlAutopatchingDayOfWeek string = 'Sunday'
 param sqlAutopatchingStartHour int = 2
