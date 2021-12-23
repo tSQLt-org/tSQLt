@@ -129,7 +129,7 @@ Log-Output "Creating VM $VMName";
 
 $output = az vm create --name "$VMName" --resource-group "$ResourceGroupName" --location "$Location" --admin-password "$VMAdminPwd" `
             --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority Spot `
-            --size $Size | ConvertFrom-Json;
+            --size $Size --data-disk-sizes-gb 8 | ConvertFrom-Json;
 if (!$output) {
     Log-Output "VMName: ", $VMName;
     Log-Output "ResourceGroupName: ", $ResourceGroupName;
@@ -154,7 +154,7 @@ $output = az deployment group create --resource-group $ResourceGroupName --templ
 if (!$output) {
     Write-Error "Error creating SqlVM";
     return;
-}
+}   
 $SQLVM|Out-String|Log-Output;
 Log-Output 'DONE: Applying SqlVM Config'
 
