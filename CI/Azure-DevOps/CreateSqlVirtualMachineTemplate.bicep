@@ -2,11 +2,11 @@ param sqlConnectivityType string = 'Public'
 param sqlPortNumber int = 41433
 param sqlStorageWorkloadType string = 'General'
 param sqlStorageDisksConfigurationType string = 'NEW'
-param sqlDataSettingsDefaultFilePath string = '~\\data'
+param sqlDataSettingsDefaultFilePath string = 'c:\\data'
 param sqlDataSettingsLUNs array = [
   
 ]
-param sqlLogSettingsDefaultFilePath string = '~\\log'
+param sqlLogSettingsDefaultFilePath string = 'c:\\log'
 param sqlLogSettingsLUNs array = [
   
 ]
