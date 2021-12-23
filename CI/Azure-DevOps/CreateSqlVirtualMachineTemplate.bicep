@@ -2,13 +2,13 @@ param sqlConnectivityType string = 'Public'
 param sqlPortNumber int = 41433
 param sqlStorageWorkloadType string = 'General'
 param sqlStorageDisksConfigurationType string = 'NEW'
-param sqlDataSettingsDefaultFilePath string = 'F:\\data'
+param sqlDataSettingsDefaultFilePath string = '~\\data'
 param sqlDataSettingsLUNs array = [
-  0
+  
 ]
-param sqlLogSettingsDefaultFilePath string = 'F:\\log'
+param sqlLogSettingsDefaultFilePath string = '~\\log'
 param sqlLogSettingsLUNs array = [
-  0
+  
 ]
 param sqlAutopatchingDayOfWeek string = 'Sunday'
 param sqlAutopatchingStartHour int = 2
