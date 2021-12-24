@@ -50,6 +50,28 @@ BEGIN
   DECLARE @FormattedError NVARCHAR(MAX);
 
   BEGIN TRY
+    EXEC ('/*Line 1*/CREATE PROCEDURE Private_GetFormattedErrorInfoTests.myInnerError
+           /*Line 2*/AS
+           /*Line 3*/BEGIN 
+           /*Line 4*/  RAISERROR (13042,14,13);
+           /*Line 5*/END;');
+    EXEC ('Private_GetFormattedErrorInfoTests.myInnerError');
+  END TRY
+  BEGIN CATCH
+    SET @FormattedError = (SELECT FormattedError FROM tSQLt.Private_GetFormattedErrorInfo());
+  END CATCH;
+
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%| Procedure: %myInnerError (4) |%', @Actual = @FormattedError;
+END
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Private_GetFormattedErrorInfoTests.[test returns the correct ERROR procedure name and line number for #tempProcedure]
+AS
+BEGIN
+  DECLARE @FormattedError NVARCHAR(MAX);
+
+  BEGIN TRY
     EXEC ('/*Line 1*/CREATE PROCEDURE #myInnerError
            /*Line 2*/AS
            /*Line 3*/BEGIN 
@@ -61,7 +83,7 @@ BEGIN
     SET @FormattedError = (SELECT FormattedError FROM tSQLt.Private_GetFormattedErrorInfo());
   END CATCH;
 
-  EXEC tSQLt.AssertLike @ExpectedPattern = '%| Procedure: #myInnerError (4) |%', @Actual = @FormattedError;
+  EXEC tSQLt.AssertLike @ExpectedPattern = '%| Procedure: #myInnerError% (4) |%', @Actual = @FormattedError;
 END
 GO
 /*-----------------------------------------------------------------------------------------------*/

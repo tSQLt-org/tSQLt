@@ -176,7 +176,21 @@ END;
 GO
 /*-----------------------------------------------------------------------------------------------*/
 GO
-CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test augments any internal error with ' tSQLt is in an unknown state: Stopping execution.']
+--[@tSQLt:MaxSqlMajorVersion](13)
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test augments any internal error with ' tSQLt is in an unknown state: Stopping execution. (<=2016)']
+AS
+BEGIN
+  CREATE TABLE Private_NoTransactionHandleTableTests.SomeTable(i INT);
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.RemoveObject', @CommandToExecute='RAISERROR(''SOME INTERNAL ERROR.'',15,11)';
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt is in an unknown state: Stopping execution. (SOME INTERNAL ERROR. | Procedure: RemoveObject | Line: 1)', @ExpectedSeverity = 15, @ExpectedState = 11;
+  EXEC tSQLt.Private_NoTransactionHandleTable @Action = 'Save', @FullTableName = 'Private_NoTransactionHandleTableTests.SomeTable', @TableAction = 'Hide';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+--[@tSQLt:MinSqlMajorVersion](14)
+CREATE PROCEDURE Private_NoTransactionHandleTableTests.[test augments any internal error with ' tSQLt is in an unknown state: Stopping execution. (>2016)']
 AS
 BEGIN
   CREATE TABLE Private_NoTransactionHandleTableTests.SomeTable(i INT);
