@@ -16,7 +16,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:MinSqlMajorVersion](13)
-CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''<><><> test executed <><><>'',16,10);
   ');
 
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationSqlServerVersionTests.[42.17.1986.57]';
@@ -24,7 +24,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
   
   EXEC tSQLt_testutil.AssertTestErrors
        @TestName = 'MyInnerTests.[test should not execute]',
-       @ExpectedMessage = 'test executed%';
+       @ExpectedMessage = '%<><><> test executed <><><>%';
 END;
 GO
 CREATE PROCEDURE AnnotationSqlServerVersionTests.[test MinSqlMajorVersion doesn't allow test to execute if actual version is smaller]
@@ -65,7 +65,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:MinSqlMajorVersion](42)
-CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''<><><> test executed <><><>'',16,10);
   ');
 
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationSqlServerVersionTests.[42.17.1986.57]';
@@ -73,7 +73,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
   
   EXEC tSQLt_testutil.AssertTestErrors
        @TestName = 'MyInnerTests.[test should not execute]',
-       @ExpectedMessage = 'test executed%';
+       @ExpectedMessage = '%<><><> test executed <><><>%';
 END;
 GO
 CREATE PROCEDURE AnnotationSqlServerVersionTests.[test MinSqlMajorVersion provides a useful skip reason]
@@ -116,7 +116,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:MaxSqlMajorVersion](43)
-CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''<><><> test executed! <><><>'',16,10);
   ');
 
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationSqlServerVersionTests.[42.17.1986.57]';
@@ -124,7 +124,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
   
   EXEC tSQLt_testutil.AssertTestErrors
        @TestName = 'MyInnerTests.[test should not execute]',
-       @ExpectedMessage = 'test executed%';
+       @ExpectedMessage = '%<><><> test executed! <><><>%';
 END;
 GO
 CREATE PROCEDURE AnnotationSqlServerVersionTests.[test MaxSqlMajorVersion doesn't allow test to execute if actual version is larger]
@@ -165,7 +165,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:MaxSqlMajorVersion](42)
-CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test executed'',16,10);
+CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''<><><> test executed <><><>'',16,10);
   ');
 
   EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_SqlVersion', @FakeFunctionName = 'AnnotationSqlServerVersionTests.[42.17.1986.57]';
@@ -173,7 +173,7 @@ CREATE PROCEDURE MyInnerTests.[test should not execute] AS RAISERROR(''test exec
   
   EXEC tSQLt_testutil.AssertTestErrors
        @TestName = 'MyInnerTests.[test should not execute]',
-       @ExpectedMessage = 'test executed%';
+       @ExpectedMessage = '%<><><> test executed <><><>%';
 END;
 GO
 CREATE PROCEDURE AnnotationSqlServerVersionTests.[test MaxSqlMajorVersion provides a useful skip reason]

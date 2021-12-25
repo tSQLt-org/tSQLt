@@ -9,8 +9,8 @@ AS
 BEGIN
    DECLARE @RenameCmd NVARCHAR(MAX);
    SET @RenameCmd = 'EXEC sp_rename ''' + 
-                    @SchemaName + '.' + @ObjectName + ''', ''' + 
-                    @NewName + ''',''OBJECT'';';
+                    REPLACE(@SchemaName + '.' + @ObjectName, '''', '''''') + ''', ''' + 
+                    REPLACE(@NewName, '''', '''''') + ''',''OBJECT'';';
    
    EXEC tSQLt.SuppressOutput @RenameCmd;
 END;

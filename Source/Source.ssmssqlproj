@@ -2,6 +2,8 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Source">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
+      <Items>
+      </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
@@ -18,9 +20,6 @@
           <FullPath>ExecutePrepareServer.sql</FullPath>
         </FileNode>
         <FileNode Name="Run_Methods.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>Run_Methods.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql">
@@ -34,6 +33,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.(at)tSQLt_NoTransaction.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.(at)tSQLt_NoTransaction.sfn.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.(at)tSQLt_RunOnlyOnHostPlatform.sfn.sql">
           <AssociatedConnectionMoniker />
@@ -76,12 +81,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.AssertEqualsTableSchema.ssp.sql</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt.AssertEqualsTableSchema.tables.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>tSQLt.AssertEqualsTableSchema.tables.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.AssertLike.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -209,11 +208,26 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.PrepareServer.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_AssertNoSideEffects.ssp.sql">
+          <FullPath>tSQLt.Private_AssertNoSideEffects.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_AssertNoSideEffects_GenerateCommand.sfn.sql">
+          <FullPath>tSQLt.Private_AssertNoSideEffects_GenerateCommand.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_CleanTestResult.ssp.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_CleanTestResult.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_CleanUp.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_CleanUp.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_CleanUpCmdHandler.ssp.sql">
+          <FullPath>tSQLt.Private_CleanUpCmdHandler.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_CompareTables.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -329,6 +343,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetForeignKeyDefinition.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_GetFormattedErrorInfo.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_GetFormattedErrorInfo.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_GetFullTypeName.sfn.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -353,6 +373,12 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_HandleMessageAndResult.sfn.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_HandleMessageAndResult.sfn.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_HostPlatform.stub.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -366,9 +392,6 @@
           <FullPath>tSQLt.Private_HostPlatform.svw.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_Init.ssp.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>tSQLt.Private_Init.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_InstallationInfo.sfn.sql">
@@ -388,6 +411,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ListTestAnnotations.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_Lock.tbl.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_Lock.tbl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_MarktSQLtTempObject.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -412,12 +441,6 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_NewTestClassList.tbl.sql</FullPath>
-        </FileNode>
-        <FileNode Name="tSQLt.Private_NullCellTable.tbl.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>tSQLt.Private_NullCellTable.tbl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_PrepareFakeFunctionOutputTable.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -479,11 +502,41 @@
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ResetNewTestClassList.ssp.sql</FullPath>
         </FileNode>
+        <FileNode Name="tSQLt.Private_NoTransactionHandleTable.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_NoTransactionHandleTable.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_NoTransactionTableAction.view.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_NoTransactionTableAction.view.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_NoTransactionHandleTables.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_NoTransactionHandleTables.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_Results.view.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_Results.view.sql</FullPath>
+        </FileNode>
         <FileNode Name="tSQLt.Private_ScriptIndex.sfn.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ScriptIndex.sfn.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_Seize.tbl.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_Seize.tbl.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_SetConfiguration.ssp.sql">
           <AssociatedConnectionMoniker />
@@ -538,6 +591,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction.ssp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure.ssp.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure.ssp.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported.ssp.sql">
           <AssociatedConnectionMoniker />

@@ -3,6 +3,7 @@ tSQLt._Header.sql
 tSQLt.schema.sql
 tSQLt.TestClass.user.sql
 tSQLt.Private_GetDropItemCmd.sfn.sql
+tSQLt.Private_Results.view.sql
 tSQLt.DropClass.ssp.sql
 tSQLt.Uninstall.ssp.sql
 tSQLt.TestClasses.view.sql
@@ -41,6 +42,8 @@ tSQLt.Private_RenameObjectToUniqueName.ssp.sql
 tSQLt.Private_RenameObjectToUniqueNameUsingObjectId.ssp.sql
 tSQLt.RemoveObject.ssp.sql
 tSQLt.RemoveObjectIfExists.ssp.sql
+tSQLt.Private_GetFormattedErrorInfo.sfn.sql
+tSQLt.Private_HandleMessageAndResult.sfn.sql
 tSQLt.Private_CleanTestResult.ssp.sql
 tSQLt.Private_ListTestAnnotations.sfn.sql
 tSQLt.Private_ProcessTestAnnotations.ssp.sql
@@ -50,8 +53,16 @@ tSQLt.Private_SqlVersion.sfn.sql
 tSQLt.Private_SplitSqlVersion.sfn.sql
 tSQLt.FriendlySQLServerVersion.sfn.sql
 tSQLt.Info.sfn.sql
+tSQLt.Private_Seize.tbl.sql
 tSQLt.Private_Init.ssp.sql
 tSQLt.Private_HostPlatform.svw.sql
+tSQLt.Private_NoTransactionTableAction.view.sql
+tSQLt.Private_NoTransactionHandleTable.ssp.sql
+tSQLt.Private_NoTransactionHandleTables.ssp.sql
+tSQLt.Private_CleanUpCmdHandler.ssp.sql
+tSQLt.Private_CleanUp.ssp.sql
+tSQLt.Private_AssertNoSideEffects_GenerateCommand.sfn.sql
+tSQLt.Private_AssertNoSideEffects.ssp.sql
 Run_Methods.sql
 tSQLt.Private_SysTypes.svw.sql
 tSQLt.Private_GetFullTypeName.sfn.sql
@@ -60,6 +71,7 @@ tSQLt.Private_ScriptIndex.sfn.sql
 tSQLt.Private_RemoveSchemaBinding.ssp.sql
 tSQLt.Private_RemoveSchemaBoundReferences.ssp.sql
 tSQLt.Private_GetForeignKeyDefinition.sfn.sql
+tSQLt.Private_MarktSQLtTempObject.ssp.sql
 ApplyConstraint_Methods.sql
 tSQLt.Private_ValidateFakeTableParameters.ssp.sql
 tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
@@ -68,17 +80,16 @@ tSQLt.Private_GetDefaultConstraintDefinition.sfn.sql
 tSQLt.Private_GetUniqueConstraintDefinition.sfn.sql
 tSQLt.Private_CreateFakeTableStatement.sfn.sql
 tSQLt.Private_CreateFakeOfTable.ssp.sql
-tSQLt.Private_MarktSQLtTempObject.ssp.sql
 tSQLt.FakeTable.ssp.sql
 tSQLt.Private_GenerateCreateProcedureSpyStatement.ssp.sql
 tSQLt.Private_CreateProcedureSpy.ssp.sql
+tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure.ssp.sql
 tSQLt.SpyProcedure.ssp.sql
 tSQLt.Private_GetCommaSeparatedColumnList.sfn.sql
 tSQLt.Private_CreateResultTableForCompareTables.ssp.sql
 tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported.ssp.sql
 tSQLt.Private_CompareTablesFailIfUnequalRowsExists.ssp.sql
 tSQLt.Private_CompareTables.ssp.sql
-tSQLt.Private_NullCellTable.tbl.sql
 tSQLt.AssertObjectExists.ssp.sql
 tSQLt.AssertObjectDoesNotExist.ssp.sql
 tSQLt.AssertEqualsString.ssp.sql
@@ -94,7 +105,6 @@ tSQLt.Private_ValidateObjectsCompatibleWithFakeFunction.ssp.sql
 tSQLt.Private_CreateFakeFunction.ssp.sql
 tSQLt.FakeFunction.ssp.sql
 tSQLt.RenameClass.ssp.sql
-tSQLt.AssertEqualsTableSchema.tables.sql
 tSQLt.AssertEqualsTableSchema.ssp.sql
 tSQLt.AssertStringTable.udt.sql
 tSQLt.AssertStringIn.ssp.sql
@@ -105,6 +115,7 @@ tSQLt.(at)tSQLt_SkipTest.sfn.sql
 tSQLt.(at)tSQLt_MinSqlMajorVersion.sfn.sql
 tSQLt.(at)tSQLt_MaxSqlMajorVersion.sfn.sql
 tSQLt.(at)tSQLt_RunOnlyOnHostPlatform.sfn.sql
+tSQLt.(at)tSQLt_NoTransaction.sfn.sql
 tSQLt.RemoveExternalAccessKey.ssp.sql
 tSQLt.InstallExternalAccessKey.ssp.sql
 tSQLt.Private_InstallationInfo.sfn.sql

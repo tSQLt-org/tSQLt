@@ -6,7 +6,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyInnerTests'
   EXEC('
 --[@'+'tSQLt:RunOnlyOnHostPlatform](''SomePlatform'')
-CREATE PROCEDURE MyInnerTests.[test should execute] AS RAISERROR(''test executed'',16,10);
+CREATE PROCEDURE MyInnerTests.[test should execute] AS RAISERROR(''M<M<M< test executed >M>M>M'',16,10);
   ');
 
   EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_HostPlatform';
@@ -14,7 +14,7 @@ CREATE PROCEDURE MyInnerTests.[test should execute] AS RAISERROR(''test executed
   
   EXEC tSQLt_testutil.AssertTestErrors
        @TestName = 'MyInnerTests.[test should execute]',
-       @ExpectedMessage = 'test executed%';
+       @ExpectedMessage = '%M<M<M< test executed >M>M>M%';
 END;
 GO
 CREATE PROCEDURE AnnotationHostPlatformTests.[test doesn't allow test to execute if actual host platform is not equal to the provided one]

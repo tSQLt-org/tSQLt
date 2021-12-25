@@ -88,6 +88,8 @@ stages:
       inputs:
         azureSubscription: 'Azure DevOps Main Pipeline Service Principal'
         KeyVaultName: 'tSQLtSigningKey'
+        SecretsFilter: '*'
+        RunAsPreJob: false
 
     - task: PowerShell@2
       name: CreateResourceGroupName

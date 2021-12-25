@@ -1,19 +1,15 @@
 ---Build+
 GO
 CREATE TABLE tSQLt.TestResult(
-    Id INT IDENTITY(1,1) PRIMARY KEY CLUSTERED,
+    Id INT IDENTITY(1,1) CONSTRAINT [PK:tSQLt.TestResult] PRIMARY KEY CLUSTERED,
     Class NVARCHAR(MAX) NOT NULL,
     TestCase NVARCHAR(MAX) NOT NULL,
     Name AS (QUOTENAME(Class) + '.' + QUOTENAME(TestCase)),
-    TranName NVARCHAR(MAX) NOT NULL,
+    TranName NVARCHAR(MAX) NULL,
     Result NVARCHAR(MAX) NULL,
     Msg NVARCHAR(MAX) NULL,
     TestStartTime DATETIME2 NOT NULL CONSTRAINT [DF:TestResult(TestStartTime)] DEFAULT SYSDATETIME(),
     TestEndTime DATETIME2 NULL
-);
-GO
-CREATE TABLE tSQLt.TestMessage(
-    Msg NVARCHAR(MAX)
 );
 GO
 CREATE TABLE tSQLt.Run_LastExecution(
@@ -21,8 +17,6 @@ CREATE TABLE tSQLt.Run_LastExecution(
     SessionId INT,
     LoginTime DATETIME
 );
-GO
-CREATE TABLE tSQLt.Private_ExpectException(i INT);
 GO
 CREATE PROCEDURE tSQLt.Private_Print 
     @Message NVARCHAR(MAX),
@@ -127,22 +121,19 @@ GO
 
 ----------------------------------------------------------------------
 CREATE FUNCTION tSQLt.Private_GetLastTestNameIfNotProvided(@TestName NVARCHAR(MAX))
-RETURNS NVARCHAR(MAX)
+RETURNS TABLE
 AS
-BEGIN
-  IF(LTRIM(ISNULL(@TestName,'')) = '')
-  BEGIN
-    SELECT @TestName = TestName 
-      FROM tSQLt.Run_LastExecution le
-      JOIN sys.dm_exec_sessions es
-        ON le.SessionId = es.session_id
-       AND le.LoginTime = es.login_time
-     WHERE es.session_id = @@SPID;
-  END
-
-  RETURN @TestName;
-END
+RETURN
+  SELECT CASE WHEN (LTRIM(ISNULL(@TestName,'')) = '') THEN LE.TestName ELSE @TestName END TestName
+    FROM tSQLt.Run_LastExecution LE
+    RIGHT JOIN sys.dm_exec_sessions ES
+      ON LE.SessionId = ES.session_id
+      AND LE.LoginTime = ES.login_time
+    WHERE ES.session_id = @@SPID;
 GO
+/*--
+IF(LTRIM(ISNULL(@TestName,'')) = '')
+--*/
 
 CREATE PROCEDURE tSQLt.Private_SaveTestNameForSession 
   @TestName NVARCHAR(MAX)
@@ -181,23 +172,6 @@ RETURN WITH A(Cnt, SuccessCnt, SkippedCnt, FailCnt, ErrorCnt) AS (
                   CAST(ErrorCnt AS NVARCHAR) + ' errored.' Msg,*
          FROM A;
 GO
-
-CREATE PROCEDURE tSQLt.Private_ValidateProcedureCanBeUsedWithSpyProcedure
-    @ProcedureName NVARCHAR(MAX)
-AS
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM sys.procedures WHERE object_id = OBJECT_ID(@ProcedureName))
-    BEGIN
-      RAISERROR('Cannot use SpyProcedure on %s because the procedure does not exist', 16, 10, @ProcedureName) WITH NOWAIT;
-    END;
-    
-    IF (1020 < (SELECT COUNT(*) FROM sys.parameters WHERE object_id = OBJECT_ID(@ProcedureName)))
-    BEGIN
-      RAISERROR('Cannot use SpyProcedure on procedure %s because it contains more than 1020 parameters', 16, 10, @ProcedureName) WITH NOWAIT;
-    END;
-END;
-GO
-
 
 CREATE PROCEDURE tSQLt.AssertEquals
     @Expected SQL_VARIANT,

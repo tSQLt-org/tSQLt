@@ -37,7 +37,7 @@ BEGIN
      SAVE TRAN @TranName;
    END;
 
-   INSERT INTO tSQLt.TestMessage(Msg)
+   INSERT INTO #TestMessage(Msg)
    SELECT COALESCE(@Message0, '!NULL!')
         + COALESCE(@Message1, '!NULL!')
         + COALESCE(@Message2, '!NULL!')

@@ -13,6 +13,7 @@ BEGIN
     EXEC tSQLt.AssertObjectExists @Actual;
 
     DECLARE @ResultTable NVARCHAR(MAX);    
+    DECLARE @ResultTableWithSchema NVARCHAR(MAX);    
     DECLARE @ResultColumn NVARCHAR(MAX);    
     DECLARE @ColumnList NVARCHAR(MAX);    
     DECLARE @UnequalRowsExist INT;
@@ -20,27 +21,28 @@ BEGIN
 
     SELECT @ResultTable = tSQLt.Private::CreateUniqueObjectName();
     SELECT @ResultColumn = 'RC_' + @ResultTable;
+    SELECT @ResultTableWithSchema = 'tSQLt.' + @ResultTable; 
 
     EXEC tSQLt.Private_CreateResultTableForCompareTables 
-      @ResultTable = @ResultTable,
+      @ResultTable = @ResultTableWithSchema,
       @ResultColumn = @ResultColumn,
       @BaseTable = @Expected;
         
-    SELECT @ColumnList = tSQLt.Private_GetCommaSeparatedColumnList(@ResultTable, @ResultColumn);
+    SELECT @ColumnList = tSQLt.Private_GetCommaSeparatedColumnList(@ResultTableWithSchema, @ResultColumn);
 
-    EXEC tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported @ResultTable, @ColumnList;    
+    EXEC tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported @ResultTableWithSchema, @ColumnList;    
     
     EXEC @UnequalRowsExist = tSQLt.Private_CompareTables 
       @Expected = @Expected,
       @Actual = @Actual,
-      @ResultTable = @ResultTable,
+      @ResultTable = @ResultTableWithSchema,
       @ColumnList = @ColumnList,
       @MatchIndicatorColumnName = @ResultColumn;
         
     SET @CombinedMessage = ISNULL(@Message + CHAR(13) + CHAR(10),'') + @FailMsg;
     EXEC tSQLt.Private_CompareTablesFailIfUnequalRowsExists 
       @UnequalRowsExist = @UnequalRowsExist,
-      @ResultTable = @ResultTable,
+      @ResultTable = @ResultTableWithSchema,
       @ResultColumn = @ResultColumn,
       @ColumnList = @ColumnList,
       @FailMsg = @CombinedMessage;   

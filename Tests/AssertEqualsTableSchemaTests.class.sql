@@ -190,7 +190,7 @@ BEGIN
   EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertEqualsTableSchema did not call Fail';
 END;
 GO
-CREATE PROCEDURE AssertEqualsTableSchemaTests.[test fail if 2nd table has Column with different colation order]
+CREATE PROCEDURE AssertEqualsTableSchemaTests.[test fail if 2nd table has Column with different collation order]
 AS
 BEGIN
   CREATE TABLE AssertEqualsTableSchemaTests.Tbl1(
@@ -286,6 +286,23 @@ BEGIN
   ALTER TABLE AssertEqualsTableSchemaTests.Tbl2 DROP COLUMN Gap1;
   ALTER TABLE AssertEqualsTableSchemaTests.Tbl2 DROP COLUMN Gap2;
   EXEC tSQLt.AssertEqualsTableSchema @Expected = 'AssertEqualsTableSchemaTests.Tbl1', @Actual = 'AssertEqualsTableSchemaTests.Tbl2';
+END;
+GO
+--[@tSQLt:SkipTest]('Not currently supported. See Issue https://github.com/tSQLt-org/tSQLt/issues/119')
+CREATE PROCEDURE AssertEqualsTableSchemaTests.[test calls fail if tables are #temporary and their schema does not match]
+AS
+BEGIN
+  CREATE TABLE #Actual(
+    Id INT PRIMARY KEY,
+    NoKey INT NULL
+  );
+  CREATE TABLE #Expected(
+    Id BIT PRIMARY KEY,
+    NoKey NVARCHAR(MAX) NULL
+  );
+  DECLARE @Command VARCHAR(MAX) = 'EXEC tSQLt.AssertEqualsTableSchema @Expected = ''#Expected'', @Actual = ''#Actual'';';
+  EXEC tSQLt_testutil.assertFailCalled @Command, 'AssertEqualsTableSchema did not call Fail';
+
 END;
 GO
 

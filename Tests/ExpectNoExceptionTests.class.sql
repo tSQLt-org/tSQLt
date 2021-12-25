@@ -16,22 +16,29 @@ BEGIN
     EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingNoException';
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE FUNCTION ExpectNoExceptionTests.[Return 42424242 prefix before ERROR_MESSAGE()]()
+RETURNS TABLE
+AS
+RETURN
+  SELECT '42424242: '+ERROR_MESSAGE() FormattedError;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 CREATE PROCEDURE ExpectNoExceptionTests.[test tSQLt.ExpectNoException includes error information in fail message ]
 AS
 BEGIN
+  EXEC tSQLt.FakeFunction @FunctionName = 'tSQLt.Private_GetFormattedErrorInfo', @FakeFunctionName = 'ExpectNoExceptionTests.[Return 42424242 prefix before ERROR_MESSAGE()]';
 
-    EXEC tSQLt.NewTestClass 'MyTestClass';
-    EXEC('CREATE PROC MyTestClass.TestExpectingNoException AS EXEC tSQLt.ExpectNoException;RAISERROR(''test error message'',16,10);');
+  EXEC tSQLt.NewTestClass 'MyTestClass';
+  EXEC('CREATE PROC MyTestClass.TestExpectingNoException AS EXEC tSQLt.ExpectNoException;RAISERROR(''test error message'',16,10);');
 
-    DECLARE @ExpectedMessage NVARCHAR(MAX);
-    DECLARE @ProductMajorVersion INT;
-    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+  DECLARE @ExpectedMessage NVARCHAR(MAX) = 
+            'Expected no error to be raised. Instead this error was encountered:'+CHAR(13)+CHAR(10)+
+            '42424242: test error message';
 
-    SET @ExpectedMessage = 'Expected no error to be raised. Instead this error was encountered:'+CHAR(13)+CHAR(10)+
-                           'test error message[[]16,10]{'+
-                           CASE WHEN @ProductMajorVersion >= 14 THEN 'MyTestClass.' ELSE '' END+
-                           'TestExpectingNoException,1}';
-    EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingNoException', @ExpectedMessage;
+  EXEC tSQLt_testutil.AssertTestFails 'MyTestClass.TestExpectingNoException', @ExpectedMessage;
 END;
 GO
 
@@ -53,7 +60,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyTestClass';
   EXEC('CREATE PROC MyTestClass.TestExpectingNoException AS  EXEC tSQLt.ExpectNoException;EXEC tSQLt.ExpectNoException;');
 
-  EXEC tSQLt_testutil.AssertTestErrors 'MyTestClass.TestExpectingNoException','Each test can only contain one call to tSQLt.ExpectNoException.%';
+  EXEC tSQLt_testutil.AssertTestErrors 'MyTestClass.TestExpectingNoException','%Each test can only contain one call to tSQLt.ExpectNoException.%';
 END;
 GO
 CREATE PROCEDURE ExpectNoExceptionTests.[test a ExpectNoException cannot follow an ExpectException]
@@ -62,7 +69,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyTestClass';
   EXEC('CREATE PROC MyTestClass.TestExpectingNoException AS  EXEC tSQLt.ExpectException;EXEC tSQLt.ExpectNoException;');
 
-  EXEC tSQLt_testutil.AssertTestErrors 'MyTestClass.TestExpectingNoException','tSQLt.ExpectNoException cannot follow tSQLt.ExpectException inside a single test.%';
+  EXEC tSQLt_testutil.AssertTestErrors 'MyTestClass.TestExpectingNoException','%tSQLt.ExpectNoException cannot follow tSQLt.ExpectException inside a single test.%';
 END;
 GO
 

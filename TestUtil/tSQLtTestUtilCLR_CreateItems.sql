@@ -24,3 +24,6 @@ GO
 CREATE FUNCTION tSQLt_testutil.AnEmptyClrTvf(@p1 NVARCHAR(MAX), @p2 NVARCHAR(MAX))RETURNS TABLE(id INT, val NVARCHAR(MAX))
        AS EXTERNAL NAME tSQLtTestUtilCLR.[tSQLtTestUtilCLR.ClrFunctions].AnEmptyClrTvf;
 GO
+CREATE PROCEDURE tSQLt_testutil.AClrSsp 
+       AS EXTERNAL NAME tSQLtTestUtilCLR.[tSQLtTestUtilCLR.ClrStoredProcedures].AClrSsp;
+GO

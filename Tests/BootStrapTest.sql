@@ -49,7 +49,7 @@ BEGIN CATCH
 END CATCH;
 
 BEGIN TRY
-    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE 'TestCase was executed! (42)%')
+    IF NOT EXISTS(SELECT 1 FROM tSQLt.TestResult WHERE Msg LIKE '%TestCase was executed! (42)%')
         RAISERROR('TestCase was not executed',16,10);
 
     PRINT 'Test passed';

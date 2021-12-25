@@ -81,27 +81,35 @@ GO
 CREATE PROC Run_Methods_Tests.test_Run_handles_test_names_with_spaces
 AS
 BEGIN
-    DECLARE @ProductMajorVersion INT;
-    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+  DECLARE @ProductMajorVersion INT;
+  EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
 
-    EXEC('CREATE SCHEMA MyTestClass;');
-    EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''GotHere'',16,10);');
+  EXEC('CREATE SCHEMA MyTestClass;');
+  EXEC('CREATE PROC MyTestClass.[Test Case A] AS RAISERROR(''<><><> GotHere <><><>'',16,10);');
     
-    BEGIN TRY
-        EXEC tSQLt.Run 'MyTestClass.Test Case A';
-    END TRY
-    BEGIN CATCH
-      --This space left intentionally blank
-    END CATCH
-    SELECT Class, TestCase, Msg 
-      INTO Run_Methods_Tests.actual
-      FROM tSQLt.TestResult;
-    SELECT TOP(0)* INTO Run_Methods_Tests.expected FROM  Run_Methods_Tests.actual;
+  BEGIN TRY
+      EXEC tSQLt.Run 'MyTestClass.Test Case A';
+  END TRY
+  BEGIN CATCH
+    --This space left intentionally blank
+  END CATCH
+  SELECT Class, TestCase, Msg 
+    INTO #Actual
+    FROM tSQLt.TestResult;
 
-    INSERT INTO Run_Methods_Tests.expected
-    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, 'GotHere[16,10]{'+CASE WHEN @ProductMajorVersion >= 14 THEN 'MyTestClass.' ELSE '' END+'Test Case A,1}' Msg
+  SELECT TOP(0) A.Class,A.TestCase,A.Msg AS [%Msg] INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+    SELECT 'MyTestClass' Class, 'Test Case A' TestCase, '%<><><> GotHere <><><>%' Msg
+
+  SELECT * INTO #Compare
+    FROM(
+      SELECT '>' _R_,* FROM #Actual AS A WHERE NOT EXISTS(SELECT 1 FROM #Expected E WHERE A.Class = E.Class AND A.TestCase = E.TestCase AND A.Msg LIKE E.[%Msg])
+       UNION ALL
+      SELECT '<' _R_,* FROM #Expected AS E WHERE NOT EXISTS(SELECT 1 FROM #Actual A WHERE A.Class = E.Class AND A.TestCase = E.TestCase AND A.Msg LIKE E.[%Msg])
+    )X
     
-    EXEC tSQLt.AssertEqualsTable 'Run_Methods_Tests.expected', 'Run_Methods_Tests.actual';
+    EXEC tSQLt.AssertEmptyTable '#Compare';
 END;
 GO
 
@@ -1450,29 +1458,14 @@ BEGIN
     EXEC tSQLt.NewTestClass 'Test Class B';
     EXEC tSQLt.NewTestClass 'Test Class C';
 
-    DECLARE @TestClassCursor CURSOR;
-    EXEC tSQLt.Private_GetCursorForRunNew @TestClassCursor = @TestClassCursor OUT;  
-
-    SELECT Class
-    INTO #Actual
-      FROM tSQLt.TestResult
-     WHERE 1=0;
-
-    DECLARE @TestClass NVARCHAR(MAX);
-    WHILE(1=1)
-    BEGIN
-      FETCH NEXT FROM @TestClassCursor INTO @TestClass;
-      IF(@@FETCH_STATUS<>0)BREAK;
-      INSERT INTO #Actual VALUES(@TestClass);
-    END;
-    CLOSE @TestClassCursor;
-    DEALLOCATE @TestClassCursor;
+    CREATE TABLE #TestClassesForRunCursor(Name NVARCHAR(MAX));
+    EXEC tSQLt.Private_GetCursorForRunNew;
     
-    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    SELECT TOP(0) A.* INTO #Expected FROM #TestClassesForRunCursor A RIGHT JOIN #TestClassesForRunCursor X ON 1=0;
     INSERT INTO #Expected VALUES('Test Class B');    
     INSERT INTO #Expected VALUES('Test Class C');    
      
-    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#TestClassesForRunCursor';
     
 END;
 GO
@@ -1486,29 +1479,13 @@ BEGIN
     EXEC tSQLt.NewTestClass 'Test Class C';
     EXEC tSQLt.DropClass 'Test Class C';
 
-    DECLARE @TestClassCursor CURSOR;
-    EXEC tSQLt.Private_GetCursorForRunNew @TestClassCursor = @TestClassCursor OUT;  
-
-    SELECT Class
-    INTO #Actual
-      FROM tSQLt.TestResult
-     WHERE 1=0;
-
-    DECLARE @TestClass NVARCHAR(MAX);
-    WHILE(1=1)
-    BEGIN
-      FETCH NEXT FROM @TestClassCursor INTO @TestClass;
-      IF(@@FETCH_STATUS<>0)BREAK;
-      INSERT INTO #Actual VALUES(@TestClass);
-    END;
-    CLOSE @TestClassCursor;
-    DEALLOCATE @TestClassCursor;
+    CREATE TABLE #TestClassesForRunCursor(Name NVARCHAR(MAX));
+    EXEC tSQLt.Private_GetCursorForRunNew;
     
-    SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    SELECT TOP(0) A.* INTO #Expected FROM #TestClassesForRunCursor A RIGHT JOIN #TestClassesForRunCursor X ON 1=0;
     INSERT INTO #Expected VALUES('Test Class B');    
      
-    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
-    
+    EXEC tSQLt.AssertEqualsTable '#Expected','#TestClassesForRunCursor';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test Privat_RunNew calls Private_RunCursor with correct cursor]
@@ -2243,3 +2220,284 @@ BEGIN
   END;
 END
 GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunAll can handle classes with single quotes]
+AS
+BEGIN
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_RunTestClass';
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
+  EXEC('INSERT INTO tSQLt.TestClasses VALUES(''a class with a '''' in the middle'',12321);');
+
+  EXEC tSQLt.RunAll;
+
+  SELECT TestClassName
+  INTO #Actual
+  FROM tSQLt.Private_RunTestClass_SpyProcedureLog;
+  
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES ('a class with a '' in the middle');
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunAll executes tests with single quotes in class and name]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
+  EXEC('INSERT INTO tSQLt.TestClasses VALUES(''a class with a '''' in the middle'',12321);');
+
+  EXEC tSQLt.SetSummaryError 0;
+
+  EXEC tSQLt.RunAll;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunTestClass executes tests with single quotes in class and name]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.RunTestClass @TestClassName = '[a class with a '' in the middle]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Run executes test class with single quotes in name]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.Run '[a class with a '' in the middle]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.Run executes test with single quotes in class and test names]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+
+  EXEC tSQLt.Run '[a class with a '' in the middle].[test with a '' in the middle]';
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/* ----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test tSQLt.RunNew executes test class with single quotes in class and test names]
+AS
+BEGIN
+  CREATE TABLE #Actual (Id INT);
+  EXEC ('CREATE SCHEMA [a class with a '' in the middle];');
+  EXEC ('
+  --[@'+'tSQLt:NoTransaction](DEFAULT)
+  CREATE PROCEDURE [a class with a '' in the middle].[test with a '' in the middle] AS BEGIN INSERT INTO #Actual VALUES (1); END;
+  ');
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.TestClasses';
+
+  EXEC tSQLt.FakeTable @TableName = 'tSQLt.Private_NewTestClassList';
+
+  EXEC('INSERT INTO tSQLt.TestClasses(Name) VALUES(''a class with a '''' in the middle'');');
+  EXEC('INSERT INTO tSQLt.Private_NewTestClassList(ClassName) VALUES(''a class with a '''' in the middle'');');
+
+  EXEC tSQLt.SetSummaryError 0;
+
+  EXEC tSQLt.RunNew;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+    
+  INSERT INTO #Expected VALUES (1);
+  
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test FATAL error prevents subsequent tSQLt.Run% calls]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Reset'')BEGIN RAISERROR(''Some Fatal Error'',16,10);END;';
+
+  BEGIN TRY
+    EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+  END TRY
+  BEGIN CATCH
+    /* not interested in this error */
+  END CATCH;
+  
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'tSQLt is in an invalid state. Please reinstall tSQLt.';
+  EXEC tSQLt.Run 'MyInnerTests', @TestResultFormatter = 'tSQLt.NullTestResultFormatter';
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test when @Result=FATAL an appropriate error message is raised]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables', @CommandToExecute = 'IF(@Action = ''Reset'')BEGIN RAISERROR(''Some Fatal Error'',16,10);END;';
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'The last test has invalidated the current installation of tSQLt. Please reinstall tSQLt.';
+  EXEC tSQLt.Run 'MyInnerTests';
+  
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROCEDURE Run_Methods_Tests.[test when @Result=Abort an appropriate error message is raised]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTests'
+  EXEC('
+    --[@'+'tSQLt:NoTransaction](DEFAULT)
+    CREATE PROCEDURE [MyInnerTests].[test1]
+    AS
+    BEGIN
+      RETURN;
+    END;
+  ');
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_AssertNoSideEffects';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.UndoTestDoubles', @CommandToExecute = 'RAISERROR(''Some Fatal Error'',16,10);';
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_NoTransactionHandleTables';
+
+  EXEC tSQLt.SetSummaryError @SummaryError = 1;
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'Aborting the current execution of tSQLt due to a severe error.';
+  EXEC tSQLt.Run 'MyInnerTests';
+  
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
+--[@tSQLt:SkipTest]('TODO: tSQLt should handle this, but does not at the moment because of the issue with transactions started within a try-catch block')
+CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTestsA'
+  EXEC('CREATE PROCEDURE MyInnerTestsA.[test should execute outside of transaction] AS BEGIN TRAN;');
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
+  EXEC tSQLt.Run 'MyInnerTestsA.[test should execute outside of transaction]';
+
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
+--[@tSQLt:SkipTest]('TODO: tSQLt should handle this, but does not at the moment because of the issue with transactions started within a try-catch block')
+CREATE PROCEDURE Run_Methods_Tests.[test produces meaningful error when pre and post transactions counts don't match in NoTransaction test]
+AS
+BEGIN
+  EXEC tSQLt.NewTestClass 'MyInnerTestsB'
+  EXEC('
+--[@'+'tSQLt:NoTransaction](DEFAULT)
+CREATE PROCEDURE MyInnerTestsB.[test should execute outside of transaction] AS BEGIN TRAN;
+  ');
+
+  EXEC tSQLt.ExpectException @ExpectedMessage = 'SOMETHING RATHER', @ExpectedSeverity = NULL, @ExpectedState = NULL;
+  EXEC tSQLt.Run 'MyInnerTestsB.[test should execute outside of transaction]';
+
+  -- FOR FUTURE DEBUGGING
+  --BEGIN TRY
+  --  EXEC tSQLt.Run 'MyInnerTestsB.[test should execute outside of transaction]';
+  --END TRY
+  --BEGIN CATCH
+  --  SELECT * FROM fn_dblog(NULL,NULL) WHERE [Transaction ID] = (SELECT LL.[Transaction ID] FROM fn_dblog(NULL,NULL) LL JOIN sys.dm_tran_current_transaction AS DTCT ON DTCT.transaction_id = LL.[Xact ID]);
+  --END CATCH;
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+/*--
+  Transaction Tests to be considered
+
+  1. NoTransaction test starts a transaction
+  1a. The transaction is commitable (THIS FEELS UNLIKELY GIVEN OUR RESEARCH.)
+  1b. The transaction is not commitable 
+
+  2. Transaction test rolls-back tSQLt transaction(s)
+  2a. No transaction after test (ROLLBACK, but no new transactions created within the test)
+  2b. New transaction after test (ROLLBACK, but new one created within the test)
+
+  3. Transaction test commits tSQLt transactions(s)
+  3a. No transaction after test (COMMIT, but no new transactions created within the test)
+  3b. New transaction after test (COMMIT, but new one created within the test)
+
+  4. Transaction test renders transaction uncommitable (Won't be able to write to anything, including tSQLt.TestResults or a variety of temp tables.)
+   
+  - currently AssertNoSideEffects causes additional problems if executed inside an uncommittable transaction (It tries to write to a new temp table) <-- does this need to be changed?
+  - do existing tests already cover some of the scenarios described above?
+
+--*/

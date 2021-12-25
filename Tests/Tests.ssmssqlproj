@@ -2,15 +2,25 @@
 <SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Tests">
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
-      <Items />
+      <Items>
+      </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="_ExploratoryTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>_ExploratoryTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="AnnotationHostPlatformTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>AnnotationHostPlatformTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="AnnotationNoTransactionTests.class.sql">
+          <FullPath>AnnotationNoTransactionTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="AnnotationSkipTestTests.class.sql">
           <AssociatedConnectionMoniker />
@@ -132,12 +142,6 @@
           <AssociatedConnUserName />
           <FullPath>ExpectNoExceptionTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="ExploratoryTests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>ExploratoryTests.class.sql</FullPath>
-        </FileNode>
         <FileNode Name="FailTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -180,6 +184,21 @@
           <AssociatedConnUserName />
           <FullPath>NewTestClassTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_AssertNoSideEffectsTests.class.sql">
+          <FullPath>Private_AssertNoSideEffectsTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_CleanUpCmdHandlerTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_CleanUpCmdHandlerTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_CleanUpTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_CleanUpTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_CreateFakeFunctionStatementTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -192,6 +211,12 @@
           <AssociatedConnUserName />
           <FullPath>Private_GetAnnotationListTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_GetFormattedErrorInfoTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_GetFormattedErrorInfoTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_GetFullTypeNameTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -203,6 +228,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_GetSQLProductMajorVersionTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_HandleMessageAndResultTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_HandleMessageAndResultTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_InitTests.class.sql">
           <AssociatedConnectionMoniker />
@@ -222,11 +253,23 @@
           <AssociatedConnUserName />
           <FullPath>Private_MarktSQLtTempObjectTests.class.sql</FullPath>
         </FileNode>
-        <FileNode Name="Private_NullCellTableTests.class.sql">
+        <FileNode Name="Private_NoTransactionHandleTableTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>Private_NullCellTableTests.class.sql</FullPath>
+          <FullPath>Private_NoTransactionHandleTableTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_NoTransactionTableActionTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_NoTransactionTableActionTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_NoTransactionHandleTablesTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_NoTransactionHandleTablesTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_ProcessTestAnnotationsTests.class.sql">
           <AssociatedConnectionMoniker />
@@ -258,11 +301,23 @@
           <AssociatedConnUserName />
           <FullPath>Private_ResetNewTestClassListTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="Private_ResultsTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_ResultsTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Private_ScriptIndexTests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>Private_ScriptIndexTests.class.sql</FullPath>
+        </FileNode>
+        <FileNode Name="Private_SeizeTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Private_SeizeTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Private_SplitSqlVersionTests.class.sql">
           <AssociatedConnectionMoniker />
@@ -307,9 +362,6 @@
           <FullPath>ResultSetFilterTests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="Run_Methods_Tests.class.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
           <FullPath>Run_Methods_Tests.class.sql</FullPath>
         </FileNode>
         <FileNode Name="SetSummaryErrorTests.class.sql">

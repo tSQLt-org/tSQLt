@@ -8,13 +8,32 @@ BEGIN
 /*SnipStart: CreateDropClassStatement.ps1*/
     DECLARE @Cmd NVARCHAR(MAX);
 
-    WITH ObjectInfo(FullName, ItemType) AS
+    WITH SchemaInfo(FullName, ItemType, SchemaId) AS
+         (
+           SELECT 
+               QUOTENAME(S.name),
+               'schema',
+               S.schema_id
+             FROM sys.schemas AS S
+            WHERE S.schema_id = ISNULL(SCHEMA_ID(@ClassName), SCHEMA_ID(PARSENAME(@ClassName,1)))
+         ),
+         ConstraintInfo(FullName, ItemType) AS
+         (/*FOREIGN KEYS need to be dropped before their tables*/
+           SELECT 
+               QUOTENAME(SCHEMA_NAME(O.schema_id))+'.'+QUOTENAME(O.name),
+               O.type
+             FROM sys.objects AS O
+            JOIN SchemaInfo SI ON SI.SchemaId = O.schema_id
+              AND O.type IN ('F')
+         ),
+         ObjectInfo(FullName, ItemType) AS
          (
            SELECT 
                QUOTENAME(SCHEMA_NAME(O.schema_id))+'.'+QUOTENAME(O.name),
                O.type
              FROM sys.objects AS O
-            WHERE O.schema_id = SCHEMA_ID(@ClassName)
+            JOIN SchemaInfo SI ON SI.SchemaId = O.schema_id
+              AND O.type NOT IN ('F')
          ),
          TypeInfo(FullName, ItemType) AS
          (
@@ -22,7 +41,7 @@ BEGIN
                QUOTENAME(SCHEMA_NAME(T.schema_id))+'.'+QUOTENAME(T.name),
                'type'
              FROM sys.types AS T
-            WHERE T.schema_id = SCHEMA_ID(@ClassName)
+            JOIN SchemaInfo SI ON SI.SchemaId = T.schema_id
          ),
          XMLSchemaInfo(FullName, ItemType) AS
          (
@@ -30,25 +49,20 @@ BEGIN
                QUOTENAME(SCHEMA_NAME(XSC.schema_id))+'.'+QUOTENAME(XSC.name),
                'xml_schema_collection'
              FROM sys.xml_schema_collections AS XSC
-            WHERE XSC.schema_id = SCHEMA_ID(@ClassName)
-         ),
-         SchemaInfo(FullName, ItemType) AS
-         (
-           SELECT 
-               QUOTENAME(S.name),
-               'schema'
-             FROM sys.schemas AS S
-            WHERE S.schema_id = SCHEMA_ID(PARSENAME(@ClassName,1))
+            JOIN SchemaInfo SI ON SI.SchemaId = XSC.schema_id
          ),
          DropStatements(no,FullName,ItemType) AS
          (
            SELECT 10, FullName, ItemType
-              FROM ObjectInfo
+              FROM ConstraintInfo
              UNION ALL
            SELECT 20, FullName, ItemType
-              FROM TypeInfo
+              FROM ObjectInfo
              UNION ALL
            SELECT 30, FullName, ItemType
+              FROM TypeInfo
+             UNION ALL
+           SELECT 40, FullName, ItemType
               FROM XMLSchemaInfo
              UNION ALL
             SELECT 10000, FullName, ItemType

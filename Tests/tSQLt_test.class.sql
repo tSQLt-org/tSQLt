@@ -96,29 +96,59 @@ GO
 CREATE PROC tSQLt_test.test_Run_handles_uncommitable_transaction
 AS
 BEGIN
-    DECLARE @TranName sysname; 
-    DECLARE @ProductMajorVersion INT;
-    EXEC @ProductMajorVersion = tSQLt.Private_GetSQLProductMajorVersion;
+  DECLARE @TranName sysname; 
 
-    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_Run_handles_uncommitable_transaction' ORDER BY Id DESC;
+  SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_Run_handles_uncommitable_transaction' ORDER BY Id DESC;
+  EXEC ('CREATE PROC tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063 AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
+  BEGIN TRY
+      EXEC tSQLt.Run 'tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063';
+  END TRY
+  BEGIN CATCH
+    --Left intentionally empty
+  END CATCH;
+
+  SELECT Class, TestCase, Result, Msg 
+    INTO #Actual
+    FROM tSQLt.TestResult
+   WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063';
+
+  SELECT TOP(0) A.Class,A.TestCase,A.Result,A.Msg AS [%Msg] INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected
+    SELECT 'tSQLt_test' Class, 'testUncommitable00A1030051764AE7A946E827159E7063' TestCase, 'Error' Result, '%There is already an object named ''t1'' in the database.%The current transaction cannot be committed and cannot be rolled back to a savepoint.%' [%Msg];
+
+  SELECT * INTO #Compare
+    FROM(
+      SELECT '>' _R_,* FROM #Actual AS A WHERE NOT EXISTS(SELECT 1 FROM #Expected E WHERE A.Class = E.Class AND A.TestCase = E.TestCase AND A.Result = E.Result AND A.Msg LIKE E.[%Msg])
+       UNION ALL
+      SELECT '<' _R_,* FROM #Expected AS E WHERE NOT EXISTS(SELECT 1 FROM #Actual A WHERE A.Class = E.Class AND A.TestCase = E.TestCase AND A.Result = E.Result AND A.Msg LIKE E.[%Msg])
+    )X;
+  IF(@@ROWCOUNT>0)
+  BEGIN
+    INSERT INTO #Compare
+      SELECT '=' _R_,* FROM (SELECT * FROM #Actual INTERSECT SELECT * FROM #Expected)X;
+  END;
+  EXEC tSQLt.AssertEmptyTable '#Compare';
+
+  DELETE FROM tSQLt.TestResult
+         WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063';
+  BEGIN TRAN;
+  SAVE TRAN @TranName;
+END;
+GO
+
+
+CREATE PROC tSQLt_test.test_Run_ROLLsBACK_uncommitable_transaction
+AS
+BEGIN
+    DECLARE @TranName sysname; 
+    SELECT TOP(1) @TranName = TranName FROM tSQLt.TestResult WHERE Class = 'tSQLt_test' AND TestCase = 'test_Run_ROLLsBACK_uncommitable_transaction' ORDER BY Id DESC;
+
     EXEC ('CREATE PROC tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063 AS BEGIN CREATE TABLE t1 (i int); CREATE TABLE t1 (i int); END;');
     BEGIN TRY
         EXEC tSQLt.Run 'tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063';
     END TRY
     BEGIN CATCH
-      --SELECT * FROM tSQLt.TestResult WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063';
-      IF NOT EXISTS(SELECT 1
-                      FROM tSQLt.TestResult
-                     WHERE TestCase = 'testUncommitable00A1030051764AE7A946E827159E7063'
-                       AND Result = 'Error'
-                       AND Msg LIKE '%There is already an object named ''t1'' in the database.[[]%]{'+
-                                     CASE WHEN @ProductMajorVersion >= 14 THEN 'tSQLt_test.' ELSE '' END+
-                                     'testUncommitable00A1030051764AE7A946E827159E7063,1}%'
-                       AND Msg LIKE '%The current transaction cannot be committed and cannot be rolled back to a savepoint.%'
-                   )
-      BEGIN
-        EXEC tSQLt.Fail 'tSQLt.Run ''tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063'' did not error correctly';
-      END;
       IF(@@TRANCOUNT > 0)
       BEGIN
         EXEC tSQLt.Fail 'tSQLt.Run ''tSQLt_test.testUncommitable00A1030051764AE7A946E827159E7063'' did not rollback the transactions';
@@ -1310,7 +1340,7 @@ BEGIN
     
     SELECT '{' + Msg + '}' AS BracedMsg
       INTO #actual
-      FROM tSQLt.TestMessage;
+      FROM #TestMessage;
       
     SELECT TOP(0) *
       INTO #expected
@@ -1333,7 +1363,7 @@ BEGIN
     
     SELECT '{' + Msg + '}' AS BracedMsg
       INTO #actual
-      FROM tSQLt.TestMessage;
+      FROM #TestMessage;
       
     SELECT TOP(0) *
       INTO #expected

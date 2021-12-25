@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClrFunctions.cs" />
+    <Compile Include="ClrStoredProcedures.cs" />
     <Compile Include="DataTypeByteOrdered.cs" />
     <Compile Include="DataTypeNoEqual.cs" />
     <Compile Include="DataTypeWithEqual.cs" />

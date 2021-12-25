@@ -186,7 +186,7 @@ BEGIN
   EXEC tSQLt.NewTestClass 'MyTestClass';
   EXEC('CREATE PROC MyTestClass.TestExpectingNoException AS  EXEC tSQLt.ExpectException;EXEC tSQLt.ExpectException;');
 
-  EXEC tSQLt_testutil.AssertTestErrors 'MyTestClass.TestExpectingNoException','Each test can only contain one call to tSQLt.ExpectException.%';
+  EXEC tSQLt_testutil.AssertTestErrors 'MyTestClass.TestExpectingNoException','%Each test can only contain one call to tSQLt.ExpectException.%';
 END;
 GO
 CREATE PROCEDURE ExpectExceptionTests.[test expecting error number fails when unexpected error number is used]

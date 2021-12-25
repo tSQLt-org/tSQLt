@@ -36,6 +36,12 @@
           <AssociatedConnUserName />
           <FullPath>CertificateTest.sql</FullPath>
         </FileNode>
+        <FileNode Name="CollationTests.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>CollationTests.sql</FullPath>
+        </FileNode>
         <FileNode Name="EXPERIMENTS.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -59,6 +65,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>LIKE4000.sql</FullPath>
+        </FileNode>
+        <FileNode Name="MSSQL Defect Try-Catch Invalidates Transaction.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>MSSQL Defect Try-Catch Invalidates Transaction.sql</FullPath>
         </FileNode>
         <FileNode Name="NameResolutionResearch.sql">
           <AssociatedConnectionMoniker />
@@ -101,6 +113,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>SQLCmdTest.1.sql</FullPath>
+        </FileNode>
+        <FileNode Name="TestingTransactionNames.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>TestingTransactionNames.sql</FullPath>
         </FileNode>
         <FileNode Name="tSQLtListObjects.sql">
           <AssociatedConnectionMoniker />

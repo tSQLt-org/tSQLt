@@ -249,5 +249,88 @@ BEGIN
 END;
 GO
     
+CREATE PROC DropClassTests.[test removes tables referencing each other]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA MyTestClass;');
+    EXEC('CREATE TABLE MyTestClass.TableA(I INT PRIMARY KEY);');
+    EXEC('CREATE TABLE MyTestClass.TableB(I INT PRIMARY KEY REFERENCES MyTestClass.TableA(I));');
+    EXEC('ALTER TABLE MyTestClass.TableA ADD FOREIGN KEY (I) REFERENCES MyTestClass.TableB(I);');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'MyTestClass';
+    
+    IF(SCHEMA_ID('MyTestClass') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop MyTestClass';
+    END
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
+CREATE PROC DropClassTests.[test removes tables referencing each other with names that require quoting ( .')]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA [My.Tes''t Class];');
+    EXEC('CREATE TABLE [My.Tes''t Class].[Ta.b''le A](I INT PRIMARY KEY);');
+    EXEC('CREATE TABLE [My.Tes''t Class].[Ta.b''le B](I INT PRIMARY KEY CONSTRAINT [FK: Ta.b''le B] REFERENCES [My.Tes''t Class].[Ta.b''le A](I));');
+    EXEC('ALTER TABLE [My.Tes''t Class].[Ta.b''le A] ADD CONSTRAINT [FK: Ta.b''le A] FOREIGN KEY (I) REFERENCES [My.Tes''t Class].[Ta.b''le B](I);');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'My.Tes''t Class';
+    
+    IF(SCHEMA_ID('My.Tes''t Class') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop [My.Tes''t Class]';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test drop class works if schema name is passed in unquoted]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA [My.Tes''t Class];');
+    EXEC('CREATE TYPE [My.Tes''t Class].UDT FROM INT;');
+    EXEC('CREATE TABLE [My.Tes''t Class].[Ta.b''le A](I INT PRIMARY KEY, OO [My.Tes''t Class].UDT);');
+    EXEC('CREATE TABLE [My.Tes''t Class].[Ta.b''le B](I INT PRIMARY KEY CONSTRAINT [FK: Ta.b''le B] REFERENCES [My.Tes''t Class].[Ta.b''le A](I));');
+    EXEC('CREATE XML SCHEMA COLLECTION [My.Tes''t Class].TestXMLSchema
+    AS''<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"><xsd:element name="testelement" /></xsd:schema>'';');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass 'My.Tes''t Class';
+    
+    IF(SCHEMA_ID('My.Tes''t Class') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop [My.Tes''t Class]';
+    END
+END;
+GO
+CREATE PROC DropClassTests.[test drop class works if schema name is passed in quoted]
+AS
+BEGIN
+
+    EXEC('CREATE SCHEMA [My.Tes''t Class];');
+    EXEC('CREATE TYPE [My.Tes''t Class].UDT FROM INT;');
+    EXEC('CREATE TABLE [My.Tes''t Class].[Ta.b''le A](I INT PRIMARY KEY, OO [My.Tes''t Class].UDT);');
+    EXEC('CREATE TABLE [My.Tes''t Class].[Ta.b''le B](I INT PRIMARY KEY CONSTRAINT [FK: Ta.b''le B] REFERENCES [My.Tes''t Class].[Ta.b''le A](I));');
+    EXEC('CREATE XML SCHEMA COLLECTION [My.Tes''t Class].TestXMLSchema
+    AS''<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"><xsd:element name="testelement" /></xsd:schema>'';');
+
+    EXEC tSQLt.ExpectNoException;
+    
+    EXEC tSQLt.DropClass '[My.Tes''t Class]';
+    
+    IF(SCHEMA_ID('My.Tes''t Class') IS NOT NULL)
+    BEGIN    
+      EXEC tSQLt.Fail 'DropClass did not drop [My.Tes''t Class]';
+    END
+END;
+GO
 
 

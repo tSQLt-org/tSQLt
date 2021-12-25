@@ -351,6 +351,30 @@ BEGIN
 END;
 GO
 
+CREATE PROC SpyProcedureTests.[test SpyProcedure handles procedure and schema names with single quotes]
+AS
+BEGIN
+  DECLARE @ErrorRaised INT; SET @ErrorRaised = 0;
+
+  EXEC('CREATE SCHEMA [Tes''tSchema];');
+  EXEC('CREATE PROC [Tes''tSchema].[Spye''e Proc] @testParam1 INT AS RETURN 0;');
+
+  EXEC tSQLt.SpyProcedure '[Tes''tSchema].[Spye''e Proc]';
+    
+  DECLARE @InnerProcedure VARCHAR(MAX) = '[Tes''tSchema].[Spye''e Proc]';
+  EXEC @InnerProcedure 27;
+  
+  SELECT testParam1
+    INTO #Actual
+    FROM [Tes'tSchema].[Spye'e Proc_SpyProcedureLog];
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(27);
+    
+  EXEC tSQLt.AssertEqualsTable '#Expected', '#Actual';
+END;
+GO
+
 CREATE PROC SpyProcedureTests.[test SpyProcedure calls tSQLt.Private_RenameObjectToUniqueName on original proc]
 AS
 BEGIN
@@ -682,9 +706,10 @@ BEGIN
 
     EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
            @ProcedureObjectId = @ProcedureObjectId,
-           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @OriginalProcedureName = 'dbo.OriginalInnerProcedure',
            @LogTableName = NULL,
            @CommandToExecute = NULL,
+           @CallOriginal = 0,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
 
@@ -695,7 +720,7 @@ GO
 CREATE PROC SpyProcedureTests.[test Private_CreateProcedureSpy does create spy when @LogTableName is NULL]
 AS
 BEGIN
-    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;');
+    EXEC('CREATE PROC dbo.OriginalInnerProcedure AS RETURN;'); /* This is the simulated rename of dbo.SpiedInnerProcedure */
 
     DECLARE @ProcedureObjectId INT = OBJECT_ID('dbo.OriginalInnerProcedure');
 
@@ -704,9 +729,10 @@ BEGIN
 
     EXEC tSQLt.Private_GenerateCreateProcedureSpyStatement
            @ProcedureObjectId = @ProcedureObjectId,
-           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',  /*using different name to simulate renaming*/
+           @OriginalProcedureName = 'dbo.SpiedInnerProcedure',
            @LogTableName = NULL,
            @CommandToExecute = NULL,
+           @CallOriginal = 0,
            @CreateProcedureStatement = @CreateProcedureStatement OUT,
            @CreateLogTableStatement = @CreateLogTableStatement OUT;
 
@@ -723,7 +749,8 @@ BEGIN
     
     EXEC tSQLt.SpyProcedure @ProcedureName = 'dbo.InnerProcedure';
 
-    EXEC dbo.InnerProcedure @expectedCommand = 'Select 1 [Int]', @actualCommand = 'Select ''c'' [char]';
+    DECLARE @ProcName NVARCHAR(MAX) = 'dbo.InnerProcedure';
+    EXEC @ProcName @expectedCommand = 'Select 1 [Int]', @actualCommand = 'Select ''c'' [char]';
 
     SELECT expectedCommand, actualCommand INTO #Actual FROM dbo.InnerProcedure_SpyProcedureLog;
     SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
@@ -755,12 +782,12 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
-CREATE PROC SpyProcedureTests.[test SpyProcedure calls tSQLt.Private_MarktSQLtTempObject on new object]
+CREATE PROC SpyProcedureTests.[test SpyProcedure calls tSQLt.Private_MarktSQLtTempObject on new objects]
 AS
 BEGIN
   DECLARE @OriginalObjectId INT = OBJECT_ID('tSQLt.Private_MarktSQLtTempObject');
 
-  EXEC tSQLt.SpyProcedure @ProcedureName = 'tSQLt.Private_MarktSQLtTempObject';
+  EXEC tSQLt.SpyProcedure @ProcedureName = '[tSQLt].[Private_MarktSQLtTempObject]';
   --We are testing that SpyProcedure calls this ^^ after spying this ^^, so this line serves as prep and action.
 
   SELECT ObjectName, ObjectType, NewNameOfOriginalObject 
@@ -769,11 +796,355 @@ BEGIN
   
   SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
   INSERT INTO #Expected
-    VALUES('tSQLt.Private_MarktSQLtTempObject', N'PROCEDURE', OBJECT_NAME(@OriginalObjectId));
+    VALUES('[tSQLt].[Private_MarktSQLtTempObject]', N'PROCEDURE', OBJECT_NAME(@OriginalObjectId)),
+          ('[tSQLt].[Private_MarktSQLtTempObject_SpyProcedureLog]', N'TABLE', NULL);
 
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
   
 END;
 GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test new SpyProcedureLog table is marked as tSQLt.IsTempObject]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS RETURN;');
+  
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1';
+  
+  SELECT name, value 
+    INTO #Actual
+    FROM sys.extended_properties
+   WHERE class_desc = 'OBJECT_OR_COLUMN'
+     AND major_id = OBJECT_ID('SpyProcedureTests.TempProcedure1_SpyProcedureLog')
+     AND name = 'tSQLt.IsTempObject';
 
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  
+  INSERT INTO #Expected VALUES('tSQLt.IsTempObject',	1);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test can handle existing SpyProcedureLog table]
+AS
+BEGIN
+  CREATE TABLE SpyProcedureTests.TempProcedure1_SpyProcedureLog ([Please don't do this] INT, [but just in case, we can handle it] NVARCHAR(MAX));
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS RETURN;');
+
+  EXEC tSQLt.ExpectNoException;
+    
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1';  
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls the original procedure if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'SpyProcedureTests.TempProcedure1 called');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test does not call the original procedure if @CallOriginal = 0]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 0;
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  EXEC tSQLt.AssertEmptyTable '#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test does not call the original procedure if @CallOriginal = NULL]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = NULL;
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  EXEC tSQLt.AssertEmptyTable '#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test does not call the original procedure if @CallOriginal is not specified]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1';
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  EXEC tSQLt.AssertEmptyTable '#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls the original procedure if @CallOriginal = 1 even if schema or procedure name require quoting]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA [Inner Test Schema];');
+  EXEC('CREATE PROCEDURE [Inner Test Schema].[Temp Procedure 1] AS BEGIN INSERT INTO #Actual VALUES (''[Inner Test Schema].[Temp Procedure 1] called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = '[Inner Test Schema].[Temp Procedure 1]', @CallOriginal = 1;
+
+  EXEC('[Inner Test Schema].[Temp Procedure 1]');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'[Inner Test Schema].[Temp Procedure 1] called');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+
+CREATE PROC SpyProcedureTests.[test calls original procedure with parameters if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @AnInt INT, @AString NVARCHAR(MAX) AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1(''+CAST(@AnInt AS NVARCHAR(MAX))+'',''+@AString+'') called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  EXEC('EXEC SpyProcedureTests.TempProcedure1 42,''XYZ'';');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'SpyProcedureTests.TempProcedure1(42,XYZ) called');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls original procedure with OUTPUT parameters if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @AnInt INT OUTPUT, @AString NVARCHAR(MAX) OUTPUT AS BEGIN SELECT @AnInt = 8383, @AString = ''424242''; END;');
+
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  DECLARE @InputOutputInt INT = -17;
+  DECLARE @InputOutputString NVARCHAR(MAX) = '007';
+  DECLARE @ProcedureNameVariableSoWeDoNotGetAWarning NVARCHAR(MAX) = 'SpyProcedureTests.TempProcedure1';
+  EXEC @ProcedureNameVariableSoWeDoNotGetAWarning @InputOutputInt OUT, @InputOutputString OUT;
+
+  SELECT @InputOutputInt AS AnInt, @InputOutputString AS AString INTO #Actual;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(8383, '424242');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls original procedure with cursor parameters if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('
+    CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @Cursor1 CURSOR VARYING OUTPUT, @NotACursor INT, @Cursor2 CURSOR VARYING OUTPUT
+    AS 
+    BEGIN 
+      DECLARE @FirstInt INT;
+      DECLARE @SecondInt INT;
+      OPEN @Cursor1; 
+        FETCH NEXT FROM @Cursor1 INTO @FirstInt;
+      CLOSE @Cursor1; 
+      DEALLOCATE @Cursor1;
+      OPEN @Cursor2; 
+        FETCH NEXT FROM @Cursor2 INTO @SecondInt;
+      CLOSE @Cursor2; 
+      DEALLOCATE @Cursor2;
+      INSERT INTO #Actual VALUES(@FirstInt, @SecondInt, @NotACursor);
+    END;'
+  );
+  CREATE TABLE #Actual (intA INT, intB INT, intC INT);
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  DECLARE @InputOnlyInt INT = 17;
+  DECLARE @Cursor11 CURSOR; SET @Cursor11 = CURSOR FOR SELECT 36;
+  DECLARE @Cursor22 CURSOR; SET @Cursor22 = CURSOR FOR SELECT 42; 
+  DECLARE @ProcedureNameVariableSoWeDoNotGetAWarning NVARCHAR(MAX) = 'SpyProcedureTests.TempProcedure1';
+
+  EXEC @ProcedureNameVariableSoWeDoNotGetAWarning @Cursor11, @InputOnlyInt, @Cursor22;
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(36, 42, 17);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE TYPE SpyProcedureTests.Type1 AS TABLE(A INT);
+GO
+CREATE PROC SpyProcedureTests.[test calls original procedure with table valued parameters if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('
+    CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @Table1 SpyProcedureTests.Type1 READONLY, @NotATable INT, @Table2 SpyProcedureTests.Type1 READONLY
+    AS 
+    BEGIN 
+      DECLARE @FirstInt INT = (SELECT A FROM @Table1);
+      DECLARE @SecondInt INT = (SELECT A FROM @Table2);
+      INSERT INTO #Actual VALUES(@FirstInt, @SecondInt, @NotATable);
+    END;'
+  );
+  CREATE TABLE #Actual (intA INT, intB INT, intC INT);
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CallOriginal = 1;
+
+  EXEC('
+    DECLARE @InputOnlyInt INT = 17;
+    DECLARE @Table11 AS SpyProcedureTests.Type1; INSERT INTO @Table11 VALUES(36);
+    DECLARE @Table22 AS SpyProcedureTests.Type1; INSERT INTO @Table22 VALUES(42);
+  
+    DECLARE @ProcedureNameVariableSoWeDoNotGetAWarning NVARCHAR(MAX) = ''SpyProcedureTests.TempProcedure1'';
+    EXEC @ProcedureNameVariableSoWeDoNotGetAWarning @Table11, @InputOnlyInt, @Table22;
+  ');
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(36, 42, 17);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls the original procedure after @CommandToExecute if @CallOriginal = 1]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CommandToExecute='INSERT INTO #Actual VALUES (''CommandToExecute called'');', @CallOriginal = 1;
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'CommandToExecute called'),(2,'SpyProcedureTests.TempProcedure1 called');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test @SpyProcedureOriginalObjectName contains original proc name inside spy]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 @I INT = NULL AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called'', @I); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX), I INT);
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CommandToExecute='EXEC @SpyProcedureOriginalObjectName 42;';
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'SpyProcedureTests.TempProcedure1 called',42);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test @SpyProcedureOriginalObjectName contains original proc name inside spy even if quoting is required]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA [Inner Test.Schema 1];');
+  EXEC('CREATE PROCEDURE [Inner Test.Schema 1].[Temp Proc.edure 1] @I INT = NULL AS BEGIN INSERT INTO #Actual VALUES (''[Inner Test.Schema 1].[Temp Proc.edure 1] called'', @I); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX), I INT);
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = '[Inner Test.Schema 1].[Temp Proc.edure 1]', @CommandToExecute='EXEC @SpyProcedureOriginalObjectName 42;';
+
+  EXEC('[Inner Test.Schema 1].[Temp Proc.edure 1]');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'[Inner Test.Schema 1].[Temp Proc.edure 1] called',42);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test @SpyProcedureOriginalObjectName contains original proc name even if it has single quotes, dots, or spaces]
+AS
+BEGIN
+  EXEC('CREATE SCHEMA [I''nn''er Test.Schema 1];');
+  EXEC('CREATE PROCEDURE [I''nn''er Test.Schema 1].[T''emp Proc.edure 1] @I INT = NULL 
+        AS 
+        BEGIN 
+          INSERT INTO #Actual VALUES (''[I''''nn''''er Test.Schema 1].[T''''emp Proc.edure 1] called'', @I); 
+        END;'
+      );
+
+  CREATE TABLE #Actual (Msg NVARCHAR(MAX), I INT);
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = '[I''nn''er Test.Schema 1].[T''emp Proc.edure 1]', @CommandToExecute='EXEC @SpyProcedureOriginalObjectName 42;';
+
+
+  EXEC('[I''nn''er Test.Schema 1].[T''emp Proc.edure 1]');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES('[I''nn''er Test.Schema 1].[T''emp Proc.edure 1] called',42);
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
+CREATE PROC SpyProcedureTests.[test calls the original procedure even if @CommandToExecute contains inline comment]
+AS
+BEGIN
+  EXEC('CREATE PROCEDURE SpyProcedureTests.TempProcedure1 AS BEGIN INSERT INTO #Actual VALUES (''SpyProcedureTests.TempProcedure1 called''); END;');
+
+  CREATE TABLE #Actual (Id INT IDENTITY (1,1), Msg NVARCHAR(MAX));
+
+  EXEC tSQLt.SpyProcedure @ProcedureName = 'SpyProcedureTests.TempProcedure1', @CommandToExecute='DECLARE @II INT = 1;--PRINT @II;', @CallOriginal = 1;
+
+  EXEC('SpyProcedureTests.TempProcedure1');
+
+  SELECT TOP(0) A.* INTO #Expected FROM #Actual A RIGHT JOIN #Actual X ON 1=0;
+  INSERT INTO #Expected VALUES(1,'SpyProcedureTests.TempProcedure1 called');
+
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
+END;
+GO
+/*-----------------------------------------------------------------------------------------------*/
+GO
 
