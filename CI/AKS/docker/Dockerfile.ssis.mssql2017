@@ -13,7 +13,7 @@ ENV exe "https://go.microsoft.com/fwlink/?linkid=840945"
 ENV box "https://go.microsoft.com/fwlink/?linkid=840944"
 ENV ACCEPT_EULA="Y"
 
-COPY setupSSIS.ps1 /
+COPY ssis_scripts/* SSIS_SCRIPTS/
 
 # Install MSSQL 2017
 RUN mode CON: CP /status ; \
@@ -25,12 +25,10 @@ RUN mode CON: CP /status ; \
     Start-Process -Wait -FilePath .\SQL.exe -ArgumentList /qs, /x:setup ; \
     .\setup\setup.exe /q /ACTION=Install /INSTANCENAME=MSSQLSERVER /FEATURES=SQLEngine,IS /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\System' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS ; \
 	Remove-Item -Recurse -Force SQL.exe, SQL.box, setup ; \
+    mkdir SSIS_TMP ; \
     Get-Service MSSQLSERVER ;
 
-ADD enableCLR.sql SSIS_SCRIPTS/
-ADD createSSISCatalog.ps1 SSIS_SCRIPTS/
-
-RUN .\setupSSIS
+RUN .\SSIS_SCRIPTS\setupSSIS
 
 RUN Get-Service MSSQLSERVER ; \
     Stop-Service MSSQLSERVER ; \
