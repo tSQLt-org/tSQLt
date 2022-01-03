@@ -134,10 +134,37 @@ AS
 BEGIN
   ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
   CREATE USER EnableExternalAccessTestsTempUser WITHOUT LOGIN;
+  SELECT 
+      SP.name,
+      DP.name,
+      SP.type_desc,
+      DP.type_desc,
+      ISNULL(SP.sid,DP.sid) sid,
+      DP.principal_id,
+      DP.type,
+      DP.default_schema_name,
+      DP.create_date,
+      DP.modify_date,
+      DP.owning_principal_id,
+      DP.is_fixed_role,
+      SP.principal_id,
+      SP.type,
+      SP.is_disabled,
+      SP.create_date,
+      SP.modify_date,
+      SP.default_database_name,
+      SP.default_language_name,
+      SP.credential_id 
+    FROM sys.database_principals AS DP
+    FULL JOIN sys.server_principals AS SP
+      ON SP.sid = DP.sid;
 
   DECLARE @Actual INT;
   EXECUTE AS USER = 'EnableExternalAccessTestsTempUser';
+  SELECT * FROM sys.fn_my_permissions(NULL,NULL) AS FMP;
+    RAISERROR('GH1',0,1)WITH NOWAIT;
     EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;
+    RAISERROR('GH2',0,1)WITH NOWAIT;
   REVERT
   
   EXEC tSQLt.AssertEquals -1,@Actual;
