@@ -28,9 +28,6 @@ MISCELLANEOUS:
 4. Standardized error messages
 5. For tSQLt contributors: New build target 'tSQLtOnly', which skips Facade validation steps
 
-TODO <-- START HERE
-make UndoSingleTestDouble private
-
 ---------------------------
 Release: V1.0.7950.1808
 
