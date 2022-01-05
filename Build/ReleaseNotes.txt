@@ -4,9 +4,32 @@ An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
 
-
 ---------------------------
 Release: VLATEST-BUILD-NUMBER
+
+BUG FIXES:
+
+N/A
+
+NEW FEATURES:
+
+1. SpyProcedure has a new optional parameter, @CallOriginal
+2. SpyProcedure provides the variable @SpyProcedureOriginalObjectName within the CommandToExecute
+3. NoTransaction test annotation --[@tSQLt:NoTransaction](@CleanUpProcedureName)
+   This annotation causes the test to be executed outside of a transaction. The @CleanUpProcedureName procedure is executed after the test completes.
+4. UndoTestDoubles, useful when test double procedures like tSQLt.FakeTable are executed outside of a transaction
+5. FakeFunction allows FakeDataSource to be a "VALUES" clause
+
+MISCELLANEOUS:
+
+1. Reduced the complexity of building and testing tSQLt
+2. Removed dependency on Private_NullCellTable table
+3. Installation of tSQLt can handle more edge cases
+4. Standardized error messages
+5. For tSQLt contributors: New build target 'tSQLtOnly', which skips Facade validation steps
+
+---------------------------
+Release: V1.0.7950.1808
 
 BUG FIXES:
 

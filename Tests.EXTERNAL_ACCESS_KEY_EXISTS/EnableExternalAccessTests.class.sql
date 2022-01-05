@@ -129,6 +129,8 @@ BEGIN
   EXEC tSQLt.AssertLike @ExpectedPattern = 'The attempt to disable tSQLt features requiring EXTERNAL_ACCESS failed: %tSQLtCLR%', @Actual = @Actual;
 END;
 GO
+--[@tSQLt:MinSqlMajorVersion](11)
+-- There's a bug in SQL Server 2008R2 that makes the EXECUTE AS statement fail randomly. Disabling it on that version for now.
 CREATE PROCEDURE EnableExternalAccessTests.[test tSQLt.EnableExternalAccess returns -1, if @try = 1 and setting fails]
 AS
 BEGIN

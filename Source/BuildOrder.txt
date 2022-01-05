@@ -119,6 +119,6 @@ tSQLt.(at)tSQLt_NoTransaction.sfn.sql
 tSQLt.RemoveExternalAccessKey.ssp.sql
 tSQLt.InstallExternalAccessKey.ssp.sql
 tSQLt.Private_InstallationInfo.sfn.sql
-tSQLt.UndoSingleTestDouble.ssp.sql
+tSQLt.Private_UndoSingleTestDouble.ssp.sql
 tSQLt.UndoTestDoubles.ssp.sql
 tSQLt._Footer.sql

@@ -1,8 +1,8 @@
-IF OBJECT_ID('tSQLt.UndoSingleTestDouble') IS NOT NULL DROP PROCEDURE tSQLt.UndoSingleTestDouble;
+IF OBJECT_ID('tSQLt.Private_UndoSingleTestDouble') IS NOT NULL DROP PROCEDURE tSQLt.Private_UndoSingleTestDouble;
 GO
 ---Build+
 GO
-CREATE PROCEDURE tSQLt.UndoSingleTestDouble
+CREATE PROCEDURE tSQLt.Private_UndoSingleTestDouble
     @SchemaName NVARCHAR(MAX),
     @ObjectName NVARCHAR(MAX),
     @OriginalName NVARCHAR(MAX)

@@ -131,9 +131,6 @@ RETURN
       AND LE.LoginTime = ES.login_time
     WHERE ES.session_id = @@SPID;
 GO
-/*--
-IF(LTRIM(ISNULL(@TestName,'')) = '')
---*/
 
 CREATE PROCEDURE tSQLt.Private_SaveTestNameForSession 
   @TestName NVARCHAR(MAX)

@@ -214,7 +214,7 @@ BEGIN
   EXEC tSQLt.AssertEmptyTable @TableName = 'tSQLt.Private_RenamedObjectLog';
 END;
 GO
-CREATE PROCEDURE UndoTestDoublesTests.[test restores a faked stored procedure]
+CREATE PROCEDURE UndoTestDoublesTests.[test restores a spied stored procedure]
 AS
 BEGIN
   EXEC ('CREATE PROCEDURE UndoTestDoublesTests.aSimpleSSP @Id INT AS RETURN;');
