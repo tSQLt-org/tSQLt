@@ -148,7 +148,7 @@ stages:
             SQLPort="$SqlPort";
             SQLUserName="$SQLUserName";
             SQLPwd="$SQLPwd";
-            VMPriority="$(VMPriority)";
+            VMPriority="${{ parameters.VMPriority }}";
           }; 
           $VMDetails = .'CI/Azure-DevOps/CreateSQLVM_azcli.ps1' @Parameters
     
