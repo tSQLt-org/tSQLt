@@ -27,7 +27,7 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
 
 variables:
   - name: ArtifactBranchName
-    value: tSQLt$(Build.SourceVersion)
+    value: tSQLt-$(Build.SourceVersion)-$(Build.BuildId)
   - name: VMSize
     value: Standard_F4s_v2 #Standard_D2s_v3, Standard_B2s
   - name: VMLocation
