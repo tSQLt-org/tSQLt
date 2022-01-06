@@ -24,9 +24,13 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
     - name: SQL2019
       SQLVersionEdition: 2019
   - name: VMPriority
-    displayName: VM Priority (Low, Regular, Spot)
+    displayName: VM Priority
     type: string
     default: Spot
+    values:
+    - Spot
+    - Regular
+    - Low
 
 variables:
   - name: ArtifactBranchName
