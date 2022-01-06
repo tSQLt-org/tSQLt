@@ -23,7 +23,10 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
       SQLVersionEdition: 2017
     - name: SQL2019
       SQLVersionEdition: 2019
-
+  - name: VMPriority
+    displayName: VM Priority (Low, Regular, Spot)
+    type: string
+    default: Spot
 
 variables:
   - name: ArtifactBranchName
@@ -141,6 +144,7 @@ stages:
             SQLPort="$SqlPort";
             SQLUserName="$SQLUserName";
             SQLPwd="$SQLPwd";
+            VMPriority="$(VMPriority)";
           }; 
           $VMDetails = .'CI/Azure-DevOps/CreateSQLVM_azcli.ps1' @Parameters
     
