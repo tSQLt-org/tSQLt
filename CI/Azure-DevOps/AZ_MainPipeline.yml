@@ -620,7 +620,7 @@ stages:
             git switch "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
-            git tag $TagName;
+            git tag -f $TagName;
             $CheckIfGitOk.invoke($?);
 
             git push --tags
