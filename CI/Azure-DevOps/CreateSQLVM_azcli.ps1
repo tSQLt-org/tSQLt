@@ -9,7 +9,8 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLVersionEdition,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPort,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLUserName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPwd
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SQLPwd,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $VMPriority
 );
 
 $scriptpath = $MyInvocation.MyCommand.Path;
@@ -28,6 +29,7 @@ Log-Output "ResourceGroupName:", $ResourceGroupName;
 Log-Output "BuildId:", $BuildId;
 Log-Output "SQLVersionEdition:", $SQLVersionEdition;
 Log-Output "SQLPort:", $SQLPort;
+Log-Output "VMPriority:", $VMPriority;
 Log-Output "Parameters: ---------------------------";
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 
@@ -128,7 +130,7 @@ Log-Output "DONE: Creating NIC $InterfaceName";
 Log-Output "Creating VM $VMName";
 
 $output = az vm create --name "$VMName" --resource-group "$ResourceGroupName" --location "$Location" --admin-password "$VMAdminPwd" `
-            --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority Spot `
+            --admin-username "$VMAdminName" --computer-name "$VMName" --image "$ImageUrn" --nics "$InterfaceName" --priority "$VMPriority" `
             --size $Size --data-disk-sizes-gb 8 | ConvertFrom-Json;
 if (!$output) {
     Log-Output "VMName: ", $VMName;

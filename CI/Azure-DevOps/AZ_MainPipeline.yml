@@ -23,7 +23,14 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
       SQLVersionEdition: 2017
     - name: SQL2019
       SQLVersionEdition: 2019
-
+  - name: VMPriority
+    displayName: VM Priority
+    type: string
+    default: Spot
+    values:
+    - Spot
+    - Regular
+    - Low
 
 variables:
   - name: ArtifactBranchName
@@ -77,6 +84,7 @@ stages:
         ${{ each version in parameters.VMMatrix }}:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
+            SQLVersionName: ${{ version.name }}
 
     steps:
     - checkout: self
@@ -99,7 +107,7 @@ stages:
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
           .("Build/CommonFunctionsAndMethods.ps1")
 
-          $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionEdition)" + "_" + "$(Build.BuildId)");
+          $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
           Write-Host "##vso[task.setvariable variable=ResourceGroupName;isOutput=true]$ResourceGroupName";
 
@@ -140,6 +148,7 @@ stages:
             SQLPort="$SqlPort";
             SQLUserName="$SQLUserName";
             SQLPwd="$SQLPwd";
+            VMPriority="${{ parameters.VMPriority }}";
           }; 
           $VMDetails = .'CI/Azure-DevOps/CreateSQLVM_azcli.ps1' @Parameters
     
@@ -611,7 +620,7 @@ stages:
             git switch "$(ArtifactBranchName)"
             $CheckIfGitOk.invoke($?);
 
-            git tag $TagName;
+            git tag -f $TagName;
             $CheckIfGitOk.invoke($?);
 
             git push --tags
