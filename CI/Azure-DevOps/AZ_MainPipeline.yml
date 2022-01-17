@@ -1,8 +1,15 @@
 #tSQLt CI
 name: tSQLt_CI_$(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 
-trigger: none
+trigger: main
 pr: none
+
+schedules:
+- cron: 0 8 * * *
+  displayName: Daily Build of Main Branch
+  branches:
+    include: main
+  always: true
 
 pool:
   vmImage: 'windows-latest'
