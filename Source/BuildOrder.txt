@@ -57,6 +57,7 @@ tSQLt.Private_Seize.tbl.sql
 tSQLt.Private_Init.ssp.sql
 tSQLt.Private_HostPlatform.svw.sql
 tSQLt.Private_NoTransactionTableAction.view.sql
+tSQLt.Private_MarktSQLtTempObject.ssp.sql
 tSQLt.Private_NoTransactionHandleTable.ssp.sql
 tSQLt.Private_NoTransactionHandleTables.ssp.sql
 tSQLt.Private_CleanUpCmdHandler.ssp.sql
@@ -71,7 +72,6 @@ tSQLt.Private_ScriptIndex.sfn.sql
 tSQLt.Private_RemoveSchemaBinding.ssp.sql
 tSQLt.Private_RemoveSchemaBoundReferences.ssp.sql
 tSQLt.Private_GetForeignKeyDefinition.sfn.sql
-tSQLt.Private_MarktSQLtTempObject.ssp.sql
 ApplyConstraint_Methods.sql
 tSQLt.Private_ValidateFakeTableParameters.ssp.sql
 tSQLt.Private_GetDataTypeOrComputedColumnDefinition.sfn.sql
