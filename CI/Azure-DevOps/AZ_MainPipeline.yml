@@ -1,7 +1,8 @@
 #tSQLt CI
 name: tSQLt_CI_$(Date:yyyyMMdd)$(Rev:.r)($(Build.BuildId))
 
-trigger: main
+trigger: 
+- main
 pr: none
 
 schedules:
