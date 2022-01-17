@@ -9,7 +9,8 @@ schedules:
 - cron: 0 8 * * *
   displayName: Daily Build of Main Branch
   branches:
-    include: main
+    include:
+    - main
   always: true
 
 pool:
