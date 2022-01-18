@@ -895,7 +895,10 @@ BEGIN
 
   DECLARE @master_sys_sp_executesql NVARCHAR(MAX); SET @master_sys_sp_executesql = 'master.sys.sp_executesql';
 
-  IF SUSER_ID('tSQLtExternalAccessKey') IS NOT NULL DROP LOGIN tSQLtExternalAccessKey;
+  DECLARE @cmd NVARCHAR(MAX);
+  SET @cmd = N'IF SUSER_ID(''tSQLtExternalAccessKey'') IS NOT NULL DROP LOGIN tSQLtExternalAccessKey;';
+  EXEC @master_sys_sp_executesql @cmd;
+
   EXEC @master_sys_sp_executesql N'IF ASYMKEY_ID(''tSQLtExternalAccessKey'') IS NOT NULL DROP ASYMMETRIC KEY tSQLtExternalAccessKey;';
   EXEC @master_sys_sp_executesql N'IF EXISTS(SELECT * FROM sys.assemblies WHERE name = ''tSQLtExternalAccessKey'') DROP ASSEMBLY tSQLtExternalAccessKey;';
 END;
@@ -935,7 +938,8 @@ BEGIN
    CROSS APPLY tSQLt.Private_Bin2Hex(PGEAKB.ExternalAccessKeyBytes) BH;
   EXEC @master_sys_sp_executesql @cmd;
 
-  IF SUSER_ID('tSQLtExternalAccessKey') IS NOT NULL DROP LOGIN tSQLtExternalAccessKey;
+  SET @cmd = N'IF SUSER_ID(''tSQLtExternalAccessKey'') IS NOT NULL DROP LOGIN tSQLtExternalAccessKey;';
+  EXEC @master_sys_sp_executesql @cmd;
 
   SET @cmd = N'IF ASYMKEY_ID(''tSQLtExternalAccessKey'') IS NOT NULL DROP ASYMMETRIC KEY tSQLtExternalAccessKey;';
   EXEC @master_sys_sp_executesql @cmd;
@@ -2018,6 +2022,7 @@ CREATE PROCEDURE tSQLt.ExpectException
 @ExpectedErrorNumber INT = NULL
 AS
 BEGIN
+ IF(1=0)CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
  IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 1))
  BEGIN
    DELETE #ExpectException;
@@ -2035,6 +2040,7 @@ CREATE PROCEDURE tSQLt.ExpectNoException
   @Message NVARCHAR(MAX) = NULL
 AS
 BEGIN
+ IF(1=0)CREATE TABLE #ExpectException(ExpectException INT,ExpectedMessage NVARCHAR(MAX), ExpectedSeverity INT, ExpectedState INT, ExpectedMessagePattern NVARCHAR(MAX), ExpectedErrorNumber INT, FailMessage NVARCHAR(MAX));
  IF(EXISTS(SELECT 1 FROM #ExpectException WHERE ExpectException = 0))
  BEGIN
    DELETE #ExpectException;

@@ -3,12 +3,15 @@
 ECHO +-------------------+
 ECHO : Starting BUILD    :
 ECHO +-------------------+
-%1\bin\nant -buildfile:tSQLt.build -D:msbuild.path=%~2 || goto :error
+REM %1\bin\nant -buildfile:tSQLt.build -D:msbuild.path=%~2 || goto :error
 
 ECHO +-------------------+
 ECHO : Copying BUILD     :
 ECHO +-------------------+
-%1\bin\nant -buildfile:tSQLt.local_build_output.build || goto :error
+REM %1\bin\nant -buildfile:tSQLt.local_build_output.build || goto :error
+
+XCOPY ..\Deployable\tSQLt.zip .\output\
+XCOPY ..\Deployable\tSQLt.test.zip .\output\
 
 ECHO +-------------------+
 ECHO : Validating BUILD  :
