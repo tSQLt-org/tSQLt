@@ -16,7 +16,9 @@ XCOPY ..\Deployable\tSQLt.test.zip .\output\
 ECHO +-------------------+
 ECHO : Validating BUILD  :
 ECHO +-------------------+
-%1\bin\nant -buildfile:tSQLt.validatebuild -D:db.version=%3 -D:db.server=%4 -D:db.name=%5 || goto :error
+ECHO ON
+%1\bin\nant -buildfile:tSQLt.validatebuild -D:sqlcmd.path=%3 -D:db.version=%4 -D:db.server=%5 -D:db.name=%6 -D:db.user=%7 -D:db.password=%8 || goto :error
+ECHO OFF
 
 ECHO +-------------------+
 ECHO : BUILD SUCCEEDED   :
