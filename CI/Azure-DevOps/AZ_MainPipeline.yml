@@ -14,7 +14,7 @@ schedules:
   always: true
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-2019'
 
 parameters: # TODO, these don't work for scheduled pipelines, not even the defaults. Fix it. Hint: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/runtime-parameters?view=azure-devops&tabs=script#check-for-an-empty-parameter-object
   - name: VMMatrix
