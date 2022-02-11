@@ -72,7 +72,8 @@ variables:
 #    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn' for vmImage: 'vs2017-win2016'
     value: 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn'
   - name: SQLPackagePath
-    value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin'
+#    value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin' Updated to the new path on 2022-02-05
+    value: 'C:\Program Files\Microsoft SQL Server\160\DAC\bin'
 
 resources:
   repositories:
