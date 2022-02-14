@@ -54,6 +54,13 @@ resource newVMName_resource 'Microsoft.SqlVirtualMachine/SqlVirtualMachines@2017
         sqlAuthUpdateUserName: sqlAuthenticationLogin
         sqlAuthUpdatePassword: sqlAuthenticationPassword
       }
+      sqlInstanceSettings: {
+        collation: 'SQL_Latin1_General_CP1_CS_AS'
+        maxDop: 0
+        isOptimizeForAdHocWorkloadsEnabled: false
+        minServerMemoryMB: 0
+        maxServerMemoryMB: 2147483647
+      }      
     }
   }
 }
