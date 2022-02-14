@@ -70,11 +70,11 @@ BEGIN
       (
         SELECT 'Extra'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
         EXCEPT
-        SELECT 'Extra'[?],* FROM #BEFORE
+        SELECT 'Extra'[?],* FROM #Before
       )
       UNION ALL
       (
-        SELECT 'Missing'[?],* FROM #BEFORE
+        SELECT 'Missing'[?],* FROM #Before
         EXCEPT
         SELECT 'Missing'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
       )
@@ -100,11 +100,11 @@ BEGIN
       (
         SELECT 'Extra'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
         EXCEPT
-        SELECT 'Extra'[?],* FROM #BEFORE
+        SELECT 'Extra'[?],* FROM #Before
       )
       UNION ALL
       (
-        SELECT 'Missing'[?],* FROM #BEFORE
+        SELECT 'Missing'[?],* FROM #Before
         EXCEPT
         SELECT 'Missing'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables
       )
@@ -149,11 +149,11 @@ BEGIN
       (
         SELECT 'Extra'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables WHERE object_id <> @OriginalObjectId
         EXCEPT
-        SELECT 'Extra'[?],* FROM #BEFORE
+        SELECT 'Extra'[?],* FROM #Before
       )
       UNION ALL
       (
-        SELECT 'Missing'[?],* FROM #BEFORE
+        SELECT 'Missing'[?],* FROM #Before
         EXCEPT
         SELECT 'Missing'[?],object_id, SCHEMA_NAME(schema_id) [schema_name], name FROM sys.tables WHERE object_id <> @OriginalObjectId
       )

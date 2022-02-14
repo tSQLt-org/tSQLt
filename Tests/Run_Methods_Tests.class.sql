@@ -411,16 +411,16 @@ BEGIN
   EXEC tSQLt.CaptureOutput 'EXEC tSQLt.NullTestResultFormatter';
   
   SELECT OutputText
-  INTO #actual
+  INTO #Actual
   FROM tSQLt.CaptureOutputLog;
   
   SELECT TOP(0) *
-  INTO #expected 
-  FROM #actual;
+  INTO #Expected 
+  FROM #Actual;
   
-  INSERT INTO #expected(OutputText)VALUES(NULL);
+  INSERT INTO #Expected(OutputText)VALUES(NULL);
   
-  EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+  EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 
@@ -558,15 +558,15 @@ BEGIN
     SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
 
     SELECT TestCase.value('@name','NVARCHAR(MAX)') AS TestCase, TestCase.value('failure[1]/@message','NVARCHAR(MAX)') AS Msg
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
     
     
     SELECT TestCase,Msg
-    INTO #expected
+    INTO #Expected
     FROM tSQLt.TestResult;
     
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 
@@ -598,14 +598,14 @@ BEGIN
       TestCase.value('@tests','NVARCHAR(MAX)') AS tests,
       TestCase.value('@failures','NVARCHAR(MAX)') AS failures,
       TestCase.value('@errors','NVARCHAR(MAX)') AS errors
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
     
     
     SELECT N'MyTestClass' AS Class, 4 tests, 2 failures, 1 errors
-    INTO #expected
+    INTO #Expected
     
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 
@@ -639,19 +639,19 @@ BEGIN
       TestCase.value('@tests','NVARCHAR(MAX)') AS tests,
       TestCase.value('@failures','NVARCHAR(MAX)') AS failures,
       TestCase.value('@errors','NVARCHAR(MAX)') AS errors
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
     
     
     SELECT *
-    INTO #expected
+    INTO #Expected
     FROM (
       SELECT N'MyTestClass1' AS Class, 2 tests, 1 failures, 0 errors
       UNION ALL
       SELECT N'MyTestClass2' AS Class, 3 tests, 2 failures, 1 errors
     ) AS x;
     
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 
@@ -681,15 +681,15 @@ BEGIN
     SELECT 
       TestCase.value('../@name','NVARCHAR(MAX)') AS Class,
       TestCase.value('@name','NVARCHAR(MAX)') AS TestCase
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
     
     
     SELECT Class,TestCase
-    INTO #expected
+    INTO #Expected
     FROM tSQLt.TestResult;
     
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test XmlResultFormatter includes duration for each test]
@@ -719,7 +719,7 @@ BEGIN
       TestCase.value('../@name','NVARCHAR(MAX)') AS Class,
       TestCase.value('@name','NVARCHAR(MAX)') AS TestCase,
       TestCase.value('@time','NVARCHAR(MAX)') AS Time
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
     
     
@@ -736,7 +736,7 @@ BEGIN
     INSERT INTO #Expected
     VALUES('MyTestClass2', 'testD', '0.003');
 
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test XmlResultFormatter includes start time and total duration per class]
@@ -766,7 +766,7 @@ BEGIN
       TestCase.value('@name','NVARCHAR(MAX)') AS TestCase,
       TestCase.value('@timestamp','NVARCHAR(MAX)') AS Timestamp,
       TestCase.value('@time','NVARCHAR(MAX)') AS Time
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
     
     
@@ -779,7 +779,7 @@ BEGIN
     INSERT INTO #Expected
     VALUES('MyTestClass2', '2015-07-24T00:00:00', '73884.091');
 
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test XmlResultFormatter includes other required fields]
@@ -812,7 +812,7 @@ BEGIN
       TestCase.value('@name','NVARCHAR(MAX)') AS Testname,
       TestCase.value('failure[1]/@type','NVARCHAR(MAX)') AS FailureType,
       TestCase.value('error[1]/@type','NVARCHAR(MAX)') AS ErrorType
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
     
     
@@ -830,7 +830,7 @@ BEGIN
     INSERT INTO #Expected
     VALUES(@ServerName,2,'tSQLt','testD',NULL,'SQL Error');
 
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROCEDURE Run_Methods_Tests.[test RunWithNullResults calls Run with NullTestResultFormatter]
@@ -1764,15 +1764,15 @@ BEGIN
     SELECT @XML = CAST(Message AS XML) FROM tSQLt.Private_PrintXML_SpyProcedureLog;
 
     SELECT TestCase.value('@name','NVARCHAR(MAX)') AS TestCase, TestCase.value('skipped[1]/@message','NVARCHAR(MAX)') AS Msg
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite/testcase') X(TestCase);
     
     
     SELECT TestCase,Msg
-    INTO #expected
+    INTO #Expected
     FROM tSQLt.TestResult;
     
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROC Run_Methods_Tests.[test XmlResultFormatter sets correct counts for skipped tests]
@@ -1812,13 +1812,13 @@ BEGIN
       TestCase.value('@name','NVARCHAR(MAX)') AS Class,
       TestCase.value('@tests','NVARCHAR(MAX)') AS Tests,
       TestCase.value('@skipped','NVARCHAR(MAX)') AS Skipped
-    INTO #actual
+    INTO #Actual
     FROM @XML.nodes('/testsuites/testsuite') X(TestCase);
     
 --    SELECT * FROM tSQLt.Private_PrintXML_SpyProcedureLog;
     
     SELECT *
-    INTO #expected
+    INTO #Expected
     FROM (
       SELECT N'MyTestClass1' AS Class, 2 Tests, 0 Skipped
       UNION ALL
@@ -1827,7 +1827,7 @@ BEGIN
       SELECT N'MyTestClass3' AS Class, 4 Tests, 3 Skipped
     ) AS x;
     
-    EXEC tSQLt.AssertEqualsTable '#expected','#actual';
+    EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
 CREATE PROCEDURE Run_Methods_Tests.SetupXMLSchemaCollection
