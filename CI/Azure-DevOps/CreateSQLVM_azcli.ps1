@@ -162,7 +162,7 @@ Log-Output 'DONE: Applying SqlVM Config'
 
 Log-Output 'START: Prep SQL Server for tSQLt Build'
 $DS = Invoke-Sqlcmd -InputFile "$dir/GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet
-$DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']) }" }
+$DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']), $($_['ServerCollation']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
 Log-Output "Actual SQL Version:",$ActualSQLVersion;
