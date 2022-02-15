@@ -3,9 +3,9 @@ GO
 CREATE PROCEDURE Private_InstallationInfoTests.[test returns current SqlVersion]
 AS
 BEGIN
-  SELECT SqlVersion INTO #actual FROM tSQLt.Private_InstallationInfo();
+  SELECT SqlVersion INTO #Actual FROM tSQLt.Private_InstallationInfo();
 
-  SELECT SqlVersion INTO #expected FROM tSQLt.Info();
+  SELECT SqlVersion INTO #Expected FROM tSQLt.Info();
   
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';  
 END;
