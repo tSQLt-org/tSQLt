@@ -20,7 +20,7 @@ env:
   MATRIX_SPAWNIMAGE: 1
   SPAWNDATAIMAGES_DEFAULT: 
     '[["SQL2017","mssql-empty:v2017"],["SQL2019","mssql-empty:v2019"]]'
-  SQLPACKAGE_HOME: C:\Program Files\Microsoft SQL Server\160\DAC\bin\
+  SQLPACKAGE_HOME: 'C:\Program Files\Microsoft SQL Server\160\DAC\bin\'
 
 jobs:
   
