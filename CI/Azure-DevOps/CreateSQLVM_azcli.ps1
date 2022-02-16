@@ -55,18 +55,20 @@ Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 URN for az cli --> $SQLVersionEditionInfo.publisher+":"+$SQLVersionEditionInfo.offer+":"+$SQLVersionEditionInfo.sku+":"+$SQLVersionEditionInfo.version
 #>
 $SQLVersionEditionHash = @{
-    "2008R2Std"=@{"sqlversion"="2008R2";"offer"="SQL2008R2SP3-WS2008R2SP1";"publisher"="microsoftsqlserver";"sku"="Standard";"osType"="Windows";"version"="latest"}; #MicrosoftSQLServer:SQL2008R2SP3-WS2008R2SP1:Standard:latest
-    "2012Ent"=@{"sqlversion"="2012";"offer"="SQL2012SP4-WS2012R2";"publisher"="microsoftsqlserver";"sku"="Enterprise";"osType"="Windows";"version"="latest"}; #MicrosoftSQLServer:SQL2012SP4-WS2012R2:Enterprise:latest
-    "2014"=@{"sqlversion"="2014";"offer"="sql2014sp3-ws2012r2";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest"}; #MicrosoftSQLServer:sql2014sp3-ws2012r2:sqldev:latest
-    "2016"=@{"sqlversion"="2016";"offer"="SQL2016SP2-WS2016";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest"}; #MicrosoftSQLServer:sql2016sp2-ws2019:sqldev:latest
-    "2017"=@{"sqlversion"="2017";"offer"="sql2017-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest"}; #MicrosoftSQLServer:sql2017-ws2019:sqldev:latest
-    "2019"=@{"sqlversion"="2019";"offer"="sql2019-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest"} #MicrosoftSQLServer:sql2019-ws2019:sqldev:latest
+    "2008R2Std"=@{"sqlversion"="2008R2";"offer"="SQL2008R2SP3-WS2008R2SP1";"publisher"="microsoftsqlserver";"sku"="Standard";"osType"="Windows";"version"="latest";"bicep"="CreateSqlVirtualMachineTemplate-2008R2.bicep"}; #MicrosoftSQLServer:SQL2008R2SP3-WS2008R2SP1:Standard:latest
+    "2012Ent"=@{"sqlversion"="2012";"offer"="SQL2012SP4-WS2012R2";"publisher"="microsoftsqlserver";"sku"="Enterprise";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:SQL2012SP4-WS2012R2:Enterprise:latest
+    "2014"=@{"sqlversion"="2014";"offer"="sql2014sp3-ws2012r2";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2014sp3-ws2012r2:sqldev:latest
+    "2016"=@{"sqlversion"="2016";"offer"="SQL2016SP2-WS2016";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2016sp2-ws2019:sqldev:latest
+    "2017"=@{"sqlversion"="2017";"offer"="sql2017-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2017-ws2019:sqldev:latest
+    "2019"=@{"sqlversion"="2019";"offer"="sql2019-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2019-ws2019:sqldev:latest
 };
 
 $SQLVersionEditionInfo = $SQLVersionEditionHash.$SQLVersionEdition;
 $ImageUrn = $SQLVersionEditionInfo.publisher+":"+$SQLVersionEditionInfo.offer+":"+$SQLVersionEditionInfo.sku+":"+$SQLVersionEditionInfo.version;
+$TemplateFile = $dir + "/" + $SQLVersionEditionInfo.bicep;
 Log-Output "ImageUrn:  ", $ImageUrn;
 Log-Output "SQLVersionEditionInfo:  ", $SQLVersionEditionInfo;
+Log-Output "TemplateFile: ", $TemplateFile;
 
 Log-Output "START: Creating Resource Group $ResourceGroupName";
 $output = az group create --location "$Location" --name "$ResourceGroupName" | ConvertFrom-Json;
@@ -151,7 +153,7 @@ Log-Output "VmResourceId: ", $VmResourceId;
 Log-Output "DONE: Creating VM $VMName";
 
 Log-Output 'START: Applying SqlVM Config'
-$output = az deployment group create --resource-group $ResourceGroupName --template-file "$dir/CreateSQLVirtualMachineTemplate.bicep" `
+$output = az deployment group create --resource-group $ResourceGroupName --template-file "$TemplateFile" `
                     --parameters sqlPortNumber=$SQLPort sqlAuthenticationLogin="$SQLUserName" sqlAuthenticationPassword="$SQLPwd" newVMName="$VMName" newVMRID="$VmResourceId" | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating SqlVM";
