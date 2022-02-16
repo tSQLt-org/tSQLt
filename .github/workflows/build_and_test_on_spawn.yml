@@ -118,7 +118,6 @@ jobs:
     #if: ${{ always() }}
 
     env:
-      SQLPACKAGE_HOME: ${{ env.SQLPACKAGE_HOME }}
       DACPAC_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\DacpacBuild
 
     strategy:
@@ -274,7 +273,6 @@ jobs:
 
     env:
       TEST_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\temp\Validate\TestResults
-      SQLPACKAGE_HOME: ${{ env.SQLPACKAGE_HOME }}
       DACPAC_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\DacpacBuild
       MATRIX_VERSIONS: ${{ format('{{"data-image":{0} }}',github.event.inputs.spawnDataImages) }}
 
