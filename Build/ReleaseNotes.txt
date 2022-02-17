@@ -3,9 +3,24 @@ tSQLt Release Notes
 An online version of these release notes is available at:
 http://tsqlt.org/category/release-notes/
 
-
 ---------------------------
 Release: VLATEST-BUILD-NUMBER
+
+BUG FIXES:
+
+1. tSQLt does not install on case sensitive *server*: https://github.com/tSQLt-org/tSQLt/issues/155
+2. Changed build order to eliminate warning about tSQLt.Private_MarktSQLt_TempObject: https://github.com/tSQLt-org/tSQLt/pull/151
+
+NEW FEATURES:
+
+1. N/A
+
+MISCELLANEOUS:
+
+1. Microsoft changed the paths for sqlpackage and sqlcmd on the build agent image (windows-2019)
+
+---------------------------
+Release: V1.0.8043.39707
 
 BUG FIXES:
 
