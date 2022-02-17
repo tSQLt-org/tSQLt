@@ -5,6 +5,7 @@ http://tsqlt.org/category/release-notes/
 
 ---------------------------
 Release: VLATEST-BUILD-NUMBER
+Date: 2022-02-16
 
 BUG FIXES:
 
@@ -20,7 +21,8 @@ MISCELLANEOUS:
 1. Microsoft changed the paths for sqlpackage and sqlcmd on the build agent image (windows-2019)
 
 ---------------------------
-Release: V1.0.8043.39707
+Release: V1.0.8043.39707 
+Date: 2022-01-08
 
 BUG FIXES:
 
