@@ -20,6 +20,7 @@ env:
   MATRIX_SPAWNIMAGE: 1
   SPAWNDATAIMAGES_DEFAULT: 
     '[["SQL2017","mssql-empty:v2017"],["SQL2019","mssql-empty:v2019"]]'
+  SQLPACKAGE_HOME: 'C:\Program Files\Microsoft SQL Server\160\DAC\bin\'
 
 jobs:
   
@@ -117,7 +118,6 @@ jobs:
     #if: ${{ always() }}
 
     env:
-      SQLPACKAGE_HOME: C:\Program Files\Microsoft SQL Server\150\DAC\bin\
       DACPAC_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\DacpacBuild
 
     strategy:
@@ -273,7 +273,6 @@ jobs:
 
     env:
       TEST_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\temp\Validate\TestResults
-      SQLPACKAGE_HOME: C:\Program Files\Microsoft SQL Server\150\DAC\bin\
       DACPAC_ARTIFACT_DIR: ${{ github.workspace }}\tSQLt\Build\output\DacpacBuild
       MATRIX_VERSIONS: ${{ format('{{"data-image":{0} }}',github.event.inputs.spawnDataImages) }}
 
