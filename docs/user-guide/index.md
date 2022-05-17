@@ -4,37 +4,37 @@ This reference contains an explanation of each of the public tables, views, stor
 
 ## [Test creation and execution](test-creation-and-execution)
 
-- NewTestClass
-- DropClass
-- RunAll
-- Run
-- RenameClass
+- [NewTestClass](test-creation-and-execution/newtestclass)
+- [DropClass](test-creation-and-execution/dropclass)
+- [RunAll](test-creation-and-execution/runall)
+- [Run](test-creation-and-execution/run)
+- [RenameClass](test-creation-and-execution/renameclass)
 
 ## [Assertions](assertions)
 
-- AssertEmptyTable
-- AssertEquals
-- AssertEqualsString
-- AssertEqualsTable
-- AssertEqualsTableSchema
-- AssertNotEquals
-- AssertObjectDoesNotExist
-- AssertObjectExists
-- AssertResultSetsHaveSameMetaData
-- Fail
-- AssertLike
+- [AssertEmptyTable](assertions/assertemptytable)
+- [AssertEquals](assertions/assertequals)
+- [AssertEqualsString](assertions/assertequalsstring)
+- [AssertEqualsTable](assertions/assertequalstables)
+- [AssertEqualsTableSchema](assertions/assertequalstableschema)
+- [AssertNotEquals](assertions/assertnotequals)
+- [AssertObjectDoesNotExist](assertions/assertobjectdoesnotexist)
+- [AssertObjectExists](assertions/assertobjectexists)
+- [AssertResultSetsHaveSameMetaData](assertions/assertresultsertshavesamemetadata)
+- [Fail](assertions/fail)
+- [AssertLike](assertions/assertlike)
 
 ## [Expectations](expectations)
 
-- ExpectException
-- ExpectNoException
+- [ExpectException](expectations/expectexception)
+- [ExpectNoException](expectations/expectnoexception)
 
 ## [Isolating dependencies](isolating-dependencies)
 
-- ApplyConstraint
-- FakeFunction
-- FakeTable
-- RemoveObjectIfExists
-- SpyProcedure
-- ApplyTrigger
-- RemoveObject
+- [ApplyConstraint](isolating-dependencies/applyconstraint)
+- [FakeFunction](isolating-dependencies/fakefunction)
+- [FakeTable](isolating-dependencies/faketable)
+- [RemoveObjectIfExists](isolating-dependencies/removeobjectifexists)
+- [SpyProcedure](isolating-dependencies/spyprocedure)
+- [ApplyTrigger](isolating-dependencies/applytrigger)
+- [RemoveObject](isolating-dependencies/removeobject)
