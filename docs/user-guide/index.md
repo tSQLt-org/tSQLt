@@ -2,7 +2,7 @@
 
 This reference contains an explanation of each of the public tables, views, stored procedures and functions provided by tSQLt.
 
-## Test creation and execution
+## [Test creation and execution](/test-creation-and-execution)
 
 - NewTestClass
 - DropClass
@@ -10,7 +10,7 @@ This reference contains an explanation of each of the public tables, views, stor
 - Run
 - RenameClass
 
-## Assertions
+## [Assertions](/assertions)
 
 - AssertEmptyTable
 - AssertEquals
@@ -24,12 +24,12 @@ This reference contains an explanation of each of the public tables, views, stor
 - Fail
 - AssertLike
 
-## Expectations
+## [Expectations](/expectations)
 
 - ExpectException
 - ExpectNoException
 
-## Isolating dependencies
+## [Isolating dependencies](/isolating-dependencies)
 
 - ApplyConstraint
 - FakeFunction
