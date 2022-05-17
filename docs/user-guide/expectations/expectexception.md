@@ -1,5 +1,5 @@
-# Expect Exception
-## SYNTAX
+# ExpectException
+## Syntax
 
 ``` sql
 tSQLt.ExpectException 
@@ -11,7 +11,7 @@ tSQLt.ExpectException
                      [, [@ExpectedErrorNumber= ] 'expected error number']
 ```
 
-## ARGUMENTS
+## Arguments
 
 [**@ExpectedMessage** = ] ‘expected error message’
 
@@ -37,17 +37,17 @@ Optional. A pattern describing the expected error message. The test fails if an 
 
 Optional. The expected error number. The test fails if an error with a different number is thrown.
 
-## RETURN CODE VALUES
+## Return code values
 
 Returns 0
 
-## ERRORS RAISED
+## Errors raised
 Raises a `failure` error if an error matching the expectation is not raised.
 
-## RESULT SETS
+## Result sets
 None
 
-## OVERVIEW
+## Overview
 
 `tSQLt.ExpectException` marks the point in the test after which an error should be raised. All parameters are optional. Independent of the supplied parameters, the test fails if after the `tSQLt.ExpectException` call no error is raised. Passing in a NULL in any parameter has the same effect as omitting that parameter.
 
@@ -55,7 +55,7 @@ The parameters allow to constrain the expected exception further.
 
 There can be only one call to `tSQLt.ExpectException` per test. However, a call to `tSQLt.ExpectException` can follow a call to `tSQLt.ExpectNoException`.
 
-## EXAMPLES
+## Examples
 There are two main call patterns:
 
 ``` sql
