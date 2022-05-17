@@ -1,3 +1,4 @@
 layout: page
 title: "User Guide"
-permalink: /user-guide/
+permalink: /
+test user-guide in subdirectory
