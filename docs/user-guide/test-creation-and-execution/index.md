@@ -1,4 +1,4 @@
-# Test creation and execution
+# Test Creation and Execution
 This section describes how test cases are created and executed.
 
 We’re going to answer two important questions in this section, “What happens when you create a test class?” and “What happens when a test class gets executed?”
