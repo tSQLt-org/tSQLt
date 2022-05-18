@@ -4,7 +4,7 @@ This group of objects enables you to isolate the are of code which you are testi
 
 - [ApplyConstraint](applyconstraint.md)
 - [ApplyTrigger](applytrigger.md)
-- [FakeFunction]()
+- [FakeFunction](fakefunction.md)
 - [FakeTable](faketable.md)
 - [RemoveObject](removeobject.md)
 - [RemoveObjectIfExists](removeobjectifexists.md)
