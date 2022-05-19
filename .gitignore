@@ -28,3 +28,6 @@
 /tSQLtCLR/OfficialSigningKey/KeyInfoC.txt
 
 .vscode/settings.json
+
+/docs/_site
+/docs/\.ssas_cache
