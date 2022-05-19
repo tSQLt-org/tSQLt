@@ -21,7 +21,7 @@ CLR? Learn more [here](https://docs.microsoft.com/en-us/sql/relational-databases
    but needs to be done only once per server.
 
 ## 2. Prepare your database
-tSQLt requires you install the tSQLt objects. You will accomplish this by running 
+tSQLt requires you install the tSQLt objects. These include procedures that allow you to assert values in your tests, but also objects used by the test runner. You will accomplish this by running 
 `tSQLt.class.sql` in each database. What exactly does class.sql do? Learn more 
 [here](https://github.com/tSQLt-org/tSQLt/blob/main/Source/tSQLt.class.sql). 
 
@@ -63,7 +63,7 @@ EXEC tSQLt.RunAll
 ````
 
 # Built-in Examples
-tSQLt comes with example tests to illustrate some advanced capabilities.
+tSQLt also comes with example tests to illustrate some advanced capabilities.
 
 ## Download & Set up 
 
