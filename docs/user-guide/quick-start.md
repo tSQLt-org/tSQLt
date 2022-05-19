@@ -1,24 +1,49 @@
 ﻿# Quick Start
 
-Okay! You read a little about tSQLt – you want to try it out! 
 
-Now what? Here is the quickest way to get going:
+## 1. Prepare your server
+tSQLt requires you to enable CRL on your server. You will accomplish this by 
+running `PrepareServer.sql` as server administrator. What exactly is SQL Server 
+CLR? Learn more [here](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/common-language-runtime-integration-overview?view=sql-server-ver15).
 
-## Overview
+**What to do:**
+1. Load `PrepareServer.sql` in your Query window
+1. Connect to your server 
+1. Execute the entire script
 
-1. tSQLt requires you to enable CRL on your server. You will accomplish this by running `PrepareServer.sql` as server administrator.
+ * `PrepareServer.sql` automatically enables `CLR`
+   and installs a server certificate that allows 
+   the installation of the tSQLt `CLR`.
+ * There is no need to disable strict `CLR` security 
+   on the server nor do you need to modify database 
+   security settings.
+ * Executing the script requires `SA` permission, 
+   but needs to be done only once per server.
 
-2. tSQLt requires you install the tSQLt objects. You will accomplish this by running `tSQLt.class.sql` in each database.
+## 2. Prepare your database
+tSQLt requires you install the tSQLt objects. You will accomplish this by running 
+`tSQLt.class.sql` in each database. What exactly does class.sql do? Learn more 
+[here](https://github.com/tSQLt-org/tSQLt/blob/main/Source/tSQLt.class.sql). 
 
-3. tSQLt requires you to register the schema in which you will place your test stored procedures. You will acomplish this by running `tSQLt.NewTestClass 'myschema'`.
+**What to do:**
+1. Load `tSQLt.class.sql` in your Query window
+1. Connect to your server 
+1. Execute the entire script
 
-4. tSQLt requires your test names to prefix with `test` like: `myschema.test_myProcedure_EmptyValues_ReturnsZero`.
- 
-4. tSQLt assumes your tests are written by you as stored procedures using _assert_ capabilities in the tSQLt schema, like: `tSQLt.AssertEquals` and `tSQLt.AssertNotEquals`.
+## 3. Register your schema
+tSQLt requires you to register the schema in which you will place your test 
+stored procedures. You will acomplish this by running `tSQLt.NewTestClass 'tests'`.
+````SQL
+EXEC tSQLt.NewTestClass 'tests'
+````
+
+## 4. Write your first test
+1. tSQLt requires your test names to prefix with `test` like: `tests.test_MyFirstTest_AddTwoValues_ShouldMatch`.
+1. tSQLt assumes your tests are written by you as stored procedures using _assert_ capabilities in the tSQLt schema, like: `tSQLt.AssertEquals` and `tSQLt.AssertNotEquals`.
 
 ````SQL
 -- a simple test
-CREATE PROC myschema.test_myProcedure_EmptyValues_ReturnsZero AS
+CREATE PROC tests.test_MyFirstTest_AddTwoValues_ShouldMatch AS
 BEGIN
   -- assemble
   DECLARE @expected INT = 1;
@@ -31,36 +56,42 @@ BEGIN
 END
 ````
 
-5. tSQLt runs tests by calling `EXEC tSQLt.RunAll`.
+## 5. Run your tests
+tSQLt runs tests by calling `EXEC tSQLt.RunAll`. Remember, tSQLt only works 1) on servers prepared for tests, 2) on databases where tSQLT is installed, 3) then looks in your registered scehemas 4) for test procedures prefixed with `test`.
+````SQL
+EXEC tSQLt.RunAll
+````
 
-## Downloading tSQLt & Installing Examples
+# Built-in Examples
+tSQLt comes with example tests to illustrate some advanced capabilities.
+
+## Download & Set up 
 
 1. Download the tSQLt zip file.
 
-2. Unzip the file to a location on your hard drive.
+2. Unzip to a location on your hard drive.
 
 3. Execute the `PrepareServer.sql` file.
 
- * `PrepareServer.sql` automatically enables `CLR`
-   and installs a server certificate that allows 
-   the installation of the tSQLt `CLR`.
-
- * There is no need to disable strict `CLR` security 
-   on the server nor do you need to modify database 
-   security settings.
-
- * Executing the script requires `SA` permission, 
-   but needs to be done only once per server.
+	**What to do:**
+	1. Load `PrepareServer.sql` in your Query window
+	1. Connect to your server 
+	1. Execute the entire script
 
 4. Execute the `Example.sql` file from the zip file 
    to create an example database (tSQLt_Example) 
    with tSQLt and test cases.
 
-## Executing Examples
+   **What to do:**
+	1. Load `Example.sql` in your Query window
+	1. Connect to your server 
+	1. Execute the entire script
+
+## Execute examples
 
 1. Open a new Query Editor window.
 
-2. Execute this script:
+2. Execute `RunAll`:
 
 ````SQL
 EXEC tSQLt.RunAll
@@ -94,14 +125,8 @@ Test Case Summary: 11 test case(s) executed, 10 succeeded, 1 failed, 0 errored.
 
 ````
 
-4. Notice that one test is failing. 
+4. Notice one test is intentionally failing. Check it out. 
 
-## Installing to your Development Database
 
-Now, let's write unit tests.
-
-1. Install tSQLt with the `tSQLt.class.sql` script.
-
-> Note: tSQLt should never be installed in production.
-
-Good luck!
+## Important Reminder
+tSQLt should never be installed in production.
