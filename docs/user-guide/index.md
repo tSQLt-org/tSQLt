@@ -1,3 +1,5 @@
+---
+---
 # User Guide
 
 This reference contains an explanation of each of the public tables, views, stored procedures and functions provided by tSQLt.
