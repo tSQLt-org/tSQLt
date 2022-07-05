@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.Sql;
 using System.Data.SqlTypes;
 using System.Data.SqlClient;
-
+using System.Text;
 using Microsoft.SqlServer.Server;
 
 namespace tSQLtCLR
@@ -35,15 +35,23 @@ namespace tSQLtCLR
         private String createSchemaStringFromCommand(SqlString command)
         {
             SqlDataReader reader = null;
+            int resultSet = 0;
+            StringBuilder schemaString = new StringBuilder();
 
             try
             {
                 reader = testDatabaseFacade.executeCommand(command);
-                reader.Read();
-                DataTable schema = attemptToGetSchemaTable(command, reader);
-                throwExceptionIfSchemaIsEmpty(command, schema);
 
-                return buildSchemaString(schema);
+                do
+                {
+                    resultSet++;
+                    reader.Read();
+                    DataTable schema = attemptToGetSchemaTable(command, reader);
+                    throwExceptionIfSchemaIsEmpty(command, schema);
+                    buildSchemaString(schema, resultSet, schemaString);
+                } while (reader.NextResult());
+
+                return schemaString.ToString();
             }
             finally
             {
@@ -80,26 +88,30 @@ namespace tSQLtCLR
             }
         }
 
-        private static String buildSchemaString(DataTable schema)
+        private static void buildSchemaString(DataTable schema, int resultSet, StringBuilder schemaString)
         {
-            String schemaString = "";
+            if (resultSet > 1)
+            {
+                schemaString.AppendLine();
+            }
+
+            schemaString.Append(resultSet).Append(": ");
 
             foreach (DataRow row in schema.Rows)
             {
                 if (row["IsHidden"].ToString() != "True")
                 {
-                    schemaString += "[";
+                    schemaString.Append("[");
                     foreach (DataColumn column in schema.Columns)
                     {
                         if (columnPropertyIsValidForMetaDataComparison(column))
                         {
-                            schemaString += "{" + column.ColumnName + ":" + row[column.ColumnName] + "}";
+                            schemaString.Append("{").Append(column.ColumnName).Append(":").Append(row[column.ColumnName]).Append("}");
                         }
                     }
-                    schemaString += "]";
+                    schemaString.Append("]");
                 }
             }
-            return schemaString;
         }
 
         private static bool columnPropertyIsValidForMetaDataComparison(DataColumn column)
