@@ -22,7 +22,7 @@ This reference contains an explanation of each of the public tables, views, stor
 - [AssertNotEquals](assertions/assertnotequals)
 - [AssertObjectDoesNotExist](assertions/assertobjectdoesnotexist)
 - [AssertObjectExists](assertions/assertobjectexists)
-- [AssertResultSetsHaveSameMetaData](assertions/assertresultsertshavesamemetadata)
+- [AssertResultSetsHaveSameMetaData](assertions/assertresultsetshavesamemetadata)
 - [Fail](assertions/fail)
 - [AssertLike](assertions/assertlike)
 
