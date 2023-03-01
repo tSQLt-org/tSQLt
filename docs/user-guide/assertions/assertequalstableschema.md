@@ -1,4 +1,4 @@
-# AssertqualsTableSchema
+# AssertEqualsTableSchema
 
 ## Syntax
 
