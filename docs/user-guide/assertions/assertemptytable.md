@@ -10,7 +10,7 @@ tSQLt.AssertEmptyTable [@TableName = ] 'name of table to be checked' [, [@Messag
 
 [**@TableName** = ] name of table to be checked
 
-The name of a table which is expected to be empty. @Expected is NVARCHAR(MAX) with no default.
+The name of a table which is expected to be empty. @TableName is NVARCHAR(MAX) with no default.
 
 [**@Message** = ] ‘message’
 
