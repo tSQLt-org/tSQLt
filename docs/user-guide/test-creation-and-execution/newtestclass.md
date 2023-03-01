@@ -4,7 +4,7 @@
 `tSQLt.NewTestClass [@ClassName = ] 'class name'`
 
 ## Arguments
-[@ClassName = ] ‘class name’
+`[@ClassName = ] ‘class name’`
 The name of the test class to be created
 
 ## Return Code Values
