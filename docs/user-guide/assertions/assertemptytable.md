@@ -29,12 +29,11 @@ None
 
 ## Overview
 
-AssertEmptyTable checks if a table is empty. If the table does contain any rows, the failure message displays all rows found.
+AssertEmptyTable checks if a table is empty. The failure message displays all rows that are found.
 
 ## Examples
 
-Example: AssertEqualsTable to check the results of a view
-This test case uses AssertEqualsTable to compare the data returned by a view to an expected data set.
+This example uses AssertEmptyTable to check that a table-valued function returns an empty resultset.
 
 ``` sql
 CREATE PROCEDURE testFinancialApp.[test that Report generates no rows if base tables are empty]
