@@ -29,7 +29,7 @@ None
 
 ## Overview
 
-AssertEmptyTable checks if a table is empty. The failure message displays all rows that are found.
+AssertEmptyTable passes when a table is empty, fails otherwise. The failure message displays all rows that are found.
 
 ## Examples
 
