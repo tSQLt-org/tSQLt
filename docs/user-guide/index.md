@@ -17,7 +17,7 @@ This reference contains an explanation of each of the public tables, views, stor
 - [AssertEmptyTable](assertions/assertemptytable)
 - [AssertEquals](assertions/assertequals)
 - [AssertEqualsString](assertions/assertequalsstring)
-- [AssertEqualsTable](assertions/assertequalstables)
+- [AssertEqualsTable](assertions/assertequalstable)
 - [AssertEqualsTableSchema](assertions/assertequalstableschema)
 - [AssertNotEquals](assertions/assertnotequals)
 - [AssertObjectDoesNotExist](assertions/assertobjectdoesnotexist)
