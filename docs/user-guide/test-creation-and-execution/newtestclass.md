@@ -1,13 +1,13 @@
-# NEWTESTCLASS
+# NewTestClass
 
-## SYNTAX
+## Syntax
 `tSQLt.NewTestClass [@ClassName = ] 'class name'`
 
-## ARGUMENTS
+## Arguments
 [@ClassName = ] ‘class name’
 The name of the test class to be created
 
-## RETURN CODE VALUES
+## Return Code Values
 Returns 0
 
 ## ERROR RAISED
