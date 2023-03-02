@@ -31,6 +31,6 @@ Raises a `failure` error if the contents of the expected table and the actual ta
 None
 
 ## Overview
-`tSQLt.AssertEqualsTableSchema` works like `tSQLt.AssertEqualsTable`, but instead of comparing the table contents, it compares the table compares the table schemata.
+`tSQLt.AssertEqualsTableSchema` works like `tSQLt.AssertEqualsTable`, but it compares the table structure instead of the table contents.
 
 Under the hood, `tSQLt.AssertEqualsTableSchema` calls `tSQLt.AssertEqualsTable` on the table metadata. For details of how to interpret its output, check out the `tSQLt.AssertEqualsTable` [documentation](assertequalstable.md).
