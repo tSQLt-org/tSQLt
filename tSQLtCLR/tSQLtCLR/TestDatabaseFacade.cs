@@ -74,7 +74,30 @@ namespace tSQLtCLR
 
             return dataReader;
         }
+        public void insertData(SqlString table, List<object[]> data)
+        {
+            foreach (object[] row in data) {
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    string commandText =  "INSERT INTO " + table.ToString() + " VALUES(";
+                    int index = 1;
+                    foreach (object val in row) {
+                        if (index > 1) {
+                            commandText += ",";
+                        }
+                        string paramName = "@p" + index.ToString();
+                        commandText += paramName;
+                        command.Parameters.AddWithValue(paramName, row[index - 1]);
+                        index += 1;
+                    }
+                    commandText += ")";
+                    command.CommandText = commandText;
 
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
         protected void OnInfoMessage(object sender, SqlInfoMessageEventArgs args)
         {
             if (infoMessage.IsNull)
