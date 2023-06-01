@@ -79,7 +79,7 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
                  CROSS APPLY tSQLt.Private_GetForeignKeyParColumns(k.object_id) AS parCol
                  CROSS APPLY tSQLt.Private_GetForeignKeyRefColumns(k.object_id) AS refCol
                  LEFT JOIN sys.extended_properties e
-                   ON e.name = 'tSQLt.FakeTable_OrgTableName'
+                   ON e.name = 'tSQLt.Private_TestDouble_OrgObjectName'
                   AND e.value = OBJECT_NAME(k.referenced_object_id)
                  JOIN sys.tables refTab
                    ON COALESCE(e.major_id,k.referenced_object_id) = refTab.object_id
