@@ -45,13 +45,13 @@ AS
 RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
               parCols + ') REFERENCES ' + refName + '(' + refCols + ')'+
               CASE WHEN @NoCascade = 1 THEN ''
-                ELSE delete_referential_action_cmd + ' ' + update_referential_action_cmd 
-              END AS cmd,
-              CASE 
+                ELSE delete_referential_action_cmd + ' ' + update_referential_action_cmd
+              END COLLATE DATABASE_DEFAULT AS cmd,
+              CASE
                 WHEN RefTableIsFakedInd = 1
-                  THEN 'CREATE UNIQUE INDEX ' + tSQLt.Private::CreateUniqueObjectName() + ' ON ' + refName + '(' + refCols + ');' 
-                ELSE '' 
-              END CreIdxCmd
+                  THEN 'CREATE UNIQUE INDEX ' + tSQLt.Private::CreateUniqueObjectName() + ' ON ' + refName + '(' + refCols + ');'
+                ELSE ''
+              END COLLATE DATABASE_DEFAULT AS CreIdxCmd
          FROM (SELECT QUOTENAME(SCHEMA_NAME(k.schema_id)) AS SchemaName,
                       QUOTENAME(k.name) AS name,
                       QUOTENAME(OBJECT_NAME(k.parent_object_id)) AS parName,
@@ -79,7 +79,7 @@ RETURN SELECT 'CONSTRAINT ' + name + ' FOREIGN KEY (' +
                  CROSS APPLY tSQLt.Private_GetForeignKeyParColumns(k.object_id) AS parCol
                  CROSS APPLY tSQLt.Private_GetForeignKeyRefColumns(k.object_id) AS refCol
                  LEFT JOIN sys.extended_properties e
-                   ON e.name = 'tSQLt.Private_TestDouble_OrgObjectName'
+                   ON e.name = 'tSQLt.FakeTable_OrgTableName'
                   AND e.value = OBJECT_NAME(k.referenced_object_id)
                  JOIN sys.tables refTab
                    ON COALESCE(e.major_id,k.referenced_object_id) = refTab.object_id

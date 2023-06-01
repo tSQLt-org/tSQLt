@@ -11,7 +11,7 @@ RETURN SELECT
              AS V(UserTypeId, MaxLength, Precision, Scale, CollationName, ObjectId, ColumnId, ReturnDetails)
        CROSS APPLY tSQLt.Private_GetFullTypeName(V.UserTypeId, V.MaxLength, V.Precision, V.Scale, V.CollationName) AS GFTN
         LEFT JOIN (SELECT 1 AS IsComputedColumn,
-                          ' AS '+ cci.definition + CASE WHEN cci.is_persisted = 1 THEN ' PERSISTED' ELSE '' END AS ComputedColumnDefinition,
+                          ' AS '+ cci.definition + CASE WHEN cci.is_persisted = 1 THEN ' PERSISTED' ELSE '' END COLLATE DATABASE_DEFAULT AS ComputedColumnDefinition,
                           cci.object_id,
                           cci.column_id
                      FROM sys.computed_columns cci
