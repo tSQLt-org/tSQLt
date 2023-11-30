@@ -38,6 +38,8 @@
       <HalfSecondsSinceMidnight>$([System.Convert]::ToInt32($([MSBuild]::Divide($(CurrentTimeInSeconds), 2))))</HalfSecondsSinceMidnight>
       <FileVersion>$(BaseVersionMajor).$(BaseVersionMinor).$(DaysSince2000).$(HalfSecondsSinceMidnight)</FileVersion>
       <AssemblyVersion>$(BaseVersionMajor).$(BaseVersionMinor).$(DaysSince2000).$(HalfSecondsSinceMidnight)</AssemblyVersion>
+      <!-- ReadFinalVersion: monodis &#x2D;&#x2D;assembly /workspaces/tSQLt/tSQLtCLR/tSQLtCLR/bin/Debug/net40/tSQLtCLR.dll | grep Version | awk '{print $2}' -->
+      <!-- &#x2D; = "-" -->
     </PropertyGroup>
   </Target>
   <ItemGroup>
