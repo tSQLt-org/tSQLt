@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y curl gnupg software-properties-common \
     && apt-get update \
     && apt-get install -y gh
 
+RUN apt-get update && \
+    apt-get install -y mono-complete
+
 # Expose any ports the app is expecting to be served on
 # EXPOSE 8080
 

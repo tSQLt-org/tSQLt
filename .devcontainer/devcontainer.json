@@ -49,6 +49,7 @@
 				"ms-mssql.sql-database-projects-vscode",
 				"ms-mssql.data-workspace-vscode",
 				"github.vscode-github-actions",
+				"ms-dotnettools.csdevkit",
 			]
 		}
 	},
