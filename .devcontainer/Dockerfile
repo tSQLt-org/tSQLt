@@ -25,6 +25,23 @@ RUN apt-get update && apt-get install -y curl gnupg software-properties-common \
 RUN apt-get update && \
     apt-get install -y mono-complete
 
+RUN apt-get update && \
+    apt-get install -y openjdk-11-jdk && \
+    apt-get clean
+
+# Set the Ant version
+ENV ANT_VERSION 1.10.14
+
+# Download and extract Apache Ant to /opt/ant
+RUN wget -q https://downloads.apache.org/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz \
+    && tar -xzf apache-ant-${ANT_VERSION}-bin.tar.gz -C /opt \
+    && rm apache-ant-${ANT_VERSION}-bin.tar.gz \
+    && ln -s /opt/apache-ant-${ANT_VERSION} /opt/ant
+
+# Set ANT_HOME and add the bin directory to the PATH
+ENV ANT_HOME /opt/ant
+ENV PATH ${PATH}:${ANT_HOME}/bin
+
 # Expose any ports the app is expecting to be served on
 # EXPOSE 8080
 
