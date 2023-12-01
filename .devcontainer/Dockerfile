@@ -42,6 +42,11 @@ RUN wget -q https://downloads.apache.org/ant/binaries/apache-ant-${ANT_VERSION}-
 ENV ANT_HOME /opt/ant
 ENV PATH ${PATH}:${ANT_HOME}/bin
 
+ENV TSQLTCERTPATH /var/tSQLtCertTemp
+ENV TSQLTCERTPASSWORD P@ssw0rdP@ssw0rdP@ssw0rdP@ssw0rd
+RUN mkdir -p $TSQLTCERTPATH && \
+    chmod 777 $TSQLTCERTPATH
+
 # Expose any ports the app is expecting to be served on
 # EXPOSE 8080
 
