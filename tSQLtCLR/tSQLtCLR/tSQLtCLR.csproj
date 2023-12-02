@@ -18,7 +18,7 @@
     <AssemblyConfiguration>Release</AssemblyConfiguration>
     <AssemblyCulture></AssemblyCulture>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(TSQLTCERTPATH)/tSQLtOfficialSigningKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>$(tSQLtOfficialSigningKey)</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
