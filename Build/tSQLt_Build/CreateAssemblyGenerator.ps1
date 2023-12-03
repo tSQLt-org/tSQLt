@@ -21,17 +21,19 @@ function Convert-DllToHex {
     $hexLines = $hexString -split "(.{$MaxLineLength})" | Where-Object { $_ }
 
     # Join lines with separator
-    return ($hexLines -join $LineSeparator).TrimEnd($LineSeparator)
+    return ($hexLines -join $LineSeparator)
 }
 
 function Get-AssemblyThumbprint {
     param (
         [string]$DllPath
     )
+    $assembly = [System.Reflection.Assembly]::LoadFile($DllPath)
+    $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromSignedFile($asseDllPathmblyPath)
 
     # $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($DllPath)
     # return $cert.GetCertHashString()
-    return '1234123412341234'
+    return '0000000000000000'
 }
 
 function Replace-TemplatePlaceholders {
