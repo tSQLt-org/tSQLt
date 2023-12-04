@@ -53,10 +53,10 @@ try{
         (Get-Content -Path $releaseNotesPath).Replace('LATEST-BUILD-NUMBER', $tSQLtVersion) | Set-Content -Path $releaseNotesPath
 
     Log-Output("Creating PrepareServer.sql...")
-        $tSQLtSeparatorPath = (Join-Path (Get-Location) "./SQL/SeparatorTemplate.sql") | Resolve-Path
-        $tSQLtFileListPath = (Join-Path (Get-Location) "../Source/PrepareServerBuildOrder.txt") | Resolve-Path
-        $tSQLtClassOutputPath = (Join-Path $TempPath "PrepareServer.sql") 
-        $replacements = @(
+        $PrepareServerSeparatorPath = (Join-Path (Get-Location) "./SQL/SeparatorTemplate.sql") | Resolve-Path
+        $PrepareServerFileListPath = (Join-Path (Get-Location) "../Source/PrepareServerBuildOrder.txt") | Resolve-Path
+        $PrepareServerOutputPath = (Join-Path $TempPath "PrepareServer.sql") 
+        $PrepareServerReplacements = @(
             @{'s'='tSQLt.';'r'='#';},
             @{'s'="OBJECT_ID('#";'r'="OBJECT_ID('tempdb..#";},
             @{'s'='---Build-';'r'='';},
@@ -65,12 +65,25 @@ try{
             @{'s'='(?m)^(?:[\t ]*(?:\r?\n|\r))+';'r'='';isRegex=$true;},
             @{'s'='(?m)^\s*GO\s*((\r?\n)\s*GO\s*)+$';'r'='GO';isRegex=$true;}
         );
-        ./tSQLt_Build/ConcatenateFiles.ps1 -OutputFile $tSQLtClassOutputPath -SeparatorTemplate $tSQLtSeparatorPath -InputPath $tSQLtFileListPath -Replacements $replacements
-        # $releaseNotesPath = (Join-Path (Get-Location) "ReleaseNotes.txt") | Resolve-Path
-        # (Get-Content -Path $releaseNotesPath).Replace('LATEST-BUILD-NUMBER', $tSQLtVersion) | Set-Content -Path $releaseNotesPath
-        # <arg value="../Source/PrepareServerBuildOrder.txt"/>
-        # <arg value="temp/tSQLtBuild/PrepareServer.sql"/>
-     
+        ./tSQLt_Build/ConcatenateFiles.ps1 -OutputFile $PrepareServerOutputPath -SeparatorTemplate $PrepareServerSeparatorPath -InputPath $PrepareServerFileListPath -Replacements $PrepareServerReplacements
+
+    Log-Output("Creating Example.sql...")
+        $ExampleSeparatorPath = (Join-Path (Get-Location) "./SQL/SeparatorTemplate.sql") | Resolve-Path
+        $ExampleFileListPath = (Join-Path (Get-Location) "../Examples/BuildOrder.txt") | Resolve-Path
+        $ExampleOutputPath = (Join-Path $TempPath "Example.sql") 
+        $ExampleReplacements = @(
+            @{'s'="(?m)^\s*---*$";'r'='';isRegex=$true;}
+            @{'s'='(?m)^(?:[\t ]*(?:\r?\n|\r))+';'r'='';isRegex=$true;},
+            @{'s'='(?m)^\s*GO\s*((\r?\n)\s*GO\s*)+$';'r'='GO';isRegex=$true;}
+        );
+        ./tSQLt_Build/ConcatenateFiles.ps1 -OutputFile $ExampleOutputPath -SeparatorTemplate $ExampleSeparatorPath -InputPath $ExampleFileListPath -Replacements $ExampleReplacements
+
+    Log-Output("Packaging tSQLt...")
+        & ./tSQLt_Build/tSQLt_Build_CreatetSQLtZip.ps1 -CommitId '<Local Build>'
+
+    Log-Output("Creating tSQLt Snippets...")
+        & ./tSQLt_Build/PackagetSQLtSnippets.ps1
+
 }
 finally{
     Pop-Location

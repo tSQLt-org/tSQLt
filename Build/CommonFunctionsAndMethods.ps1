@@ -1,4 +1,4 @@
-﻿$PSScriptRoot;
+﻿# $PSScriptRoot;
 
 $MergeHashTables = {param([HashTable]$base,[HashTable]$new);$new.GetEnumerator()|%{$base.remove($_.Key);$base += @{$_.Key=$_.Value}};$base;};
 $AddTagsToResourceGroup = 

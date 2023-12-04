@@ -7,6 +7,7 @@ param (
     [int]$MaxLineLength,
     [string]$LineSeparator
 )
+.(Join-Path $PSScriptRoot '../CommonFunctionsAndMethods.ps1'| Resolve-Path)
 
 function Convert-DllToHex {
     param (
@@ -85,7 +86,7 @@ try {
     # # Output to file
     $outputContent | Out-File -FilePath $outputPath
 
-    Write-Host "Output generated: $outputPath"
+    Log-Output("Output generated: $outputPath");
     # $outputContent
 }
 catch {

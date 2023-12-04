@@ -8,9 +8,7 @@ try{
 
   .($buildPath+"CommonFunctionsAndMethods.ps1");
 
-  Log-Output '<#--=======================================================================-->'
   Log-Output '<!--========          Start CreateDropClassStatement.ps1          =========-->'
-  Log-Output '<#--=======================================================================-->'
 
   $DropClassFileContent = Get-Content -path ($sourcePath+"tSQLt.DropClass.ssp.sql");
   $GetDropItemCmdFileContent = Get-Content -path ($sourcePath+"tSQLt.Private_GetDropItemCmd.sfn.sql");
@@ -39,19 +37,18 @@ try{
   $RawDropClassStatement = $DropClassSnip -replace 'tSQLt.Private_GetDropItemCmd\s*\(\s*([^,]*)\s*,\s*([^)]*)\s*\)',$DropItemSnipPrepared;
 
   $DropClassStatement = ($RawDropClassStatement.trim()|Where-Object {$_ -ne "" -and $_ -notmatch "^GO(\s.*)?"}) -join ' ';
-  Write-Host("OutputFilePath:$OutputFilePath")
+  Log-Output("OutputFilePath:$OutputFilePath")
 
   Set-Content -Path $OutputFilePath -Value ($TemplateFileContent.Replace("/*--DROPSTATEMENT--*/",$DropClassStatement));
 
-  Log-Output '<#--=======================================================================-->'
   Log-Output '<!--========            End CreateDropClassStatement.ps1          =========-->'
-  Log-Output '<#--=======================================================================-->'
 }
 finally{
   Pop-Location;
 }  
   
   <# TODO
+  --> this makes tSQLt.class.sql truely re-runnable
   --> Test this: Empty File TempDropClass.sql file should throw an error
   --> Test this: If the $tempPath does not exist, BuildHelper.exe seems to currently throw an error, but does that stop the build?
   --> Test this: If the $sourcePath does not exist, BuildHelper.exe seems to currently throw an error, but does that stop the build?
