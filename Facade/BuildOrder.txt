@@ -1,5 +1,0 @@
-../Build/temp/tSQLtBuild/Facade/CreateSourceDb.sql
-../Build/temp/tSQLtBuild/Facade/CreateTargetDb.sql
-../Build/temp/tSQLtBuild/Facade/SourceDbUseStatement.sql
-../Build/temp/tSQLtBuild/tSQLt.class.sql
-Facade.CreateAllObjects.ssp.sql
