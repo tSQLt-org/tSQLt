@@ -41,13 +41,31 @@ try{
         $tSQLtSeparatorPath = (Join-Path (Get-Location) "./SQL/SeparatorTemplate.sql") | Resolve-Path
         $tSQLtFileListPath = (Join-Path (Get-Location) "../Source/BuildOrder.txt") | Resolve-Path
         $tSQLtClassOutputPath = (Join-Path $TempPath "tSQLt.class.sql") 
-        ./tSQLt_Build/ConcatenateFiles.ps1 -OutputFile $tSQLtClassOutputPath -SeparatorTemplate $tSQLtSeparatorPath -InputPath $tSQLtFileListPath -Bracket "---Build" -Replacements @{'$LATEST-BUILD-NUMBER$'=$tSQLtVersion}
+        $replacements = @(
+            @{"s"='$LATEST-BUILD-NUMBER$';"r"=$tSQLtVersion}
+            @{'s'='(?m)^(?:[\t ]*(?:\r?\n|\r))+';'r'='';isRegex=$true;}
+            @{'s'='(?m)^\s*GO\s*((\r?\n)\s*GO\s*)+$';'r'='GO';isRegex=$true;}
+        );
+        ./tSQLt_Build/ConcatenateFiles.ps1 -OutputFile $tSQLtClassOutputPath -SeparatorTemplate $tSQLtSeparatorPath -InputPath $tSQLtFileListPath -Bracket "---Build" -Replacements $replacements
 
     Log-Output("Updating ReleaseNotes...")
         $releaseNotesPath = (Join-Path (Get-Location) "ReleaseNotes.txt") | Resolve-Path
         (Get-Content -Path $releaseNotesPath).Replace('LATEST-BUILD-NUMBER', $tSQLtVersion) | Set-Content -Path $releaseNotesPath
 
     Log-Output("Creating PrepareServer.sql...")
+        $tSQLtSeparatorPath = (Join-Path (Get-Location) "./SQL/SeparatorTemplate.sql") | Resolve-Path
+        $tSQLtFileListPath = (Join-Path (Get-Location) "../Source/PrepareServerBuildOrder.txt") | Resolve-Path
+        $tSQLtClassOutputPath = (Join-Path $TempPath "PrepareServer.sql") 
+        $replacements = @(
+            @{'s'='tSQLt.';'r'='#';},
+            @{'s'="OBJECT_ID('#";'r'="OBJECT_ID('tempdb..#";},
+            @{'s'='---Build-';'r'='';},
+            @{'s'='---Build+';'r'='';},
+            @{'s'="(?m)^\s*--.*";'r'='';isRegex=$true;}
+            @{'s'='(?m)^(?:[\t ]*(?:\r?\n|\r))+';'r'='';isRegex=$true;},
+            @{'s'='(?m)^\s*GO\s*((\r?\n)\s*GO\s*)+$';'r'='GO';isRegex=$true;}
+        );
+        ./tSQLt_Build/ConcatenateFiles.ps1 -OutputFile $tSQLtClassOutputPath -SeparatorTemplate $tSQLtSeparatorPath -InputPath $tSQLtFileListPath -Replacements $replacements
         # $releaseNotesPath = (Join-Path (Get-Location) "ReleaseNotes.txt") | Resolve-Path
         # (Get-Content -Path $releaseNotesPath).Replace('LATEST-BUILD-NUMBER', $tSQLtVersion) | Set-Content -Path $releaseNotesPath
         # <arg value="../Source/PrepareServerBuildOrder.txt"/>

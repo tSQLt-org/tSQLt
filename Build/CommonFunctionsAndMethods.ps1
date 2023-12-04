@@ -223,13 +223,27 @@ Function Replace-InFile {
   [CmdletBinding()]
   param (
     [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()][string[]]$filePath,
-    [Parameter(Mandatory=$true)][hashtable] $replacements,
+    [Parameter(Mandatory=$true)][array] $replacements
   )
   begin {
   };
   process {
     $fileContent = (Get-Content -Path $filePath)
-    $replacements.Keys|%{$rv=$replacements[$_]; Write-Host("Replacing >$_< with >$rv<...");$fileContent = $fileContent.Replace($_, $rv);} 
+    $replacements|ForEach-Object{
+      $sv = $_[0]
+      $rv=$_[1]; 
+      $isRegex = $false;
+      if($rv -is [array]){
+        $isRegex = $true
+        $rv = $rv[0]
+      }
+      Write-Host("Replacing >$_< with >$rv<...");
+      if($isRegex){
+        $fileContent = $fileContent -replace $_, $rv 
+      }else{
+        $fileContent = $fileContent.Replace($_, $rv) 
+      }
+    }
     $fileContent | Set-Content -Path $releaseNotesPath
   };
   end {

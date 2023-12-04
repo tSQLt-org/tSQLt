@@ -2,9 +2,9 @@ param(
     [Parameter(Mandatory=$true)][string]$OutputFile,
     [Parameter(Mandatory=$true)][string]$SeparatorTemplate,
     [Parameter(Mandatory=$true)][string]$InputPath,
-    [hashtable]$replacements = @{},
+    [array]$replacements = @{},
     [string]$IncludePattern,
-    [string]$Bracket,
+    [string]$Bracket = '',
     [switch]$IncludeFromStart
 )
 
@@ -24,13 +24,13 @@ function Get-FileContent {
 
     Get-Content $filePath -ErrorAction Stop| ForEach-Object {
         # Write-Host("$Include::>$_<")
-        if ($_ -eq "$bracket-h") {
+        if ($bracket -ne '' -and $_ -eq "$bracket-h") {
             $includeHeader = $false
-        } elseif ($_ -eq "$bracket-n") {
+        } elseif ($bracket -ne '' -and $_ -eq "$bracket-n") {
             $includeNameInHeader = $false
-        } elseif ($_ -eq "$bracket+") {
+        } elseif ($bracket -ne '' -and $_ -eq "$bracket+") {
             $include = $true
-        } elseif ($_ -eq "$bracket-") {
+        } elseif ($bracket -ne '' -and $_ -eq "$bracket-") {
             $include = $false
         } elseif ($include) {
             $content += $_
@@ -74,6 +74,9 @@ $scriptPath = (Split-Path $InputPath)
 Write-Host("Separator Template:")
 $separatorContent|%{Write-Host(">:$_")}
 Write-Host("scriptPath: $scriptPath")
+if($Bracket -eq ''){
+    $IncludeFromStart = $true;
+}
 
 try{
     if (Test-Path $InputPath -PathType Leaf) {
@@ -85,8 +88,18 @@ try{
         # Input is a directory
         $fileIterator = Get-ChildItem $InputPath -Filter $Pattern
     }
-    $concatenatedContent = Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Bracket -includeFromStart $IncludeFromStart
-    $replacements.Keys|%{$rv=$replacements[$_]; Write-Host("Replacing >$_< with >$rv<...");$concatenatedContent = $concatenatedContent.Replace($_,$rv)}
+    $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`n"
+    $replacements|ForEach-Object{
+        $sv = $_["s"]
+        $rv=$_["r"]; 
+        $isRegex = $_.ContainsKey("isRegex") -and $_["isRegex"];
+        Write-Host("Replacing >$sv< with >$rv< [regex:$isRegex]...");
+        if($isRegex){
+            $concatenatedContent = $concatenatedContent -replace $sv, $rv 
+          }else{
+            $concatenatedContent = $concatenatedContent.Replace($sv, $rv) 
+          }
+    }
     $concatenatedContent | Out-File $OutputFile
 }catch{
     throw
