@@ -29,12 +29,10 @@ function Get-AssemblyThumbprint {
     param (
         [string]$DllPath
     )
-    $assembly = [System.Reflection.Assembly]::LoadFile($DllPath)
-    #$certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromSignedFile($asseDllPathmblyPath)
-
-    # $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($DllPath)
-    # return $cert.GetCertHashString()
-    return '0000000000000000'
+    
+    $getAssemblyInfoPath = (Join-Path $PSScriptRoot "GetAssemblyInfo.ps1" | Resolve-Path)
+    $token = & $getAssemblyInfoPath $DllPath -t
+    return $token
 }
 
 function Replace-TemplatePlaceholders {

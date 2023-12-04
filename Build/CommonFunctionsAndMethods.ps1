@@ -218,3 +218,20 @@ Function Get-SnipContent {
   end {
   };
 }
+
+Function Replace-InFile {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()][string[]]$filePath,
+    [Parameter(Mandatory=$true)][hashtable] $replacements,
+  )
+  begin {
+  };
+  process {
+    $fileContent = (Get-Content -Path $filePath)
+    $replacements.Keys|%{$rv=$replacements[$_]; Write-Host("Replacing >$_< with >$rv<...");$fileContent = $fileContent.Replace($_, $rv);} 
+    $fileContent | Set-Content -Path $releaseNotesPath
+  };
+  end {
+  };
+}

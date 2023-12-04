@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory=$true)][string]$OutputFile,
     [Parameter(Mandatory=$true)][string]$SeparatorTemplate,
     [Parameter(Mandatory=$true)][string]$InputPath,
+    [hashtable]$replacements = @{},
     [string]$IncludePattern,
     [string]$Bracket,
     [switch]$IncludeFromStart
@@ -20,7 +21,7 @@ function Get-FileContent {
     $includeNameInHeader = $true
     $content = @()
     # Write-Host(">$bracket-n<")
-    
+
     Get-Content $filePath -ErrorAction Stop| ForEach-Object {
         # Write-Host("$Include::>$_<")
         if ($_ -eq "$bracket-h") {
@@ -85,6 +86,7 @@ try{
         $fileIterator = Get-ChildItem $InputPath -Filter $Pattern
     }
     $concatenatedContent = Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Bracket -includeFromStart $IncludeFromStart
+    $replacements.Keys|%{$rv=$replacements[$_]; Write-Host("Replacing >$_< with >$rv<...");$concatenatedContent = $concatenatedContent.Replace($_,$rv)}
     $concatenatedContent | Out-File $OutputFile
 }catch{
     throw
