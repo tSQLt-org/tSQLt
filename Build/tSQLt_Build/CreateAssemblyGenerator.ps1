@@ -1,4 +1,5 @@
 param (
+    [string]$OutputPath,
     [string]$DllPath,
     [string]$TemplatePath,
     [string]$HexPlaceholder,
@@ -29,7 +30,7 @@ function Get-AssemblyThumbprint {
         [string]$DllPath
     )
     $assembly = [System.Reflection.Assembly]::LoadFile($DllPath)
-    $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromSignedFile($asseDllPathmblyPath)
+    #$certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromSignedFile($asseDllPathmblyPath)
 
     # $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($DllPath)
     # return $cert.GetCertHashString()
@@ -84,12 +85,10 @@ try {
     $outputContent = Replace-TemplatePlaceholders -TemplatePath $TemplatePath -HexPlaceholder $HexPlaceholder -ThumbprintPlaceholder $ThumbprintPlaceholder -HexContent $hexContent -Thumbprint $thumbprint
 
     # # Output to file
-    # $outputPath = [System.IO.Path]::ChangeExtension($TemplatePath, ".output.sql")
-    # $outputContent | Out-File -FilePath $outputPath
+    $outputContent | Out-File -FilePath $outputPath
 
-    # Write-Host "Output generated: $outputPath"
-
-    Write-Host $outputContent
+    Write-Host "Output generated: $outputPath"
+    # $outputContent
 }
 catch {
     Write-Error "Error: $_"

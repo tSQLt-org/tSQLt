@@ -19,16 +19,17 @@ function Get-FileContent {
     $includeHeader = $true
     $includeNameInHeader = $true
     $content = @()
-
+    # Write-Host(">$bracket-n<")
+    
     Get-Content $filePath -ErrorAction Stop| ForEach-Object {
-        # Write-Host("$Include::$_")
-        if ($_ -match "$bracket\-h") {
+        # Write-Host("$Include::>$_<")
+        if ($_ -eq "$bracket-h") {
             $includeHeader = $false
-        } elseif ($_ -match "$bracket\-n") {
+        } elseif ($_ -eq "$bracket-n") {
             $includeNameInHeader = $false
-        } elseif ($_ -match "$bracket\+") {
+        } elseif ($_ -eq "$bracket+") {
             $include = $true
-        } elseif ($_ -match "$bracket\-") {
+        } elseif ($_ -eq "$bracket-") {
             $include = $false
         } elseif ($include) {
             $content += $_
@@ -77,13 +78,13 @@ try{
     if (Test-Path $InputPath -PathType Leaf) {
         # Input is a file
         $fileList = Get-Content $InputPath -ErrorAction Stop
-        $fileIterator = $fileList | ForEach-Object { Join-Path $scriptPath $_ }
+        $fileIterator = $fileList | ForEach-Object { Join-Path $scriptPath $_ | Resolve-Path}
 
     } else {
         # Input is a directory
         $fileIterator = Get-ChildItem $InputPath -Filter $Pattern
     }
-    $concatenatedContent = Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Pattern -includeFromStart $IncludeFromStart
+    $concatenatedContent = Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Bracket -includeFromStart $IncludeFromStart
     $concatenatedContent | Out-File $OutputFile
 }catch{
     throw

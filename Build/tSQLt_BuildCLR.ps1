@@ -2,8 +2,8 @@ Push-Location -Path $PSScriptRoot
 .("./CommonFunctionsAndMethods.ps1");
 
 try{
-    $OutputPath = $dir + "./output/tSQLtCLR/";
-    $TempPath = $dir + "./temp/tSQLtCLR/";
+    $OutputPath = "./output/tSQLtCLR/";
+    $TempPath = "./temp/tSQLtCLR/";
 
     <# Clean #>
     Remove-DirectoryQuietly -Path $TempPath;
