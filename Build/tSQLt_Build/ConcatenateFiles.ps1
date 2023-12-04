@@ -86,7 +86,7 @@ try{
 
     } else {
         # Input is a directory
-        $fileIterator = Get-ChildItem $InputPath -Filter $Pattern
+        $fileIterator = Get-ChildItem $InputPath -Filter $IncludePattern
     }
     $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`n"
     $replacements|ForEach-Object{

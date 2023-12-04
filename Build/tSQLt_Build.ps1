@@ -1,7 +1,8 @@
-Push-Location -Path $PSScriptRoot
-.("./CommonFunctionsAndMethods.ps1");
-
+$invocationDir = $PSScriptRoot
+Push-Location -Path $invocationDir
 try{
+    .(Join-Path $PSScriptRoot 'CommonFunctionsAndMethods.ps1'| Resolve-Path);
+
     $OutputPath = "./output/tSQLtBuild/";
     $TempPath = "./temp/tSQLtBuild/";
 

@@ -1,0 +1,2 @@
+../Build/temp/tSQLtTests/ResetValidationServer.tmp.sql
+../Build/SQL/CreateLogin(tSQLt.Build).sql

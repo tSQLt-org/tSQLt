@@ -25,9 +25,15 @@ try{
 
     & ./tSQLt_Build.ps1
 
-    # Log-Output('+ - - - - - - - - - - - - - - - - - +')
-    # Log-Output(': Packaging tSQLt                   :')
-    # Log-Output('+ - - - - - - - - - - - - - - - - - +')
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+    Log-Output(': Starting tSQLt Tests Build        :')
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+
+    & ./tSQLt_BuildTests.ps1
+
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+    Log-Output(': Build Finished                    :')
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
 
     
 }
