@@ -3,7 +3,6 @@ try{
   $baseDir = '..';
   $buildPath = $baseDir +'/';
   $tempPath = $baseDir + '/temp/tSQLtBuild/';
-  $outputPath = $baseDir + '/output/tSQLtBuild/';
   $sourcePath = $baseDir + '/../Source/';
 
   .($buildPath+"CommonFunctionsAndMethods.ps1");

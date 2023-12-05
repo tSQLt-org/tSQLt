@@ -1,10 +1,16 @@
 param(
-    [switch]$verbose
+    [Parameter(Mandatory=$true, ParameterSetName="DBC")][ValidateNotNullOrEmpty()][string] $ServerName = 'localhost,1433',
+    [Parameter(Mandatory=$true, ParameterSetName="DBC")][ValidateNotNullOrEmpty()][string] $Login = '-U "sa" -P "P@ssw0rd"',
+    [Parameter(Mandatory=$true, ParameterSetName="DBC")][ValidateNotNullOrEmpty()][string] $DatabaseName = 'tSQLtDacPacBuild',
+    [Parameter(Mandatory=$false, ParameterSetName="IgnoreMe")][string]$IgnoreMe
 )
+$PSDefaultParameterValues = $PSDefaultParameterValues.clone()
+$PSDefaultParameterValues += @{'*:ErrorAction' = 'Stop'}
 
-Push-Location -Path $PSScriptRoot
+$invocationDir = $PSScriptRoot
+Push-Location -Path $invocationDir
 try{
-    .("./CommonFunctionsAndMethods.ps1");
+    .(Join-Path $PSScriptRoot 'CommonFunctionsAndMethods.ps1'| Resolve-Path);
 
     Log-Output('');
     Log-Output("+--------------------------------------------------------------------+");
@@ -32,10 +38,25 @@ try{
     & ./tSQLt_BuildTests.ps1
 
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
+    Log-Output(': Starting tSQLt DacPac Build       :')
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+
+    & ./tSQLt_BuildDacpac.ps1 -ServerName $ServerName -DatabaseName $DatabaseName -Login $Login
+
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+    Log-Output(': Packaging tSQLt & DACPACs         :')
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+
+    & ./tSQLt_BuildPackage.ps1
+
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
     Log-Output(': Build Finished                    :')
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
 
     
+}
+catch{
+    throw;
 }
 finally{
     Pop-Location

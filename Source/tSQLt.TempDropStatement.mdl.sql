@@ -1,2 +1,2 @@
 ---Build+
-/*--DROPSTATEMENT--*/
+DECLARE @ClassName NVARCHAR(MAX) = 'tSQLt';/*--DROPSTATEMENT--*/

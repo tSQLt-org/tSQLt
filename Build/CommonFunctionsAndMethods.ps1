@@ -18,13 +18,24 @@ Function Exec-SqlFileOrQuery
 {
   [CmdletBinding()]
   param(
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlCmdPath,
-    [Parameter(Mandatory=$true, ParameterSetName = 'File')][ValidateNotNullOrEmpty()][string[]] $FileNames,
-    [Parameter(Mandatory=$false, ParameterSetName = 'File')][Parameter(Mandatory=$true, ParameterSetName = 'Query')][ValidateNotNullOrEmpty()][string] $Query,
-    [Parameter(Mandatory=$false)][string] $DatabaseName = "",
-    [Parameter(Mandatory=$false)][string] $AdditionalParameters = ""
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
+      [string] $ServerName,
+    
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
+      [string] $Login,
+    
+    [Parameter(Mandatory=$true, ParameterSetName = 'File')][ValidateNotNullOrEmpty()]
+      [string[]] $FileNames,
+    
+    [Parameter(Mandatory=$false, ParameterSetName = 'File')]
+    [Parameter(Mandatory=$true, ParameterSetName = 'Query')][ValidateNotNullOrEmpty()]
+      [string] $Query,
+    
+    [Parameter(Mandatory=$false)]
+      [string] $DatabaseName = "",
+    
+    [Parameter(Mandatory=$false)]
+      [string] $AdditionalParameters = ""
   );
 
   $DatabaseSelector = "";
@@ -46,7 +57,7 @@ Function Exec-SqlFileOrQuery
   }
   
 
-  $CallSqlCmd = '&"'+$SqlCmdPath+'\sqlcmd.exe" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$QuerySection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
+  $CallSqlCmd = '& "sqlcmd" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$QuerySection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
   $CallSqlCmd = $CallSqlCmd + ';if($LASTEXITCODE -ne 0){throw "error during execution of "+$ExecutionMessage;}';
 
   Invoke-Expression $CallSqlCmd -ErrorAction Stop;
@@ -80,8 +91,8 @@ Function Get-SqlConnectionString
   }
   
   <# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
-  if ($LoginTrimmed -match '((.*[-]U)|(.*[-]P))+.*'){
-      $AuthenticationString = $LoginTrimmed -replace '^((\s*([-]U\s+)(?<user>\w+)\s*)|(\s*([-]P\s+)(?<password>\S+)\s*))+$', 'User Id=${user};Password="${password}"'  
+  if ($LoginTrimmed -match '((.*[-][uU])|(.*[-][pP]))+.*'){
+      $AuthenticationString = $LoginTrimmed -replace '^((\s*[-][uU]\s+(?<user>\S+)\s*)|(\s*[-][pP]\s+)((?<quote>[''"])(?<password>.*?)\k<quote>|(?<password>\S+))\s*)+$', 'User Id=${user};Password="${password}"'  
   }
   elseif ($LoginTrimmed -eq "-E"){
       $AuthenticationString = "Integrated Security=SSPI;";
@@ -98,15 +109,14 @@ function Get-FriendlySQLServerVersion {
   [CmdletBinding()]
   param (
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SqlCmdPath
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login
   )
   $ServerNameTrimmed = $ServerName.Trim();
   $LoginTrimmed = $Login.Trim();
 
   $GetFriendlySQLServerVersionFullPath = (Get-ChildItem -Path ($PSScriptRoot + '/output/*') -include "GetFriendlySQLServerVersion.sql" -Recurse | Select-Object -First 1 ).FullName;
   $GetFriendlySQLServerVersionStatement = (Get-Content -Path $GetFriendlySQLServerVersionFullPath).Replace([System.Environment]::NewLine,' ');
-  $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -SqlCmdPath $SqlCmdPath -Query "$GetFriendlySQLServerVersionStatement" -DatabaseName 'tempdb';
+  $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -Query "$GetFriendlySQLServerVersionStatement" -DatabaseName 'tempdb';
   Log-Output "Friendly SQL Server Version: $resultSet";
   $resultSet.Trim();
 }

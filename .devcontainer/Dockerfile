@@ -25,27 +25,27 @@ RUN apt-get update && apt-get install -y curl gnupg software-properties-common \
 RUN apt-get update && \
     apt-get install -y mono-complete
 
-RUN apt-get update && \
-    apt-get install -y openjdk-11-jdk && \
-    apt-get clean
-
-# Set the Ant version
-ENV ANT_VERSION 1.10.14
-
-# Download and extract Apache Ant to /opt/ant
-RUN wget -q https://downloads.apache.org/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz \
-    && tar -xzf apache-ant-${ANT_VERSION}-bin.tar.gz -C /opt \
-    && rm apache-ant-${ANT_VERSION}-bin.tar.gz \
-    && ln -s /opt/apache-ant-${ANT_VERSION} /opt/ant
-
-# Set ANT_HOME and add the bin directory to the PATH
-ENV ANT_HOME /opt/ant
-ENV PATH ${PATH}:${ANT_HOME}/bin
-
 ENV TSQLTCERTPATH /var/tSQLtCertTemp
 ENV TSQLTCERTPASSWORD P@ssw0rdP@ssw0rdP@ssw0rdP@ssw0rd
 RUN mkdir -p $TSQLTCERTPATH && \
     chmod 777 $TSQLTCERTPATH
+
+# Add the Microsoft SQL Server repository
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/msprod.list
+
+RUN apt-get update
+ENV ACCEPT_EULA=Y
+RUN apt-get install -y mssql-tools unixodbc-dev
+ENV PATH="$PATH:/opt/mssql-tools/bin"
+
+RUN apt-get install -y unzip
+
+RUN curl -L https://aka.ms/sqlpackage-linux -o sqlpackage.zip \
+    && unzip sqlpackage.zip -d /opt/sqlpackage \
+    && chmod +x /opt/sqlpackage/sqlpackage \
+    && rm sqlpackage.zip
+ENV PATH="$PATH:/opt/sqlpackage"
 
 # Expose any ports the app is expecting to be served on
 # EXPOSE 8080
