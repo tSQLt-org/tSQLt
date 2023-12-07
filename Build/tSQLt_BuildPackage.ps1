@@ -4,14 +4,16 @@ Push-Location -Path $invocationDir
 try{
     .(Join-Path $invocationDir 'CommonFunctionsAndMethods.ps1'| Resolve-Path);
 
-    $OutputPath = $invocationDir + "/output/tSQLt/";
-    $TempPath = $invocationDir + "/temp/tSQLt/";
+    $OutputPath = (Join-Path $invocationDir "/output/tSQLt/");
+    $TempPath = (Join-Path $invocationDir "/temp/tSQLt/");
 
-    $PublicOutputPath = $OutputPath + "public/";
-    $PublicTempPath = $TempPath + "public/";
-    $ValidationOutputPath = $OutputPath + "validation/";
-    $tSQLtDacpacPath = $PublicTempPath + "/tSQLtDacpacs/";
-    $tSQLtFilesZipPath = $invocationDir + "/output/tSQLtBuild/tSQLtFiles.zip";
+    $PublicOutputPath = (Join-Path $OutputPath "public/");
+    $PublicTempPath = (Join-Path $TempPath "public/");
+    $ValidationOutputPath = (Join-Path $OutputPath "validation/");
+    $tSQLtDacpacPath = (Join-Path $PublicTempPath "tSQLtDacpacs/");
+    
+    $tSQLtFilesZipSourcePath = (Join-Path $invocationDir "/output/tSQLtBuild/tSQLtFiles.zip" | Resolve-Path);
+    $tSQLtDacpacSourcePath = (Join-Path $invocationDir "/output/DacpacBuild" | Resolve-Path);
 
     $PublicOutputFiles = @(
         ($invocationDir + "/output/tSQLtBuild/ReadMe.txt"), 
@@ -30,14 +32,14 @@ try{
     Remove-DirectoryQuietly -Path $OutputPath;
 
     <# Init directories, capturing the return values in a variable so that they don't print. #>
-    $eatPublicOutputDir = New-Item -ItemType "directory" -Path $PublicOutputPath;
-    $eattSQLtDacpacsDir = New-Item -ItemType "directory" -Path $tSQLtDacpacPath;
-    $eatValidationOutputDir = New-Item -ItemType "directory" -Path $ValidationOutputPath;
+    $__ = New-Item -ItemType "directory" -Path $PublicOutputPath;
+    $__ = New-Item -ItemType "directory" -Path $tSQLtDacpacPath;
+    $__ = New-Item -ItemType "directory" -Path $ValidationOutputPath;
 
     <# Copy files to temp path #>
-    Expand-Archive -Path ($tSQLtFilesZipPath) -DestinationPath $PublicTempPath;
+    Expand-Archive -Path ($tSQLtFilesZipSourcePath) -DestinationPath $PublicTempPath;
     # Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadeDacpacPath;
-    Get-ChildItem -Path ($invocationDir + "/output/DacpacBuild/tSQLt.*.dacpac") | Copy-Item -Destination $tSQLtDacpacPath;
+    Get-ChildItem -Path ($tSQLtDacpacSourcePath) -Filter 'tSQLt.*.dacpac' | Copy-Item -Destination $tSQLtDacpacPath;
 
     <# Create the tSQLt.zip in the public output path #>
     $compress = @{

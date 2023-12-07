@@ -47,7 +47,7 @@ Function Exec-SqlFileOrQuery
   $FileNameSection = "";
   <# -i input_file[,input_file2...] #>
   if (![string]::isnullorempty($FileNames)) {
-    $FileNameSection = '-i "'+($FileNames -Join '","')+'"';
+    $FileNameSection = '-i "'+($FileNames -Join '" -i "')+'"';
     $ExecutionMessage = $FileNames;
   }
   $QuerySection = "";
@@ -59,7 +59,7 @@ Function Exec-SqlFileOrQuery
 
   $CallSqlCmd = '& "sqlcmd" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$QuerySection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
   $CallSqlCmd = $CallSqlCmd + ';if($LASTEXITCODE -ne 0){throw "error during execution of "+$ExecutionMessage;}';
-
+  # $CallSqlCmd
   Invoke-Expression $CallSqlCmd -ErrorAction Stop;
 }
 
@@ -109,7 +109,8 @@ function Get-FriendlySQLServerVersion {
   [CmdletBinding()]
   param (
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
+    [Parameter(Mandatory=$false)][switch]$Quiet
   )
   $ServerNameTrimmed = $ServerName.Trim();
   $LoginTrimmed = $Login.Trim();
@@ -117,7 +118,7 @@ function Get-FriendlySQLServerVersion {
   $GetFriendlySQLServerVersionFullPath = (Get-ChildItem -Path ($PSScriptRoot + '/output/*') -include "GetFriendlySQLServerVersion.sql" -Recurse | Select-Object -First 1 ).FullName;
   $GetFriendlySQLServerVersionStatement = (Get-Content -Path $GetFriendlySQLServerVersionFullPath).Replace([System.Environment]::NewLine,' ');
   $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -Query "$GetFriendlySQLServerVersionStatement" -DatabaseName 'tempdb';
-  Log-Output "Friendly SQL Server Version: $resultSet";
+  if(!$Quiet){Log-Output "Friendly SQL Server Version: $resultSet"};
   $resultSet.Trim();
 }
 

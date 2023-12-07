@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$OutputFile,
-    [Parameter(Mandatory=$true)][string]$SeparatorTemplate,
-    [Parameter(Mandatory=$true)][string]$InputPath,
+    [Parameter(Mandatory=$false)][string]$SeparatorTemplate,
+    [Parameter(Mandatory=$true, ValueFromPipeline)]$InputPath,
     [array]$replacements = @{},
     [string]$IncludePattern,
     [string]$Bracket = '',
@@ -41,7 +41,7 @@ function Get-FileContent {
         if($includeNameInHeader){
             $fileName = (Split-Path $file -Leaf)
         }
-        $content = $separator.Replace("/*--FILENAME--*/",$fileName) + $content
+        $content = ($separator|ForEach-Object{$_.Replace("/*--FILENAME--*/",$fileName)}) + $content
     }
     return $content
 }
@@ -56,7 +56,6 @@ function Concatenate-Files {
     )
 
     $output = @()
-
     foreach ($file in $fileIterator) {
         Write-Host("-->$file")
         $fileContent = Get-FileContent -filePath $file -bracket $bracket -includeFromStart $includeFromStart -separator $separator
@@ -67,25 +66,35 @@ function Concatenate-Files {
 }
 
 Write-Host("OutputFile: $OutputFile")
-Write-Host("SeparatorTemplate: $SeparatorTemplate")
+Write-Host("SeparatorTemplate: >$SeparatorTemplate<")
 Write-Host("Input: $InputPath")
-$separatorContent = Get-Content $SeparatorTemplate  -ErrorAction Stop
-$scriptPath = (Split-Path $InputPath)
+
+if([string]::IsNullOrWhiteSpace($SeparatorTemplate)){
+    $separatorContent = @();
+}
+else{
+    $separatorContent = Get-Content $SeparatorTemplate  -ErrorAction Stop
+}
 Write-Host("Separator Template:")
 $separatorContent|%{Write-Host(">:$_")}
-Write-Host("scriptPath: $scriptPath")
 if($Bracket -eq ''){
     $IncludeFromStart = $true;
 }
 
 try{
-    if (Test-Path $InputPath -PathType Leaf) {
-        # Input is a file
+    if($InputPath  -is [System.Collections.IEnumerable]){
+        Write-Host("scriptPath: /")
+        $fileIterator = $InputPath
+    } 
+    elseif (Test-Path $InputPath -PathType Leaf) {
+        $scriptPath = (Split-Path $InputPath)
+        Write-Host("scriptPath: $scriptPath")
         $fileList = Get-Content $InputPath -ErrorAction Stop
         $fileIterator = $fileList | ForEach-Object { Join-Path $scriptPath $_ | Resolve-Path}
 
-    } else {
-        # Input is a directory
+    } 
+    else {
+        Write-Host("scriptPath: $InputPath")
         $fileIterator = Get-ChildItem $InputPath -Filter $IncludePattern
     }
     $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`n"

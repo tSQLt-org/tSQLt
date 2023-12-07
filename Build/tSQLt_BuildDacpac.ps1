@@ -43,7 +43,7 @@ try{
     $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
     $tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
     $tSQLtConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $DatabaseName;
-$tSQLtConnectionString
+# $tSQLtConnectionString
     & sqlpackage --roll-forward Major /a:Extract /scs:"$tSQLtConnectionString" /tf:"$tSQLtDacpacFileName" /p:DacApplicationName="$tSQLtApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
     if($LASTEXITCODE -ne 0) {
         throw "error during execution of dacpac " + $tSQLtDacpacFileName;
