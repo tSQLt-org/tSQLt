@@ -9,6 +9,34 @@ if([string]::IsNullOrWhiteSpace($LogTableName)){
 }
 # AllTests.Main.sql --> AllTests.sql
 
+function Copy-SQLXmlToFile {
+    # This has been tested for up to 100MB of test results! 
+    # (Likely there is no limit, other than the 2GB of the XML data type.)
+    param (
+        [string]$connectionString,
+        [string]$query,
+        [string]$outputFile
+    )
+
+    Add-Type -AssemblyName System.Data
+
+    try {
+        $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)
+        $connection.Open()
+
+        $command = $connection.CreateCommand()
+        $command.CommandText = $query
+
+        $result = $command.ExecuteScalar()
+        [System.IO.File]::WriteAllText($outputFile, $result)
+    }
+    catch {
+        Write-Error "An error occurred: $_"
+    }
+    finally {
+        $connection.Close()
+    }
+}
 Function Invoke-SQLFileOrQuery
 {
     [CmdletBinding()]
@@ -92,18 +120,21 @@ Function Invoke-Tests
     }
     Invoke-SQLFileOrQuery @parameters;         
 
-    $parameters = @{
-        ServerName = $ServerName
-        Login = $Login
-        Files = @(
-            (Join-Path $TestsPath GetTestResults.sql| Resolve-Path)
-        )
-        OutputFile = $OutputFile
-        AdditionalParameters = @{
-            DbName = $DatabaseName
-        }
-    }
-    Invoke-SQLFileOrQuery @parameters;         
+    # $parameters = @{
+    #     ServerName = $ServerName
+    #     Login = $Login
+    #     Files = @(
+    #         (Join-Path $TestsPath GetTestResults.sql| Resolve-Path)
+    #     )
+    #     OutputFile = $OutputFile
+    #     AdditionalParameters = @{
+    #         DbName = $DatabaseName
+    #     }
+    # }
+    # Invoke-SQLFileOrQuery @parameters;         
+    $connectionString = Get-SqlConnectionString -ServerName $ServerName -Login $Login -DatabaseName $DatabaseName
+
+    Copy-SQLXmlToFile $connectionString "EXEC [tSQLt].[XmlResultFormatter]" $OutputFile
 
     $parameters = @{
         AdditionalParameters = @{
@@ -240,7 +271,7 @@ try{
 
     Log-Output('Creating Log Table...')
         $parameters = @{
-            Elevated = $true
+            Caller = $true
             Files = @(
                 (Join-Path $TestsPath "CreateBuildLog.sql" | Resolve-Path)
             )
@@ -328,7 +359,7 @@ try{
     Log-Output('Run All Tests... TestUtil Tests...')
         $parameters = @{
             TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
-            OutputFile = (Join-Path $ResultsPath "TertResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
         }
         Invoke-TestsFromFile @parameters;
     
