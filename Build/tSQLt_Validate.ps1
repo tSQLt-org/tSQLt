@@ -22,37 +22,144 @@ Function Invoke-SQLFileOrQuery
         [switch]$Caller,
         [Parameter(Mandatory=$false, ParameterSetName="Basic")]
         [switch]$Basic,
-        [Parameter(Mandatory=$false)][string] $Query = $null,
+        [Parameter(Mandatory=$false)][string] $OutputFile = $null,
+        [Parameter(Mandatory=$false)][string] $Query = "",
         [Parameter(Mandatory=$false)][string[]] $Files = @(),
         [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{}
     );
-    @{
-        BuildLogTableName=$LogTableName
-        DbName = "tempdb"
-        ExecuteStatement=";"
-        NewDbName = ("[This Shouldn't be here "+(New-Guid)+']')
-    }.GetEnumerator()|ForEach-Object{if(!$AdditionalParameters.Contains($_.key)){$AdditionalParameters[$_.key]=$_.value;}}
-    $AdditionalParametersString = "-v "+ (($AdditionalParameters.GetEnumerator()|ForEach-Object{$_.key +"='" + $_.value.replace("'","''") + "'"}) -Join " -v ")
-    [string[]]$FileNames = @();
-    if($Elevated){
-        $FileNames += (Join-Path $TestsPath "temp_executeas_sa.sql")
-    }elseif($Caller){
-        $FileNames += (Join-Path $TestsPath "temp_executeas_caller.sql")
-    }else{
-        $FileNames += (Join-Path $TestsPath "temp_executeas.sql")
+    $tempFile = $null;
+    try{
+        @{
+            BuildLogTableName=$LogTableName
+            DbName = "tempdb"
+            ExecuteStatement=";"
+            NewDbName = ("[This Shouldn't be here "+(New-Guid)+']')
+        }.GetEnumerator()|ForEach-Object{if(!$AdditionalParameters.Contains($_.key)){$AdditionalParameters[$_.key]=$_.value;}}
+        $AdditionalParametersString = "-v "+ (($AdditionalParameters.GetEnumerator()|ForEach-Object{$_.key +"='" + $_.value.replace("'","''") + "'"}) -Join " -v ")
+        [string[]]$FileNames = @();
+        if($Elevated){
+            $FileNames += (Join-Path $TestsPath "temp_executeas_sa.sql"|Resolve-Path)
+        }elseif($Caller){
+            $FileNames += (Join-Path $TestsPath "temp_executeas_caller.sql"|Resolve-Path)
+        }else{
+            $FileNames += (Join-Path $TestsPath "temp_executeas.sql"|Resolve-Path)
+        }
+        if (![string]::IsNullOrWhiteSpace($Query)){
+            $tempFile = New-TemporaryFile;
+            $Query |Set-Content -Path $tempFile
+            $FileNames += $tempFile
+        }
+        $FullFileNameSet = @($FileNames)+@($Files);
+
+        $parameters = @{
+            ServerName = $ServerName
+            Login = $Login
+            FileNames = $FullFileNameSet
+            DatabaseName = $DatabaseName
+            AdditionalParameters = $AdditionalParametersString
+        }
+        Exec-SqlFileOrQuery @parameters
     }
-    $ConcatenatedFileNames = @($FileNames)+@($Files);
+    catch{
+        throw
+    }
+    finally{
+        if($null -ne $tempFile){
+            Remove-Item -Path $tempFile.FullName -ErrorAction Ignore
+        }
+    }
+}
+
+Function Invoke-Tests
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $ServerName = $ServerName,
+        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $Login = $Login,
+        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName = $DatabaseName,
+        [Parameter(Mandatory=$false)][switch]$Elevated,
+        [Parameter(Mandatory=$true)][string] $TestSetName,
+        [Parameter(Mandatory=$true)][string] $RunCommand,
+        [Parameter(Mandatory=$true)][string] $OutputFile
+    );
+    $parameters = @{
+        ServerName = $ServerName
+        Login = $Login
+        Query = $RunCommand
+        AdditionalParameters = @{
+            DbName = $DatabaseName
+        }
+    }
+    Invoke-SQLFileOrQuery @parameters;         
 
     $parameters = @{
         ServerName = $ServerName
         Login = $Login
-        FileNames = $ConcatenatedFileNames
-        DatabaseName = $DatabaseName
-        AdditionalParameters = $AdditionalParametersString
+        Files = @(
+            (Join-Path $TestsPath GetTestResults.sql| Resolve-Path)
+        )
+        OutputFile = $OutputFile
+        AdditionalParameters = @{
+            DbName = $DatabaseName
+        }
     }
-    Exec-SqlFileOrQuery @parameters
-}
+    Invoke-SQLFileOrQuery @parameters;         
 
+    $parameters = @{
+        AdditionalParameters = @{
+            DbName = $DatabaseName
+            ExecuteStatement = "EXEC tSQLt_testutil.LogMultiRunResult '$TestSetName';"
+        }
+    }
+    Invoke-SQLFileOrQuery @parameters;
+
+}
+Function Invoke-TestsFromFile
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $ServerName = $ServerName,
+        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $Login = $Login,
+        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName = $DatabaseName,
+        [Parameter(Mandatory=$false)][switch]$Elevated,
+        [Parameter(Mandatory=$true)][string] $TestFilePath,
+        [Parameter(Mandatory=$true)][string] $OutputFile
+    );
+
+    $TestSetName = [System.IO.Path]::GetFileName($TestFilePath);
+
+    $parameters = @{
+        ServerName = $ServerName
+        Login = $Login
+        AdditionalParameters = @{
+            DbName = $DatabaseName
+            ExecuteStatement = "EXEC tSQLt.Reset;"
+        }
+    }
+    Invoke-SQLFileOrQuery @parameters;
+
+    $parameters = @{
+        ServerName = $ServerName
+        Login = $Login
+        Files = @($TestFilePath)
+        AdditionalParameters = @{
+            DbName = $DatabaseName
+        }
+    }
+    Invoke-SQLFileOrQuery @parameters;
+
+    $parameters = @{
+        ServerName = $ServerName
+        Login = $Login
+        DatabaseName = $DatabaseName
+        Elevated = $Elevated
+        RunCommand = "EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;"
+        OutputFile = $OutputFile
+        TestSetName = $TestSetName
+    }
+    Invoke-Tests @parameters;
+
+}
 
 
 $__=$__ #quiesce warnings
@@ -154,8 +261,11 @@ try{
             DatabaseName = 'tempdb'
         }
         Invoke-SQLFileOrQuery @parameters;
-      
+    
+    $RunAllTestsResultFilePrefix = 'tSQLt'    
+    #----------------------------------------------------------------------------#
     Log-Output('Run All Tests...')
+    #----------------------------------------------------------------------------#
     Log-Output("Run All Tests... Create Database $DatabaseName ...")
         $parameters = @{
             Elevated = $true
@@ -196,6 +306,32 @@ try{
         }
         Invoke-SQLFileOrQuery @parameters;
 
+    Log-Output('Run All Tests... Install TestUtil.sql...')
+        $parameters = @{
+            Files = @(
+                (Join-Path $TestsPath "TestUtil.sql" | Resolve-Path)
+            )
+            AdditionalParameters = @{DbName = $DatabaseName}
+        }
+        Invoke-SQLFileOrQuery @parameters;
+
+    Log-Output('Run All Tests... Set SummaryError Off, PrepMultiRun...')
+        $parameters = @{
+            Query = "EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;"
+            AdditionalParameters = @{
+                DbName = $DatabaseName
+            }
+        }
+        Invoke-SQLFileOrQuery @parameters;
+
+
+    Log-Output('Run All Tests... TestUtil Tests...')
+        $parameters = @{
+            TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
+            OutputFile = (Join-Path $ResultsPath "TertResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
+        }
+        Invoke-TestsFromFile @parameters;
+    
 
     <# Create the tSQLt.TestResults.zip in the public output path #>
     # $compress = @{
