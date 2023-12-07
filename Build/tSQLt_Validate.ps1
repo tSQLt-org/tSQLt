@@ -7,7 +7,6 @@ Param(
 if([string]::IsNullOrWhiteSpace($LogTableName)){
     $LogTableName = "tempdb.dbo.[tSQLt-MultiRunLog(" + (New-Guid) + ")]";
 }
-# AllTests.Main.sql --> AllTests.sql
 
 function Copy-SQLXmlToFile {
     # This has been tested for up to 100MB of test results! 
@@ -86,7 +85,11 @@ Function Invoke-SQLFileOrQuery
             DatabaseName = $DatabaseName
             AdditionalParameters = $AdditionalParametersString
         }
+$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
         Exec-SqlFileOrQuery @parameters
+$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+$dddafter-$dddbefore
+
     }
     catch{
         throw
@@ -113,6 +116,7 @@ Function Invoke-Tests
     $parameters = @{
         ServerName = $ServerName
         Login = $Login
+        Elevated = $Elevated
         Query = $RunCommand
         AdditionalParameters = @{
             DbName = $DatabaseName
@@ -120,20 +124,7 @@ Function Invoke-Tests
     }
     Invoke-SQLFileOrQuery @parameters;         
 
-    # $parameters = @{
-    #     ServerName = $ServerName
-    #     Login = $Login
-    #     Files = @(
-    #         (Join-Path $TestsPath GetTestResults.sql| Resolve-Path)
-    #     )
-    #     OutputFile = $OutputFile
-    #     AdditionalParameters = @{
-    #         DbName = $DatabaseName
-    #     }
-    # }
-    # Invoke-SQLFileOrQuery @parameters;         
     $connectionString = Get-SqlConnectionString -ServerName $ServerName -Login $Login -DatabaseName $DatabaseName
-
     Copy-SQLXmlToFile $connectionString "EXEC [tSQLt].[XmlResultFormatter]" $OutputFile
 
     $parameters = @{
@@ -363,6 +354,29 @@ try{
         }
         Invoke-TestsFromFile @parameters;
     
+    Log-Output('Run All Tests... TestUtil_SA Tests...')
+        $parameters = @{
+            Elevated = $true
+            TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
+        }
+        Invoke-TestsFromFile @parameters;
+    
+    Log-Output('Run All Tests... tSQLt Tests...')
+        $parameters = @{
+            TestFilePath = (Join-Path $TestsPath "AllTests.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`.xml")
+        }
+        Invoke-TestsFromFile @parameters;
+    
+    Log-Output('Run All Tests... TestUtil_SA Tests...')
+        $parameters = @{
+            Elevated = $true
+            TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
+        }
+        Invoke-TestsFromFile @parameters;
+    
 
     <# Create the tSQLt.TestResults.zip in the public output path #>
     # $compress = @{
@@ -375,3 +389,4 @@ try{
 finally{
     Pop-Location
 }
+

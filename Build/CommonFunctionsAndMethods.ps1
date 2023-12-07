@@ -60,7 +60,9 @@ Function Exec-SqlFileOrQuery
   $CallSqlCmd = '& "sqlcmd" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$QuerySection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
   $CallSqlCmd = $CallSqlCmd + ';if($LASTEXITCODE -ne 0){throw "error during execution of "+$ExecutionMessage;}';
   # $CallSqlCmd
+  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFileOrQuery:Invoke-Expression[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   Invoke-Expression $CallSqlCmd -ErrorAction Stop;
+  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFileOrQuery:Invoke-Expression[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
 }
 
 Function Get-SqlConnectionString
