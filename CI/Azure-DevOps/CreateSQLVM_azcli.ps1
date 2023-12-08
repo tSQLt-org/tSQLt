@@ -1,4 +1,10 @@
-<# USAGE: ./CreateSQLVM.ps1 -Location "East US 2" -Size "Standard_D2as_v4" -ResourceGroupName "myTestResourceGroup" -VMAdminName "azureAdminName" -VMAdminPwd "aoeihag;ladjfalkj23" -SQLVersionEdition "2017" -SQLPort "41433" -SQLUserName "tSQLt_sa" -SQLPwd "aoeihag;ladjfalkj46" -BuildId "001" #>
+<# USAGE: 
+
+az login
+az account set --name "tSQLt CI Subscription"
+
+./CreateSQLVM_azcli.ps1 -Location "East US 2" -Size "Standard_D2as_v4" -ResourceGroupName "myTestResourceGroup" -VMAdminName "azureadminname" -VMAdminPwd "aoeihag;ladjfalkj23" -SQLVersionEdition "2017" -SQLPort "41433" -SQLUserName "tSQLt_sa" -SQLPwd "aoeihag;ladjfalkj46" -BuildId "001" -VmPriority "Spot"
+#>
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Location,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Size,
@@ -99,21 +105,30 @@ Log-Output "FQDN: ", $FQDN;
 Log-Output "DONE: Creating PIP $PipName";
 
 Log-Output "START: Creating NSG and Rules $NsgName";
+Log-Output "START: Creating NSG and Rules $NsgName --> nsg create";
 $output = az network nsg create --name $NsgName --resource-group $ResourceGroupName --location $Location | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating NIC";
     return
 }
+Log-Output "START: Creating NSG and Rules $NsgName --> nsg rule create --name `"RDPRule`"";
+$DestPort = 3389;
+Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
+Log-Output "ResourceGroupName:    ", $ResourceGroupName;
+Log-Output "NsgName:  ", $NsgName;
+Log-Output "DestPort:  ", $DestPort;
+Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 $output = az network nsg rule create --name "RDPRule" --nsg-name $NsgName --priority 1000 --resource-group $ResourceGroupName --access Allow `
-            --destination-address-prefixes * --destination-port-ranges 3389 --direction Inbound --protocol Tcp --source-address-prefixes * `
-            --source-port-ranges * | ConvertFrom-Json;
+            --destination-address-prefixes '*' --destination-port-ranges $DestPort --direction Inbound --protocol Tcp --source-address-prefixes '*' `
+            --source-port-ranges '*' | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating NIC RDPRule";
     return
 }
+Log-Output "START: Creating NSG and Rules $NsgName --> nsg rule create --name `"MSSQLRule`"";
 $output = az network nsg rule create --name "MSSQLRule" --nsg-name $NsgName --priority 1001 --resource-group $ResourceGroupName --access Allow `
-            --destination-address-prefixes * --destination-port-ranges $SQLPort --direction Inbound --protocol Tcp --source-address-prefixes * `
-            --source-port-ranges * | ConvertFrom-Json;
+            --destination-address-prefixes '*' --destination-port-ranges $SQLPort --direction Inbound --protocol Tcp --source-address-prefixes '*' `
+            --source-port-ranges '*' | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating NIC MSSQLRule";
     return
@@ -162,8 +177,16 @@ if (!$output) {
 $SQLVM|Out-String|Log-Output;
 Log-Output 'DONE: Applying SqlVM Config'
 
+# Log-Output 'START: Getting SQL Server Certificate'
+# & openssl s_client -connect "$FQDN`:$SQLPort" -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > "Connection_Certificate_$VMName.pem"
+# $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2("Connection_Certificate_$VMName.pem")
+# $store = New-Object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::TrustedPeople, 'LocalMachine')
+# $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+# $store.Add($cert)
+# $store.Close()
+
 Log-Output 'START: Prep SQL Server for tSQLt Build'
-$DS = Invoke-Sqlcmd -InputFile "$dir/GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet
+$DS = Invoke-Sqlcmd -InputFile "$dir/GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
 $DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']), $($_['ServerCollation']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];
