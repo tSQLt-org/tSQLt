@@ -20,8 +20,6 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
   - name: VMMatrix
     type: object
     default:
-    - name: SQL2008R2
-      SQLVersionEdition: 2008R2Std
     - name: SQL2012
       SQLVersionEdition: 2012Ent
     - name: SQL2014
