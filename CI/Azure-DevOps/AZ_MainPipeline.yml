@@ -20,8 +20,6 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
   - name: VMMatrix
     type: object
     default:
-    - name: SQL2008R2
-      SQLVersionEdition: 2008R2Std
     - name: SQL2012
       SQLVersionEdition: 2012Ent
     - name: SQL2014
@@ -195,7 +193,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet
+          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
 
 
