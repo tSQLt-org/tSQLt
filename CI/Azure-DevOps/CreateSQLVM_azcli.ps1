@@ -104,7 +104,6 @@ $FQDN = (az network public-ip show --resource-group $ResourceGroupName --name $P
 Log-Output "FQDN: ", $FQDN;
 Log-Output "DONE: Creating PIP $PipName";
 
-Log-Output "START: Creating NSG and Rules $NsgName";
 Log-Output "START: Creating NSG and Rules $NsgName --> nsg create";
 $output = az network nsg create --name $NsgName --resource-group $ResourceGroupName --location $Location | ConvertFrom-Json;
 if (!$output) {
