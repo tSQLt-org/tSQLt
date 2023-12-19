@@ -177,14 +177,6 @@ if (!$output) {
 $SQLVM|Out-String|Log-Output;
 Log-Output 'DONE: Applying SqlVM Config'
 
-# Log-Output 'START: Getting SQL Server Certificate'
-# & openssl s_client -connect "$FQDN`:$SQLPort" -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > "Connection_Certificate_$VMName.pem"
-# $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2("Connection_Certificate_$VMName.pem")
-# $store = New-Object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::TrustedPeople, 'LocalMachine')
-# $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-# $store.Add($cert)
-# $store.Close()
-
 Log-Output 'START: Prep SQL Server for tSQLt Build'
 $DS = Invoke-Sqlcmd -InputFile "$dir/GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
 $DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']), $($_['ServerCollation']) }" }
