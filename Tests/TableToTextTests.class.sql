@@ -96,13 +96,13 @@ BEGIN
     DECLARE @result NVARCHAR(MAX);
     DECLARE @cmd NVARCHAR(MAX);
     SET @cmd ='
-    CREATE TABLE #DoesExist(['+CHAR(8)+''']]] VARCHAR(1));INSERT INTO #DoesExist VALUES('''');
+    CREATE TABLE #DoesExist(['+CHAR(9)+''']]] VARCHAR(1));INSERT INTO #DoesExist VALUES('''');
     SET @result = tSQLt.Private::TableToString(''#DoesExist'', '''', NULL);
     ';
     EXEC sp_executesql @cmd,N'@result NVARCHAR(MAX) OUT',@result OUT;
     
     DECLARE @expected NVARCHAR(MAX);
-    SET @expected ='|'+CHAR(8)+''']|
+    SET @expected ='|'+CHAR(9)+''']|
 +---+
 |   |';
     EXEC tSQLt.AssertEqualsString @expected, @result;
