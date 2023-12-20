@@ -8,7 +8,7 @@ $AddTagsToResourceGroup =
   $RG|Set-AzResourceGroup -Tags ($MergeHashTables.Invoke($RG.Tags,$newTags)[0]);
 }
 $GetUTCTimeStamp = {param();(Get-Date).ToUniversalTime().ToString('[yyyy-MM-ddTHH:mm:ss.fffffff UTC]');};
-
+$SQLPrintCurrentTime = "EXEC('DECLARE @C VARCHAR(MAX)=CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);RAISERROR(@C,0,1)WITH NOWAIT;');";
 
 Function Log-Output{[cmdletbinding()]Param([parameter(ValueFromPipeline)]$I);Process{Write-Host ([string]::Concat($GetUTCTimeStamp.Invoke()[0],[string]::Concat(" $I")));};};
 
@@ -52,17 +52,20 @@ Function Exec-SqlFileOrQuery
   }
   $QuerySection = "";
   if (![string]::isnullorempty($Query)) {
+    $Query = $SQLPrintCurrentTime+$Query+$SQLPrintCurrentTime
     $QuerySection = '-Q "' + $Query + '"';
     $ExecutionMessage += " " + $Query;
   }
   
 
   $CallSqlCmd = '& "sqlcmd" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$QuerySection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
+  $CallSqlCmd = 'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'+$CallSqlCmd+'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'
   $CallSqlCmd = $CallSqlCmd + ';if($LASTEXITCODE -ne 0){throw "error during execution of "+$ExecutionMessage;}';
   # $CallSqlCmd
   $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFileOrQuery:Invoke-Expression[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   Invoke-Expression $CallSqlCmd -ErrorAction Stop;
   $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFileOrQuery:Invoke-Expression[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  # $dddafter-$dddbefore
 }
 
 Function Get-SqlConnectionString

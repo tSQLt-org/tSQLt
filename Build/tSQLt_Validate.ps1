@@ -58,6 +58,10 @@ Function Invoke-SQLFileOrQuery
         [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{}
     );
     $tempFile = $null;
+
+    Write-Warning("------->>NOTE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Adding Timestamps to Query")
+    $Query = 'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'+$Query+'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'
+
     try{
         @{
             BuildLogTableName=$LogTableName
