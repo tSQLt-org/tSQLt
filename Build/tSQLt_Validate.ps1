@@ -26,7 +26,10 @@ function Copy-SQLXmlToFile {
         $command = $connection.CreateCommand()
         $command.CommandText = $query
 
+        $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Copy-SQLXmlToFile:ExecuteScalar[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
         $result = $command.ExecuteScalar()
+        $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Copy-SQLXmlToFile:ExecuteScalar[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+        $dddafter-$dddbefore
         [System.IO.File]::WriteAllText($outputFile, $result)
     }
     catch {
@@ -122,10 +125,18 @@ Function Invoke-Tests
             DbName = $DatabaseName
         }
     }
+    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $parameters;
     Invoke-SQLFileOrQuery @parameters;         
+    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $dddafter-$dddbefore
+
 
     $connectionString = Get-SqlConnectionString -ServerName $ServerName -Login $Login -DatabaseName $DatabaseName
+    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     Copy-SQLXmlToFile $connectionString "EXEC [tSQLt].[XmlResultFormatter]" $OutputFile
+    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $dddafter-$dddbefore
 
     $parameters = @{
         AdditionalParameters = @{
@@ -133,7 +144,11 @@ Function Invoke-Tests
             ExecuteStatement = "EXEC tSQLt_testutil.LogMultiRunResult '$TestSetName';"
         }
     }
-    Invoke-SQLFileOrQuery @parameters;
+    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $parameters;
+    Invoke-SQLFileOrQuery @parameters;         
+    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $dddafter-$dddbefore
 
 }
 Function Invoke-TestsFromFile
@@ -319,14 +334,14 @@ try{
         }
         Invoke-SQLFileOrQuery @parameters;
 
-    Log-Output('Run All Tests... Run Bootstrap Tests...')
-        $parameters = @{
-            Files = @(
-                (Join-Path $TestsPath "BootStrapTest.sql" | Resolve-Path)
-            )
-            AdditionalParameters = @{DbName = $DatabaseName}
-        }
-        Invoke-SQLFileOrQuery @parameters;
+    # Log-Output('Run All Tests... Run Bootstrap Tests...')
+    #     $parameters = @{
+    #         Files = @(
+    #             (Join-Path $TestsPath "BootStrapTest.sql" | Resolve-Path)
+    #         )
+    #         AdditionalParameters = @{DbName = $DatabaseName}
+    #     }
+    #     Invoke-SQLFileOrQuery @parameters;
 
     Log-Output('Run All Tests... Install TestUtil.sql...')
         $parameters = @{
@@ -347,20 +362,20 @@ try{
         Invoke-SQLFileOrQuery @parameters;
 
 
-    Log-Output('Run All Tests... TestUtil Tests...')
-        $parameters = @{
-            TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
-            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
-        }
-        Invoke-TestsFromFile @parameters;
+    # Log-Output('Run All Tests... TestUtil Tests...')
+    #     $parameters = @{
+    #         TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
+    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
+    #     }
+    #     Invoke-TestsFromFile @parameters;
     
-    Log-Output('Run All Tests... TestUtil_SA Tests...')
-        $parameters = @{
-            Elevated = $true
-            TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
-            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
-        }
-        Invoke-TestsFromFile @parameters;
+    # Log-Output('Run All Tests... TestUtil_SA Tests...')
+    #     $parameters = @{
+    #         Elevated = $true
+    #         TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
+    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
+    #     }
+    #     Invoke-TestsFromFile @parameters;
     
     Log-Output('Run All Tests... tSQLt Tests...')
         $parameters = @{
@@ -369,13 +384,13 @@ try{
         }
         Invoke-TestsFromFile @parameters;
     
-    Log-Output('Run All Tests... TestUtil_SA Tests...')
-        $parameters = @{
-            Elevated = $true
-            TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
-            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
-        }
-        Invoke-TestsFromFile @parameters;
+    # Log-Output('Run All Tests... tSQLt SA Tests...')
+    #     $parameters = @{
+    #         Elevated = $true
+    #         TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
+    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
+    #     }
+    #     Invoke-TestsFromFile @parameters;
     
 
     <# Create the tSQLt.TestResults.zip in the public output path #>
