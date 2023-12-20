@@ -196,6 +196,25 @@ stages:
           $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
 
+    - task: PowerShell@2
+      name: XMLIllegalCharTest
+      env:
+        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      inputs:
+        targetType: 'inline'
+        script: |
+          $DS = Invoke-Sqlcmd -Query "DECLARE @X XML=(SELECT 1 Tag,NULL Parent,char(8) [x!1] FOR XML EXPLICIT);" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
+          $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
+
+    - task: PowerShell@2
+      name: break
+      env:
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo 1/0
+
 
 - stage: Build_tSQLt_Part1
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
