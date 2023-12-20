@@ -14,7 +14,7 @@ Function Log-Output{[cmdletbinding()]Param([parameter(ValueFromPipeline)]$I);Pro
 
 Log-Output($GetUTCTimeStamp.Invoke(),"Done: Loading CommonFunctionsAndMethods");
 
-Function Exec-SqlFileOrQuery
+Function Exec-SqlFile
 {
   [CmdletBinding()]
   param(
@@ -24,13 +24,9 @@ Function Exec-SqlFileOrQuery
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
       [string] $Login,
     
-    [Parameter(Mandatory=$true, ParameterSetName = 'File')][ValidateNotNullOrEmpty()]
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
       [string[]] $FileNames,
-    
-    [Parameter(Mandatory=$false, ParameterSetName = 'File')]
-    [Parameter(Mandatory=$true, ParameterSetName = 'Query')][ValidateNotNullOrEmpty()]
-      [string] $Query,
-    
+        
     [Parameter(Mandatory=$false)]
       [string] $DatabaseName = "",
     
@@ -51,20 +47,20 @@ Function Exec-SqlFileOrQuery
     $ExecutionMessage = $FileNames;
   }
   $QuerySection = "";
-  if (![string]::isnullorempty($Query)) {
-    $Query = $SQLPrintCurrentTime+$Query+$SQLPrintCurrentTime
-    $QuerySection = '-Q "' + $Query + '"';
-    $ExecutionMessage += " " + $Query;
-  }
+  # if (![string]::isnullorempty($Query)) {
+  #   # $Query = $SQLPrintCurrentTime+$Query+$SQLPrintCurrentTime
+  #   $QuerySection = '-Q "' + $Query + '"';
+  #   $ExecutionMessage += " " + $Query;
+  # }
   
 
-  $CallSqlCmd = '& "sqlcmd" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$QuerySection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
-  $CallSqlCmd = 'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'+$CallSqlCmd+'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'
+  $CallSqlCmd = '& "sqlcmd" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
+  # $CallSqlCmd = 'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'+$CallSqlCmd+'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'
   $CallSqlCmd = $CallSqlCmd + ';if($LASTEXITCODE -ne 0){throw "error during execution of "+$ExecutionMessage;}';
   # $CallSqlCmd
-  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFileOrQuery:Invoke-Expression[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-Expression[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   Invoke-Expression $CallSqlCmd -ErrorAction Stop;
-  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFileOrQuery:Invoke-Expression[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-Expression[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   # $dddafter-$dddbefore
 }
 
@@ -110,6 +106,18 @@ Function Get-SqlConnectionString
   $SqlConnectionString;
 }
 
+function Get-TempFileForQuery {
+  [CmdletBinding()]
+  [OutputType([string])]
+  param (
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Query
+  )
+  $tempFile = New-TemporaryFile; 
+  $Query |Set-Content -Path $tempFile
+  return $tempFile
+}
+
+
 function Get-FriendlySQLServerVersion {
   [CmdletBinding()]
   param (
@@ -121,8 +129,7 @@ function Get-FriendlySQLServerVersion {
   $LoginTrimmed = $Login.Trim();
 
   $GetFriendlySQLServerVersionFullPath = (Get-ChildItem -Path ($PSScriptRoot + '/output/*') -include "GetFriendlySQLServerVersion.sql" -Recurse | Select-Object -First 1 ).FullName;
-  $GetFriendlySQLServerVersionStatement = (Get-Content -Path $GetFriendlySQLServerVersionFullPath).Replace([System.Environment]::NewLine,' ');
-  $resultSet = Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -Query "$GetFriendlySQLServerVersionStatement" -DatabaseName 'tempdb';
+  $resultSet = Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames $GetFriendlySQLServerVersionFullPath -DatabaseName 'tempdb';
   if(!$Quiet){Log-Output "Friendly SQL Server Version: $resultSet"};
   $resultSet.Trim();
 }

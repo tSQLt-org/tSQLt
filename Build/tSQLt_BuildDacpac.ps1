@@ -31,13 +31,13 @@ try{
     Set-Location $TempPath;
     Log-Output('Building Database')
     Log-Output('-- Executing ResetValidationServer.sql')
-    Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames 'ResetValidationServer.sql';
+    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames 'ResetValidationServer.sql';
     Log-Output('-- Executing PrepareServer.sql')
-    Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames 'PrepareServer.sql';
+    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames 'PrepareServer.sql';
     Log-Output('-- Executing CreateBuildDb.sql')
-    Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters ('-v NewDbName="'+$DatabaseName+'"');
+    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters ('-v NewDbName="'+$DatabaseName+'"');
     Log-Output('-- Executing tSQLt.class.sql')
-    Exec-SqlFileOrQuery -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames "tSQLt.class.sql" -Database "$DatabaseName";
+    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames "tSQLt.class.sql" -Database "$DatabaseName";
     Write-Host('Building DACPAC')
     $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed";
     $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";

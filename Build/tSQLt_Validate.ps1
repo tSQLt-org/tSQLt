@@ -59,8 +59,8 @@ Function Invoke-SQLFileOrQuery
     );
     $tempFile = $null;
 
-    Write-Warning("------->>NOTE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Adding Timestamps to Query")
-    $Query = 'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'+$Query+'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'
+    # Write-Warning("------->>NOTE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Adding Timestamps to Query")
+    # $Query = 'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'+$Query+'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'
 
     try{
         @{
@@ -78,10 +78,8 @@ Function Invoke-SQLFileOrQuery
         }else{
             $FileNames += (Join-Path $TestsPath "temp_executeas.sql"|Resolve-Path)
         }
-        if (![string]::IsNullOrWhiteSpace($Query)){
-            $tempFile = New-TemporaryFile;
-            $Query |Set-Content -Path $tempFile
-            $FileNames += $tempFile
+        if (![string]::IsNullOrWhiteSpace($Query)){            
+            $FileNames += Get-TempFileForQuery($Query)
         }
         $FullFileNameSet = @($FileNames)+@($Files);
 
@@ -92,9 +90,10 @@ Function Invoke-SQLFileOrQuery
             DatabaseName = $DatabaseName
             AdditionalParameters = $AdditionalParametersString
         }
-$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-        Exec-SqlFileOrQuery @parameters
-$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+# $parameters
+        Exec-SqlFile @parameters
+$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
 $dddafter-$dddbefore
 
     }
@@ -338,14 +337,14 @@ try{
         }
         Invoke-SQLFileOrQuery @parameters;
 
-    # Log-Output('Run All Tests... Run Bootstrap Tests...')
-    #     $parameters = @{
-    #         Files = @(
-    #             (Join-Path $TestsPath "BootStrapTest.sql" | Resolve-Path)
-    #         )
-    #         AdditionalParameters = @{DbName = $DatabaseName}
-    #     }
-    #     Invoke-SQLFileOrQuery @parameters;
+    Log-Output('Run All Tests... Run Bootstrap Tests...')
+        $parameters = @{
+            Files = @(
+                (Join-Path $TestsPath "BootStrapTest.sql" | Resolve-Path)
+            )
+            AdditionalParameters = @{DbName = $DatabaseName}
+        }
+        Invoke-SQLFileOrQuery @parameters;
 
     Log-Output('Run All Tests... Install TestUtil.sql...')
         $parameters = @{
@@ -366,20 +365,20 @@ try{
         Invoke-SQLFileOrQuery @parameters;
 
 
-    # Log-Output('Run All Tests... TestUtil Tests...')
-    #     $parameters = @{
-    #         TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
-    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
-    #     }
-    #     Invoke-TestsFromFile @parameters;
+    Log-Output('Run All Tests... TestUtil Tests...')
+        $parameters = @{
+            TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
+        }
+        Invoke-TestsFromFile @parameters;
     
-    # Log-Output('Run All Tests... TestUtil_SA Tests...')
-    #     $parameters = @{
-    #         Elevated = $true
-    #         TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
-    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
-    #     }
-    #     Invoke-TestsFromFile @parameters;
+    Log-Output('Run All Tests... TestUtil_SA Tests...')
+        $parameters = @{
+            Elevated = $true
+            TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
+        }
+        Invoke-TestsFromFile @parameters;
     
     Log-Output('Run All Tests... tSQLt Tests...')
         $parameters = @{
@@ -388,13 +387,13 @@ try{
         }
         Invoke-TestsFromFile @parameters;
     
-    # Log-Output('Run All Tests... tSQLt SA Tests...')
-    #     $parameters = @{
-    #         Elevated = $true
-    #         TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
-    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
-    #     }
-    #     Invoke-TestsFromFile @parameters;
+    Log-Output('Run All Tests... tSQLt SA Tests...')
+        $parameters = @{
+            Elevated = $true
+            TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
+        }
+        Invoke-TestsFromFile @parameters;
     
 
     <# Create the tSQLt.TestResults.zip in the public output path #>
