@@ -1,7 +1,5 @@
 Param( 
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DatabaseName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection
 );
 <#
 Technically this should be called by a matrixed job, so that dacpacs are built for all versions (we support, like not 2005, 2008)
@@ -25,24 +23,21 @@ try{
     Expand-Archive -Path (Join-Path $invocationDir "/output/tSQLtBuild/tSQLtFiles.zip"|Resolve-Path) -DestinationPath $TempPath -Force;
     Expand-Archive -Path (Join-Path $invocationDir "/output/tSQLtTests/tSQLt.tests.zip"|Resolve-Path) -DestinationPath $TempPath -Force;
 
-    $ServerNameTrimmed = $ServerName.Trim();
-    $LoginTrimmed = $Login.Trim("'").Trim();
-
     Set-Location $TempPath;
     Log-Output('Building Database')
     Log-Output('-- Executing ResetValidationServer.sql')
-    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames 'ResetValidationServer.sql';
+    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @('ResetValidationServer.sql');
     Log-Output('-- Executing PrepareServer.sql')
-    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames 'PrepareServer.sql';
+    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames 'PrepareServer.sql';
     Log-Output('-- Executing CreateBuildDb.sql')
-    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters ('-v NewDbName="'+$DatabaseName+'"');
+    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters ('-v NewDbName="'+$DatabaseName+'"');
     Log-Output('-- Executing tSQLt.class.sql')
-    Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames "tSQLt.class.sql" -Database "$DatabaseName";
+    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "tSQLt.class.sql" -Database "$DatabaseName";
     Write-Host('Building DACPAC')
-    $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -ServerName $ServerNameTrimmed -Login "$LoginTrimmed";
+    $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection;
     $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
     $tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
-    $tSQLtConnectionString = Get-SqlConnectionString -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -DatabaseName $DatabaseName;
+    $tSQLtConnectionString = $SqlServerConnection.GetConnectionString($DatabaseName,"tSQLt_BuildDacpac")
 # $tSQLtConnectionString
     & sqlpackage --roll-forward Major /a:Extract /scs:"$tSQLtConnectionString" /tf:"$tSQLtDacpacFileName" /p:DacApplicationName="$tSQLtApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
     if($LASTEXITCODE -ne 0) {

@@ -47,9 +47,15 @@ RUN curl -L https://aka.ms/sqlpackage-linux -o sqlpackage.zip \
     && rm sqlpackage.zip
 ENV PATH="$PATH:/opt/sqlpackage"
 
-# Expose any ports the app is expecting to be served on
-# EXPOSE 8080
+RUN apt-get install -y wget apt-transport-https software-properties-common && \
+    wget -q "https://packages.microsoft.com/config/debian/$(. /etc/os-release && echo $VERSION_ID)/packages-microsoft-prod.deb" -O packages-microsoft-prod.deb && \
+    dpkg -i packages-microsoft-prod.deb && \
+    apt-get update && \
+    apt-get install -y powershell
 
-# Set the default command for the container
-# CMD ["my-command"]
+RUN pwsh -Command "Install-Module -Name SqlServer -Scope AllUsers -AllowClobber -Force"
+
+# Set the default shell to PowerShell
+SHELL ["pwsh", "-Command"]
+
 

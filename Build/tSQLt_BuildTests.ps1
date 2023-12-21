@@ -127,7 +127,6 @@ try{
             "CreateBuildDb.sql",
             "Drop(master.tSQLt_testutil).sql",
             "Install(master.tSQLt_testutil).sql",
-            "GetTestResults.sql",
             "GetFailedTestCount.sql",
             "../../Examples/TestThatExamplesAreDeployed.sql"
         );

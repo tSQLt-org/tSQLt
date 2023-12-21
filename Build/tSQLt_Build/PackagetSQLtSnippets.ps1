@@ -2,7 +2,7 @@ $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 try{
     .(Join-Path $PSScriptRoot '../CommonFunctionsAndMethods.ps1'| Resolve-Path);
-
+$invocationDir #CommonFunctionsAndMethods is now overwriting this...
     $snippetsPath = Join-Path $invocationDir '../../Snippets' | Resolve-Path;
     $outputPath = Join-Path $invocationDir '../output/tSQLtBuild' |Resolve-Path;
     $tempPath = Join-Path $invocationDir '../temp/tSQLtBuild/SQLPromptSnippets';

@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$OutputFile,
-    [Parameter(Mandatory=$false)][string]$SeparatorTemplate,
+    [Parameter(Mandatory=$false)][string]$SeparatorTemplate = $null,
+    [Parameter(Mandatory=$false)][string[]]$SeparatorContent = $null,
     [Parameter(Mandatory=$true, ValueFromPipeline)]$InputPath,
     [array]$replacements = @{},
     [string]$IncludePattern,
@@ -70,13 +71,15 @@ Write-Host("SeparatorTemplate: >$SeparatorTemplate<")
 Write-Host("Input: $InputPath")
 
 if([string]::IsNullOrWhiteSpace($SeparatorTemplate)){
-    $separatorContent = @();
+    if($null -eq $SeparatorContent){
+        $SeparatorContent = @();
+    }
 }
 else{
-    $separatorContent = Get-Content $SeparatorTemplate  -ErrorAction Stop
+    $SeparatorContent = Get-Content $SeparatorTemplate  -ErrorAction Stop
 }
 Write-Host("Separator Template:")
-$separatorContent|%{Write-Host(">:$_")}
+$SeparatorContent|%{Write-Host(">:$_")}
 if($Bracket -eq ''){
     $IncludeFromStart = $true;
 }
@@ -97,7 +100,7 @@ try{
         Write-Host("scriptPath: $InputPath")
         $fileIterator = Get-ChildItem $InputPath -Filter $IncludePattern
     }
-    $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $separatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`n"
+    $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $SeparatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`n"
     $replacements|ForEach-Object{
         $sv = $_["s"]
         $rv=$_["r"]; 

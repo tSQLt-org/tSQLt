@@ -1,4 +1,5 @@
-﻿# $PSScriptRoot;
+﻿$__=$__ #quiesce warnings
+$invocationDir = $PSScriptRoot
 
 $MergeHashTables = {param([HashTable]$base,[HashTable]$new);$new.GetEnumerator()|%{$base.remove($_.Key);$base += @{$_.Key=$_.Value}};$base;};
 $AddTagsToResourceGroup = 
@@ -14,54 +15,99 @@ Function Log-Output{[cmdletbinding()]Param([parameter(ValueFromPipeline)]$I);Pro
 
 Log-Output($GetUTCTimeStamp.Invoke(),"Done: Loading CommonFunctionsAndMethods");
 
+class SqlServerConnection {
+  hidden [string]$ServerName
+  hidden [string]$UserName
+  hidden [System.Security.SecureString]$Password
+  hidden [bool]$TrustedConnection
+  hidden [string]$ApplicationName
+  hidden [string]$BaseConnectionString = "Connect Timeout=60;TrustServerCertificate=true;"
+
+  SqlServerConnection([string]$ServerName, [string]$UserName, [System.Security.SecureString]$Password,[string]$ApplicationName) {
+    $this.ServerName = $ServerName.Trim()
+    $this.UserName = $UserName.Trim()
+    $this.Password = $Password
+    $this.TrustedConnection = false
+    $this.ApplicationName = $ApplicationName.Trim()
+  }
+  SqlServerConnection([string]$ServerName,[string]$ApplicationName) {
+    $this.ServerName = $ServerName.Trim()
+    $this.UserName = $null
+    $this.Password = $null
+    $this.TrustedConnection = true
+    $this.ApplicationName = $ApplicationName.Trim()
+  }
+
+  [string] GetServerName() {
+      return $this.ServerName
+  }
+
+  [string] GetUserName() {
+      return $this.UserName
+  }
+
+  [System.Security.SecureString] GetPassword() {
+      return $this.Password
+  }
+
+  [bool] GetTrustedConnection() {
+      return $this.TrustedConnection
+  }
+
+  hidden [string] EscapeAndQuoteConnectionStringValue([string]$value) {
+    return "`"$( $value.Replace('"', '""') )`""
+  }
+
+  [string] GetConnectionString([string]$DatabaseName = '', [string]$ApplicationNameSuffix = '') {
+      $connectionString = "Server=$($this.EscapeAndQuoteConnectionStringValue($this.ServerName));"
+
+      if ($this.TrustedConnection) {
+          $connectionString += "Integrated Security=SSPI;"
+      } else {
+          $ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToGlobalAllocUnicode($this.Password)
+          try {
+              $connectionString += "User Id=$($this.EscapeAndQuoteConnectionStringValue($this.UserName));"
+              $connectionString += "Password=$($this.EscapeAndQuoteConnectionStringValue([System.Runtime.InteropServices.Marshal]::PtrToStringUni($ptr)));"
+          } finally {
+              [System.Runtime.InteropServices.Marshal]::ZeroFreeGlobalAllocUnicode($ptr)
+          }
+      }
+      if(![string]::IsNullOrWhiteSpace($DatabaseName)){
+        $connectionString += "Initial Catalog=$($this.EscapeAndQuoteConnectionStringValue($DatabaseName));"
+      }
+      $PApplicationName = $this.ApplicationName;
+      if([string]::IsNullOrWhiteSpace($ApplicationNameSuffix)){
+        $PApplicationName+=".$ApplicationNameSuffix"
+      }
+      $connectionString += "Application Name=$($this.EscapeAndQuoteConnectionStringValue($PApplicationName));"
+      return $this.BaseConnectionString+$connectionString
+  }
+}
+
 Function Exec-SqlFile
 {
   [CmdletBinding()]
   param(
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
-      [string] $ServerName,
-    
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
-      [string] $Login,
-    
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
-      [string[]] $FileNames,
-        
-    [Parameter(Mandatory=$false)]
-      [string] $DatabaseName = "",
-    
-    [Parameter(Mandatory=$false)]
-      [string] $AdditionalParameters = ""
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,    
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string[]] $FileNames,
+    [Parameter(Mandatory=$false)][string] $DatabaseName = "tempdb",
+    [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{},
+    [Parameter(Mandatory=$false)][string] $ApplicationNameSuffix = $null
   );
+  $tmpInputFile = New-TemporaryFile;
+  $SeparatorContent = @("","GO","")
 
-  $DatabaseSelector = "";
-  if($DatabaseName -ne ""){
-    $DatabaseSelector = '-d "'+$DatabaseName+'"';
-  }
-  
-  $ExecutionMessage = ""
-  $FileNameSection = "";
-  <# -i input_file[,input_file2...] #>
-  if (![string]::isnullorempty($FileNames)) {
-    $FileNameSection = '-i "'+($FileNames -Join '" -i "')+'"';
-    $ExecutionMessage = $FileNames;
-  }
-  $QuerySection = "";
-  # if (![string]::isnullorempty($Query)) {
-  #   # $Query = $SQLPrintCurrentTime+$Query+$SQLPrintCurrentTime
-  #   $QuerySection = '-Q "' + $Query + '"';
-  #   $ExecutionMessage += " " + $Query;
-  # }
-  
+  & "$invocationDir/tSQLt_Build/ConcatenateFiles.ps1" -OutputFile $tmpInputFile -InputPath $FileNames -SeparatorContent $SeparatorContent 
 
-  $CallSqlCmd = '& "sqlcmd" -S "'+$ServerName+'" '+$Login+' -b -I '+$FileNameSection+' '+$DatabaseSelector+' '+$AdditionalParameters+';';
-  # $CallSqlCmd = 'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'+$CallSqlCmd+'Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff";'
-  $CallSqlCmd = $CallSqlCmd + ';if($LASTEXITCODE -ne 0){throw "error during execution of "+$ExecutionMessage;}';
-  # $CallSqlCmd
-  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-Expression[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-  Invoke-Expression $CallSqlCmd -ErrorAction Stop;
-  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-Expression[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-  # $dddafter-$dddbefore
+  $parameters = @{
+    ConnectionString = ($SqlServerConnection.GetConnectionString($DatabaseName,$ApplicationNameSuffix))
+    InputFile = $tmpInputFile
+    Variable = $AdditionalParameters
+  }
+  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  Invoke-SqlCmd @parameters
+  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  Write-Warning("Runtime in Milliseconds: $(($dddafter-$dddbefore).TotalMilliseconds)")
 }
 
 Function Get-SqlConnectionString
@@ -121,15 +167,12 @@ function Get-TempFileForQuery {
 function Get-FriendlySQLServerVersion {
   [CmdletBinding()]
   param (
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,    
     [Parameter(Mandatory=$false)][switch]$Quiet
   )
-  $ServerNameTrimmed = $ServerName.Trim();
-  $LoginTrimmed = $Login.Trim();
 
   $GetFriendlySQLServerVersionFullPath = (Get-ChildItem -Path ($PSScriptRoot + '/output/*') -include "GetFriendlySQLServerVersion.sql" -Recurse | Select-Object -First 1 ).FullName;
-  $resultSet = Exec-SqlFile -ServerName $ServerNameTrimmed -Login "$LoginTrimmed" -FileNames $GetFriendlySQLServerVersionFullPath -DatabaseName 'tempdb';
+  $resultSet = Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @($GetFriendlySQLServerVersionFullPath) -DatabaseName 'tempdb';
   if(!$Quiet){Log-Output "Friendly SQL Server Version: $resultSet"};
   $resultSet.Trim();
 }
