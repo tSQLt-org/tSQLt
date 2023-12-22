@@ -1,3 +1,5 @@
+using module "./CommonFunctionsAndMethods.psm1";
+
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
     [Parameter(Mandatory=$true, ParameterSetName = 'UserPass')][ValidateNotNullOrEmpty()][string] $UserName,
@@ -201,7 +203,6 @@ $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 try{
-    .(Join-Path $invocationDir 'CommonFunctionsAndMethods.ps1'| Resolve-Path);
 
     if([string]::IsNullOrWhiteSpace($LogTableName)){
         $LogTableName = "tempdb.dbo.[tSQLt-MultiRunLog(" + (New-Guid) + ")]";

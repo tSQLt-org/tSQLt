@@ -1,11 +1,10 @@
+using module "../CommonFunctionsAndMethods.psm1";
 Push-Location -Path $PSScriptRoot;
 try{
   $baseDir = '..';
   $buildPath = $baseDir +'/';
   $tempPath = $baseDir + '/temp/tSQLtBuild/';
   $sourcePath = $baseDir + '/../Source/';
-
-  .($buildPath+"CommonFunctionsAndMethods.ps1");
 
   Log-Output '<!--========          Start CreateDropClassStatement.ps1          =========-->'
 

@@ -1,7 +1,9 @@
+using module "./CommonFunctionsAndMethods.psm1";
+
 param(
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $ServerName = 'localhost,1433',
     [Parameter(Mandatory=$true, ParameterSetName = 'UserPass')][ValidateNotNullOrEmpty()][string] $UserName = "sa" ,
-    [Parameter(Mandatory=$true, ParameterSetName = 'UserPass')][ValidateNotNullOrEmpty()][securestring] $Password,
+    [Parameter(Mandatory=$true, ParameterSetName = 'UserPass')][ValidateNotNullOrEmpty()][securestring] $Password = (ConvertTo-SecureString "P@ssw0rd" -AsPlainText),
     [Parameter(Mandatory=$true, ParameterSetName = 'TrustedCon')][ValidateNotNullOrEmpty()][switch] $TrustedConnection,
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName = 'tSQLtDacPacBuild',
     [Parameter(Mandatory=$false, ParameterSetName="IgnoreMe")][string]$IgnoreMe
@@ -9,14 +11,16 @@ param(
 $PSDefaultParameterValues = $PSDefaultParameterValues.clone()
 $PSDefaultParameterValues += @{'*:ErrorAction' = 'Stop'}
 
+
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 try{
-    .(Join-Path $PSScriptRoot 'CommonFunctionsAndMethods.ps1'| Resolve-Path);
 
     if($TrustedConnection){
+        Write-Warning('GH:TC')
         $SqlServerConnection = [SqlServerConnection]::new($ServerName,"LocalBuild");
     }else{
+        Write-Warning('GH:UP')
         $SqlServerConnection = [SqlServerConnection]::new($ServerName,$UserName,$Password,"LocalBuild");
     }
 
@@ -48,7 +52,7 @@ try{
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
     Log-Output(': Starting tSQLt DacPac Build       :')
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
-
+Write-Warning($SqlServerConnection)
     & ./tSQLt_BuildDacpac.ps1 -SqlServerConnection $SqlServerConnection
 
     Log-Output('+ - - - - - - - - - - - - - - - - - +')

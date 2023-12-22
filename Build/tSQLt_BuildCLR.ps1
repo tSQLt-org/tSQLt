@@ -1,5 +1,5 @@
+using module "./CommonFunctionsAndMethods.psm1";
 Push-Location -Path $PSScriptRoot
-.("./CommonFunctionsAndMethods.ps1");
 
 try{
     $OutputPath = "./output/tSQLtCLR/";

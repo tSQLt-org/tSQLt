@@ -1,7 +1,8 @@
+using module "./CommonFunctionsAndMethods.psm1";
+
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 try{
-    .(Join-Path $PSScriptRoot 'CommonFunctionsAndMethods.ps1'| Resolve-Path);
 
     $OutputPath = (Join-Path $invocationDir "./output/tSQLtTests/");
     $TempPath = (Join-Path $invocationDir "./temp/tSQLtTests/");

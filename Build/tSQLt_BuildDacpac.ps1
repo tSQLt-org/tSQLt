@@ -1,14 +1,16 @@
+using module "./CommonFunctionsAndMethods.psm1";
+
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection
 );
 <#
 Technically this should be called by a matrixed job, so that dacpacs are built for all versions (we support, like not 2005, 2008)
 #>
+
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 try{
-    .(Join-Path $PSScriptRoot 'CommonFunctionsAndMethods.ps1'| Resolve-Path);
 
     $OutputPath = (Join-Path $invocationDir "/output/DacpacBuild/");
     $TempPath = (Join-Path $invocationDir "/temp/DacpacBuild/");
@@ -26,11 +28,12 @@ try{
     Set-Location $TempPath;
     Log-Output('Building Database')
     Log-Output('-- Executing ResetValidationServer.sql')
+Write-Warning($SqlServerConnection.toString())
     Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @('ResetValidationServer.sql');
     Log-Output('-- Executing PrepareServer.sql')
     Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames 'PrepareServer.sql';
     Log-Output('-- Executing CreateBuildDb.sql')
-    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters ('-v NewDbName="'+$DatabaseName+'"');
+    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters @{NewDbName=$DatabaseName};
     Log-Output('-- Executing tSQLt.class.sql')
     Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "tSQLt.class.sql" -Database "$DatabaseName";
     Write-Host('Building DACPAC')
