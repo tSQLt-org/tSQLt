@@ -28,7 +28,6 @@ try{
     Set-Location $TempPath;
     Log-Output('Building Database')
     Log-Output('-- Executing ResetValidationServer.sql')
-Write-Warning($SqlServerConnection.toString())
     Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @('ResetValidationServer.sql');
     Log-Output('-- Executing PrepareServer.sql')
     Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames 'PrepareServer.sql';
@@ -41,7 +40,6 @@ Write-Warning($SqlServerConnection.toString())
     $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
     $tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
     $tSQLtConnectionString = $SqlServerConnection.GetConnectionString($DatabaseName,"tSQLt_BuildDacpac")
-# $tSQLtConnectionString
     & sqlpackage --roll-forward Major /a:Extract /scs:"$tSQLtConnectionString" /tf:"$tSQLtDacpacFileName" /p:DacApplicationName="$tSQLtApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
     if($LASTEXITCODE -ne 0) {
         throw "error during execution of dacpac " + $tSQLtDacpacFileName;

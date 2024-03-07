@@ -9,4 +9,4 @@ DECLARE @ProductVersion NVARCHAR(128) = CAST(SERVERPROPERTY('ProductVersion') AS
  )SSV
  )X
  ); 
- PRINT @FriendlyVersion;
+ SELECT @FriendlyVersion FriendlyVersion;

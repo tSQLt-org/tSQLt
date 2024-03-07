@@ -11,6 +11,8 @@ param(
 $PSDefaultParameterValues = $PSDefaultParameterValues.clone()
 $PSDefaultParameterValues += @{'*:ErrorAction' = 'Stop'}
 
+Get-Module -Name CommonFunctionsAndMethods | Select-Object Name, Path, Version
+
 
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
@@ -31,6 +33,17 @@ try{
     Log-Output('');
 
     
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+    Log-Output(': Cleaning Environment              :')
+    Log-Output('+ - - - - - - - - - - - - - - - - - +')
+
+    if (Test-Path -Path "output") {
+        Remove-Item -Path "output" -Recurse -Force
+    }
+    if (Test-Path -Path "temp") {
+        Remove-Item -Path "temp" -Recurse -Force
+    }
+
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
     Log-Output(': Starting CLR Build                :')
     Log-Output('+ - - - - - - - - - - - - - - - - - +')

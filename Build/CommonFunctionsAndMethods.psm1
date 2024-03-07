@@ -1,5 +1,7 @@
 ﻿$__=$__ #quiesce warnings
 $CommonFunctionsAndMethodsDir = $PSScriptRoot
+Write-Host "Loading CommonFunctionsAndMethods.psm1 from: $PSCommandPath"
+
 
 $MergeHashTables = {param([HashTable]$base,[HashTable]$new);$new.GetEnumerator()|%{$base.remove($_.Key);$base += @{$_.Key=$_.Value}};$base;};
 $AddTagsToResourceGroup = 
@@ -123,9 +125,10 @@ Function Exec-SqlFile
     Variable = $AdditionalParameters
   }
   $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-  Invoke-SqlCmd @parameters
+  $results = (Invoke-SqlCmd @parameters)
   $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   Write-Warning("Runtime in Milliseconds: $(($dddafter-$dddbefore).TotalMilliseconds)")
+  return $results
 }
 
 Function Get-SqlConnectionString
@@ -188,11 +191,11 @@ function Get-FriendlySQLServerVersion {
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,    
     [Parameter(Mandatory=$false)][switch]$Quiet
   )
-Write-Warning($SqlServerConnection.GetConnectionString('',''));
   $GetFriendlySQLServerVersionFullPath = (Get-ChildItem -Path ($PSScriptRoot + '/output/*') -include "GetFriendlySQLServerVersion.sql" -Recurse | Select-Object -First 1 ).FullName;
-  $resultSet = Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @($GetFriendlySQLServerVersionFullPath) -DatabaseName 'tempdb';
-  if(!$Quiet){Log-Output "Friendly SQL Server Version: $resultSet"};
-  $resultSet.Trim();
+  $resultSet = (Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @($GetFriendlySQLServerVersionFullPath) -DatabaseName 'tempdb');
+  $FriendlyVersion = ($resultSet.FriendlyVersion)
+  if(!$Quiet){Log-Output "Friendly SQL Server Version: $FriendlyVersion"};
+  return $FriendlyVersion
 }
 
 function Update-Archive {
