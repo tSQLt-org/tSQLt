@@ -124,6 +124,7 @@ Function Exec-SqlFile
     InputFile = $tmpInputFile
     Variable = $AdditionalParameters
   }
+  
   $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   $results = (Invoke-SqlCmd @parameters)
   $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")

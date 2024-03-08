@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory=$true)][string]$OutputFile,
     [Parameter(Mandatory=$false)][string]$SeparatorTemplate = $null,
     [Parameter(Mandatory=$false)][string[]]$SeparatorContent = $null,
-    [Parameter(Mandatory=$true, ValueFromPipeline)]$InputPath,
+    [Parameter(Mandatory=$true, ValueFromPipeline)][AllowNull()]$InputPath,
     [array]$replacements = @{},
     [string]$IncludePattern,
     [string]$Bracket = '',
@@ -78,28 +78,34 @@ if([string]::IsNullOrWhiteSpace($SeparatorTemplate)){
 else{
     $SeparatorContent = Get-Content $SeparatorTemplate  -ErrorAction Stop
 }
-Write-Host("Separator Template:")
+Write-Host(">--Separator Template-->")
 $SeparatorContent|%{Write-Host(">:$_")}
+Write-Host("<--Separator Template--<")
 if($Bracket -eq ''){
     $IncludeFromStart = $true;
 }
 
 try{
-    if($InputPath  -is [System.Collections.IEnumerable]){
+
+    if($null -eq $InputPath){
+        Write-Host("scriptPath: <no files>")
+        $fileIterator = @()
+    }
+    elseif($InputPath  -is [System.Collections.IEnumerable]){
         Write-Host("scriptPath: /")
         $fileIterator = $InputPath
     } 
     elseif (Test-Path $InputPath -PathType Leaf) {
+        Write-Host("scriptPath: $InputPath")
+        $fileIterator = Get-ChildItem $InputPath -Filter $IncludePattern
+    } 
+    else {
         $scriptPath = (Split-Path $InputPath)
         Write-Host("scriptPath: $scriptPath")
         $fileList = Get-Content $InputPath -ErrorAction Stop
         $fileIterator = $fileList | ForEach-Object { Join-Path $scriptPath $_ | Resolve-Path}
-
-    } 
-    else {
-        Write-Host("scriptPath: $InputPath")
-        $fileIterator = Get-ChildItem $InputPath -Filter $IncludePattern
     }
+
     $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $SeparatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`n"
     $replacements|ForEach-Object{
         $sv = $_["s"]
