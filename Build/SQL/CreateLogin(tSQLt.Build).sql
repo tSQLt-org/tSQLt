@@ -31,23 +31,38 @@ BEGIN
   END;
 END
 GO
-IF SUSER_SID('tSQLt.Build.SA') IS NOT NULL DROP LOGIN [tSQLt.Build.SA];
+IF OBJECT_ID('tempdb..#ForceDropLogin') IS NOT NULL DROP PROCEDURE #ForceDropLogin;
 GO
-IF SUSER_SID('tSQLt.Build') IS NOT NULL
+CREATE PROCEDURE #ForceDropLogin
+@login_name NVARCHAR(MAX)
+AS
 BEGIN
-  DECLARE @cmd NVARCHAR(MAX) =
+  DECLARE @cmd_dd NVARCHAR(MAX) =
     (
       SELECT 'EXEC #ForceDropDatabase '+QUOTENAME(D.name,'''')+';'
         FROM sys.databases AS D 
         JOIN sys.server_principals AS SP
           ON D.owner_sid = SP.sid
-       WHERE SP.name = 'tSQLt.Build'
+       WHERE SP.name = @login_name
          FOR XML PATH(''),TYPE
     ).value('.','NVARCHAR(MAX)');
-  EXEC(@cmd);  
-
-  DROP LOGIN [tSQLt.Build];
-END;
+  EXEC(@cmd_dd);  
+  DECLARE @cmd_dl NVARCHAR(MAX) = (
+  SELECT 'KILL '+CAST(session_id AS NVARCHAR(MAX))+';' 
+    FROM sys.dm_exec_sessions WHERE login_name = @login_name
+    FOR XML PATH(''),TYPE
+  ).value('.','NVARCHAR(MAX)')
+  EXEC(@cmd_dl);
+  IF SUSER_SID('tSQLt.Build.SA') IS NOT NULL 
+  BEGIN
+    SET @cmd_dl = 'DROP LOGIN '+QUOTENAME(@login_name)+';'
+    EXEC(@cmd_dl);
+  END
+END
+GO
+EXEC #ForceDropLogin 'tSQLt.Build';
+GO
+EXEC #ForceDropLogin 'tSQLt.Build.SA';
 GO
 CREATE LOGIN [tSQLt.Build] WITH PASSWORD = 0x010095EBA5D9A28749DF6ABFD4F5AAFBCE8BD839E0E35D6273B0 HASHED, CHECK_POLICY = OFF, DEFAULT_DATABASE = tempdb;
 GO

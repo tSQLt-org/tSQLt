@@ -95,7 +95,7 @@ try{
         Write-Host("scriptPath: /")
         $fileIterator = $InputPath
     } 
-    elseif (Test-Path $InputPath -PathType Leaf) {
+    elseif (Test-Path $InputPath -PathType Container) {
         Write-Host("scriptPath: $InputPath")
         $fileIterator = Get-ChildItem $InputPath -Filter $IncludePattern
     } 

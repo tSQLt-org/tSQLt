@@ -112,7 +112,8 @@ Function Exec-SqlFile
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string[]] $FileNames,
     [Parameter(Mandatory=$false)][string] $DatabaseName = "tempdb",
     [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{},
-    [Parameter(Mandatory=$false)][string] $ApplicationNameSuffix = $null
+    [Parameter(Mandatory=$false)][string] $ApplicationNameSuffix = $null,
+    [Parameter(Mandatory=$false)][bool] $PrintSqlOutput = $false
   );
   $tmpInputFile = New-TemporaryFile;
   $SeparatorContent = @("","GO","")
@@ -123,6 +124,9 @@ Function Exec-SqlFile
     ConnectionString = ($SqlServerConnection.GetConnectionString($DatabaseName,$ApplicationNameSuffix))
     InputFile = $tmpInputFile
     Variable = $AdditionalParameters
+  }
+  if($PrintSqlOutput){
+    $parameters['Verbose'] = $true
   }
   
   $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")

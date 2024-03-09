@@ -121,6 +121,7 @@ try{
             "../../Tests/BootStrapTest.sql",
             "ExecuteAs(tSQLt.Build).sql",
             "ExecuteAs(tSQLt.Build.SA).sql",
+            "ExecuteAsCleanup.sql"
             "Drop(tSQLtAssemblyKey)(Pre2017).sql",
             "Install(tSQLtAssemblyKey).sql",
             "ChangeDbAndExecuteStatement(tSQLt.Build).sql",

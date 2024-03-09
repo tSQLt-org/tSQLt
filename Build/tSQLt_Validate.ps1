@@ -52,8 +52,9 @@ Function Invoke-SQLFileOrQuery
         [Parameter(Mandatory=$false)][string] $OutputFile = $null,
         [Parameter(Mandatory=$false)][string] $Query = "",
         [Parameter(Mandatory=$false)][string[]] $Files = @(),
-        [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{}
-    );
+        [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{},
+        [Parameter(Mandatory=$false)][bool] $PrintSqlOutput = $false
+        );
     $tempFile = $null;
 
     # Write-Warning("------->>NOTE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Adding Timestamps to Query")
@@ -79,18 +80,20 @@ Function Invoke-SQLFileOrQuery
             $FileNames += Get-TempFileForQuery($Query)
         }
         $FullFileNameSet = @($FileNames)+@($Files);
+        $FullFileNameSet += (Join-Path $TestsPath "temp_executeas_cleanup.sql"|Resolve-Path);
 
         $parameters = @{
             SqlServerConnection = $SqlServerConnection
             FileNames = $FullFileNameSet
             DatabaseName = $DatabaseName
             AdditionalParameters = $AdditionalParameters
+            PrintSqlOutput = $PrintSqlOutput
         }
 $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-        Exec-SqlFile @parameters
+        $QueryOutput = Exec-SqlFile @parameters
 $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
 $dddafter-$dddbefore
-
+        return $QueryOutput
     }
     catch{
         throw
@@ -118,10 +121,18 @@ Function Invoke-Tests
         Elevated = $Elevated
         Query = $RunCommand
         DatabaseName = $DatabaseName
+        PrintSqlOutput = $true
     }
     $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     $parameters;
-    Invoke-SQLFileOrQuery @parameters;         
+    $TestOutput = Invoke-SQLFileOrQuery @parameters;   
+Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
+Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
+Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
+    Write-Host($TestOutput);      
+Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
+Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
+Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
     $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     $dddafter-$dddbefore
 
@@ -146,7 +157,7 @@ Function Invoke-TestsFromFile
 {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlConnectionString] $SqlConnectionString,
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DatabaseName,
         [Parameter(Mandatory=$false)][switch]$Elevated,
         [Parameter(Mandatory=$true)][string] $TestFilePath,
@@ -156,30 +167,21 @@ Function Invoke-TestsFromFile
     $TestSetName = [System.IO.Path]::GetFileName($TestFilePath);
 
     $parameters = @{
-        ServerName = $ServerName
-        UserName = $UserName
-        Password = $Password
-        TrustedConnection = $TrustedConnection
+        SqlServerConnection = $SqlServerConnection
         DatabaseName = $DatabaseName
         Query = "EXEC tSQLt.Reset;"
     }
     Invoke-SQLFileOrQuery @parameters;
 
     $parameters = @{
-        ServerName = $ServerName
-        UserName = $UserName
-        Password = $Password
-        TrustedConnection = $TrustedConnection
+        SqlServerConnection = $SqlServerConnection
         Files = @($TestFilePath)
         DatabaseName = $DatabaseName
     }
     Invoke-SQLFileOrQuery @parameters;
 
     $parameters = @{
-        ServerName = $ServerName
-        UserName = $UserName
-        Password = $Password
-        TrustedConnection = $TrustedConnection
+        SqlServerConnection = $SqlServerConnection
         DatabaseName = $DatabaseName
         Elevated = $Elevated
         RunCommand = "EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;"
@@ -251,7 +253,7 @@ try{
         $ConcatenateFiles = {param([string]$output, [string[]]$fileList)
             $Parameters = @{
                 OutputFile = (Join-Path $TestsPath $output)
-                InputPath = (& $FixPath $fileList)
+                InputPath = [string[]](& $FixPath $fileList)
             }
             & ./tSQLt_Build/ConcatenateFiles.ps1 @Parameters 
         };
@@ -265,6 +267,10 @@ try{
         ) ;
         & $ConcatenateFiles "temp_executeas_caller.sql" @(
             # "ExecuteAs(tSQLt.Build.SA).sql"
+            # "ChangeDbAndExecuteStatement(tSQLt.Build).sql"
+        ) ;
+        & $ConcatenateFiles "temp_executeas_cleanup.sql" @(
+            "ExecuteAsCleanup.sql"
             # "ChangeDbAndExecuteStatement(tSQLt.Build).sql"
         ) ;
         & $ConcatenateFiles "temp_create_example.sql" @(
@@ -328,9 +334,9 @@ Write-Warning('--<<-----11-----<<--')
         }
         Invoke-SQLFileOrQuery @parameters;
 
-Write-Warning('-->>------------>>--')
-Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection     
-Write-Warning('--<<------------<<--')
+# Write-Warning('-->>------------>>--')
+# Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection     
+# Write-Warning('--<<------------<<--')
     Log-Output('Run All Tests... prepare master...')
         $parameters = @{
             SqlServerConnection = $SqlServerConnection
@@ -343,69 +349,80 @@ Write-Warning('--<<------------<<--')
         }
         Invoke-SQLFileOrQuery @parameters;
 
-    # Log-Output('Run All Tests... Run Bootstrap Tests...')
-    #     $parameters = @{
-    #         Files = @(
-    #             (Join-Path $TestsPath "BootStrapTest.sql" | Resolve-Path)
-    #         )
-    #         DatabaseName = $DatabaseName
-    #     }
-    #     Invoke-SQLFileOrQuery @parameters;
+    Log-Output('Run All Tests... Run Bootstrap Tests...')
+        $parameters = @{
+            SqlServerConnection = $SqlServerConnection
+            Files = @(
+                (Join-Path $TestsPath "BootStrapTest.sql" | Resolve-Path)
+            )
+            DatabaseName = $DatabaseName
+        }
+        Invoke-SQLFileOrQuery @parameters;
 
-    # Log-Output('Run All Tests... Install TestUtil.sql...')
-    #     $parameters = @{
-    #         Files = @(
-    #             (Join-Path $TestsPath "TestUtil.sql" | Resolve-Path)
-    #         )
-    #         DatabaseName = $DatabaseName
-    #     }
-    #     Invoke-SQLFileOrQuery @parameters;
+    Log-Output('Run All Tests... Install TestUtil.sql...')
+        $parameters = @{
+            SqlServerConnection = $SqlServerConnection
+            Files = @(
+                (Join-Path $TestsPath "TestUtil.sql" | Resolve-Path)
+            )
+            DatabaseName = $DatabaseName
+        }
+        Invoke-SQLFileOrQuery @parameters;
 
-    # Log-Output('Run All Tests... Set SummaryError Off, PrepMultiRun...')
-    #     $parameters = @{
-    #         Query = "EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;"
-    #         DatabaseName = $DatabaseName
-    #     }
-    #     Invoke-SQLFileOrQuery @parameters;
+    Log-Output('Run All Tests... Set SummaryError Off, PrepMultiRun...')
+        $parameters = @{
+            SqlServerConnection = $SqlServerConnection
+            Query = "EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;"
+            DatabaseName = $DatabaseName
+        }
+        Invoke-SQLFileOrQuery @parameters;
 
 
-    # Log-Output('Run All Tests... TestUtil Tests...')
-    #     $parameters = @{
-    #         TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
-    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
-    #     }
-    #     Invoke-TestsFromFile @parameters;
+    Log-Output('Run All Tests... TestUtil Tests...')
+        $parameters = @{
+            SqlServerConnection = $SqlServerConnection
+            DatabaseName = $DatabaseName
+            TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
+        }
+        Invoke-TestsFromFile @parameters;
     
-    # Log-Output('Run All Tests... TestUtil_SA Tests...')
-    #     $parameters = @{
-    #         Elevated = $true
-    #         TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
-    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
-    #     }
-    #     Invoke-TestsFromFile @parameters;
+    Log-Output('Run All Tests... TestUtil_SA Tests...')
+        $parameters = @{
+            SqlServerConnection = $SqlServerConnection
+            DatabaseName = $DatabaseName
+            Elevated = $true
+            TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
+        }
+        Invoke-TestsFromFile @parameters;
     
     # Log-Output('Run All Tests... tSQLt Tests...')
     #     $parameters = @{
+    #         SqlServerConnection = $SqlServerConnection
+    #         DatabaseName = $DatabaseName
     #         TestFilePath = (Join-Path $TestsPath "AllTests.sql")
     #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`.xml")
     #     }
     #     Invoke-TestsFromFile @parameters;
     
-    # Log-Output('Run All Tests... tSQLt SA Tests...')
-    #     $parameters = @{
-    #         Elevated = $true
-    #         TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
-    #         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
-    #     }
-    #     Invoke-TestsFromFile @parameters;
+    Log-Output('Run All Tests... tSQLt SA Tests...')
+        $parameters = @{
+            SqlServerConnection = $SqlServerConnection
+            DatabaseName = $DatabaseName
+            Elevated = $true
+            TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
+            OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
+        }
+        Invoke-TestsFromFile @parameters;
     
 
-    <# Create the tSQLt.TestResults.zip in the public output path #>
-    # $compress = @{
-    #     CompressionLevel = "Optimal"
-    #     DestinationPath = $PublicOutputPath + "/tSQLt.TestResults.zip"
-    # }
-    # Get-ChildItem -Path $PublicTempPath | Compress-Archive @compress
+    Log-Output('Create tSQLt.TestResults.zip ...')
+    $compress = @{
+        CompressionLevel = "Optimal"
+        DestinationPath = $PublicOutputPath + "/tSQLt.TestResults.zip"
+    }
+    Get-ChildItem -Path $PublicTempPath | Compress-Archive @compress
 
 }
 finally{
