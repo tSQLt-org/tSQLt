@@ -66,7 +66,7 @@ try{
     Log-Output(': Starting tSQLt DacPac Build       :')
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
 Write-Warning($SqlServerConnection)
-    & ./tSQLt_BuildDacpac.ps1 -SqlServerConnection $SqlServerConnection
+    & ./tSQLt_BuildDacpac.ps1 -SqlServerConnection $SqlServerConnection -DacPacDatabaseName $DatabaseName
 
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
     Log-Output(': Packaging tSQLt & DACPACs         :')

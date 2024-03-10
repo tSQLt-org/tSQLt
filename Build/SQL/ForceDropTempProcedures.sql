@@ -4,7 +4,6 @@ CREATE PROCEDURE #ForceDropDatabase
 @db_name NVARCHAR(MAX)
 AS
 BEGIN
-  SET @db_name = PARSENAME(@db_name,1);
   DECLARE @cmd NVARCHAR(MAX);
   IF(DB_ID(@db_name)IS NOT NULL)
   BEGIN
@@ -42,15 +41,14 @@ BEGIN
          FOR XML PATH(''),TYPE
     ).value('.','NVARCHAR(MAX)');
   EXEC(@cmd_dd);  
-  DECLARE @cmd_dl NVARCHAR(MAX) = (
-  SELECT 'KILL '+CAST(session_id AS NVARCHAR(MAX))+';' 
-    FROM sys.dm_exec_sessions WHERE login_name = @login_name
-    FOR XML PATH(''),TYPE
-  ).value('.','NVARCHAR(MAX)')
-  EXEC(@cmd_dl);
   IF SUSER_SID(@login_name) IS NOT NULL 
   BEGIN
-    SET @cmd_dl = 'DROP LOGIN '+QUOTENAME(@login_name)+';'
+    DECLARE @cmd_dl NVARCHAR(MAX) = (
+      SELECT 'KILL '+CAST(session_id AS NVARCHAR(MAX))+';' 
+        FROM sys.dm_exec_sessions WHERE login_name = @login_name
+        FOR XML PATH(''),TYPE
+    ).value('.','NVARCHAR(MAX)');
+    SET @cmd_dl = ISNULL(@cmd_dl,'') + 'DROP LOGIN '+QUOTENAME(@login_name)+';'
     EXEC(@cmd_dl);
   END
 END

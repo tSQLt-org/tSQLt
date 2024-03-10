@@ -5,9 +5,11 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $HelperSQLPath,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $TestDbName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LogTableName,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $TestsResultFilePrefix,    
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DeploySource,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SourcePath,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $TestsPath
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $TestsPath,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ResultsPath
 );
 
 
@@ -67,14 +69,7 @@ Function Invoke-Tests
     }
     $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     $parameters;
-    $TestOutput = Invoke-SQLFileOrQuery @parameters;   
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-    Write-Host($TestOutput);      
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
+    Invoke-SQLFileOrQuery @parameters;   
     $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     $dddafter-$dddbefore
 
@@ -159,7 +154,6 @@ $parameters = @{
 }
 Invoke-SQLFileOrQuery @parameters;
 
-$RunAllTestsResultFilePrefix = 'tSQLt'    
 #----------------------------------------------------------------------------#
 Log-Output('Run All Tests...')
 #----------------------------------------------------------------------------#
@@ -255,7 +249,7 @@ $parameters = @{
     HelperSQLPath = $HelperSQLPath
     DatabaseName = $TestDbName
     TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
-    OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil.xml")
+    OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_TestUtil.xml")
 }
 Invoke-TestsFromFile @parameters;
 
@@ -266,7 +260,7 @@ $parameters = @{
     DatabaseName = $TestDbName
     Elevated = $true
     TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
-    OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_TestUtil_SA.xml")
+    OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_TestUtil_SA.xml")
 }
 Invoke-TestsFromFile @parameters;
 
@@ -275,7 +269,7 @@ Invoke-TestsFromFile @parameters;
 #         SqlServerConnection = $SqlServerConnection
 #         DatabaseName = $TestDbName
 #         TestFilePath = (Join-Path $TestsPath "AllTests.sql")
-#         OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`.xml")
+#         OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`.xml")
 #     }
 #     Invoke-TestsFromFile @parameters;
 
@@ -286,6 +280,28 @@ $parameters = @{
     DatabaseName = $TestDbName
     Elevated = $true
     TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
-    OutputFile = (Join-Path $ResultsPath "TestResults_$RunAllTestsResultFilePrefix`_SA.xml")
+    OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_SA.xml")
+}
+Invoke-TestsFromFile @parameters;
+
+Log-Output('Run All Tests... tSQLt EXTERNAL_ACCESS_KEY_EXISTS Tests...')
+$parameters = @{
+    SqlServerConnection = $SqlServerConnection
+    HelperSQLPath = $HelperSQLPath
+    DatabaseName = $TestDbName
+    Elevated = $true
+    TestFilePath = (Join-Path $TestsPath "AllTests.EXTERNAL_ACCESS_KEY_EXISTS.sql")
+    OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_EXTERNAL_ACCESS_KEY_EXISTS.xml")
+}
+Invoke-TestsFromFile @parameters;
+
+Log-Output('Run All Tests... tSQLt EXTERNAL_ACCESS Tests...')
+$parameters = @{
+    SqlServerConnection = $SqlServerConnection
+    HelperSQLPath = $HelperSQLPath
+    DatabaseName = $TestDbName
+    Elevated = $true
+    TestFilePath = (Join-Path $TestsPath "AllTests.EXTERNAL_ACCESS.sql")
+    OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_EXTERNAL_ACCESS.xml")
 }
 Invoke-TestsFromFile @parameters;

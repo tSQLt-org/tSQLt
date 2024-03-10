@@ -1,7 +1,8 @@
 using module "./CommonFunctionsAndMethods.psm1";
 
 Param( 
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DacPacDatabaseName
 );
 <#
 Technically this should be called by a matrixed job, so that dacpacs are built for all versions (we support, like not 2005, 2008)
@@ -32,14 +33,14 @@ try{
     Log-Output('-- Executing PrepareServer.sql')
     Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames 'PrepareServer.sql';
     Log-Output('-- Executing CreateBuildDb.sql')
-    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters @{NewDbName=$DatabaseName};
+    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters @{NewDbName=$DacPacDatabaseName} -PrintSqlOutput $true;
     Log-Output('-- Executing tSQLt.class.sql')
-    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "tSQLt.class.sql" -Database "$DatabaseName";
+    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "tSQLt.class.sql" -Database "$DacPacDatabaseName";
     Write-Host('Building DACPAC')
     $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection;
     $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
     $tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
-    $tSQLtConnectionString = $SqlServerConnection.GetConnectionString($DatabaseName,"tSQLt_BuildDacpac")
+    $tSQLtConnectionString = $SqlServerConnection.GetConnectionString($DacPacDatabaseName,"tSQLt_BuildDacpac")
     & sqlpackage --roll-forward Major /a:Extract /scs:"$tSQLtConnectionString" /tf:"$tSQLtDacpacFileName" /p:DacApplicationName="$tSQLtApplicationName" /p:IgnoreExtendedProperties=true /p:DacMajorVersion=0 /p:DacMinorVersion=1 /p:ExtractUsageProperties=false
     if($LASTEXITCODE -ne 0) {
         throw "error during execution of dacpac " + $tSQLtDacpacFileName;

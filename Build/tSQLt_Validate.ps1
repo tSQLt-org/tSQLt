@@ -119,9 +119,11 @@ try{
         HelperSQLPath = $TestsPath
         TestDbName = $MainTestDb
         LogTableName = $LogTableName
+        TestsResultFilePrefix = 'tSQLt'
         DeploySource = 'class'
         SourcePath = $tSQLtPath
         TestsPath = $TestsPath
+        ResultsPath = $ResultsPath
     }
     & ./tSQLt_ValidateRunTests.ps1 @parameters
     
@@ -130,15 +132,31 @@ try{
         HelperSQLPath = $TestsPath
         TestDbName = $DacpacTestDb
         LogTableName = $LogTableName
+        TestsResultFilePrefix = 'tSQLtDacPac'
         DeploySource = 'dacpac'
         SourcePath = $tSQLtPath
         TestsPath = $TestsPath
+        ResultsPath = $ResultsPath
     }
     & ./tSQLt_ValidateRunTests.ps1 @parameters
 
-    $expected_other_test_result_files = "TestResults_Example.xml;TestResults_tSQLt_TestUtil.xml".Split(";")
-    $expected_tSQLt_test_result_files = "TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml".Split(";")
-
+    $ExpectedTestResultFiles = (
+        'TestResults_Example.xml',
+        'TestResults_tSQLt.xml',
+        'TestResults_tSQLt_external_access_key_exists.xml',
+        'TestResults_tSQLt_external_access.xml',
+        'TestResults_tSQLt_sa.xml',
+        'TestResults_tSQLt_TestUtil.xml',
+        'TestResults_tSQLt_TestUtil_SA.xml',
+        'TestResults_tSQLtDacPac.xml',
+        'TestResults_tSQLtDacPac_external_access_key_exists.xml',
+        'TestResults_tSQLtDacPac_external_access.xml',
+        'TestResults_tSQLtDacPac_sa.xml',
+        'TestResults_tSQLtDacPac_TestUtil.xml',
+        'TestResults_tSQLtDacPac_TestUtil_SA.xml'
+    )
+    $ActualTestResultFiles = Get-ChildItem -Path $ResultsPath -Include "TestResults*.xml" -Recurse;
+    Compare-Object -ReferenceObject $ExpectedTestResultFiles -DifferenceObject $ActualTestResultFiles -PassThru
 
     Log-Output('Create tSQLt.TestResults.zip ...')
     $compress = @{
