@@ -37,7 +37,14 @@ try{
     Log-Output(': Starting Build Validation         :')
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
 
-    & ./tSQLt_Validate.ps1 -SqlServerConnection $SqlServerConnection
+    $parameters = @{
+        SqlServerConnection = $SqlServerConnection
+        MainTestDb = 'tSQLtBBValidateBuild'
+        DacPacTestDb = 'tSQLtValidateDacPac'
+        ExampleTestDb = 'tSQLtValidateExample'
+    }
+
+    & ./tSQLt_Validate.ps1 @parameters
 
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
     Log-Output(': Build Validation Finished         :')
