@@ -40,7 +40,7 @@ try{
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
         MainTestDb = 'tSQLtBBValidateBuild'
-        DacPacTestDb = 'tSQLtValidateDacPac'
+        DacpacTestDb = 'tSQLtValidateDacPac'
         ExampleTestDb = 'tSQLtValidateExample'
     }
 

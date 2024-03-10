@@ -3,7 +3,7 @@ using module "./CommonFunctionsAndMethods.psm1";
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $MainTestDb,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DacPacTestDb,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DacpacTestDb,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ExampleTestDb,
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $LogTableName = ""
 );
@@ -208,6 +208,7 @@ try{
     $OutputPath = (Join-Path $invocationDir  "/output/Validate/");
     $TempPath = (Join-Path $invocationDir  "/temp/Validate/");
     $tSQLtPath = (Join-Path $TempPath  "/tSQLt/");
+    $tSQLtDacpacPath = (Join-Path $TempPath  "/tSQLt/tSQLtDacpacs/");
     $TestsPath = (Join-Path $TempPath  "/Tests/");
     $ResultsPath = (Join-Path $TempPath  "/Results/");
 
@@ -248,7 +249,9 @@ try{
         Log-Output($FixWidth.invoke("tSQLt CommitId:     $tSQLtCommitId"));
         Log-Output($FixWidth.invoke("SQL Server:         $ServerName"));
         Log-Output($FixWidth.invoke("SQL Server Version: $SQLVersion"));
+        Log-Output($FixWidth.invoke("Log Table Name:     $LogTableName"));
         Log-Output("+--------------------------------------------------------------------------+");
+        Log-Output($FixWidth.invoke("Log Table Name:     $LogTableName"));
         Log-Output('');
 
     Log-Output('Building helper scripts...')
@@ -300,9 +303,20 @@ try{
         SqlServerConnection = $SqlServerConnection
         TestDbName = $MainTestDb
         LogTableName = $LogTableName
+        DeploySource = 'class'
+        SourcePath = $tSQLtPath
     }
     & ./tSQLt_ValidateRunTests.ps1 @parameters
     
+    $parameters = @{
+        SqlServerConnection = $SqlServerConnection
+        TestDbName = $DacpacTestDb
+        LogTableName = $LogTableName
+        DeploySource = 'dacpac'
+        SourcePath = $tSQLtDacpacPath
+    }
+    & ./tSQLt_ValidateRunTests.ps1 @parameters
+
     $expected_other_test_result_files = "TestResults_Example.xml;TestResults_tSQLt_TestUtil.xml".Split(";")
     $expected_tSQLt_test_result_files = "TestResults_tSQLt.xml;testresults_tSQLt_external_access_key_exists.xml;testresults_tSQLt_external_access.xml;testresults_tSQLt_sa.xml".Split(";")
 

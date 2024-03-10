@@ -3,7 +3,9 @@ using module "./CommonFunctionsAndMethods.psm1";
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $TestDbName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LogTableName
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $LogTableName,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DeploySource,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $SourcePath
 );
 
 
@@ -35,18 +37,28 @@ $parameters = @{
 }
 Invoke-SQLFileOrQuery @parameters;
 
-Write-Warning('-->>-----11----->>--')
-Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection     
-Write-Warning('--<<-----11-----<<--')
 Log-Output('Run All Tests... Install tSQLt...')
-$parameters = @{
-    SqlServerConnection = $SqlServerConnection
-    Files = @(
-        (Join-Path $tSQLtPath "tSQLt.class.sql" | Resolve-Path)
-    )
-    DatabaseName = $TestDbName
+if($DeploySource -eq "class"){
+    Log-Output('Deploying tSQLt from tSQLt.class.sql...')
+    $parameters = @{
+        SqlServerConnection = $SqlServerConnection
+        Files = @(
+            (Join-Path $SourcePath "tSQLt.class.sql" | Resolve-Path)
+        )
+        DatabaseName = $TestDbName
+    }
+    Invoke-SQLFileOrQuery @parameters;
+}elseif($DeploySource -eq "dacpac"){
+    Log-Output('Deploying tSQLt from tSQLt DacPac...')
+
+    $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection;
+    $DacpacFileName = (Join-Path $SourcePath  ("tSQLt."+$FriendlySQLServerVersion+".dacpac") | Resolve-Path);
+    $SqlConnectionString = $SqlServerConnection.GetConnectionString($TestDbName,'DeployDacpac')
+    & sqlpackage /a:Publish /tcs:"$SqlConnectionString" /sf:"$DacpacFileName"
+    if($LASTEXITCODE -ne 0) {
+        throw "error during deployment of dacpac " + $DacpacFileName;
+    }
 }
-Invoke-SQLFileOrQuery @parameters;
 
 # Write-Warning('-->>------------>>--')
 # Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection     
