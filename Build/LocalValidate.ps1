@@ -39,9 +39,9 @@ try{
 
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
-        MainTestDb = 'tSQLtBBValidateBuild'
-        DacpacTestDb = 'tSQLtValidateDacPac'
-        ExampleTestDb = 'tSQLtValidateExample'
+        MainTestDb = 'tSQLt.TmpBuild.ValidateBuild'
+        DacpacTestDb = 'tSQLt.TmpBuild.ValidateDacPac'
+        ExampleTestDb = 'tSQLt.TmpBuild.ValidateExample'
     }
 
     & ./tSQLt_Validate.ps1 @parameters

@@ -136,6 +136,75 @@ Function Exec-SqlFile
   return $results
 }
 
+Function Invoke-SQLFileOrQuery
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $HelperSQLPath,
+        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName = 'tempdb',
+        [Parameter(Mandatory=$true, ParameterSetName="Elevated")]
+        [switch]$Elevated,
+        [Parameter(Mandatory=$true, ParameterSetName="Caller")]
+        [switch]$Caller,
+        [Parameter(Mandatory=$false, ParameterSetName="Basic")]
+        [switch]$Basic,
+        [Parameter(Mandatory=$false)][string] $OutputFile = $null,
+        [Parameter(Mandatory=$false)][string] $Query = "",
+        [Parameter(Mandatory=$false)][string[]] $Files = @(),
+        [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{},
+        [Parameter(Mandatory=$false)][bool] $PrintSqlOutput = $false
+        );
+    $tempFile = $null;
+
+    # Write-Warning("------->>NOTE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Adding Timestamps to Query")
+    # $Query = 'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'+$Query+'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'
+
+    try{
+        @{
+            BuildLogTableName=$LogTableName
+            DbName = "tempdb"
+            ExecuteStatement=";"
+            NewDbName = ("[This Shouldn't be here "+(New-Guid)+']')
+        }.GetEnumerator()|ForEach-Object{if(!$AdditionalParameters.Contains($_.key)){$AdditionalParameters[$_.key]=$_.value;}}
+
+        [string[]]$FileNames = @();
+        if($Elevated){
+            $FileNames += (Join-Path $HelperSQLPath "temp_executeas_sa.sql"|Resolve-Path)
+        }elseif($Caller){
+            $FileNames += (Join-Path $HelperSQLPath "temp_executeas_caller.sql"|Resolve-Path)
+        }else{
+            $FileNames += (Join-Path $HelperSQLPath "temp_executeas.sql"|Resolve-Path)
+        }
+        if (![string]::IsNullOrWhiteSpace($Query)){            
+            $FileNames += Get-TempFileForQuery($Query)
+        }
+        $FullFileNameSet = @($FileNames)+@($Files);
+        $FullFileNameSet += (Join-Path $HelperSQLPath "temp_executeas_cleanup.sql"|Resolve-Path);
+
+        $parameters = @{
+            SqlServerConnection = $SqlServerConnection
+            FileNames = $FullFileNameSet
+            DatabaseName = $DatabaseName
+            AdditionalParameters = $AdditionalParameters
+            PrintSqlOutput = $PrintSqlOutput
+        }
+$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+        $QueryOutput = Exec-SqlFile @parameters
+$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+$dddafter-$dddbefore
+        return $QueryOutput
+    }
+    catch{
+        throw
+    }
+    finally{
+        if($null -ne $tempFile){
+            Remove-Item -Path $tempFile.FullName -ErrorAction Ignore
+        }
+    }
+}
+
 Function Get-SqlConnectionString
 {
   [CmdletBinding()]
@@ -343,5 +412,6 @@ Function Replace-InFile {
 }
 
 Log-Output($GetUTCTimeStamp.Invoke(),"Done: Loading CommonFunctionsAndMethods");
-Export-ModuleMember -Function Log-Output, Exec-SqlFile, Get-SqlConnectionString, Get-TempFileForQuery, Get-FriendlySQLServerVersion, Update-Archive, Remove-DirectoryQuietly, Remove-ResourceGroup, Get-SnipContent, Replace-InFile
+Export-ModuleMember -Function Log-Output, Exec-SqlFile, Get-SqlConnectionString, Get-TempFileForQuery, Get-FriendlySQLServerVersion, Update-Archive
+Export-ModuleMember -Function Remove-ResourceGroup, Get-SnipContent, Replace-InFile, Invoke-SQLFileOrQuery, Remove-DirectoryQuietly
 Export-ModuleMember -Variable $CommonFunctionsAndMethodsDir, $SQLPrintCurrentTime

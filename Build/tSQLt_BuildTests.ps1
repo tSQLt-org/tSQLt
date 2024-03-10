@@ -126,7 +126,6 @@ try{
             "Install(tSQLtAssemblyKey).sql",
             "ChangeDbAndExecuteStatement(tSQLt.Build).sql",
             "EnableExternalAccess.sql",
-            "CreateBuildDb.sql",
             "Drop(master.tSQLt_testutil).sql",
             "Install(master.tSQLt_testutil).sql",
             "GetFailedTestCount.sql",
@@ -134,6 +133,16 @@ try{
         );
         $files|%{(Join-Path $invocationDir 'SQL' $_ | Resolve-Path) | Copy-Item -Destination $PackagePath}
 
+    Log-Output("Building CreateBuildDb.sql file...")
+        $parameters = @{
+            OutputFile= (Join-Path $PackagePath "CreateBuildDb.sql")
+            SeparatorTemplate= ((Join-Path (Get-Location) "./SQL/SeparatorTemplate.sql") | Resolve-Path)
+            InputPath= ((Join-Path (Get-Location) "./SQL/CreateBuildDbBuildOrder.txt") | Resolve-Path) 
+            Replacements= @(
+            )
+        }
+        ./tSQLt_Build/ConcatenateFiles.ps1 @parameters
+        
     Log-Output("Building ResetValidationServer.sql file...")
         $parameters = @{
             OutputFile= (Join-Path $TempPath "ResetValidationServer.tmp.sql")

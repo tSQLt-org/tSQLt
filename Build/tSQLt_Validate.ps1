@@ -8,192 +8,7 @@ Param(
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $LogTableName = ""
 );
 
-function Copy-SQLXmlToFile {
-    # This has been tested for up to 100MB of test results! 
-    # (Likely there is no limit, other than the 2GB of the XML data type.)
-    param (
-        [SqlServerConnection]$sqlServerConnection,
-        [string]$DatabaseName,
-        [string]$query,
-        [string]$outputFile
-    )
 
-    Add-Type -AssemblyName System.Data
-
-    try {
-        $connection = New-Object System.Data.SqlClient.SqlConnection($sqlServerConnection.GetConnectionString($DatabaseName,"Copy-SQLXmlToFile"))
-        $connection.Open()
-
-        $command = $connection.CreateCommand()
-        $command.CommandText = $query
-
-        $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Copy-SQLXmlToFile:ExecuteScalar[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-        $result = $command.ExecuteScalar()
-        $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Copy-SQLXmlToFile:ExecuteScalar[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-        $dddafter-$dddbefore
-        [System.IO.File]::WriteAllText($outputFile, $result)
-    }
-    catch {
-        Write-Error "An error occurred: $_"
-    }
-    finally {
-        $connection.Close()
-    }
-}
-Function Invoke-SQLFileOrQuery
-{
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
-        [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName = 'tempdb',
-        [Parameter(Mandatory=$true, ParameterSetName="Elevated")]
-        [switch]$Elevated,
-        [Parameter(Mandatory=$true, ParameterSetName="Caller")]
-        [switch]$Caller,
-        [Parameter(Mandatory=$false, ParameterSetName="Basic")]
-        [switch]$Basic,
-        [Parameter(Mandatory=$false)][string] $OutputFile = $null,
-        [Parameter(Mandatory=$false)][string] $Query = "",
-        [Parameter(Mandatory=$false)][string[]] $Files = @(),
-        [Parameter(Mandatory=$false)][hashtable] $AdditionalParameters = @{},
-        [Parameter(Mandatory=$false)][bool] $PrintSqlOutput = $false
-        );
-    $tempFile = $null;
-
-    # Write-Warning("------->>NOTE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Adding Timestamps to Query")
-    # $Query = 'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'+$Query+'PRINT CONVERT(VARCHAR(MAX),SYSUTCDATETIME(),127);'
-
-    try{
-        @{
-            BuildLogTableName=$LogTableName
-            DbName = "tempdb"
-            ExecuteStatement=";"
-            NewDbName = ("[This Shouldn't be here "+(New-Guid)+']')
-        }.GetEnumerator()|ForEach-Object{if(!$AdditionalParameters.Contains($_.key)){$AdditionalParameters[$_.key]=$_.value;}}
-
-        [string[]]$FileNames = @();
-        if($Elevated){
-            $FileNames += (Join-Path $TestsPath "temp_executeas_sa.sql"|Resolve-Path)
-        }elseif($Caller){
-            $FileNames += (Join-Path $TestsPath "temp_executeas_caller.sql"|Resolve-Path)
-        }else{
-            $FileNames += (Join-Path $TestsPath "temp_executeas.sql"|Resolve-Path)
-        }
-        if (![string]::IsNullOrWhiteSpace($Query)){            
-            $FileNames += Get-TempFileForQuery($Query)
-        }
-        $FullFileNameSet = @($FileNames)+@($Files);
-        $FullFileNameSet += (Join-Path $TestsPath "temp_executeas_cleanup.sql"|Resolve-Path);
-
-        $parameters = @{
-            SqlServerConnection = $SqlServerConnection
-            FileNames = $FullFileNameSet
-            DatabaseName = $DatabaseName
-            AdditionalParameters = $AdditionalParameters
-            PrintSqlOutput = $PrintSqlOutput
-        }
-$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-        $QueryOutput = Exec-SqlFile @parameters
-$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-$dddafter-$dddbefore
-        return $QueryOutput
-    }
-    catch{
-        throw
-    }
-    finally{
-        if($null -ne $tempFile){
-            Remove-Item -Path $tempFile.FullName -ErrorAction Ignore
-        }
-    }
-}
-
-Function Invoke-Tests
-{
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
-        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DatabaseName,
-        [Parameter(Mandatory=$false)][switch]$Elevated,
-        [Parameter(Mandatory=$true)][string] $TestSetName,
-        [Parameter(Mandatory=$true)][string] $RunCommand,
-        [Parameter(Mandatory=$true)][string] $OutputFile
-    );
-    $parameters = @{
-        SqlServerConnection = $SqlServerConnection
-        Elevated = $Elevated
-        Query = $RunCommand
-        DatabaseName = $DatabaseName
-        PrintSqlOutput = $true
-    }
-    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    $parameters;
-    $TestOutput = Invoke-SQLFileOrQuery @parameters;   
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-    Write-Host($TestOutput);      
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-Write-Warning('---!!!!!!!!!!!!!!!!!!!!!---')
-    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    $dddafter-$dddbefore
-
-    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    Copy-SQLXmlToFile $SqlServerConnection $DatabaseName "EXEC [tSQLt].[XmlResultFormatter]" $OutputFile
-    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    $dddafter-$dddbefore
-
-    $parameters = @{
-        SqlServerConnection = $SqlServerConnection
-        DatabaseName = $DatabaseName
-        Query = "EXEC tSQLt_testutil.LogMultiRunResult '$TestSetName';"
-    }
-    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    # $parameters;
-    Invoke-SQLFileOrQuery @parameters;         
-    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    $dddafter-$dddbefore
-
-}
-Function Invoke-TestsFromFile
-{
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
-        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DatabaseName,
-        [Parameter(Mandatory=$false)][switch]$Elevated,
-        [Parameter(Mandatory=$true)][string] $TestFilePath,
-        [Parameter(Mandatory=$true)][string] $OutputFile
-    );
-
-    $TestSetName = [System.IO.Path]::GetFileName($TestFilePath);
-
-    $parameters = @{
-        SqlServerConnection = $SqlServerConnection
-        DatabaseName = $DatabaseName
-        Query = "EXEC tSQLt.Reset;"
-    }
-    Invoke-SQLFileOrQuery @parameters;
-
-    $parameters = @{
-        SqlServerConnection = $SqlServerConnection
-        Files = @($TestFilePath)
-        DatabaseName = $DatabaseName
-    }
-    Invoke-SQLFileOrQuery @parameters;
-
-    $parameters = @{
-        SqlServerConnection = $SqlServerConnection
-        DatabaseName = $DatabaseName
-        Elevated = $Elevated
-        RunCommand = "EXEC tSQLt.SetVerbose @Verbose = 1;EXEC tSQLt.RunNew;"
-        OutputFile = $OutputFile
-        TestSetName = $TestSetName
-    }
-    Invoke-Tests @parameters;
-
-}
 
 
 $__=$__ #quiesce warnings
@@ -208,7 +23,6 @@ try{
     $OutputPath = (Join-Path $invocationDir  "/output/Validate/");
     $TempPath = (Join-Path $invocationDir  "/temp/Validate/");
     $tSQLtPath = (Join-Path $TempPath  "/tSQLt/");
-    $tSQLtDacpacPath = (Join-Path $TempPath  "/tSQLt/tSQLtDacpacs/");
     $TestsPath = (Join-Path $TempPath  "/Tests/");
     $ResultsPath = (Join-Path $TempPath  "/Results/");
 
@@ -288,6 +102,7 @@ try{
     Log-Output('Creating Log Table...')
         $parameters = @{
             SqlServerConnection = $SqlServerConnection
+            HelperSQLPath = $TestsPath
             Caller = $true
             Files = @(
                 (Join-Path $TestsPath "CreateBuildLog.sql" | Resolve-Path)
@@ -301,19 +116,23 @@ try{
     
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
+        HelperSQLPath = $TestsPath
         TestDbName = $MainTestDb
         LogTableName = $LogTableName
         DeploySource = 'class'
         SourcePath = $tSQLtPath
+        TestsPath = $TestsPath
     }
     & ./tSQLt_ValidateRunTests.ps1 @parameters
     
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
+        HelperSQLPath = $TestsPath
         TestDbName = $DacpacTestDb
         LogTableName = $LogTableName
         DeploySource = 'dacpac'
-        SourcePath = $tSQLtDacpacPath
+        SourcePath = $tSQLtPath
+        TestsPath = $TestsPath
     }
     & ./tSQLt_ValidateRunTests.ps1 @parameters
 
