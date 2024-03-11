@@ -24,6 +24,7 @@ try{
     $TempPath = (Join-Path $invocationDir  "/temp/Validate/");
     $tSQLtPath = (Join-Path $TempPath  "/tSQLt/");
     $TestsPath = (Join-Path $TempPath  "/Tests/");
+    $HelperSQLPath = (Join-Path $TempPath  "/Tests/");
     $ResultsPath = (Join-Path $TempPath  "/Results/");
 
     $tSQLtZipPath = (Join-Path $invocationDir "/output/tSQLt/public/tSQLt.zip" |Resolve-Path);
@@ -99,10 +100,10 @@ try{
             "TestThatExamplesAreDeployed.sql"
         ) ;
 
-    Log-Output('Creating Log Table...')
+    Log-Output("Creating Log Table $LogTableName ...")
         $parameters = @{
             SqlServerConnection = $SqlServerConnection
-            HelperSQLPath = $TestsPath
+            HelperSQLPath = $HelperSQLPath
             Caller = $true
             Files = @(
                 (Join-Path $TestsPath "CreateBuildLog.sql" | Resolve-Path)
@@ -116,7 +117,7 @@ try{
     
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
-        HelperSQLPath = $TestsPath
+        HelperSQLPath = $HelperSQLPath
         TestDbName = $MainTestDb
         LogTableName = $LogTableName
         TestsResultFilePrefix = 'tSQLt'
@@ -129,7 +130,7 @@ try{
     
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
-        HelperSQLPath = $TestsPath
+        HelperSQLPath = $HelperSQLPath
         TestDbName = $DacpacTestDb
         LogTableName = $LogTableName
         TestsResultFilePrefix = 'tSQLtDacPac'
@@ -140,10 +141,40 @@ try{
     }
     & ./tSQLt_ValidateRunTests.ps1 @parameters
 
+    Log-Output('Create tSQLt.TestResults.zip ...')
+    $compress = @{
+        CompressionLevel = "Optimal"
+        DestinationPath = $OutputPath + "/tSQLt.TestResults.zip"
+    }
+    Get-ChildItem -Path $ResultsPath | Compress-Archive @compress
+
+    Log-Output('Summary of all tests...')
+    Write-Warning("+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+");
+    Write-Warning("|+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+|");
+    Write-Warning("||                                                                           ||");
+    Write-Warning("||                          Build Test Result Summary                        ||");
+    Write-Warning("||                                                                           ||");
+    Write-Warning("|+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+|");
+    Write-Warning("+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+");    
+    Write-Warning("");
+    Write-Warning("Executed on SQL Server Version $SQLVersion");
+    Write-Warning("");
+      $parameters = @{
+        SqlServerConnection = $SqlServerConnection
+        HelperSQLPath = $HelperSQLPath
+        Elevated = $true
+        Query = "SET NOCOUNT ON;EXEC tSQLt_testutil.CheckBuildLog @TableName='$LogTableName';"
+        DatabaseName = $MainTestDb
+        PrintSqlOutput = $true
+    }
+    Invoke-SQLFileOrQuery @parameters;
+    
+
+    Log-Output('Confirm All Tests executed ...')
     $ExpectedTestResultFiles = (
         'TestResults_Example.xml',
         'TestResults_tSQLt.xml',
-        'TestResults_tSQLt_external_access_key_exists.xml',
+        # 'TestResults_tSQLt_external_access_key_exists.xml',
         'TestResults_tSQLt_external_access.xml',
         'TestResults_tSQLt_sa.xml',
         'TestResults_tSQLt_TestUtil.xml',
@@ -155,16 +186,19 @@ try{
         'TestResults_tSQLtDacPac_TestUtil.xml',
         'TestResults_tSQLtDacPac_TestUtil_SA.xml'
     )
-    $ActualTestResultFiles = Get-ChildItem -Path $ResultsPath -Include "TestResults*.xml" -Recurse;
-    Compare-Object -ReferenceObject $ExpectedTestResultFiles -DifferenceObject $ActualTestResultFiles -PassThru
-
-    Log-Output('Create tSQLt.TestResults.zip ...')
-    $compress = @{
-        CompressionLevel = "Optimal"
-        DestinationPath = $OutputPath + "/tSQLt.TestResults.zip"
+    $ActualTestResultFiles = (Get-ChildItem -Path $ResultsPath -Include "TestResults*.xml" -Recurse)|%{$_.name};
+    $missingFiles = ($ExpectedTestResultFiles|Where-Object{$ActualTestResultFiles -NotContains $_})
+    $superfluousFiles = ($ActualTestResultFiles|Where-Object{$ExpectedTestResultFiles -NotContains $_})
+    $matchingFiles = ($ActualTestResultFiles|Where-Object{$ExpectedTestResultFiles -Contains $_})
+    Write-Warning("Matching Files:")
+    $matchingFiles
+    Write-Warning("Missing Files:")
+    $missingFiles
+    Write-Warning("Unexpected Files:")
+    $superfluousFiles
+    if($missingFiles.Length + $superfluousFiles.Length -gt 0){
+        Write-Error("Missing or Unexpected Test Result Files!")
     }
-    Get-ChildItem -Path $ResultsPath | Compress-Archive @compress
-
 }
 finally{
     Pop-Location

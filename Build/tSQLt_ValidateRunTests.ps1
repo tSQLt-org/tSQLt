@@ -305,3 +305,13 @@ $parameters = @{
     OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_EXTERNAL_ACCESS.xml")
 }
 Invoke-TestsFromFile @parameters;
+
+Log-Output('Run All Tests... Set SummaryError O, Capture MultiRun Results...')
+$parameters = @{
+    SqlServerConnection = $SqlServerConnection
+    HelperSQLPath = $HelperSQLPath
+    Query = "EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='$LogTableName',@RunGroup='AllTests_$TestsResultFilePrefix';"
+    DatabaseName = $TestDbName
+}
+Invoke-SQLFileOrQuery @parameters;
+
