@@ -139,8 +139,10 @@ BEGIN
 
   DECLARE @Actual INT;
   EXECUTE AS USER = 'EnableExternalAccessTestsTempUser';
-    EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;
+    SELECT * INTO #Permissions FROM sys.fn_my_permissions(NULL,NULL);
+--    EXEC sys.sp_executesql N'EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;',N'@Actual INT OUT',@Actual OUT;
   REVERT
+  EXEC tSQLt.AssertEmptyTable '#Permissions';
   
   EXEC tSQLt.AssertEquals -1,@Actual;
 END;

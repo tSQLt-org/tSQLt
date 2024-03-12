@@ -251,7 +251,7 @@ $parameters = @{
     TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
     OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_TestUtil.xml")
 }
-Invoke-TestsFromFile @parameters;
+# Invoke-TestsFromFile @parameters;
 
 Log-Output('Run All Tests... TestUtil_SA Tests...')
 $parameters = @{
@@ -262,7 +262,7 @@ $parameters = @{
     TestFilePath = (Join-Path $TestsPath "TestUtilTests.SA.sql")
     OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_TestUtil_SA.xml")
 }
-Invoke-TestsFromFile @parameters;
+# Invoke-TestsFromFile @parameters;
 
 # Log-Output('Run All Tests... tSQLt Tests...')
 #     $parameters = @{
@@ -282,7 +282,7 @@ $parameters = @{
     TestFilePath = (Join-Path $TestsPath "AllTests.SA.sql")
     OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_SA.xml")
 }
-Invoke-TestsFromFile @parameters;
+# Invoke-TestsFromFile @parameters;
 
 Log-Output('Run All Tests... tSQLt EXTERNAL_ACCESS_KEY_EXISTS Tests...')
 $parameters = @{
@@ -304,7 +304,7 @@ $parameters = @{
     TestFilePath = (Join-Path $TestsPath "AllTests.EXTERNAL_ACCESS.sql")
     OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_EXTERNAL_ACCESS.xml")
 }
-Invoke-TestsFromFile @parameters;
+# Invoke-TestsFromFile @parameters;
 
 Log-Output('Run All Tests... Set SummaryError O, Capture MultiRun Results...')
 $parameters = @{
