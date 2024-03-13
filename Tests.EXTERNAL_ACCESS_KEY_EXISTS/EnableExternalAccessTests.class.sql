@@ -136,13 +136,12 @@ AS
 BEGIN
   ALTER ASSEMBLY tSQLtCLR WITH PERMISSION_SET = SAFE;
   CREATE USER EnableExternalAccessTestsTempUser WITHOUT LOGIN;
+  GRANT EXECUTE ON tSQLt.EnableExternalAccess TO EnableExternalAccessTestsTempUser;
 
   DECLARE @Actual INT;
   EXECUTE AS USER = 'EnableExternalAccessTestsTempUser';
-    SELECT * INTO #Permissions FROM sys.fn_my_permissions(NULL,NULL);
---    EXEC sys.sp_executesql N'EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;',N'@Actual INT OUT',@Actual OUT;
+    EXEC sys.sp_executesql N'EXEC @Actual = tSQLt.EnableExternalAccess @try = 1;',N'@Actual INT OUT',@Actual OUT;
   REVERT
-  EXEC tSQLt.AssertEmptyTable '#Permissions';
   
   EXEC tSQLt.AssertEquals -1,@Actual;
 END;

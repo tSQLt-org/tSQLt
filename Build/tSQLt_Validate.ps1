@@ -174,7 +174,7 @@ try{
     $ExpectedTestResultFiles = (
         'TestResults_Example.xml',
         'TestResults_tSQLt.xml',
-        # 'TestResults_tSQLt_external_access_key_exists.xml',
+        'TestResults_tSQLt_external_access_key_exists.xml',
         'TestResults_tSQLt_external_access.xml',
         'TestResults_tSQLt_sa.xml',
         'TestResults_tSQLt_TestUtil.xml',
