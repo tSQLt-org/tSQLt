@@ -126,7 +126,7 @@ try{
         TestsPath = $TestsPath
         ResultsPath = $ResultsPath
     }
-    & ./tSQLt_ValidateRunTests.ps1 @parameters
+    & ./tSQLt_ValidateRunAll.ps1 @parameters
     
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
@@ -139,7 +139,7 @@ try{
         TestsPath = $TestsPath
         ResultsPath = $ResultsPath
     }
-    & ./tSQLt_ValidateRunTests.ps1 @parameters
+    & ./tSQLt_ValidateRunAll.ps1 @parameters
 
     Log-Output('Create tSQLt.TestResults.zip ...')
     $compress = @{
