@@ -1,40 +1,38 @@
-Log-Output("Run All Tests... Create Database $TestDbName ...")
+# <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/Drop(master.tSQLt_testutil).sql" />
+# <param name="execute.sql.filename" value="temp/Validate/tSQLt.tests/temp_create_example.sql" />
+# <param name="execute.sql.statement" value="EXEC tSQLt_testutil.PrepMultiRunLogTable;EXEC tSQLt.SetSummaryError @SummaryError=0;" />
+# <param name="execute.sql.outputfile" value="temp/Validate/TestResults/TestResults_Example.xml" />
+#     <param name="execute.sql.testcasefilename" value="ExampleDB" />
+#     <param name="execute.sql.statement" value="PRINT DB_NAME();EXEC tSQLt.Run 'ExampleDeployed';" />
+# <param name="execute.sql.statement" value="EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='${logtable.name}',@RunGroup='Example';" />
+
+$TestDbName = 'tSQLt_Example';
+
+Log-Output("Run All Tests... Cleanup master ...")
 $parameters = @{
     SqlServerConnection = $SqlServerConnection
     HelperSQLPath = $HelperSQLPath
     Elevated = $true
     Files = @(
-        (Join-Path $TestsPath "CreateBuildDb.sql" | Resolve-Path)
+        (Join-Path $TestsPath "Drop(master.tSQLt_testutil).sql" | Resolve-Path)
     )
     DatabaseName = "tempdb"
     AdditionalParameters = @{NewDbName = $TestDbName}
 }
 Invoke-SQLFileOrQuery @parameters;
 
-Log-Output('Run All Tests... Install tSQLt...')
-if($DeploySource -eq "class"){
-    Log-Output('Deploying tSQLt from tSQLt.class.sql...')
-    $parameters = @{
-        SqlServerConnection = $SqlServerConnection
-        HelperSQLPath = $HelperSQLPath
-        Files = @(
-            (Join-Path $SourcePath "tSQLt.class.sql" | Resolve-Path)
-        )
-        DatabaseName = $TestDbName
-    }
-    Invoke-SQLFileOrQuery @parameters;
-}elseif($DeploySource -eq "dacpac"){
-    Log-Output('Deploying tSQLt from tSQLt DacPac...')
-
-    $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection;
-    $DacpacFileName = (Join-Path $SourcePath  ("tSQLtDacPacs/tSQLt."+$FriendlySQLServerVersion+".dacpac") | Resolve-Path);
-    $SqlConnectionString = $SqlServerConnection.GetConnectionString($TestDbName,'DeployDacpac')
-    & sqlpackage /a:Publish /tcs:"$SqlConnectionString" /sf:"$DacpacFileName"
-    if($LASTEXITCODE -ne 0) {
-        throw "error during deployment of dacpac " + $DacpacFileName;
-    }
+Log-Output("Run All Tests... Create Database $TestDbName and deploy example code ...")
+$parameters = @{
+    SqlServerConnection = $SqlServerConnection
+    HelperSQLPath = $HelperSQLPath
+    Elevated = $true
+    Files = @(
+        (Join-Path $TestsPath "temp_create_example.sql" | Resolve-Path)
+    )
+    DatabaseName = "tempdb"
+    AdditionalParameters = @{NewDbName = $TestDbName}
 }
-
+Invoke-SQLFileOrQuery @parameters;
 
 Log-Output('Run All Tests... Set SummaryError Off, PrepMultiRun...')
 $parameters = @{
@@ -45,14 +43,13 @@ $parameters = @{
 }
 Invoke-SQLFileOrQuery @parameters;
 
-
 Log-Output('Run All Tests... TestUtil Tests...')
 $parameters = @{
     SqlServerConnection = $SqlServerConnection
     HelperSQLPath = $HelperSQLPath
     DatabaseName = $TestDbName
-    TestFilePath = (Join-Path $TestsPath "TestUtilTests.sql")
-    OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_TestUtil.xml")
+    TestFilePath = (Join-Path $TestsPath "TestThatExamplesAreDeployed.sql")
+    OutputFile = (Join-Path $ResultsPath "TestResults_Example.xml")
 }
 Invoke-TestsFromFile @parameters;
 
@@ -60,7 +57,7 @@ Log-Output('Run All Tests... Set SummaryError O, Capture MultiRun Results...')
 $parameters = @{
     SqlServerConnection = $SqlServerConnection
     HelperSQLPath = $HelperSQLPath
-    Query = "EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='$LogTableName',@RunGroup='AllTests_$TestsResultFilePrefix';"
+    Query = "EXEC tSQLt.SetSummaryError @SummaryError=1;EXEC tSQLt_testutil.CheckMultiRunResults @noError=1;EXEC tSQLt_testutil.StoreBuildLog @TableName='$LogTableName',@RunGroup='AllTests_Example';"
     DatabaseName = $TestDbName
 }
 Invoke-SQLFileOrQuery @parameters;

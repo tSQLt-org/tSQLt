@@ -97,7 +97,8 @@ try{
         & $ConcatenateFiles "temp_create_example.sql" @(
             "../tSQLt/Example.sql",
             "TestUtil.sql",
-            "TestThatExamplesAreDeployed.sql"
+            "Add(tSQLt.Built)ToExampleDB.sql",
+            "UseTempDb.sql"
         ) ;
 
     Log-Output("Creating Log Table $LogTableName ...")
@@ -135,6 +136,19 @@ try{
         LogTableName = $LogTableName
         TestsResultFilePrefix = 'tSQLtDacPac'
         DeploySource = 'dacpac'
+        SourcePath = $tSQLtPath
+        TestsPath = $TestsPath
+        ResultsPath = $ResultsPath
+    }
+    & ./tSQLt_ValidateRunAll.ps1 @parameters
+
+    $parameters = @{
+        SqlServerConnection = $SqlServerConnection
+        HelperSQLPath = $HelperSQLPath
+        TestDbName = '$null'
+        LogTableName = $LogTableName
+        TestsResultFilePrefix = '$null'
+        DeploySource = 'example'
         SourcePath = $tSQLtPath
         TestsPath = $TestsPath
         ResultsPath = $ResultsPath

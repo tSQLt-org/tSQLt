@@ -129,6 +129,8 @@ try{
             "Drop(master.tSQLt_testutil).sql",
             "Install(master.tSQLt_testutil).sql",
             "GetFailedTestCount.sql",
+            "Add(tSQLt.Built)ToExampleDB.sql",
+            "UseTempDb.sql",
             "../../Examples/TestThatExamplesAreDeployed.sql"
         );
         $files|%{(Join-Path $invocationDir 'SQL' $_ | Resolve-Path) | Copy-Item -Destination $PackagePath}
@@ -142,7 +144,7 @@ try{
             )
         }
         ./tSQLt_Build/ConcatenateFiles.ps1 @parameters
-        
+
     Log-Output("Building ResetValidationServer.sql file...")
         $parameters = @{
             OutputFile= (Join-Path $TempPath "ResetValidationServer.tmp.sql")

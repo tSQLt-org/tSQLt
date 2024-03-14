@@ -91,14 +91,15 @@ $parameters = @{
 }
 Invoke-TestsFromFile @parameters;
 
-# Log-Output('Run All Tests... tSQLt Tests...')
-#     $parameters = @{
-#         SqlServerConnection = $SqlServerConnection
-#         DatabaseName = $TestDbName
-#         TestFilePath = (Join-Path $TestsPath "AllTests.sql")
-#         OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`.xml")
-#     }
-#     Invoke-TestsFromFile @parameters;
+Log-Output('Run All Tests... tSQLt Tests...')
+    $parameters = @{
+        SqlServerConnection = $SqlServerConnection
+        HelperSQLPath = $HelperSQLPath
+        DatabaseName = $TestDbName
+        TestFilePath = (Join-Path $TestsPath "AllTests.sql")
+        OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`.xml")
+    }
+    Invoke-TestsFromFile @parameters;
 
 Log-Output('Run All Tests... tSQLt SA Tests...')
 $parameters = @{

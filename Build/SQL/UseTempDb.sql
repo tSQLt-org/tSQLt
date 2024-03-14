@@ -1,0 +1,3 @@
+GO
+USE tempdb;
+GO
