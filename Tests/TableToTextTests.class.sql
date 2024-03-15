@@ -24,7 +24,7 @@ BEGIN
     
     BEGIN TRY
         DECLARE @r NVARCHAR(MAX);
-        SET @r = tSQLt.Private::TableToString('DoesNotExist', '', NULL);
+        EXEC tSQLt.TableToText @r OUT, 'DoesNotExist', '', NULL;
     END TRY
     BEGIN CATCH
         SET @err = ERROR_MESSAGE();
@@ -45,7 +45,7 @@ BEGIN
     
     BEGIN TRY
         DECLARE @r NVARCHAR(MAX);
-        SET @r = tSQLt.Private::TableToString(NULL, '', NULL);
+        EXEC tSQLt.TableToText @r OUT, NULL, '', NULL;
     END TRY
     BEGIN CATCH
         SET @err = ERROR_MESSAGE();
@@ -66,7 +66,7 @@ BEGIN
       FROM (SELECT 1) AS x(y);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('[dbo].[DoesExist]', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '[dbo].[DoesExist]', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|y|
 +-+
@@ -82,7 +82,7 @@ BEGIN
       FROM (SELECT 1) AS x(y);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '| |
 +-+
@@ -97,7 +97,7 @@ BEGIN
     DECLARE @cmd NVARCHAR(MAX);
     SET @cmd ='
     CREATE TABLE #DoesExist(['+CHAR(9)+''']]] VARCHAR(1));INSERT INTO #DoesExist VALUES('''');
-    SET @result = tSQLt.Private::TableToString(''#DoesExist'', '''', NULL);
+    EXEC tSQLt.TableToText @result OUT, ''#DoesExist'', '''', NULL;
     ';
     EXEC sp_executesql @cmd,N'@result NVARCHAR(MAX) OUT',@result OUT;
     
@@ -116,7 +116,7 @@ BEGIN
     DECLARE @cmd NVARCHAR(MAX);
     SET @cmd ='
     CREATE TABLE #DoesExist([[a]]] VARCHAR(1));INSERT INTO #DoesExist VALUES('''');
-    SET @result = tSQLt.Private::TableToString(''#DoesExist'', '''', NULL);
+    EXEC tSQLt.TableToText @result OUT, ''#DoesExist'', '''', NULL;
     ';
     EXEC sp_executesql @cmd,N'@result NVARCHAR(MAX) OUT',@result OUT;
     
@@ -140,7 +140,7 @@ BEGIN
     SELECT (POWER(CAST(-2 AS BIGINT),63)) T;
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                   |
 +--------------------+
@@ -158,7 +158,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('This is my text value');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                    |
 +---------------------+
@@ -175,7 +175,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(N'This is my text value');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                    |
 +---------------------+
@@ -191,7 +191,7 @@ BEGIN
     );
     INSERT INTO #DoesExist (T)VALUES(1.712345612345610E+308);
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                     |
 +----------------------+
@@ -208,7 +208,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('12345678901234567890123456789.123456789');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                                      |
 +---------------------------------------+
@@ -229,7 +229,7 @@ BEGIN
     SELECT @rowid = T FROM #DoesExist;
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
 
     DECLARE @expected NVARCHAR(MAX);
     SET @expected = '|T                 |
@@ -267,7 +267,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('d7b868c6-c16e-443d-9af9-b23cf83bec0b');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                                   |
 +------------------------------------+
@@ -284,7 +284,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('<x att="1"><m><l>d1</l><l>d2</l></m></x>');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                                       |
 +----------------------------------------+
@@ -301,7 +301,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.787');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                      |
 +-----------------------+
@@ -318,7 +318,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('2001-10-13T15:34:56.787');
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T               |
 +----------------+
@@ -335,7 +335,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(REPLICATE(CAST('*' AS VARCHAR(MAX)),8001));
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     DECLARE @expected NVARCHAR(MAX);
     SELECT @expected = '|T'+REPLICATE(' ',154)+'|
@@ -355,7 +355,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(CAST(REPLICATE(CAST('*' AS VARCHAR(MAX)),8001) AS VARBINARY(MAX)));
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     DECLARE @expected NVARCHAR(MAX);
     SELECT @expected = '|T'+REPLICATE(' ',154)+'|
@@ -375,7 +375,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('hello');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     DECLARE @expected NVARCHAR(MAX);
     SELECT @expected = '|T    |
@@ -395,7 +395,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(0xfedcba9876543210);
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                 |
 +------------------+
@@ -412,7 +412,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(0x111213141516171819102122232425262728292031323334353637383930414243444546474849405152535455565758595061626364656667686960717273747576777879708182838485868788898091929394959697989990);
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                                                                                                                                                          |
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -429,7 +429,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                                                                                                                                                          |
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -446,7 +446,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                                                                                                                                                          |
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -464,7 +464,7 @@ GO
 --    INSERT INTO #DoesExist (T12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345)VALUES('1234567890123456789012345678901234567890123456789012345');
     
 --    DECLARE @result NVARCHAR(MAX);
---    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
 --    EXEC tSQLt.AssertEqualsString '|T123456789012345678901234<...>1234567890123456789012345|
 --+-------------------------------------------------------+
@@ -480,7 +480,7 @@ BEGIN
       FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
 
     IF (ISNULL(@result,'') NOT LIKE '|no|
 +--+
@@ -507,7 +507,7 @@ BEGIN
       FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', NULL, NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', NULL, NULL;
 
     IF (ISNULL(@result,'') NOT LIKE '|no|
 +--+
@@ -533,7 +533,7 @@ BEGIN
       FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist','10-no+10*(no%2)', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '10-no+10*(no%2)', NULL;
    
     EXEC tSQLt.AssertEqualsString '|no|
 +--+
@@ -552,7 +552,7 @@ BEGIN
       FROM tSQLt.F_Num(0);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|no|
 +--+', @result;
@@ -567,7 +567,7 @@ BEGIN
       FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist','no', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', 'no', NULL;
    
     EXEC tSQLt.AssertEqualsString '|no|FromTen|NullCol|
 +--+-------+-------+
@@ -586,7 +586,8 @@ BEGIN
       FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist','no','[Col1],[Col2],[Col3]');
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', 'no', '[Col1],[Col2],[Col3]';
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist','no','[Col1],[Col2],[Col3]';
    
     EXEC tSQLt.AssertEqualsString '|Col1|Col2|Col3  |
 +----+----+------+
@@ -605,7 +606,7 @@ BEGIN
       FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist','', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|n     |
 +------+
@@ -634,8 +635,8 @@ PRINT @cols;
       FROM tSQLt.F_Num(4);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist','C001', NULL);
-   
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', 'C001', NULL;
+
     EXEC tSQLt.AssertEqualsString '|C001|C002|C003|C004|C005|C006|C007|C008|C009|C010|C011|C012|C013|C014|C015|C016|C017|C018|C019|C020|C021|C022|C023|C024|C025|C026|C027|C028|C029|C030|C031|C032|C033|C034|C035|C036|C037|C038|C039|C040|C041|C042|C043|C044|C045|C046|C047|C048|C049|C050|C051|C052|C053|C054|C055|C056|C057|C058|C059|C060|C061|C062|C063|C064|C065|C066|C067|C068|C069|C070|C071|C072|C073|C074|C075|C076|C077|C078|C079|C080|C081|C082|C083|C084|C085|C086|C087|C088|C089|C090|C091|C092|C093|C094|C095|C096|C097|C098|C099|C100|
 +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
 |2   |3   |4   |5   |6   |7   |8   |9   |10  |11  |12  |13  |14  |15  |16  |17  |18  |19  |20  |21  |22  |23  |24  |25  |26  |27  |28  |29  |30  |31  |32  |33  |34  |35  |36  |37  |38  |39  |40  |41  |42  |43  |44  |45  |46  |47  |48  |49  |50  |51  |52  |53  |54  |55  |56  |57  |58  |59  |60  |61  |62  |63  |64  |65  |66  |67  |68  |69  |70  |71  |72  |73  |74  |75  |76  |77  |78  |79  |80  |81  |82  |83  |84  |85  |86  |87  |88  |89  |90  |91  |92  |93  |94  |95  |96  |97  |98  |99  |100 |101 |
@@ -653,7 +654,7 @@ BEGIN
       FROM (SELECT 1,2) AS x(a,b);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('[dbo].[DoesExist]', '', '[a],[b]');
+    EXEC tSQLt.TableToText @result OUT, '[dbo].[DoesExist]', '', '[a],[b]';
    
     EXEC tSQLt.AssertEqualsString '|a|b|
 +-+-+
@@ -669,7 +670,7 @@ BEGIN
       FROM (SELECT 1,2) AS x([[a]]],[]]b[]);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('[dbo].[DoesExist]', '', '[[a]]],[]]b[]');
+    EXEC tSQLt.TableToText @result OUT, '[dbo].[DoesExist]', '', '[[a]]],[]]b[]';
    
     EXEC tSQLt.AssertEqualsString '|[a]|]b[|
 +---+---+
@@ -685,7 +686,7 @@ BEGIN
       FROM (SELECT 1,2) AS x(a,[b,c]);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('[dbo].[DoesExist]', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '[dbo].[DoesExist]', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|a|b,c|
 +-+---+
@@ -701,7 +702,7 @@ BEGIN
       FROM (SELECT 1,2) AS x(a,b);
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('[dbo].[DoesExist]', '', '[a],[b,c]');
+    EXEC tSQLt.TableToText @result OUT, '[dbo].[DoesExist]', '', '[a],[b,c]';
    
     EXEC tSQLt.AssertEqualsString '|a|b,c|
 +-+---+
@@ -717,7 +718,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13 12:34:56.7891234 +13:24' AS DATETIMEOFFSET));
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                                 |
 +----------------------------------+
@@ -734,7 +735,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES(CAST('2001-10-13T12:34:56.7891234' AS DATETIME2));
 
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T                          |
 +---------------------------+
@@ -751,7 +752,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.7871234');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T               |
 +----------------+
@@ -768,7 +769,7 @@ BEGIN
     INSERT INTO #DoesExist (T)VALUES('2001-10-13T12:34:56.787');
     
     DECLARE @result NVARCHAR(MAX);
-    SET @result = tSQLt.Private::TableToString('#DoesExist', '', NULL);
+    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
     EXEC tSQLt.AssertEqualsString '|T         |
 +----------+

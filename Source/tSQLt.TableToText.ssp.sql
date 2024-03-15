@@ -9,7 +9,14 @@ CREATE PROCEDURE tSQLt.TableToText
     @PrintOnlyColumnNameAliasList NVARCHAR(MAX) = NULL
 AS
 BEGIN
-    SET @txt = tSQLt.Private::TableToString(@TableName, @OrderBy, @PrintOnlyColumnNameAliasList);
+    -- SET @txt = tSQLt.Private::TableToString(@TableName, @OrderBy, @PrintOnlyColumnNameAliasList);
+    -- SELECT TOP(0) C.column_id,C.name INTO [#tSQLt.TableToText.Columns] FROM sys.columns C;
+    SELECT * INTO [#tSQLt.TableToText.Tmp] FROM #DoesExist;
+    DECLARE @tmpObjectId INT = OBJECT_ID('tempdb..[#tSQLt.TableToText.Tmp]');
+    -- INSERT INTO [#tSQLt.TableToText.Columns]
+    -- SELECT ROW_NUMBER()OVER(ORDER BY C.column_id),name FROM sys.columns C WHERE C.object_id = OBJECT_ID('tempdb..[#tSQLt.TableToText.Tmp]');
+    SELECT name+'|' FROM sys.columns WHERE object_id = @tmpObjectId;
+
 END;
 GO
 ---Build-
