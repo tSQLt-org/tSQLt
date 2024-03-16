@@ -9,14 +9,11 @@ CREATE PROCEDURE tSQLt.TableToText
     @PrintOnlyColumnNameAliasList NVARCHAR(MAX) = NULL
 AS
 BEGIN
-    -- SET @txt = tSQLt.Private::TableToString(@TableName, @OrderBy, @PrintOnlyColumnNameAliasList);
-    -- SELECT TOP(0) C.column_id,C.name INTO [#tSQLt.TableToText.Columns] FROM sys.columns C;
-    SELECT * INTO [#tSQLt.TableToText.Tmp] FROM #DoesExist;
-    DECLARE @tmpObjectId INT = OBJECT_ID('tempdb..[#tSQLt.TableToText.Tmp]');
-    -- INSERT INTO [#tSQLt.TableToText.Columns]
-    -- SELECT ROW_NUMBER()OVER(ORDER BY C.column_id),name FROM sys.columns C WHERE C.object_id = OBJECT_ID('tempdb..[#tSQLt.TableToText.Tmp]');
-    SELECT name+'|' FROM sys.columns WHERE object_id = @tmpObjectId;
-
+    DECLARE @cmd NVARCHAR(MAX)=
+    'SELECT * INTO [#tSQLt.TableToText.Tmp] FROM '+@TableName+';'+
+    'DECLARE @tmpObjectId INT = OBJECT_ID(''tempdb..[#tSQLt.TableToText.Tmp]'');'+
+    'SET @txt = (SELECT ''|''+name FROM tempdb.sys.columns WHERE object_id = @tmpObjectId ORDER BY column_id FOR XML PATH(''''),TYPE).value(''.'',''NVARCHAR(MAX)'')+''|'';'
+    EXEC sys.sp_executesql @cmd,N'@txt NVARCHAR(MAX) OUT',@txt OUT;
 END;
 GO
 ---Build-
