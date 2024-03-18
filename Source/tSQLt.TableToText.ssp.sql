@@ -25,10 +25,11 @@ BEGIN
     'SET @cmd = @cmd + ''SELECT no,sep''+@column_list+'' FROM [#tSQLt.TableToText.Str.Len] L CROSS JOIN [#tSQLt.TableToText.Str] C'';'+
     'SET @cmd = @cmd + '' UNION ALL '';'+
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListSeparatorLine(@tmpObjectId));'+
-    'SET @cmd = @cmd + ''SELECT 2,''''+'''',''+@column_list+'' FROM [#tSQLt.TableToText.Str.Len]'';'+
+    'SET @cmd = @cmd + ''SELECT 2,''''+'''' ''+@column_list+'' FROM [#tSQLt.TableToText.Str.Len] L'';'+
     'SET @cmd = @cmd + '')'';'+
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextNumberedColumnsWithSeparator(@tmpObjectId));'+
     'SET @cmd = @cmd+''SELECT @txt=STUFF((SELECT '+@nl+'+''+@column_list+''sep FROM LenAdjusted ORDER BY no FOR XML PATH(''''''''),TYPE).value(''''.'''',''''NVARCHAR(MAX)''''),1,2,'''''''');'';'+
+    -- 'PRINT @cmd;'+
     'EXEC sys.sp_executesql @cmd,N''@txt NVARCHAR(MAX) OUT'',@txt OUT;';
 
     EXEC sys.sp_executesql @cmd,N'@txt NVARCHAR(MAX) OUT',@txt OUT;

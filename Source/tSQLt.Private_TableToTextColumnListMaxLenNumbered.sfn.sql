@@ -11,9 +11,9 @@ RETURN
   SELECT 
     (
       SELECT 
-          ',MAX(LEN(C'+
+          ',MAX(LEN(''.''+C'+
           RIGHT(CAST(10002+ROW_NUMBER()OVER(ORDER BY column_id) AS NVARCHAR(MAX)),4)+
-          ')) L'+
+          '+''.''))-2 L'+
           RIGHT(CAST(10002+ROW_NUMBER()OVER(ORDER BY column_id) AS NVARCHAR(MAX)),4)
         FROM tempdb.sys.columns 
       WHERE object_id = @tmpObjectId 
