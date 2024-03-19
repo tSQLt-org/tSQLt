@@ -16,7 +16,7 @@ BEGIN
     'DECLARE @tmpObjectId INT = OBJECT_ID(''tempdb..[#tSQLt.TableToText.Tmp]'');'+
     'DECLARE @column_list NVARCHAR(MAX) = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListQuotedAndNumbered(@tmpObjectId));'+
     'DECLARE @cmd NVARCHAR(MAX)=''SELECT 1 no,''''|'''' sep''+@column_list+'' INTO [#tSQLt.TableToText.Str];'';'+
-    'SET @column_list = '',*'';'+
+    'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumntoStringList(@tmpObjectId));'+
     'SET @cmd = @cmd + ''INSERT INTO [#tSQLt.TableToText.Str] SELECT ROW_NUMBER()OVER(ORDER BY (SELECT 1))+2,''''|''''''+@column_list+'' FROM [#tSQLt.TableToText.Tmp];'';'+
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListMaxLenNumbered(@tmpObjectId));'+
     'SET @cmd = @cmd + ''SELECT '+STR(@MaxColumnWidth)+' MCW''+@column_list+'' INTO [#tSQLt.TableToText.Str.Len] FROM [#tSQLt.TableToText.Str];'';'+
