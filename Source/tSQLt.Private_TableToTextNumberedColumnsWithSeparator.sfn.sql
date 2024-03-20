@@ -16,6 +16,7 @@ RETURN
           '+' 
         FROM tempdb.sys.columns 
        WHERE object_id = @tmpObjectId 
+         AND column_id>1
        ORDER BY column_id 
          FOR XML PATH(''),TYPE
     ).value('.','NVARCHAR(MAX)') [ColumnList];

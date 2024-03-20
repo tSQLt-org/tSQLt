@@ -32,6 +32,7 @@ RETURN
             JOIN tempdb.sys.types TS
               ON TS.user_type_id = TU.system_type_id
            WHERE object_id = @tmpObjectId 
+             AND column_id>1
         )X
        ORDER BY column_id 
       FOR XML PATH(''),TYPE
