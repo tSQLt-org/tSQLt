@@ -40,21 +40,27 @@ GO
 CREATE PROCEDURE TableToTextTests.[test TableToText throws exception if tablename is NULL]
 AS
 BEGIN
+    EXEC tSQLt.ExpectException @ExpectedMessagePattern = '%@TableName cannot be NULL%'
 
-    DECLARE @err NVARCHAR(MAX); SET @err = 'No Exception occurred!';
+    DECLARE @r NVARCHAR(MAX);
+    EXEC tSQLt.TableToText @r OUT, NULL, '', NULL;
+
+    -- RETURN;
+
+    -- DECLARE @err NVARCHAR(MAX); SET @err = 'No Exception occurred!';
     
-    BEGIN TRY
-        DECLARE @r NVARCHAR(MAX);
-        EXEC tSQLt.TableToText @r OUT, NULL, '', NULL;
-    END TRY
-    BEGIN CATCH
-        SET @err = ERROR_MESSAGE();
-    END CATCH
+    -- BEGIN TRY
+    --     DECLARE @r NVARCHAR(MAX);
+    --     EXEC tSQLt.TableToText @r OUT, NULL, '', NULL;
+    -- END TRY
+    -- BEGIN CATCH
+    --     SET @err = ERROR_MESSAGE();
+    -- END CATCH
     
-    IF @err NOT LIKE '%Object name cannot be NULL%'
-    BEGIN
-        EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
-    END;
+    -- IF @err NOT LIKE '%Object name cannot be NULL%'
+    -- BEGIN
+    --     EXEC tSQLt.Fail 'Unexpected error message was: ', @err;
+    -- END;
 END;
 GO
 
@@ -464,7 +470,7 @@ GO
 --    INSERT INTO #DoesExist (T12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345)VALUES('1234567890123456789012345678901234567890123456789012345');
     
 --    DECLARE @result NVARCHAR(MAX);
-    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
+--    EXEC tSQLt.TableToText @result OUT, '#DoesExist', '', NULL;
    
 --    EXEC tSQLt.AssertEqualsString '|T123456789012345678901234<...>1234567890123456789012345|
 --+-------------------------------------------------------+

@@ -15,6 +15,11 @@ RETURN
             CASE 
               WHEN type_name = 'DATETIME' THEN 'CONVERT(NVARCHAR(MAX),'+QUOTENAME(name)+',121)'
               WHEN type_name = 'SMALLDATETIME' THEN 'CONVERT(NVARCHAR(16),'+QUOTENAME(name)+',121)'
+              WHEN type_name = 'FLOAT' THEN 'UPPER(CONVERT(NVARCHAR(MAX),'+QUOTENAME(name)+',2))'
+              WHEN type_name = 'IMAGE' THEN 'CONVERT(NVARCHAR(MAX),CAST('+QUOTENAME(name)+' AS VARBINARY(MAX)),1)'
+              WHEN type_name IN ('BINARY','VARBINARY') THEN 'CONVERT(NVARCHAR(MAX),'+QUOTENAME(name)+',1)'
+              WHEN type_name = 'UNIQUEIDENTIFIER' THEN 'LOWER(CONVERT(NVARCHAR(MAX),'+QUOTENAME(name)+'))'
+              WHEN type_name = 'TIMESTAMP' THEN 'CONVERT(NVARCHAR(MAX),CAST('+QUOTENAME(name)+' AS VARBINARY(MAX)),1)'
               ELSE 'CAST('+QUOTENAME(name)+' AS NVARCHAR(MAX))'
             END+
           ',''!NULL!'')'
