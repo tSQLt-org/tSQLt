@@ -782,3 +782,21 @@ BEGIN
 |2001-10-13|', @result;
 END;
 GO
+
+CREATE PROCEDURE TableToTextTests.[test TableToText works for CLR datatype that is not in tempdb]
+AS
+BEGIN
+    IF(OBJECT_ID('TableToTextTests.DoesExist')IS NOT NULL)DROP TABLE TableToTextTests.DoesExist;
+    CREATE TABLE TableToTextTests.DoesExist(
+      T tSQLt_testutil.DataTypeByteOrdered
+    );
+    INSERT INTO TableToTextTests.DoesExist (T)VALUES('42');
+    
+    DECLARE @result NVARCHAR(MAX);
+    EXEC tSQLt.TableToText @result OUT, 'TableToTextTests.DoesExist', '', NULL;
+   
+    EXEC tSQLt.AssertEqualsString '|T |
++--+
+|42|', @result;
+END;
+GO

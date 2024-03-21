@@ -13,14 +13,16 @@ BEGIN
     BEGIN
       RAISERROR('@TableName cannot be NULL',16,10)
     END;
-    IF(OBJECT_ID('tempdb..[#tSQLt.TableToText.Tmp]')IS NOT NULL) DROP TABLE [#tSQLt.TableToText.Tmp];
+    DECLARE @TmpTableName NVARCHAR(MAX) = 'tSQLt.[TableToText.Tmp.'+CAST(NEWID() AS NVARCHAR(MAX))+']';
+    PRINT @TmpTableName
+    IF(OBJECT_ID(@TmpTableName)IS NOT NULL) EXEC('DROP TABLE '+@TmpTableName);
     IF(OBJECT_ID('tempdb..[#tSQLt.TableToText.Str]')IS NOT NULL) DROP TABLE [#tSQLt.TableToText.Str];
     IF(OBJECT_ID('tempdb..[#tSQLt.TableToText.Str.Len]')IS NOT NULL) DROP TABLE [#tSQLt.TableToText.Str.Len];
     DECLARE @nl NVARCHAR(MAX) = 'CHAR(13)+CHAR(10)'
     DECLARE @MaxColumnWidth INT = 155;
     DECLARE @cmd NVARCHAR(MAX)=
     'SET NOCOUNT ON;'+
-    'SELECT * INTO [#tSQLt.TableToText.Tmp] FROM (SELECT ROW_NUMBER()OVER(ORDER BY '+
+    'SELECT * INTO '+@TmpTableName+' FROM (SELECT ROW_NUMBER()OVER(ORDER BY '+
             CASE WHEN NULLIF(LTRIM(@OrderBy),'') IS NULL
               THEN '(SELECT 1)'
               ELSE @OrderBy
@@ -30,7 +32,7 @@ BEGIN
               THEN ''
               ELSE '([tSQLt.TableToText.OrderBy],'+@PrintOnlyColumnNameAliasList+')'
             END+';'+
-    'DECLARE @tmpObjectId INT = OBJECT_ID(''tempdb..[#tSQLt.TableToText.Tmp]'');'+
+    'DECLARE @tmpObjectId INT = OBJECT_ID('''+@TmpTableName+''');'+
     'DECLARE @column_list NVARCHAR(MAX) = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListQuotedAndNumbered(@tmpObjectId));'+
     'DECLARE @cmd NVARCHAR(MAX)=''SELECT 1 no,''''|'''' sep''+@column_list+'' INTO [#tSQLt.TableToText.Str];'';'+
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumntoStringList(@tmpObjectId));'+

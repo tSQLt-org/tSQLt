@@ -106,7 +106,7 @@ try{
         $fileIterator = $fileList | ForEach-Object { Join-Path $scriptPath $_ | Resolve-Path}
     }
 
-    $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $SeparatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`n"
+    $concatenatedContent = (Concatenate-Files -fileIterator $fileIterator -separator $SeparatorContent -bracket $Bracket -includeFromStart $IncludeFromStart) -join "`r`n"
     $replacements|ForEach-Object{
         $sv = $_["s"]
         $rv=$_["r"]; 
