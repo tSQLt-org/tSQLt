@@ -831,6 +831,22 @@ GO
 CREATE PROCEDURE TableToTextTests.[test TableToText tags temporary object]
 AS
 BEGIN
+    DECLARE @cmd NVARCHAR(MAX) = 
+            'IF(OBJECT_ID(@ObjectName,''T'')IS NULL OR @ObjectType <> ''TABLE'')'+
+            '    RAISERROR(''Unexpected parameters for Private_MarktSQLtTempObject: @ObjectName = ''''%s'''', @ObjectType = ''''%s'''''',16,10,@ObjectName,@ObjectType);';
+    EXEC tSQLt.SpyProcedure 'tSQLt.Private_MarktSQLtTempObject',@cmd;
     EXEC tSQLt.Fail 'TODO:need to implement!'
+
+    IF(OBJECT_ID('TableToTextTests.DoesExist')IS NOT NULL)DROP TABLE TableToTextTests.DoesExist;
+    CREATE TABLE TableToTextTests.DoesExist(
+      T INT
+    );
+    
+    DECLARE @result NVARCHAR(MAX);
+    EXEC tSQLt.TableToText @result OUT, 'TableToTextTests.DoesExist', '', NULL;
+
+    SELECT * INTO #Actual FROM tSQLt.Private_MarktSQLtTempObject_SyProcedureLog
+    EXEC tSQLt.AssertEmptyTable '#Actual';
+
 END;
 GO

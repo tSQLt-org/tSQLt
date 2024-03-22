@@ -50,7 +50,7 @@ BEGIN
     'SET @cmd = @cmd+''SELECT @txt=STUFF((SELECT '+@nl+'+''+@column_list+''sep FROM LenAdjusted ORDER BY no FOR XML PATH(''''''''),TYPE).value(''''.'''',''''NVARCHAR(MAX)''''),1,2,'''''''');'';'+
     -- 'PRINT @cmd;'+
     'EXEC sys.sp_executesql @cmd,N''@txt NVARCHAR(MAX) OUT'',@txt OUT;'+
-    '--DROP TABLE '+@TmpTableName+';';
+    'DROP TABLE '+@TmpTableName+';';
     -- PRINT @cmd;
     EXEC sys.sp_executesql @cmd,N'@txt NVARCHAR(MAX) OUT',@txt OUT;
 END;
