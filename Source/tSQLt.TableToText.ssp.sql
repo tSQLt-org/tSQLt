@@ -31,6 +31,7 @@ BEGIN
               THEN ''
               ELSE '([tSQLt.TableToText.OrderBy],'+@PrintOnlyColumnNameAliasList+')'
             END+';'+
+    'EXEC tSQLt.Private_MarktSQLtTempObject '''+@TmpTableName+''',''TABLE'';'+
     'DECLARE @tmpObjectId INT = OBJECT_ID('''+@TmpTableName+''');'+
     'DECLARE @column_list NVARCHAR(MAX) = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListQuotedAndNumbered(@tmpObjectId));'+
     'DECLARE @cmd NVARCHAR(MAX)=''SELECT 1 no,''''|'''' sep''+@column_list+'' INTO [#tSQLt.TableToText.Str];'';'+
@@ -48,7 +49,8 @@ BEGIN
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextNumberedColumnsWithSeparator(@tmpObjectId));'+
     'SET @cmd = @cmd+''SELECT @txt=STUFF((SELECT '+@nl+'+''+@column_list+''sep FROM LenAdjusted ORDER BY no FOR XML PATH(''''''''),TYPE).value(''''.'''',''''NVARCHAR(MAX)''''),1,2,'''''''');'';'+
     -- 'PRINT @cmd;'+
-    'EXEC sys.sp_executesql @cmd,N''@txt NVARCHAR(MAX) OUT'',@txt OUT;';
+    'EXEC sys.sp_executesql @cmd,N''@txt NVARCHAR(MAX) OUT'',@txt OUT;'+
+    '--DROP TABLE '+@TmpTableName+';';
     -- PRINT @cmd;
     EXEC sys.sp_executesql @cmd,N'@txt NVARCHAR(MAX) OUT',@txt OUT;
 END;

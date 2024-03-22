@@ -800,3 +800,32 @@ BEGIN
 |<<DataTypeByteOrdered:42>>|', @result;
 END;
 GO
+
+CREATE PROCEDURE TableToTextTests.[test TableToText does not add or remove objects]
+AS
+BEGIN
+    IF(OBJECT_ID('TableToTextTests.DoesExist')IS NOT NULL)DROP TABLE TableToTextTests.DoesExist;
+    CREATE TABLE TableToTextTests.DoesExist(
+      T INT
+    );
+    
+    SELECT object_id,name INTO #PreState FROM sys.objects;
+    
+    DECLARE @result NVARCHAR(MAX);
+    EXEC tSQLt.TableToText @result OUT, 'TableToTextTests.DoesExist', '', NULL;
+
+    SELECT 
+        CASE WHEN O.object_id IS NULL THEN 'DELETED' ELSE 'ADDED' END [action],
+        CASE WHEN O.object_id IS NULL THEN P.object_id ELSE O.object_id END object_id,
+        CASE WHEN O.object_id IS NULL THEN P.name ELSE O.name END [name]
+      INTO #Actual
+      FROM sys.objects O 
+      FULL JOIN #PreState P
+        ON O.name = P.name
+       AND O.object_id = P.object_id
+     WHERE O.object_id IS NULL
+        OR P.object_id IS NULL;
+    EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
+
+END;
+GO
