@@ -197,7 +197,7 @@ BEGIN
   
 END
 GO
-CREATE PROCEDURE tSQLt_testutil_test.[test DataTypeByteOrdered has constant ToString()]
+CREATE PROCEDURE tSQLt_testutil_test.[test DataTypeByteOrdered has ToString()]
 AS
 BEGIN
   DECLARE @inst1 tSQLt_testutil.DataTypeByteOrdered;
@@ -205,13 +205,11 @@ BEGIN
   DECLARE @inst2 tSQLt_testutil.DataTypeByteOrdered;
   DECLARE @inst2str NVARCHAR(MAX);
 
-  SET @inst1 = '1';
-  SET @inst2 = '2';
+  SET @inst1 = '13';
   
   SET @inst1str = @inst1.ToString();
-  SET @inst2str = @inst2.ToString();
   
-  EXEC tSQLt.AssertEqualsString @inst1str,@inst2str;
+  EXEC tSQLt.AssertEqualsString '<<DataTypeByteOrdered:13>>',@inst1str;
 END
 GO
 CREATE PROCEDURE tSQLt_testutil_test.[test DataTypeByteOrdered has CompareTo (but we can't use it...)]

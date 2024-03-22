@@ -14,7 +14,7 @@ namespace tSQLtTestUtilCLR
 
         public override string ToString()
         {
-            return "<<DataTypeByteOrdered>>";
+            return $"<<DataTypeByteOrdered:{_i}>>";
         }
 
         public int CompareTo(object obj)

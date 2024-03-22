@@ -14,7 +14,6 @@ BEGIN
       RAISERROR('@TableName cannot be NULL',16,10)
     END;
     DECLARE @TmpTableName NVARCHAR(MAX) = 'tSQLt.[TableToText.Tmp.'+CAST(NEWID() AS NVARCHAR(MAX))+']';
-    PRINT @TmpTableName
     IF(OBJECT_ID(@TmpTableName)IS NOT NULL) EXEC('DROP TABLE '+@TmpTableName);
     IF(OBJECT_ID('tempdb..[#tSQLt.TableToText.Str]')IS NOT NULL) DROP TABLE [#tSQLt.TableToText.Str];
     IF(OBJECT_ID('tempdb..[#tSQLt.TableToText.Str.Len]')IS NOT NULL) DROP TABLE [#tSQLt.TableToText.Str.Len];
@@ -36,7 +35,7 @@ BEGIN
     'DECLARE @column_list NVARCHAR(MAX) = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListQuotedAndNumbered(@tmpObjectId));'+
     'DECLARE @cmd NVARCHAR(MAX)=''SELECT 1 no,''''|'''' sep''+@column_list+'' INTO [#tSQLt.TableToText.Str];'';'+
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumntoStringList(@tmpObjectId));'+
-    'SET @cmd = @cmd + ''INSERT INTO [#tSQLt.TableToText.Str] SELECT [tSQLt.TableToText.OrderBy],''''|''''''+@column_list+'' FROM [#tSQLt.TableToText.Tmp];'';'+
+    'SET @cmd = @cmd + ''INSERT INTO [#tSQLt.TableToText.Str] SELECT [tSQLt.TableToText.OrderBy],''''|''''''+@column_list+'' FROM '+@TmpTableName+';'';'+
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListMaxLenNumbered(@tmpObjectId));'+
     'SET @cmd = @cmd + ''SELECT '+STR(@MaxColumnWidth)+' MCW''+@column_list+'' INTO [#tSQLt.TableToText.Str.Len] FROM [#tSQLt.TableToText.Str];'';'+
     'SET @column_list = (SELECT ColumnList FROM tSQLt.Private_TableToTextColumnListAdjustWidth(@tmpObjectId));'+

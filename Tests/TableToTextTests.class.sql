@@ -795,8 +795,8 @@ BEGIN
     DECLARE @result NVARCHAR(MAX);
     EXEC tSQLt.TableToText @result OUT, 'TableToTextTests.DoesExist', '', NULL;
    
-    EXEC tSQLt.AssertEqualsString '|T |
-+--+
-|42|', @result;
+    EXEC tSQLt.AssertEqualsString '|T                         |
++--------------------------+
+|<<DataTypeByteOrdered:42>>|', @result;
 END;
 GO

@@ -25,11 +25,11 @@ RETURN
           ',''!NULL!'')'
         FROM(
           SELECT 
-              C.column_id,TS.name type_name,C.name
-            FROM tempdb.sys.columns C
-            JOIN tempdb.sys.types TU
+              C.column_id,UPPER(TS.name) type_name,C.name
+            FROM sys.columns C
+            JOIN sys.types TU
               ON TU.user_type_id = C.user_type_id
-            JOIN tempdb.sys.types TS
+            LEFT JOIN sys.types TS
               ON TS.user_type_id = TU.system_type_id
            WHERE object_id = @tmpObjectId 
              AND column_id>1
