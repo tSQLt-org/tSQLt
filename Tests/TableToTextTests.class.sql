@@ -826,6 +826,11 @@ BEGIN
      WHERE O.object_id IS NULL
         OR P.object_id IS NULL;
     EXEC tSQLt.AssertEmptyTable @TableName = '#Actual';
-
+END;
+GO
+CREATE PROCEDURE TableToTextTests.[test TableToText tags temporary object]
+AS
+BEGIN
+    EXEC tSQLt.Fail 'TODO:need to implement!'
 END;
 GO
