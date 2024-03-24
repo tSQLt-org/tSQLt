@@ -831,21 +831,45 @@ GO
 CREATE PROCEDURE TableToTextTests.[test TableToText tags temporary object]
 AS
 BEGIN
-    DECLARE @cmd NVARCHAR(MAX) = 
-            'IF(OBJECT_ID(@ObjectName,''T'')IS NULL OR @ObjectType <> ''TABLE'')'+
-            '    RAISERROR(''Unexpected parameters for Private_MarktSQLtTempObject: @ObjectName = ''''%s'''', @ObjectType = ''''%s'''''',16,10,@ObjectName,@ObjectType);';
-    EXEC tSQLt.SpyProcedure 'tSQLt.Private_MarktSQLtTempObject',@cmd;
-    EXEC tSQLt.Fail 'TODO:need to implement!'
-
     IF(OBJECT_ID('TableToTextTests.DoesExist')IS NOT NULL)DROP TABLE TableToTextTests.DoesExist;
     CREATE TABLE TableToTextTests.DoesExist(
       T INT
     );
-    
+
+    DECLARE @cmd NVARCHAR(MAX) = 
+            'ALTER PROCEDURE tSQLt.Private_MarktSQLtTempObject '+
+            '@ObjectName NVARCHAR(MAX),@ObjectType NVARCHAR(MAX),@NewNameOfOriginalObject NVARCHAR(4000) = NULL '+
+            'AS BEGIN '+
+            '  INSERT INTO [#TableToTextTests.PostState] SELECT object_id,name FROM sys.objects;'+
+            '  INSERT INTO [#TableToTextTests.Parameters] SELECT OBJECT_ID(@ObjectName),@ObjectType;'+
+            'END;';
+    EXEC(@cmd);
+
+    SELECT TOP(0) CAST('' AS INT) ObjectId,CAST('' AS NVARCHAR(MAX)) ObjectType 
+      INTO [#TableToTextTests.Parameters];
+    SELECT object_id,name INTO [#TableToTextTests.PreState] FROM sys.objects;
+    SELECT TOP(0) object_id,name INTO [#TableToTextTests.PostState] FROM sys.objects;
+
     DECLARE @result NVARCHAR(MAX);
     EXEC tSQLt.TableToText @result OUT, 'TableToTextTests.DoesExist', '', NULL;
 
-    SELECT * INTO #Actual FROM tSQLt.Private_MarktSQLtTempObject_SyProcedureLog
+    SELECT *
+      INTO #Actual
+      FROM
+      (
+        SELECT PO.* 
+          FROM [#TableToTextTests.PostState] PO
+          LEFT JOIN [#TableToTextTests.PreState] PR
+            ON PO.name = PR.name
+          AND PO.object_id = PR.object_id
+        WHERE PR.object_id IS NULL
+      ) PO
+      FULL JOIN [#TableToTextTests.Parameters] PA
+        ON PO.object_id = PA.ObjectId
+       AND PA.ObjectType = 'TABLE'
+     WHERE PO.object_id IS NULL
+        OR PA.ObjectId IS NULL;
+
     EXEC tSQLt.AssertEmptyTable '#Actual';
 
 END;
