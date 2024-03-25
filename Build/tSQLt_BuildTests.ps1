@@ -6,24 +6,37 @@ try{
 
     $OutputPath = (Join-Path $invocationDir "./output/tSQLtTests/");
     $TempPath = (Join-Path $invocationDir "./temp/tSQLtTests/");
+    $TempCLRPath = (Join-Path $TempPath "/tSQLtCLR/");
     $PackagePath = (Join-Path $TempPath "Package/");
+    $SourcePath = (Join-Path $TempPath "Source/");
 
     <# Clean #>
     Remove-DirectoryQuietly -Path $TempPath;
     Remove-DirectoryQuietly -Path $OutputPath;
     <# Init directories, capturing the return values in a variable so that they don't print. #>
     $_ = New-Item -ItemType "directory" -Path $TempPath;
+    $_ = New-Item -ItemType "directory" -Path $SourcePath;
     $_ = New-Item -ItemType "directory" -Path $PackagePath;
     $_ = New-Item -ItemType "directory" -Path $OutputPath;
 
+    Log-Output("Copying source files...")
+        $files = @(
+            "output/tSQLtCLR/tSQLtCLR.zip",
+            "output/tSQLtBuild/tSQLt.Private_GetAssemblyKeyBytes.sql"
+        );
+        $files|%{(Join-Path $invocationDir $_ | Resolve-Path) | Copy-Item -Destination $SourcePath}
+
+    Log-Output("Unzipping tSQLtCLR DLLs...")
+    Expand-Archive (Join-Path $SourcePath "tSQLtCLR.zip") -DestinationPath $TempCLRPath
+
     Log-Output("Generating CREATE ASSEMBLY statement for tSQLtTestUtilCLR...")
-        $tSQLtTestUtilCLRDLLPath = (Join-Path (Get-Location) "./temp/tSQLtBuild/tSQLtCLR/tSQLtTestUtilCLR.dll") | Resolve-Path
+        $tSQLtTestUtilCLRDLLPath = (Join-Path $TempCLRPath "tSQLtTestUtilCLR.dll") | Resolve-Path
         $tSQLtTestUtilCLRSQLPath = (Join-Path (Get-Location) "../TestUtil/tSQLtTestUtilCLR.mdl.sql") | Resolve-Path
         $tSQLtTestUtilCLROutputPath = (Join-Path $TempPath "CreateTestUtilAssembly.sql") 
         ./tSQLt_Build/CreateAssemblyGenerator.ps1 $tSQLtTestUtilCLROutputPath $tSQLtTestUtilCLRDLLPath $tSQLtTestUtilCLRSQLPath 0x000000 "0xZZZZZ" 20000 "+`n0x"
 
     Log-Output("Generating CREATE ASSEMBLY statement for UnsignedEmpty...")
-        $UnsignedEmptyCLRDLLPath = (Join-Path (Get-Location) "./temp/tSQLtBuild/tSQLtCLR/UnsignedEmpty.dll") | Resolve-Path
+        $UnsignedEmptyCLRDLLPath = (Join-Path $TempCLRPath "UnsignedEmpty.dll") | Resolve-Path
         $UnsignedEmptyCLRSQLPath = (Join-Path (Get-Location) "../TestUtil/GetUnsignedEmptyBytes.mdl.sql") | Resolve-Path
         $UnsignedEmptyCLROutputPath = (Join-Path $TempPath "GetUnsignedEmptyBytes.sql") 
         ./tSQLt_Build/CreateAssemblyGenerator.ps1 $UnsignedEmptyCLROutputPath $UnsignedEmptyCLRDLLPath $UnsignedEmptyCLRSQLPath 0x000000 "0xZZZZZ" 20000 "+`n0x"

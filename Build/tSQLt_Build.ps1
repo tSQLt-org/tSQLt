@@ -126,9 +126,10 @@ try{
             }
         Get-ChildItem -Path (Join-Path $tempPath "*") -Include $toBeZipped | Compress-Archive @compress
     
-        $toBeCopied = @("Version.txt", "tSQLt.class.sql", "CommitId.txt", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
+        # $toBeCopied = @("Version.txt", "tSQLt.class.sql", "CommitId.txt", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
+        $toBeCopied = @("Version.txt", "CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
         $toBeCopied | ForEach-Object{(Join-Path $TempPath $_ | Resolve-Path )| Copy-Item -Destination $outputPath;}
-        Copy-Item (Join-Path $tempPath "ReleaseNotes.txt" | Resolve-Path) -Destination (Join-Path $outputPath "ReadMe.txt");
+        # Copy-Item (Join-Path $tempPath "ReleaseNotes.txt" | Resolve-Path) -Destination (Join-Path $outputPath "ReadMe.txt");
     
     Log-Output("Creating tSQLt Snippets...")
         & ./tSQLt_Build/PackagetSQLtSnippets.ps1

@@ -12,20 +12,19 @@ try{
     $PublicTempPath = (Join-Path $TempPath "public/");
     $ValidationOutputPath = (Join-Path $OutputPath "validation/");
     $tSQLtDacpacPath = (Join-Path $PublicTempPath "tSQLtDacpacs/");
+    $SourcePath = (Join-Path $TempPath "Source/");
+    $DacpacSourcePath = (Join-Path $SourcePath "Dacpacs/");
     
-    $tSQLtFilesZipSourcePath = (Join-Path $invocationDir "/output/tSQLtBuild/tSQLtFiles.zip" | Resolve-Path);
-    $tSQLtDacpacSourcePath = (Join-Path $invocationDir "/output/DacpacBuild" | Resolve-Path);
-
     $PublicOutputFiles = @(
-        ($invocationDir + "/output/tSQLtBuild/ReadMe.txt"), 
-        ($invocationDir + "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip")
+        ($PublicTempPath + "/ReadMe.txt"), 
+        ($SourcePath + "/tSQLtSnippets(SQLPrompt).zip")
     );
     $ValidationOutputFiles = @(
-        ($invocationDir + "/output/tSQLtBuild/Version.txt"), 
-        ($invocationDir + "/output/tSQLtBuild/CommitId.txt"), 
-        ($invocationDir + "/output/tSQLtTests/tSQLt.tests.zip"), 
-        ($invocationDir + "/output/tSQLtBuild/CreateBuildLog.sql"),
-        ($invocationDir + "/output/tSQLtBuild/GetFriendlySQLServerVersion.sql")
+        ($SourcePath + "/Version.txt"), 
+        ($SourcePath + "/CommitId.txt"), 
+        ($SourcePath + "/tSQLt.tests.zip"), 
+        ($SourcePath + "/CreateBuildLog.sql"),
+        ($SourcePath + "/GetFriendlySQLServerVersion.sql")
     ); 
 
     <# Clean #>
@@ -36,11 +35,28 @@ try{
     $__ = New-Item -ItemType "directory" -Path $PublicOutputPath;
     $__ = New-Item -ItemType "directory" -Path $tSQLtDacpacPath;
     $__ = New-Item -ItemType "directory" -Path $ValidationOutputPath;
+    $__ = New-Item -ItemType "directory" -Path $SourcePath;
+    $__ = New-Item -ItemType "directory" -Path $DacpacSourcePath;
+
+    Log-Output("Copying source files...")
+        $files = @(
+            "/output/tSQLtBuild/Version.txt",
+            "/output/tSQLtBuild/CommitId.txt",
+            "/output/tSQLtBuild/CreateBuildLog.sql",
+            "/output/tSQLtBuild/GetFriendlySQLServerVersion.sql",
+            "/output/tSQLtTests/tSQLt.tests.zip",
+            "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip",
+            "/output/tSQLtBuild/tSQLtFiles.zip"
+        );
+        $files|%{(Join-Path $invocationDir $_ | Resolve-Path) | Copy-Item -Destination $SourcePath}
+        Get-ChildItem (Join-Path $invocationDir "/output/DacpacBuild") | Copy-Item -Destination $DacpacSourcePath
 
     <# Copy files to temp path #>
-    Expand-Archive -Path ($tSQLtFilesZipSourcePath) -DestinationPath $PublicTempPath;
+    Expand-Archive -Path (Join-Path $SourcePath "tSQLtFiles.zip" | Resolve-Path) -DestinationPath $PublicTempPath;
     # Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadeDacpacPath;
-    Get-ChildItem -Path ($tSQLtDacpacSourcePath) -Filter 'tSQLt.*.dacpac' | Copy-Item -Destination $tSQLtDacpacPath;
+    Get-ChildItem -Path ($DacpacSourcePath) -Filter 'tSQLt.*.dacpac' | Copy-Item -Destination $tSQLtDacpacPath;
+
+    Copy-Item (Join-Path $PublicTempPath "ReleaseNotes.txt" | Resolve-Path) -Destination (Join-Path $PublicTempPath "ReadMe.txt");
 
     <# Create the tSQLt.zip in the public output path #>
     $compress = @{
