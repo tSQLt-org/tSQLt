@@ -1,4 +1,8 @@
 using module "./CommonFunctionsAndMethods.psm1";
+param(
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $pfxFilePath ,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][securestring] $pfxPassword
+)
 Push-Location -Path $PSScriptRoot
 
 try{
@@ -11,10 +15,11 @@ try{
     Get-ChildItem -Path ("../tSQLtCLR/") -Recurse -Include bin, obj|Foreach-Object{Remove-DirectoryQuietly -Path $_}
 
     <# Init directories, capturing the return values in a variable so that they don't print. #>
-    $_ = New-Item -ItemType "directory" -Path $TempPath;
-    $_ = New-Item -ItemType "directory" -Path $OutputPath;
+    $__=$__;
+    $__ = New-Item -ItemType "directory" -Path $TempPath;
+    $__ = New-Item -ItemType "directory" -Path $OutputPath;
 
-    ../tSQLtCLR/Build.ps1
+    ../tSQLtCLR/Build.ps1 -pfxFilePath $pfxFilePath -pfxPassword $pfxPassword
 
     Get-ChildItem -Path ("../tSQLtCLR/*/bin") -Recurse -Include *.dll | Copy-Item -Destination $TempPath;
 

@@ -87,6 +87,7 @@ stages:
 
   jobs:
   - job: Create_VM
+    condition: eq(1,2)
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
@@ -113,7 +114,7 @@ stages:
         targetType: 'inline'
         script: |
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
-          .("Build/CommonFunctionsAndMethods.ps1")
+          .("Build/CommonFunctionsAndMethods.psm1")
 
           $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
@@ -136,7 +137,7 @@ stages:
         scriptLocation: inlineScript
         inlineScript: |
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
-          .("Build/CommonFunctionsAndMethods.ps1")
+          .("Build/CommonFunctionsAndMethods.psm1")
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
           $SQLUserName = "$env:SQL_USER_NAME";
@@ -678,7 +679,7 @@ stages:
           $ResourceGroupName = $myJsonObject.$ResourceGroupNameKey;          
     
           Set-Location $(Build.Repository.LocalPath)
-          .("Build/CommonFunctionsAndMethods.ps1")
+          .("Build/CommonFunctionsAndMethods.psm1")
     
           $ResourceGroupName | Log-Output;
           az group delete --name $ResourceGroupName --yes

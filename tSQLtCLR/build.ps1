@@ -1,3 +1,7 @@
+param(
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $pfxFilePath ,
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][securestring] $pfxPassword
+)
 Push-Location -Path $PSScriptRoot
 
 # Create a unique temporary directory for this process
@@ -9,10 +13,8 @@ try{
 
     $snkFilePath = Join-Path -Path $tempDir -ChildPath "tSQLtOfficialSigningKey.snk"
     $pemFilePath = Join-Path -Path $tempDir -ChildPath "tSQLtOfficialSigningKey.pem"
-    $pfxFilePath = Join-Path -Path $env:TSQLTCERTPATH -ChildPath $("tSQLtOfficialSigningKey.pfx")
-    $pfxPassword = $env:TSQLTCERTPASSWORD
 
-    & openssl pkcs12 -in "$pfxFilePath" -out "$pemFilePath" -nodes -passin pass:$pfxPassword
+    & openssl pkcs12 -in "$pfxFilePath" -out "$pemFilePath" -nodes -passin pass:"$((ConvertFrom-SecureString $pfxPassword -AsPlainText))"
 
     $rsa = New-Object System.Security.Cryptography.RSACryptoServiceProvider
     $pemContent = Get-Content -Path "$pemFilePath" -Raw

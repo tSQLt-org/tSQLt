@@ -11,6 +11,10 @@ param(
 )
 $PSDefaultParameterValues = $PSDefaultParameterValues.clone()
 $PSDefaultParameterValues += @{'*:ErrorAction' = 'Stop'}
+$pfxFilePath = (Join-Path $env:TSQLTCERTPATH "tSQLtOfficialSigningKey.pfx" |Resolve-Path);
+$pfxPassword = ConvertTo-SecureString -String "$env:TSQLTCERTPASSWORD" -Force -AsPlainText
+
+$pfxFilePath
 
 Get-Module -Name CommonFunctionsAndMethods | Select-Object Name, Path, Version
 
@@ -57,7 +61,7 @@ try{
     Log-Output(': Starting CLR Build                :')
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
 
-    & ./tSQLt_BuildCLR.ps1
+    & ./tSQLt_BuildCLR.ps1 -pfxFilePath $pfxFilePath -pfxPassword $pfxPassword
     CleanTemp $KeepTemp;
 
     Log-Output('+ - - - - - - - - - - - - - - - - - +')
