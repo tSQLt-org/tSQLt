@@ -223,15 +223,17 @@ stages:
         KeyVaultName: 'tSQLtSigningKey'
 
     - task: PowerShell@2
-      name: Install_tSQLt_OfficialSigningKey
+      name: CompileCLR
+      workingDirectory: $(Build.SourcesDirectory)/Build/
       inputs:
         targetType: 'inline'
         script: |
+
           $pfxSecretBytes = [System.Convert]::FromBase64String('$(tSQLtOfficialSigningKey-Base64)')
           $pfxFilePath = (Join-Path "$(Build.SourcesDirectory)" "/Build/tSQLtOfficialSigningKey.pfx")
           [System.IO.File]::WriteAllBytes($pfxFilePath, $pfxSecretBytes)
           # &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx '$(tSQLtSigningKeyPassword)' tSQLt_OfficialSigningKey
-          & ./Build/tSQLt_BuildCLR.ps1 -pfxFilePath $pfxFilePath -pfxPassword '$(tSQLtSigningKeyPassword)'
+          & ./tSQLt_BuildCLR.ps1 -pfxFilePath $pfxFilePath -pfxPassword '$(tSQLtSigningKeyPassword)'
 
     - task: CopyFiles@2
       displayName: 'Copy all dll files to the ArtifactStagingDirectory'
