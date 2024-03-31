@@ -6,15 +6,13 @@ param(
     [Parameter(Mandatory=$true, ParameterSetName = 'UserPass')][ValidateNotNullOrEmpty()][securestring] $Password = (ConvertTo-SecureString "P@ssw0rd" -AsPlainText),
     [Parameter(Mandatory=$true, ParameterSetName = 'TrustedCon')][ValidateNotNullOrEmpty()][switch] $TrustedConnection,
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $DatabaseName = 'tSQLt.TmpBuild.DacPacBuild',
+    [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $pfxFilePath = (Join-Path $env:TSQLTCERTPATH "tSQLtOfficialSigningKey.pfx" |Resolve-Path),
+    [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][securestring] $pfxPassword = (ConvertTo-SecureString -String "$env:TSQLTCERTPASSWORD" -Force -AsPlainText),
     [Parameter(Mandatory=$false)][switch]$KeepTemp,
     [Parameter(Mandatory=$false, ParameterSetName="IgnoreMe")][string]$IgnoreMe
 )
 $PSDefaultParameterValues = $PSDefaultParameterValues.clone()
 $PSDefaultParameterValues += @{'*:ErrorAction' = 'Stop'}
-$pfxFilePath = (Join-Path $env:TSQLTCERTPATH "tSQLtOfficialSigningKey.pfx" |Resolve-Path);
-$pfxPassword = ConvertTo-SecureString -String "$env:TSQLTCERTPASSWORD" -Force -AsPlainText
-
-$pfxFilePath
 
 Get-Module -Name CommonFunctionsAndMethods | Select-Object Name, Path, Version
 

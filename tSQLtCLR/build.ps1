@@ -15,6 +15,8 @@ try{
     $pemFilePath = Join-Path -Path $tempDir -ChildPath "tSQLtOfficialSigningKey.pem"
 
     & openssl pkcs12 -in "$pfxFilePath" -out "$pemFilePath" -nodes -passin pass:"$((ConvertFrom-SecureString $pfxPassword -AsPlainText))"
+    & openssl pkcs12 -in "$pfxFilePath" -noout -info -nodes -passin pass:"$((ConvertFrom-SecureString $pfxPassword -AsPlainText))"
+    Write-Warning("Certificate Thumbprint: " + (Get-PfxCertificate -Filepath "$pfxFilePath" -Password $pfxPassword).Thumbprint.ToString());
 
     $rsa = New-Object System.Security.Cryptography.RSACryptoServiceProvider
     $pemContent = Get-Content -Path "$pemFilePath" -Raw
