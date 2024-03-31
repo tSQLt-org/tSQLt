@@ -224,8 +224,8 @@ stages:
 
     - task: PowerShell@2
       name: CompileCLR
-      workingDirectory: $(Build.SourcesDirectory)/Build/
       inputs:
+        workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
 
