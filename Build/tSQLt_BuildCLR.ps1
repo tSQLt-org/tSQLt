@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][securestring] $pfxPassword
 )
 Push-Location -Path $PSScriptRoot
-Get-Location
+Write-Warning((Get-Location).Path)
 try{
     $OutputPath = "./output/tSQLtCLR/";
     $TempPath = "./temp/tSQLtCLR/";
