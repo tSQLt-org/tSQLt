@@ -14,8 +14,11 @@ try{
     $snkFilePath = Join-Path -Path $tempDir -ChildPath "tSQLtOfficialSigningKey.snk"
     $pemFilePath = Join-Path -Path $tempDir -ChildPath "tSQLtOfficialSigningKey.pem"
 
-    & openssl pkcs12 -in "$pfxFilePath" -out "$pemFilePath" -nodes -passin pass:"$((ConvertFrom-SecureString $pfxPassword -AsPlainText))"
-    & openssl pkcs12 -in "$pfxFilePath" -noout -info -nodes -passin pass:"$((ConvertFrom-SecureString $pfxPassword -AsPlainText))"
+    
+    # $pfxPasswordCleartext = (ConvertFrom-SecureString $pfxPassword -AsPlainText);
+    $pfxPasswordCleartext = [System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pfxPassword));
+    & openssl pkcs12 -in "$pfxFilePath" -out "$pemFilePath" -nodes -passin pass:$pfxPasswordCleartext
+    & openssl pkcs12 -in "$pfxFilePath" -noout -info -nodes -passin pass:$pfxPasswordCleartext
     Write-Warning("Certificate Thumbprint: " + (Get-PfxCertificate -Filepath "$pfxFilePath" -Password $pfxPassword).Thumbprint.ToString());
 
     $rsa = New-Object System.Security.Cryptography.RSACryptoServiceProvider
