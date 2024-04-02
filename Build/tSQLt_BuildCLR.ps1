@@ -19,6 +19,7 @@ try{
     $__ = New-Item -ItemType "directory" -Path $TempPath;
     $__ = New-Item -ItemType "directory" -Path $OutputPath;
 
+    ls ../tSQLtCLR -la
     ../tSQLtCLR/Build.ps1 -pfxFilePath $pfxFilePath -pfxPassword $pfxPassword
 
     Get-ChildItem -Path ("../tSQLtCLR/*/bin") -Recurse -Include *.dll | Copy-Item -Destination $TempPath;
