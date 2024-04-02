@@ -231,9 +231,10 @@ stages:
 
           $pfxSecretBytes = [System.Convert]::FromBase64String('$(tSQLtOfficialSigningKey-Base64)')
           $pfxFilePath = (Join-Path "$(Build.SourcesDirectory)" "/Build/tSQLtOfficialSigningKey.pfx")
-          $pfxPassword = (ConvertTo-SecureString -String '$(tSQLtSigningKeyPassword)' -Force -AsPlainText)
-          Write-Warning($pfxPassword)
           [System.IO.File]::WriteAllBytes($pfxFilePath, $pfxSecretBytes)
+          $pfxPassword = (ConvertTo-SecureString -String '$(tSQLtSigningKeyPassword)' -Force -AsPlainText)
+
+          ls -la 
           # &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx '$(tSQLtSigningKeyPassword)' tSQLt_OfficialSigningKey
           & ./tSQLt_BuildCLR.ps1 -pfxFilePath $pfxFilePath -pfxPassword $pfxPassword
 
