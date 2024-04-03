@@ -270,7 +270,8 @@ stages:
         targetType: 'inline'
         script: |
           Write-Warning("$(CLR_ARTIFACT_DIR)")
-          New-Item -Path $(CLR_ARTIFACT_DIR) -ItemType Directory -Force
+          mkdir -p $(CLR_ARTIFACT_DIR)
+          # New-Item -Path $(CLR_ARTIFACT_DIR) -ItemType Directory -Force
           Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls $(CLR_ARTIFACT_DIR) -laR
 
