@@ -263,6 +263,15 @@ stages:
       lfs: false
       path: $(TSQLT_REPO_DIR)
 
+    - task: PowerShell@2
+      name: CreateArtifactDir
+      inputs:
+        workingDirectory: $(Build.SourcesDirectory)/Build/
+        targetType: 'inline'
+        script: |
+          mkdir $(CLR_ARTIFACT_DIR)
+          ls ./output -laR
+
     - task: DownloadPipelineArtifact@2
       inputs:
         buildType: 'current'
