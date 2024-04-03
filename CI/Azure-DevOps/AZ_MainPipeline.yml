@@ -284,11 +284,26 @@ stages:
         targetPath: '$(CLR_ARTIFACT_DIR)'
 
     - task: PowerShell@2
+      name: tmp_dirs
+      inputs:
+        workingDirectory: $(Build.SourcesDirectory)/Build/
+        targetType: 'inline'
+        script: |
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
+          ls /home/vsts/work/1/tSQLt -laR        
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
+          ls /home/vsts/work/1\tSQLt\Build\output\tSQLtCLR -la        
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
+          ls /home/vsts/work/1/tSQLt/Build/output/tSQLtCLR -la        
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
+
+    - task: PowerShell@2
       name: Build_tSQLt
       inputs:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
+          ls /home/vsts/work/1\tSQLt\Build\output\tSQLtCLR -la        
           Write-Warning("Current Location --> $((Get-Location).path)")
           Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls $(Pipeline.Workspace) -laR
