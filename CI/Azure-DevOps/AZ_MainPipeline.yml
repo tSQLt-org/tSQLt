@@ -289,6 +289,7 @@ stages:
         targetType: 'inline'
         script: |
           ls $(CLR_ARTIFACT_DIR) -laR
+          ls ./output/tSQLtCLR -la
           & ./tSQLt_Build.ps1
 
     - task: PowerShell@2
