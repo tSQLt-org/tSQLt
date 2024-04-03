@@ -14,10 +14,11 @@ try{
     Remove-DirectoryQuietly -Path $TempPath;
     Remove-DirectoryQuietly -Path $OutputPath;
     <# Init directories, capturing the return values in a variable so that they don't print. #>
-    $_ = New-Item -ItemType "directory" -Path $TempPath;
-    $_ = New-Item -ItemType "directory" -Path $SourcePath;
-    $_ = New-Item -ItemType "directory" -Path $PackagePath;
-    $_ = New-Item -ItemType "directory" -Path $OutputPath;
+    $__ = $__ 
+    $__ = New-Item -ItemType "directory" -Path $TempPath;
+    $__ = New-Item -ItemType "directory" -Path $SourcePath;
+    $__ = New-Item -ItemType "directory" -Path $PackagePath;
+    $__ = New-Item -ItemType "directory" -Path $OutputPath;
 
     Log-Output("Copying source files...")
         $files = @(

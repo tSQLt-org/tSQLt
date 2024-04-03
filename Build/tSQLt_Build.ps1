@@ -122,13 +122,13 @@ try{
         $toBeZipped = @("ReleaseNotes.txt", "License.txt", "tSQLt.class.sql", "Example.sql", "PrepareServer.sql");
         $compress = @{
             CompressionLevel = "Optimal"
-            DestinationPath = (Join-Path $outputPath "tSQLtFiles.zip")
+            DestinationPath = (Join-Path $OutputPath "tSQLtFiles.zip")
             }
         Get-ChildItem -Path (Join-Path $tempPath "*") -Include $toBeZipped | Compress-Archive @compress
     
         # $toBeCopied = @("Version.txt", "tSQLt.class.sql", "CommitId.txt", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
         $toBeCopied = @("Version.txt", "CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
-        $toBeCopied | ForEach-Object{(Join-Path $TempPath $_ | Resolve-Path )| Copy-Item -Destination $outputPath;}
+        $toBeCopied | ForEach-Object{(Join-Path $TempPath $_ | Resolve-Path )| Copy-Item -Destination $OutputPath;}
         # Copy-Item (Join-Path $tempPath "ReleaseNotes.txt" | Resolve-Path) -Destination (Join-Path $outputPath "ReadMe.txt");
     
     Log-Output("Creating tSQLt Snippets...")

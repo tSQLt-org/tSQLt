@@ -66,12 +66,12 @@ variables:
     value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation
   - name: TSQLT_TEST_RESULTS_ARTIFACT_DIR
     value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation/TestResults
-  - name: SQLCMDPath
-#    value: 'C:/Program Files/Microsoft SQL Server/110/Tools/Binn' for vmImage: 'vs2017-win2016'
-    value: 'C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn'
-  - name: SQLPackagePath
-#    value: 'C:/Program Files/Microsoft SQL Server/150/DAC/bin' Updated to the new path on 2022-02-05
-    value: 'C:/Program Files/Microsoft SQL Server/160/DAC/bin'
+#   - name: SQLCMDPath
+# #    value: 'C:/Program Files/Microsoft SQL Server/110/Tools/Binn' for vmImage: 'vs2017-win2016'
+#     value: 'C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn'
+#   - name: SQLPackagePath
+# #    value: 'C:/Program Files/Microsoft SQL Server/150/DAC/bin' Updated to the new path on 2022-02-05
+#     value: 'C:/Program Files/Microsoft SQL Server/160/DAC/bin'
 
 resources:
   repositories:
@@ -269,12 +269,7 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
-          Write-Warning("Current Location --> $((Get-Location).path)")
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
           mkdir -p $(CLR_ARTIFACT_DIR)
-          # New-Item -Path $(CLR_ARTIFACT_DIR) -ItemType Directory -Force
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls $(CLR_ARTIFACT_DIR) -laR
 
     - task: DownloadPipelineArtifact@2
       inputs:
@@ -284,35 +279,20 @@ stages:
         targetPath: '$(CLR_ARTIFACT_DIR)'
 
     - task: PowerShell@2
-      name: tmp_dirs
-      inputs:
-        workingDirectory: $(Build.SourcesDirectory)/Build/
-        targetType: 'inline'
-        script: |
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls /home/vsts/work/1/tSQLt -laR        
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls /home/vsts/work/1/tSQLt/Build/output/tSQLtCLR -la        
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls /home/vsts/work/1/tSQLt/Build/output/tSQLtCLR -la        
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-
-    - task: PowerShell@2
       name: Build_tSQLt
       inputs:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
-          ls /home/vsts/work/1/tSQLt/Build/output/tSQLtCLR -la        
-          Write-Warning("Current Location --> $((Get-Location).path)")
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls $(Pipeline.Workspace) -laR
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls  -laR
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls ./output/tSQLtCLR -la
-          Write-Warning("$(CLR_ARTIFACT_DIR)")
           & ./tSQLt_Build.ps1
+
+    - task: PowerShell@2
+      name: Build_tSQLtTests
+      inputs:
+        workingDirectory: $(Build.SourcesDirectory)/Build/
+        targetType: 'inline'
+        script: |
+          & ./tSQLt_BuildTests.ps1
 
     - task: PowerShell@2
       name: CreateArtifact
@@ -320,11 +300,14 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $basePath = "$(Build.SourcesDirectory)/Build/output/tSQLtBuild/";
+          $basePath = "$(Build.SourcesDirectory)/Build/output/";
           $artifactPath = ($basePath+"Artifact/");
           New-Item -Path $artifactPath  -ItemType directory -Force
-          $artifactFiles = @("ReadMe.txt","CommitId.txt","CreateBuildLog.sql","GetFriendlySQLServerVersion.sql","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt");
-          Get-ChildItem -Path ($basePath + "*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
+          # $toBeCopied = @("Version.txt", "CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
+          $artifactFiles = @("Version.txt","CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql","CreateBuildLog.sql","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip");
+          Get-ChildItem -Path ($basePath + "tSQLtBuild/*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
+          $artifactFiles = @("tSQLt.tests.zip");
+          Get-ChildItem -Path ($basePath + "tSQLtTests/*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
 
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
