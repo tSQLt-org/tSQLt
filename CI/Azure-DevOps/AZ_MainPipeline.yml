@@ -55,23 +55,23 @@ variables:
   - name: ARTIFACT_REPO_DIR
     value: 'tSQLtArtifactRepo'
   - name: CLR_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtCLR
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtCLR
   - name: TSQLTFILES_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtBuild
   - name: DACPAC_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\DacpacBuild
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/DacpacBuild
   - name: TSQLT_PUBLIC_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\public
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/public
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation
   - name: TSQLT_TEST_RESULTS_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation\TestResults
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation/TestResults
   - name: SQLCMDPath
-#    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn' for vmImage: 'vs2017-win2016'
-    value: 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn'
+#    value: 'C:/Program Files/Microsoft SQL Server/110/Tools/Binn' for vmImage: 'vs2017-win2016'
+    value: 'C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn'
   - name: SQLPackagePath
-#    value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin' Updated to the new path on 2022-02-05
-    value: 'C:\Program Files\Microsoft SQL Server\160\DAC\bin'
+#    value: 'C:/Program Files/Microsoft SQL Server/150/DAC/bin' Updated to the new path on 2022-02-05
+    value: 'C:/Program Files/Microsoft SQL Server/160/DAC/bin'
 
 resources:
   repositories:
@@ -208,7 +208,7 @@ stages:
     cancelTimeoutInMinutes: 2
 
     # variables:
-    #   CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
+    #   CertificatePath: '$(Build.Repository.LocalPath)/tsqltclr/OfficialSigningKey/tSQLtOfficialSigningKey.pfx'
 
     steps:
 
@@ -292,7 +292,7 @@ stages:
           Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls /home/vsts/work/1/tSQLt -laR        
           Write-Warning("$(CLR_ARTIFACT_DIR)")
-          ls /home/vsts/work/1\tSQLt\Build\output\tSQLtCLR -la        
+          ls /home/vsts/work/1/tSQLt/Build/output/tSQLtCLR -la        
           Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls /home/vsts/work/1/tSQLt/Build/output/tSQLtCLR -la        
           Write-Warning("$(CLR_ARTIFACT_DIR)")
@@ -303,7 +303,7 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
-          ls /home/vsts/work/1\tSQLt\Build\output\tSQLtCLR -la        
+          ls /home/vsts/work/1/tSQLt/Build/output/tSQLtCLR -la        
           Write-Warning("Current Location --> $((Get-Location).path)")
           Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls $(Pipeline.Workspace) -laR
@@ -320,8 +320,8 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLtBuild\";
-          $artifactPath = ($basePath+"Artifact\");
+          $basePath = "$(Build.SourcesDirectory)/Build/output/tSQLtBuild/";
+          $artifactPath = ($basePath+"Artifact/");
           New-Item -Path $artifactPath  -ItemType directory -Force
           $artifactFiles = @("ReadMe.txt","CommitId.txt","CreateBuildLog.sql","GetFriendlySQLServerVersion.sql","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt");
           Get-ChildItem -Path ($basePath + "*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
@@ -331,7 +331,7 @@ stages:
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtFilesArtifact
       inputs:
-        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)\Artifact'
+        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)/Artifact'
         artifact: 'tSQLtFilesArtifact'
         publishLocation: 'pipeline'
 
@@ -386,9 +386,9 @@ stages:
           $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
 
-          .\Build\SetupDacpacBuild.ps1 -ErrorAction Stop 
-          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
-          .\Build\BuildtSQLtDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)_dacpac_src" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
+          ./Build/SetupDacpacBuild.ps1 -ErrorAction Stop 
+          ./Build/FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
+          ./Build/BuildtSQLtDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)_dacpac_src" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
 
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtDacpacArtifact
@@ -438,7 +438,7 @@ stages:
         targetType: 'inline'
         script: |
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)";
-          .\Build\BuildtSQLtZip.ps1
+          ./Build/BuildtSQLtZip.ps1
           Get-ChildItem -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)" -Recurse;
           Get-ChildItem -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)" -Recurse;
 
@@ -466,7 +466,7 @@ stages:
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
+          Set-Location "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/";
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
@@ -485,11 +485,11 @@ stages:
 
             git rm -r *.*
             $CheckIfGitOk.invoke($?);
-            New-Item -Path "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\public" -ItemType directory -Force;    
-            New-Item -Path "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\validation" -ItemType directory -Force;    
+            New-Item -Path "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/public" -ItemType directory -Force;    
+            New-Item -Path "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/validation" -ItemType directory -Force;    
 
-            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Destination "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\public" -Recurse -Verbose
-            Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)\*" -Destination "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\validation" -Recurse -Verbose
+            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)/*" -Destination "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/public" -Recurse -Verbose
+            Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)/*" -Destination "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/validation" -Recurse -Verbose
 
             Get-ChildItem -Path "./public" -Recurse;
             Get-ChildItem -Path "./validation" -Recurse;
@@ -596,7 +596,7 @@ stages:
       name: tSQLtValidateBuild
       inputs:
         script: |
-          cd /d $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)
+          cd /d $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)
           ECHO ON
           SET SQLInstanceName=$(SetupVariables.FQDNAndPort)
           SET DBName=$(buildDatabase)
@@ -609,7 +609,7 @@ stages:
           echo %SQLPackagePath%
           type %0
 
-          Build\LocalValidateBuild.bat "." "." "%SQLCMDPath%" "%SQLInstanceName%" tSQLt_Dev " %DBLogin%" "%SQLPackagePath%" -v || goto :error
+          Build/LocalValidateBuild.bat "." "." "%SQLCMDPath%" "%SQLInstanceName%" tSQLt_Dev " %DBLogin%" "%SQLPackagePath%" -v || goto :error
           :error
 
 
@@ -643,7 +643,7 @@ stages:
           
           $TagName = "$(SQLVersionEdition)_$(Build.BuildId)"
 
-          Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
+          Set-Location "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/";
 
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
