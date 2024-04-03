@@ -288,8 +288,13 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls $(CLR_ARTIFACT_DIR) -laR
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
+          ls  -laR
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls ./output/tSQLtCLR -la
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
           & ./tSQLt_Build.ps1
 
     - task: PowerShell@2
