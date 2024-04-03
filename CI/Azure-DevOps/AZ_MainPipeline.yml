@@ -269,7 +269,7 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
-          Get-Location
+          Write-Warning("Current Location --> $((Get-Location).path)")
           Write-Warning("$(CLR_ARTIFACT_DIR)")
           mkdir -p $(CLR_ARTIFACT_DIR)
           # New-Item -Path $(CLR_ARTIFACT_DIR) -ItemType Directory -Force
@@ -289,7 +289,7 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
-          Get-Location
+          Write-Warning("Current Location --> $((Get-Location).path)")
           Write-Warning("$(CLR_ARTIFACT_DIR)")
           ls $(Pipeline.Workspace) -laR
           Write-Warning("$(CLR_ARTIFACT_DIR)")
