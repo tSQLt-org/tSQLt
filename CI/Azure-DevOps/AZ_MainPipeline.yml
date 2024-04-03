@@ -55,7 +55,7 @@ variables:
   - name: ARTIFACT_REPO_DIR
     value: 'tSQLtArtifactRepo'
   - name: CLR_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\CLRBuild
+    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtCLR
   - name: TSQLTFILES_ARTIFACT_DIR
     value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild
   - name: DACPAC_ARTIFACT_DIR
@@ -234,8 +234,6 @@ stages:
           [System.IO.File]::WriteAllBytes($pfxFilePath, $pfxSecretBytes)
           $pfxPassword = (ConvertTo-SecureString -String '$(tSQLtSigningKeyPassword)' -Force -AsPlainText)
 
-          ls -la 
-          # &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx '$(tSQLtSigningKeyPassword)' tSQLt_OfficialSigningKey
           & ./tSQLt_BuildCLR.ps1 -pfxFilePath $pfxFilePath -pfxPassword $pfxPassword
 
     - task: CopyFiles@2
@@ -272,13 +270,13 @@ stages:
         itemPattern: '*.zip'
         targetPath: '$(CLR_ARTIFACT_DIR)'
 
-    - task: Ant@1
-      displayName: 'Ant -debug Build/tSQLt.build.xml'
+    - task: PowerShell@2
+      name: CompileCLR
       inputs:
-        buildFile: Build/tSQLt.build.xml
-        options: ' -D"commit.id"="$(Build.BuildId)" '
-        targets: all
-        publishJUnitResults: false
+        workingDirectory: $(Build.SourcesDirectory)/Build/
+        targetType: 'inline'
+        script: |
+          & ./tSQLt_Build.ps1
 
     - task: PowerShell@2
       name: CreateArtifact
