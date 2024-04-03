@@ -269,6 +269,7 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
+          Write-Warning("$(CLR_ARTIFACT_DIR)")
           mkdir $(CLR_ARTIFACT_DIR)
           ls ./output -laR
 
