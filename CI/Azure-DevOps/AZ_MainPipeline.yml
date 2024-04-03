@@ -270,7 +270,7 @@ stages:
         targetType: 'inline'
         script: |
           Write-Warning("$(CLR_ARTIFACT_DIR)")
-          mkdir $(CLR_ARTIFACT_DIR)
+          New-Item -Path $(CLR_ARTIFACT_DIR) -ItemType Directory -Force
           ls ./output -laR
 
     - task: DownloadPipelineArtifact@2
