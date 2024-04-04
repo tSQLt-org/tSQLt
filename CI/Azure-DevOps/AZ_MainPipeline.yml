@@ -57,9 +57,9 @@ variables:
   - name: CLR_ARTIFACT_DIR
     value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtCLR
   - name: TSQLTFILES_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtBuild
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtBuild/Artifact
   - name: DACPAC_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/DacpacBuild
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/DacpacBuild/Artifact
   - name: TSQLT_PUBLIC_ARTIFACT_DIR
     value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/public
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
@@ -301,7 +301,7 @@ stages:
         failOnStderr: true
         script: |
           $basePath = "$(Build.SourcesDirectory)/Build/output/";
-          $artifactPath = ($basePath+"Artifact/");
+          $artifactPath = '$(TSQLTFILES_ARTIFACT_DIR)';
           New-Item -Path $artifactPath  -ItemType directory -Force
           # $toBeCopied = @("Version.txt", "CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
           $artifactFiles = @("Version.txt","CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql","CreateBuildLog.sql","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip");
@@ -314,7 +314,7 @@ stages:
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtFilesArtifact
       inputs:
-        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)/Artifact'
+        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
         artifact: 'tSQLtFilesArtifact'
         publishLocation: 'pipeline'
 
