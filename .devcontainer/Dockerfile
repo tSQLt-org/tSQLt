@@ -55,6 +55,12 @@ RUN apt-get install -y wget apt-transport-https software-properties-common && \
 
 RUN pwsh -Command "Install-Module -Name SqlServer -Scope AllUsers -AllowClobber -Force"
 
+RUN pwsh -Command "Install-Module -Name Az -AllowClobber -Scope AllUsers -Force"
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+RUN curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64 \
+    && chmod +x ./bicep \
+    && mv ./bicep /usr/local/bin/bicep
+
 # Set the default shell to PowerShell
 SHELL ["pwsh", "-Command"]
 

@@ -51,6 +51,7 @@
 				"github.vscode-github-actions",
 				"ms-dotnettools.csdevkit",
 				"ms-vscode.powershell",
+				"ms-azuretools.vscode-bicep",
 			]
 		}
 	},

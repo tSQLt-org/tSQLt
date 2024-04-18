@@ -13,6 +13,7 @@
      WHEN '13.0' THEN '2016'
      WHEN '14.0' THEN '2017'
      WHEN '15.0' THEN '2019'
+     WHEN '16.0' THEN '2022'
      ELSE 'Unknown'
     END SQLVersion,
    SERVERPROPERTY('Collation') AS ServerCollation
