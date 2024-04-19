@@ -35,7 +35,7 @@ steps:
     AZURE_DEVOPS_EXT_PAT: $(tSQLtCIAzureCLIPatToken) 
     ## black magic: this token ^^^^ is required to make "az pipelines runs show" work below
   inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azureSubscription: 'tSQLt CI - Nightly Cleanup - Service Connection'
     scriptType: 'ps'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -141,7 +141,7 @@ steps:
 - task: AzurePowerShell@4
   name: print_stuff
   inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azureSubscription: 'tSQLt CI - Nightly Cleanup - Service Connection'
     azurePowerShellVersion: 'LatestVersion'
     failOnStandardError: True
     ScriptType: 'InlineScript'
@@ -159,7 +159,7 @@ steps:
   condition: succeeded()
   name: Delete_RGs
   inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azureSubscription: 'tSQLt CI - Nightly Cleanup - Service Connection'
     azurePowerShellVersion: 'LatestVersion'
     FailOnStandardError: true
     ScriptType: 'InlineScript'
@@ -225,7 +225,7 @@ steps:
   name: AssertDeleteSuccessful
   condition: always()
   inputs:
-    azureSubscription: 'tSQLt CI Subscription(58c04a99-5b92-410c-9e41-10262f68ca80)'
+    azureSubscription: 'tSQLt CI - Nightly Cleanup - Service Connection'
     azurePowerShellVersion: 'LatestVersion'
     failOnStandardError: True
     ScriptType: 'InlineScript'
