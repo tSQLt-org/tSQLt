@@ -39,7 +39,6 @@ steps:
     scriptType: 'ps'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      Write-Warning 'GotHere!';
       ##Functions
       $GetAll_tSQLtCI_RGs = {
         param();
