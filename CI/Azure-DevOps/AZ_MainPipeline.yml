@@ -100,13 +100,6 @@ stages:
       lfs: false
       path: $(TSQLT_REPO_DIR)
 
-    - task: AzureCLI@2
-      inputs:
-        azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
-        scriptType: 'ps'
-        scriptLocation: 'inlineScript'
-        inlineScript: 'az account show'  # This command shows the logged-in Azure account details.
-
     - task: AzureKeyVault@1
       inputs:
         azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
