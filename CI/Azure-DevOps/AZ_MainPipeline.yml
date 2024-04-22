@@ -87,7 +87,6 @@ stages:
 
   jobs:
   - job: Create_VM
-    condition: eq(1,2)
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
@@ -143,28 +142,53 @@ stages:
           $SQLUserName = "$env:SQL_USER_NAME";
           $SQLPwd = "$env:SQL_PASSWORD"; #TODO, randomize password, instead of taking it directly from the key vault
 
-          Log-Output '==========================================================';
-          Log-Output 'Executing CreateSQLVM.ps1';
-          Log-Output '==========================================================';
-          $Parameters = @{
-            Location="$(VMLocation)";
-            Size="$(VMSize)"
-            ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
-            BuildId="$(Build.BuildId)";
-            VMAdminName="$env:VM_USER_NAME";
-            VMAdminPwd="$env:VM_PASSWORD";
-            SQLVersionEdition="$(SQLVersionEdition)";
-            SQLPort="$SqlPort";
-            SQLUserName="$SQLUserName";
-            SQLPwd="$SQLPwd";
-            VMPriority="${{ parameters.VMPriority }}";
-          }; 
-          $VMDetails = .'CI/Azure-DevOps/CreateSQLVM_azcli.ps1' @Parameters
-    
-          Log-Output '==========================================================';
-          Log-Output 'Done: Executing CreateSQLVM.ps1';
-          Log-Output '==========================================================';
-              
+          if("$(SQLVersionEdition)" -like "[0-9][0-9][0-9][0-9]L"){
+            $SqlPort = 1433;
+            $SQLUserName = 'SA'
+
+            Log-Output '==========================================================';
+            Log-Output 'Executing CreateSQLContainer.ps1';
+            Log-Output '==========================================================';
+            $Parameters = @{
+              Location="$(VMLocation)";
+              Size="$(VMSize)"
+              ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
+              BuildId="$(Build.BuildId)";
+              SQLVersionEdition="$(SQLVersionEdition)";
+              # SQLPort="1433";
+              # SQLUserName="SA";
+              SQLPwd="$SQLPwd";
+              SQLCpu=4;
+              SQLMemory=8;
+            }; 
+            $VMDetails = .'CI/Azure-DevOps/CreateSQLContainer.ps1' @Parameters
+      
+            Log-Output '==========================================================';
+            Log-Output 'Done: Executing CreateSQLContainer.ps1';
+            Log-Output '==========================================================';
+          }else{
+            Log-Output '==========================================================';
+            Log-Output 'Executing CreateSQLVM_azcli.ps1';
+            Log-Output '==========================================================';
+            $Parameters = @{
+              Location="$(VMLocation)";
+              Size="$(VMSize)"
+              ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
+              BuildId="$(Build.BuildId)";
+              VMAdminName="$env:VM_USER_NAME";
+              VMAdminPwd="$env:VM_PASSWORD";
+              SQLVersionEdition="$(SQLVersionEdition)";
+              SQLPort="$SqlPort";
+              SQLUserName="$SQLUserName";
+              SQLPwd="$SQLPwd";
+              VMPriority="${{ parameters.VMPriority }}";
+            }; 
+            $VMDetails = .'CI/Azure-DevOps/CreateSQLVM_azcli.ps1' @Parameters
+      
+            Log-Output '==========================================================';
+            Log-Output 'Done: Executing CreateSQLVM_azcli.ps1';
+            Log-Output '==========================================================';
+          }              
           # $SerializedVMDetails=(ConvertTo-JSON -InputObject $VMDetails -Compress);
           # $SerializedVMDetails;
 

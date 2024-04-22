@@ -86,9 +86,9 @@ Log-Output "Actual SQL Version:",$ActualSQLVersion;
 Log-Output 'Done: Prep SQL Server for tSQLt Build';
 
 Return @{
-    "ContainerName"="$ContainerName";
+    "VmName"="$ContainerName";
     "ResourceGroupName"="$ResourceGroupName";
-    "SQLFQDN"="$ipAddress";              ##[vmname].[region].cloudapp.azure.com
-    "SQLPort"="$SQLPort";                   ##1433
+    "SQLVmFQDN"="$ipAddress";              ##[vmname].[region].cloudapp.azure.com
+    "SQLVmPort"="$SQLPort";                   ##1433
     "SQLVersionEdition"="$SQLVersionEdition"; ##2012Ent
 };
