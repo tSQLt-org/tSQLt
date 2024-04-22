@@ -108,7 +108,7 @@ stages:
         RunAsPreJob: false
 
     - task: PowerShell@2
-      name: CreateResourceGroupName
+      name: CreateResourceGroupNameTTT
       inputs:
         workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
