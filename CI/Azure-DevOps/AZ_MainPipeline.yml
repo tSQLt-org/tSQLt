@@ -113,10 +113,14 @@ stages:
         workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
         script: |
+          Get-Alias .
           Get-Location
-          Get-ChildItem -Recurse
+          Get-ChildItem -Recurse | Select-Object FullName, Length, LastWriteTime | Format-Table -AutoSize
           $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
-          . "$cfam";
+
+          Write-Host "Attempting to load module from: $cfam"
+          Import-Module "$cfam" -Force
+          Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
           $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
