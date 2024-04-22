@@ -113,7 +113,7 @@ stages:
         workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
         script: |
-          using module "./Build/CommonFunctionsAndMethods.psm1";
+          . "./Build/CommonFunctionsAndMethods.psm1";
 
           $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
@@ -133,10 +133,10 @@ stages:
         azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
         azurePowerShellVersion: 'LatestVersion'
         scriptType: ps
+        workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         scriptLocation: inlineScript
         inlineScript: |
-          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
-          .("Build/CommonFunctionsAndMethods.psm1")
+          . "./Build/CommonFunctionsAndMethods.psm1"
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
           $SQLUserName = "$env:SQL_USER_NAME";
