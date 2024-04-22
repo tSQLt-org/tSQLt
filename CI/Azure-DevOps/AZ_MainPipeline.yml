@@ -113,7 +113,6 @@ stages:
         workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
         script: |
-          Get-Alias .
           Get-Location
           Get-ChildItem -Recurse | Select-Object FullName, Length, LastWriteTime | Format-Table -AutoSize
           $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
