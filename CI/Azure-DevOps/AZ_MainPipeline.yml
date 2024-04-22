@@ -110,10 +110,10 @@ stages:
     - task: PowerShell@2
       name: CreateResourceGroupName
       inputs:
+        workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
         script: |
-          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
-          .("Build/CommonFunctionsAndMethods.psm1")
+          using module "./Build/CommonFunctionsAndMethods.psm1";
 
           $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
