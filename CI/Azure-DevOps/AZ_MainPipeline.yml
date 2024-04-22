@@ -113,7 +113,10 @@ stages:
         workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
         script: |
-          . "./Build/CommonFunctionsAndMethods.psm1";
+          Get-Location
+          Get-ChildItem -Recurse
+          $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+          . "$cfam";
 
           $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
