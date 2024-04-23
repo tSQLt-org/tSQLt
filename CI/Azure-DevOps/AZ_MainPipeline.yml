@@ -113,8 +113,6 @@ stages:
         workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
         script: |
-          Get-Location
-          Get-ChildItem -Recurse | Select-Object FullName, Length, LastWriteTime | Format-Table -AutoSize
           $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
 
           Write-Host "Attempting to load module from: $cfam"
@@ -142,7 +140,9 @@ stages:
         workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         scriptLocation: inlineScript
         inlineScript: |
-          . "./Build/CommonFunctionsAndMethods.psm1"
+          Write-Host "Attempting to load module from: $cfam"
+          Import-Module "$cfam" -Force
+          Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
           $SQLUserName = "$env:SQL_USER_NAME";
