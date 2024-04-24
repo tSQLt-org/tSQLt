@@ -137,9 +137,9 @@ stages:
         azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
         azurePowerShellVersion: 'LatestVersion'
         scriptType: ps
-        workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         scriptLocation: inlineScript
         inlineScript: |
+          Set-Location (Join-Path "$(Pipeline.Workspace)" "$(TSQLT_REPO_DIR)")
           $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
           Write-Host "Attempting to load module from: $cfam"
           Import-Module "$cfam" -Force
