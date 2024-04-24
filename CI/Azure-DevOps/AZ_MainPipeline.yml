@@ -84,6 +84,8 @@ stages:
 
 - stage: Create_VMs
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  pool:
+    vmImage: 'windows-latest'
 
   jobs:
   - job: Create_VM
@@ -726,6 +728,8 @@ stages:
   - Create_VMs
   - Validate
   condition: always()
+  pool:
+    vmImage: 'ubuntu-latest'
 
   jobs:
 
