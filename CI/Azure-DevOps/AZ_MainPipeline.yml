@@ -125,14 +125,14 @@ stages:
 
     - task: AzureCLI@2
       name: testLineByLine
-      env:
-        SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        SQL_PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-        CONTACT_EMAIL: $(NotificationEmail)
-        VM_USER_NAME: $(tSQLt-AdminForCIVM-UserName)
-        VM_PASSWORD: $(tSQLt-AdminForCIVM-Password)
-        SQLPORTMINIMUM: $(SqlPortMinimum)
-        SQLPORTMAXIMUM: $(SqlPortMaximum)
+      # env:
+      #   SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
+      #   SQL_PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      #   CONTACT_EMAIL: $(NotificationEmail)
+      #   VM_USER_NAME: $(tSQLt-AdminForCIVM-UserName)
+      #   VM_PASSWORD: $(tSQLt-AdminForCIVM-Password)
+      #   SQLPORTMINIMUM: $(SqlPortMinimum)
+      #   SQLPORTMAXIMUM: $(SqlPortMaximum)
       inputs:
         azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
         azurePowerShellVersion: 'LatestVersion'
