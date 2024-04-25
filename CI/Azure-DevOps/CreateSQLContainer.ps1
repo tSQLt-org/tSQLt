@@ -1,5 +1,5 @@
 <# USAGE: ./CreateSQLContainer.ps1 -Location "East US 2" -ResourceGroupName "myTestResourceGroup" -SQLVersionEdition "2022L" -SQLPwd "aoeihag;ladjfalkj46" -BuildId "001" #>
-using module "../../Build/CommonFunctionsAndMethods.psm1";
+# using module "../../Build/CommonFunctionsAndMethods.psm1";
 
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Location,
@@ -15,6 +15,7 @@ $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 
+.("..\..\Build\CommonFunctionsAndMethods.ps1")
 
 $SQLPort = 1433;
 $SQLUserName = 'SA';

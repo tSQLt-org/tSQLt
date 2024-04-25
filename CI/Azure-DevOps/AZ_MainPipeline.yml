@@ -102,34 +102,6 @@ stages:
       lfs: false
       path: $(TSQLT_REPO_DIR)
 
-    - task: AzureCLI@2
-      name: DTW2
-      env:
-        SQL_USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        SQL_PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-        CONTACT_EMAIL: $(NotificationEmail)
-        VM_USER_NAME: $(tSQLt-AdminForCIVM-UserName)
-        VM_PASSWORD: $(tSQLt-AdminForCIVM-Password)
-        SQLPORTMINIMUM: $(SqlPortMinimum)
-        SQLPORTMAXIMUM: $(SqlPortMaximum)
-      inputs:
-        azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
-        azurePowerShellVersion: 'LatestVersion'
-        scriptType: ps
-        scriptLocation: inlineScript
-        inlineScript: |
-          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
-
-    - task: AzureCLI@2
-      name: doesThisWork
-      inputs:
-        azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
-        azurePowerShellVersion: 'LatestVersion'
-        scriptType: ps
-        scriptLocation: inlineScript
-        inlineScript: |
-          Write-Host 'Got-Here!'
-
     - task: AzureKeyVault@1
       inputs:
         azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
@@ -152,18 +124,6 @@ stages:
           $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
           Write-Host "##vso[task.setvariable variable=ResourceGroupName;isOutput=true]$ResourceGroupName";
-
-    - task: AzureCLI@2
-      name: testLineByLine
-      inputs:
-        azureSubscription: 'tSQLt CI - Main Pipeline - Service Connection'
-        azurePowerShellVersion: 'LatestVersion'
-        scriptType: ps
-        scriptLocation: inlineScript
-        inlineScript: |
-          Write-Host 'Got-Here!'
-
-
 
     - task: AzureCLI@2
       name: CreateSQLVMEnvironment
