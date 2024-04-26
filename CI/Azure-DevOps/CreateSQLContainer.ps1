@@ -16,7 +16,7 @@ $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 $cfam = (Join-Path $invocationDir ".../../Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
 Write-Host "Attempting to load module from: $cfam"
-Import-Module "$cfam" -Force
+Import-Module "$cfam" -Force -Verbose
 Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
 $SQLPort = 1433;

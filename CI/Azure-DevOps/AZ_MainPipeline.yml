@@ -170,7 +170,7 @@ stages:
               SQLCpu=4;
               SQLMemory=8;
             }; 
-            $VMDetails = .'CI/Azure-DevOps/CreateSQLContainer.ps1' @Parameters
+            $VMDetails = & 'CI/Azure-DevOps/CreateSQLContainer.ps1' @Parameters
       
             Log-Output '==========================================================';
             Log-Output 'Done: Executing CreateSQLContainer.ps1';
