@@ -160,7 +160,7 @@ stages:
             Log-Output '==========================================================';
             $Parameters = @{
               Location="$(VMLocation)";
-              Size="$(VMSize)"
+              # Size="$(VMSize)"
               ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
               BuildId="$(Build.BuildId)";
               SQLVersionEdition="$(SQLVersionEdition)";
@@ -689,7 +689,7 @@ stages:
   - Validate
   condition: always()
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'windows-latest'
 
   jobs:
 
