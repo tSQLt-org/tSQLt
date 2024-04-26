@@ -31,6 +31,13 @@ Log-Output "FileLocation: ", $dir;
 Log-Output "Project Location: ", $projectDir;
 
 
+Log-Output "*---------------*";
+Log-Output (az --version|Out-String);
+Log-Output (bicep --version|Out-String);
+Log-Output ($psversiontable|Out-String);
+Log-Output "*---------------*";
+
+
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->";
 Log-Output "<->                                             <->";
 Log-Output "<->                  START 1                    <->";
@@ -59,12 +66,6 @@ $ContainerImage = $SQLVersionEditionInfo.image
 Log-Output 'Creating SQL Server Container resources'
 
 $templatePath = (Join-Path $invocationDir 'CreateSQLContainerTemplate.bicep' | Resolve-Path);
-Log-Output "*---------------*";
-Log-Output (Get-InstalledModule -Name Az|Out-String);
-Log-Output (bicep --version|Out-String);
-Log-Output (get-module -name az.resources -listavailable|Out-String);
-Log-Output ($psversiontable|Out-String);
-Log-Output ($env:PSModulePath -split ";"|Out-String);
 Log-Output "*---------------*";
 Log-Output $templatePath
 Log-Output "*---------------*";
