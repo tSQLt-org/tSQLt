@@ -10,7 +10,7 @@ Param(
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][int] $SQLCpu = 4,
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][int] $SQLMemory = 8
 );
-
+Write-Host "Starting execution of CreateSQLContainer.ps1"
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
