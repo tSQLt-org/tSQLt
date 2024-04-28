@@ -401,6 +401,9 @@ stages:
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
           $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+          $ApplicationName = "$(Build.DefinitionName)-$(Build.BuildId)-$(System.StageName)-$(System.JobId)"
+          $DatabaseName = "$(buildDatabase)_dacpac_src"
+          $SqlServerConnection = [SqlServerConnection]::new($FQDNAndPort,$SQLUserName,$SQLPwd,$ApplicationName);
 
           $__ = New-Item -ItemType "directory" -Path "./output/tSQLtTests/"
           # $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
