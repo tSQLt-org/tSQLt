@@ -402,6 +402,8 @@ stages:
           $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
 
+          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtTests/"
+          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLtFiles.zip') "./output/tSQLtBuild/"
           # ./Build/SetupDacpacBuild.ps1 -ErrorAction Stop 
@@ -709,6 +711,11 @@ stages:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
         
     steps:
+    - checkout: self
+      clean: true
+      lfs: false
+      path: $(TSQLT_REPO_DIR)
+
     - task: AzureCLI@2
       name: DeleteAzureVM
       inputs:
