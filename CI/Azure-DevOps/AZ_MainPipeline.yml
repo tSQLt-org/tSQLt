@@ -403,7 +403,7 @@ stages:
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
 
           $__ = New-Item -ItemType "directory" -Path "./output/tSQLtTests/"
-          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
+          # $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLtFiles.zip') "./output/tSQLtBuild/"
           # ./Build/SetupDacpacBuild.ps1 -ErrorAction Stop 
