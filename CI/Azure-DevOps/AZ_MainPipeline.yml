@@ -387,6 +387,12 @@ stages:
         targetType: 'inline'
         script: |
           Set-Location (Join-Path "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)" "Build"|Resolve-Path)
+          $cfam = (Join-Path "./" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+
+          Write-Host "Attempting to load module from: $cfam"
+          Import-Module "$cfam" -Force
+          Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
+
 
           $inputObject = @'
           $(databaseAccessDetails)
