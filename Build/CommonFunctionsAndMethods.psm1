@@ -1,4 +1,4 @@
-﻿$__=$__ #quiesce warnings
+$__=$__ #quiesce warnings
 $CommonFunctionsAndMethodsDir = $PSScriptRoot
 Write-Host "Loading CommonFunctionsAndMethods.psm1 from: $PSCommandPath"
 . (Join-Path $CommonFunctionsAndMethodsDir 'SQLServerConnection.ps1');
