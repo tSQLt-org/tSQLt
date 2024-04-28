@@ -415,4 +415,3 @@ Log-Output($GetUTCTimeStamp.Invoke(),"Done: Loading CommonFunctionsAndMethods");
 Export-ModuleMember -Function Log-Output, Exec-SqlFile, Get-SqlConnectionString, Get-TempFileForQuery, Get-FriendlySQLServerVersion, Update-Archive
 Export-ModuleMember -Function Remove-ResourceGroup, Get-SnipContent, Replace-InFile, Invoke-SQLFileOrQuery, Remove-DirectoryQuietly
 Export-ModuleMember -Variable $CommonFunctionsAndMethodsDir, $SQLPrintCurrentTime
-Export-ModuleMember -Type SqlServerConnection
