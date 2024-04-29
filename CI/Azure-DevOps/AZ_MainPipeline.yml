@@ -401,7 +401,7 @@ stages:
           $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
 
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
-          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $SQLPwd = (ConvertTo-SecureString $myJsonObject.$SQLPwdKey -AsPlainText);
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
           $ApplicationName = "$(Build.DefinitionName)-$(Build.BuildId)-$(System.StageName)-$(System.JobId)"
           $DatabaseName = "$(buildDatabase)_dacpac_src"
