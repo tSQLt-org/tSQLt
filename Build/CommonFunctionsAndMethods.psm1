@@ -15,7 +15,7 @@ $SQLPrintCurrentTime = "EXEC('DECLARE @C VARCHAR(MAX)=CONVERT(VARCHAR(MAX),SYSUT
 
 Function Log-Output{[cmdletbinding()]Param([parameter(ValueFromPipeline)]$I);Process{Write-Host ([string]::Concat($GetUTCTimeStamp.Invoke()[0],[string]::Concat(" $I")));};};
 
-Function Exec-SqlFile
+Function Invoke-SqlFile
 {
   [CmdletBinding()]
   param(
@@ -40,9 +40,9 @@ Function Exec-SqlFile
     $parameters['Verbose'] = $true
   }
   
-  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Invoke-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   $results = (Invoke-SqlCmd @parameters)
-  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Exec-SqlFile:Invoke-SqlCommand[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Invoke-SqlFile:Invoke-SqlCommand[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   Write-Warning("Runtime in Milliseconds: $(($dddafter-$dddbefore).TotalMilliseconds)")
   return $results
 }
@@ -100,9 +100,9 @@ Function Invoke-SQLFileOrQuery
             AdditionalParameters = $AdditionalParameters
             PrintSqlOutput = $PrintSqlOutput
         }
-$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-        $QueryOutput = Exec-SqlFile @parameters
-$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Exec-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+        $QueryOutput = Invoke-SqlFile @parameters
+$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
 $dddafter-$dddbefore
         return $QueryOutput
     }
@@ -177,7 +177,7 @@ function Get-FriendlySQLServerVersion {
     [Parameter(Mandatory=$false)][switch]$Quiet
   )
   $GetFriendlySQLServerVersionFullPath = (Get-ChildItem -Path ($PSScriptRoot + '/output/*') -include "GetFriendlySQLServerVersion.sql" -Recurse | Select-Object -First 1 ).FullName;
-  $resultSet = (Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @($GetFriendlySQLServerVersionFullPath) -DatabaseName 'tempdb');
+  $resultSet = (Invoke-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @($GetFriendlySQLServerVersionFullPath) -DatabaseName 'tempdb');
   $FriendlyVersion = ($resultSet.FriendlyVersion)
   if(!$Quiet){Log-Output "Friendly SQL Server Version: $FriendlyVersion"};
   return $FriendlyVersion
@@ -323,6 +323,6 @@ Function Replace-InFile {
 }
 
 Log-Output($GetUTCTimeStamp.Invoke(),"Done: Loading CommonFunctionsAndMethods");
-Export-ModuleMember -Function Log-Output, Exec-SqlFile, Get-SqlConnectionString, Get-TempFileForQuery, Get-FriendlySQLServerVersion, Update-Archive
+Export-ModuleMember -Function Log-Output, Invoke-SqlFile, Get-TempFileForQuery, Get-FriendlySQLServerVersion, Update-Archive
 Export-ModuleMember -Function Remove-ResourceGroup, Get-SnipContent, Replace-InFile, Invoke-SQLFileOrQuery, Remove-DirectoryQuietly
 Export-ModuleMember -Variable $CommonFunctionsAndMethodsDir, $SQLPrintCurrentTime

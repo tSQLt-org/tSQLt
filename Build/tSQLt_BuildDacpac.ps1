@@ -29,13 +29,13 @@ try{
     Set-Location $TempPath;
     Log-Output('Building Database')
     Log-Output('-- Executing ResetValidationServer.sql')
-    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @('ResetValidationServer.sql');
+    Invoke-SqlFile -SqlServerConnection $SqlServerConnection -FileNames @('ResetValidationServer.sql');
     Log-Output('-- Executing PrepareServer.sql')
-    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames 'PrepareServer.sql';
+    Invoke-SqlFile -SqlServerConnection $SqlServerConnection -FileNames 'PrepareServer.sql';
     Log-Output('-- Executing CreateBuildDb.sql')
-    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters @{NewDbName=$DacPacDatabaseName} -PrintSqlOutput $true;
+    Invoke-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters @{NewDbName=$DacPacDatabaseName} -PrintSqlOutput $true;
     Log-Output('-- Executing tSQLt.class.sql')
-    Exec-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "tSQLt.class.sql" -Database "$DacPacDatabaseName";
+    Invoke-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "tSQLt.class.sql" -Database "$DacPacDatabaseName";
     Write-Host('Building DACPAC')
     $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection;
     $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
