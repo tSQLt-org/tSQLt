@@ -1,4 +1,4 @@
-using module "./CommonFunctionsAndMethods.psm1";
+# using module "./CommonFunctionsAndMethods.psm1";
 
 Param( 
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][SqlServerConnection] $SqlServerConnection,
@@ -11,6 +11,11 @@ Technically this should be called by a matrixed job, so that dacpacs are built f
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
+$cfam = (Join-Path $invocationDir "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+Write-Host "Attempting to load module from: $cfam"
+Import-Module "$cfam" -Force
+Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
+
 try{
 
     $OutputPath = (Join-Path $invocationDir "/output/DacpacBuild/");
