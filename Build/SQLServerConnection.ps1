@@ -15,13 +15,13 @@ if (-not ([System.Management.Automation.PSTypeName]'SqlServerConnection').Type) 
         $this.TrustedConnection = false
         $this.ApplicationName = $ApplicationName.Trim()
       }
-      SqlServerConnection([string]$ServerName,[string]$ApplicationName) {
-        $this.ServerName = $ServerName.Trim()
-        $this.UserName = $null
-        $this.Password = $null
-        $this.TrustedConnection = true
-        $this.ApplicationName = $ApplicationName.Trim()
-      }
+      # SqlServerConnection([string]$ServerName,[string]$ApplicationName) {
+      #   $this.ServerName = $ServerName.Trim()
+      #   $this.UserName = $null
+      #   $this.Password = $null
+      #   $this.TrustedConnection = true
+      #   $this.ApplicationName = $ApplicationName.Trim()
+      # }
   
       [string] ToString() {
         
