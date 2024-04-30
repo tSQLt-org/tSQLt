@@ -382,8 +382,24 @@ stages:
         targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
 
     - task: PowerShell@2
+      displayName: 'Install SqlServer Module'
+      inputs:
+        pwsh: true
+        targetType: 'inline'
+        script: |
+          # Check if the SqlServer module is installed
+          $module = "SqlServer"
+          if (-not (Get-Module -ListAvailable -Name $module)) {
+            # Install the SqlServer module
+            Install-Module -Name $module -Scope CurrentUser -Force -AllowClobber
+          }
+          Import-Module $module
+
+
+    - task: PowerShell@2
       name: FacadeBuildDacpac
       inputs:
+        pwsh: true
         targetType: 'inline'
         script: |
           $BuildDir = (Join-Path "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)" "Build"|Resolve-Path);
