@@ -5,6 +5,9 @@ $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 try{
 
+    $tSQLtBuildPath = '/output/tSQLtBuild/';
+    $tSQLtTestsPath = '/output/tSQLtTests/';
+    $DacpacBuildPath = '/output/DacpacBuild/';
     $OutputPath = (Join-Path $invocationDir "/output/tSQLt/");
     $TempPath = (Join-Path $invocationDir "/temp/tSQLt/");
 
@@ -40,16 +43,16 @@ try{
 
     Log-Output("Copying source files...")
         $files = @(
-            "/output/tSQLtBuild/Version.txt",
-            "/output/tSQLtBuild/CommitId.txt",
-            "/output/tSQLtBuild/CreateBuildLog.sql",
-            "/output/tSQLtBuild/GetFriendlySQLServerVersion.sql",
-            "/output/tSQLtTests/tSQLt.tests.zip",
-            "/output/tSQLtBuild/tSQLtSnippets(SQLPrompt).zip",
-            "/output/tSQLtBuild/tSQLtFiles.zip"
+            "$($tSQLtBuildPath)Version.txt",
+            "$($tSQLtBuildPath)CommitId.txt",
+            "$($tSQLtBuildPath)CreateBuildLog.sql",
+            "$($tSQLtBuildPath)GetFriendlySQLServerVersion.sql",
+            "$($tSQLtTestsPath)tSQLt.tests.zip",
+            "$($tSQLtBuildPath)tSQLtSnippets(SQLPrompt).zip",
+            "$($tSQLtBuildPath)tSQLtFiles.zip"
         );
         $files|%{(Join-Path $invocationDir $_ | Resolve-Path) | Copy-Item -Destination $SourcePath}
-        Get-ChildItem (Join-Path $invocationDir "/output/DacpacBuild") | Copy-Item -Destination $DacpacSourcePath
+        Get-ChildItem (Join-Path $invocationDir $DacpacBuildPath) | Copy-Item -Destination $DacpacSourcePath
 
     <# Copy files to temp path #>
     Expand-Archive -Path (Join-Path $SourcePath "tSQLtFiles.zip" | Resolve-Path) -DestinationPath $PublicTempPath;

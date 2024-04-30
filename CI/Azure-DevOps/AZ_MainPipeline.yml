@@ -66,6 +66,12 @@ variables:
     value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation
   - name: TSQLT_TEST_RESULTS_ARTIFACT_DIR
     value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation/TestResults
+  - name: TSQLT_BUILD_DIR
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtBuild
+  - name: TSQLT_TESTS_DIR
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtTests
+  - name: DACPAC_BUILD_DIR
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/DacpacBuild
 #   - name: SQLCMDPath
 # #    value: 'C:/Program Files/Microsoft SQL Server/110/Tools/Binn' for vmImage: 'vs2017-win2016'
 #     value: 'C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn'
@@ -397,7 +403,7 @@ stages:
 
 
     - task: PowerShell@2
-      name: FacadeBuildDacpac
+      name: BuildDacpac
       inputs:
         pwsh: true
         targetType: 'inline'
@@ -427,11 +433,7 @@ stages:
           # $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLtFiles.zip') "./output/tSQLtBuild/"
-          # ./Build/SetupDacpacBuild.ps1 -ErrorAction Stop 
-          # ./Build/FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
-          # ./Build/BuildtSQLtDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)_dacpac_src" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
           & ./tSQLt_BuildDacpac.ps1 -SqlServerConnection $SqlServerConnection -DacPacDatabaseName $DatabaseName
-          & ./tSQLt_BuildPackage.ps1
 
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtDacpacArtifact
@@ -465,14 +467,20 @@ stages:
         targetPath: '$(Pipeline.Workspace)/dacpacArtifactTmp'
 
     - task: PowerShell@2
-      name: CopyDacpacsToOutputDir
+      name: CopyFilesToOutputDirs
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |  
+          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtTests/"
+          #$__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
+          New-Item -Path "$(DACPAC_BUILD_DIR)" -ItemType directory -Force;    
+
+          Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
+          Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLtFiles.zip') "./output/tSQLtBuild/"
+
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;
-          New-Item -Path "$(DACPAC_ARTIFACT_DIR)" -ItemType directory -Force;    
-          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_ARTIFACT_DIR)"
+          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_BUILD_DIR)"
           Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
 
     - task: PowerShell@2
@@ -481,7 +489,7 @@ stages:
         targetType: 'inline'
         script: |
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)";
-          ./Build/BuildtSQLtZip.ps1
+          ./Build/tSQLt_BuildPackage.ps1
           Get-ChildItem -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)" -Recurse;
           Get-ChildItem -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)" -Recurse;
 
