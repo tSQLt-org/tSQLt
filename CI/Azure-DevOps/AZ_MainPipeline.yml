@@ -476,8 +476,16 @@ stages:
           $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
           New-Item -Path "$(DACPAC_BUILD_DIR)" -ItemType directory -Force;    
 
+          $files = @(
+            "$(TSQLTFILES_ARTIFACT_DIR)/Version.txt",
+            "$(TSQLTFILES_ARTIFACT_DIR)/CommitId.txt",
+            "$(TSQLTFILES_ARTIFACT_DIR)/CreateBuildLog.sql",
+            "$(TSQLTFILES_ARTIFACT_DIR)/GetFriendlySQLServerVersion.sql",
+            "$(TSQLTFILES_ARTIFACT_DIR)/tSQLtSnippets(SQLPrompt).zip",
+            "$(TSQLTFILES_ARTIFACT_DIR)/tSQLtFiles.zip"
+          );
+          $files|%{Move-Item $_ "./output/tSQLtBuild/"}
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
-          Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLtFiles.zip') "./output/tSQLtBuild/"
 
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_BUILD_DIR)"
