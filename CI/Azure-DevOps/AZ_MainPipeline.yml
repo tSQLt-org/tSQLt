@@ -473,7 +473,7 @@ stages:
         failOnStderr: true
         script: |  
           $__ = New-Item -ItemType "directory" -Path "./output/tSQLtTests/"
-          #$__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
+          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
           New-Item -Path "$(DACPAC_BUILD_DIR)" -ItemType directory -Force;    
 
           Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
