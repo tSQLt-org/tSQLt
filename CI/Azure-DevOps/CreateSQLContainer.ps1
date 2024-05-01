@@ -70,7 +70,7 @@ Log-Output "*---------------*";
 Log-Output $templatePath
 Log-Output "*---------------*";
 
-$deploymentResult = (az deployment sub create --name $ContainerName --location $Location --template-file $templatePath --parameters location=$Location containerName=$ContainerName sqlServerImage=$ContainerImage newResourceGroupName=$ResourceGroupName saPassword=$SQLPwd );
+$deploymentResult = (az deployment sub create --name $ContainerName --location $Location --template-file $templatePath --parameters location=$Location containerName=$ContainerName sqlServerImage=$ContainerImage newResourceGroupName=$ResourceGroupName saPassword=$SQLPwd cpu=$SQLCpu memory=$SQLMemory);
 
 Log-Output 'Done: Creating SQL Server Container'
 Log-Output 'Prep SQL Server for tSQLt Build'
