@@ -438,7 +438,7 @@ stages:
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtDacpacArtifact
       inputs:
-        targetPath: '$(DACPAC_ARTIFACT_DIR)'
+        targetPath: '$(DACPAC_BUILD_DIR)'
         artifact: 'tSQLtDacpacArtifact_$(System.JobName)'
         publishLocation: 'pipeline'
 
@@ -481,7 +481,7 @@ stages:
 
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_BUILD_DIR)"
-          Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
+          Get-ChildItem -Path "$(DACPAC_BUILD_DIR)" -Recurse;
 
     - task: PowerShell@2
       name: BuildtSQLtZip
