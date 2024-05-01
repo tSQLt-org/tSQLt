@@ -173,7 +173,7 @@ stages:
               # SQLPort="1433";
               # SQLUserName="SA";
               SQLPwd="$SQLPwd";
-              SQLCpu=4;
+              SQLCpu=3;
               SQLMemory=8;
             }; 
             $VMDetails = & 'CI/Azure-DevOps/CreateSQLContainer.ps1' @Parameters
