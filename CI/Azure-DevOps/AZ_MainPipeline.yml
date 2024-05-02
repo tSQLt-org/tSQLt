@@ -457,7 +457,7 @@ stages:
       inputs:
         buildType: 'current'
         artifactName: 'tSQLtFilesArtifact'
-        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
+        targetPath: '$(Pipeline.Workspace)/tSQLtArtifactTmp'
 
     - task: DownloadPipelineArtifact@2
       name: DownloadtSQLtDacpacArtifact
@@ -472,22 +472,22 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |  
-          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtTests/"
-          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
-          New-Item -Path "$(DACPAC_BUILD_DIR)" -ItemType directory -Force;    
+          $__ = New-Item -Path "$(TSQLT_BUILD_DIR)" -ItemType directory -Force;    
+          $__ = New-Item -Path "$(TSQLT_TESTS_DIR)" -ItemType directory -Force;    
+          $__ = New-Item -Path "$(DACPAC_BUILD_DIR)" -ItemType directory -Force;    
 
-          Get-ChildItem -Path "$(TSQLTFILES_ARTIFACT_DIR)" -Recurse;
+          Get-ChildItem -Path "$(Pipeline.Workspace)/tSQLtArtifactTmp/" -Recurse;
 
           $files = @(
-            "$(TSQLTFILES_ARTIFACT_DIR)/Version.txt",
-            "$(TSQLTFILES_ARTIFACT_DIR)/CommitId.txt",
-            "$(TSQLTFILES_ARTIFACT_DIR)/CreateBuildLog.sql",
-            "$(TSQLTFILES_ARTIFACT_DIR)/GetFriendlySQLServerVersion.sql",
-            "$(TSQLTFILES_ARTIFACT_DIR)/tSQLtSnippets(SQLPrompt).zip",
-            "$(TSQLTFILES_ARTIFACT_DIR)/tSQLtFiles.zip"
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/Version.txt",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/CommitId.txt",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/CreateBuildLog.sql",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/GetFriendlySQLServerVersion.sql",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/tSQLtSnippets(SQLPrompt).zip",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/tSQLtFiles.zip"
           );
-          $files|%{Move-Item $_ "./output/tSQLtBuild/"}
-          Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
+          $files|%{Move-Item $_ "$(TSQLT_BUILD_DIR)"}
+          Move-Item (Join-Path '$(Pipeline.Workspace)/tSQLtArtifactTmp' 'tSQLt.tests.zip') "$(TSQLT_TESTS_DIR)"
 
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_BUILD_DIR)"
@@ -632,10 +632,30 @@ stages:
 
 
     - task: PowerShell@2
-      name: SetupVariables
+      displayName: 'Install SqlServer Module'
       inputs:
+        pwsh: true
         targetType: 'inline'
         script: |
+          # Check if the SqlServer module is installed
+          $module = "SqlServer"
+          if (-not (Get-Module -ListAvailable -Name $module)) {
+            # Install the SqlServer module
+            Install-Module -Name $module -Scope CurrentUser -Force -AllowClobber
+          }
+          Import-Module $module
+
+
+    - task: PowerShell@2
+      name: tSQLtValidateBuild
+      inputs:
+        pwsh: true
+        targetType: 'inline'
+        script: |
+          $BuildDir = (Join-Path "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)" "Build"|Resolve-Path);
+          Set-Location $BuildDir;
+          . (Join-Path $BuildDir 'SQLServerConnection.ps1');
+
           $inputObject = @'
           $(databaseAccessDetails)
           '@;
@@ -647,32 +667,40 @@ stages:
           $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
 
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
-          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $SQLPwd = (ConvertTo-SecureString $myJsonObject.$SQLPwdKey -AsPlainText);
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+          $ApplicationName = "$(Build.DefinitionName)-$(Build.BuildId)-$(System.StageName)-$(System.JobId)"
+          $DatabaseName = "$(buildDatabase)_dacpac_src"
+          $SqlServerConnection = [SqlServerConnection]::new($FQDNAndPort,$SQLUserName,$SQLPwd,$ApplicationName);
 
-          Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
-          Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
-          Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
+          $parameters = @{
+              SqlServerConnection = $SqlServerConnection
+              MainTestDb = 'tSQLt.TmpBuild.ValidateBuild'
+              DacpacTestDb = 'tSQLt.TmpBuild.ValidateDacPac'
+              ExampleTestDb = 'tSQLt.TmpBuild.ValidateExample'
+          }
 
-    - task: CmdLine@2
-      name: tSQLtValidateBuild
-      inputs:
-        script: |
-          cd /d $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)
-          ECHO ON
-          SET SQLInstanceName=$(SetupVariables.FQDNAndPort)
-          SET DBName=$(buildDatabase)
-          SET DBLogin=-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)
-          SET SQLCMDPath=$(SQLCMDPath)
-          SET SQLPackagePath=$(SQLPackagePath)
-          echo %SQLInstanceName%
-          echo %DBName%
-          echo %SQLCMDPath%
-          echo %SQLPackagePath%
-          type %0
+          & ./tSQLt_Validate.ps1 @parameters
 
-          Build/LocalValidateBuild.bat "." "." "%SQLCMDPath%" "%SQLInstanceName%" tSQLt_Dev " %DBLogin%" "%SQLPackagePath%" -v || goto :error
-          :error
+    # - task: CmdLine@2
+    #   name: tSQLtValidateBuild
+    #   inputs:
+    #     script: |
+    #       cd /d $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)
+    #       ECHO ON
+    #       SET SQLInstanceName=$(SetupVariables.FQDNAndPort)
+    #       SET DBName=$(buildDatabase)
+    #       SET DBLogin=-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)
+    #       SET SQLCMDPath=$(SQLCMDPath)
+    #       SET SQLPackagePath=$(SQLPackagePath)
+    #       echo %SQLInstanceName%
+    #       echo %DBName%
+    #       echo %SQLCMDPath%
+    #       echo %SQLPackagePath%
+    #       type %0
+
+    #       Build/LocalValidateBuild.bat "." "." "%SQLCMDPath%" "%SQLInstanceName%" tSQLt_Dev " %DBLogin%" "%SQLPackagePath%" -v || goto :error
+    #       :error
 
 
     - task: PublishTestResults@2
