@@ -5,9 +5,18 @@ $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 try{
 
-    $tSQLtBuildPath = '/output/tSQLtBuild/';
-    $tSQLtTestsPath = '/output/tSQLtTests/';
-    $DacpacBuildPath = '/output/DacpacBuild/';
+    $tSQLtBuildPath = (Join-Path $invocationDir '/output/tSQLtBuild/'|Resolve-Path);
+    $tSQLtTestsPath = (Join-Path $invocationDir '/output/tSQLtTests/'|Resolve-Path);
+    $DacpacBuildPath = (Join-Path $invocationDir '/output/DacpacBuild/'|Resolve-Path);
+    Write-Warning "BuildPackage Inputs:"
+    Write-Warning "----------------------------------------------------------------"
+    Get-ChildItem $tSQLtBuildPath -Recurse |FT;
+    Write-Warning "----------------------------------------------------------------"
+    Get-ChildItem $tSQLtTestsPath -Recurse |FT;
+    Write-Warning "----------------------------------------------------------------"
+    Get-ChildItem $DacpacBuildPath -Recurse |FT;
+    Write-Warning "----------------------------------------------------------------"
+
     $OutputPath = (Join-Path $invocationDir "/output/tSQLt/");
     $TempPath = (Join-Path $invocationDir "/temp/tSQLt/");
 
@@ -51,15 +60,22 @@ try{
             "$($tSQLtBuildPath)tSQLtSnippets(SQLPrompt).zip",
             "$($tSQLtBuildPath)tSQLtFiles.zip"
         );
-        $files|%{(Join-Path $invocationDir $_ | Resolve-Path) | Copy-Item -Destination $SourcePath}
-        Get-ChildItem (Join-Path $invocationDir $DacpacBuildPath) | Copy-Item -Destination $DacpacSourcePath
+        $files | ForEach-Object{$_ | Copy-Item -Destination $SourcePath}
+        Get-ChildItem $DacpacBuildPath | Copy-Item -Destination $DacpacSourcePath
 
     <# Copy files to temp path #>
     Expand-Archive -Path (Join-Path $SourcePath "tSQLtFiles.zip" | Resolve-Path) -DestinationPath $PublicTempPath;
     # Get-ChildItem -Path ($dir + "/output/DacpacBuild/tSQLtFacade.*.dacpac") | Copy-Item -Destination $FacadeDacpacPath;
-    Get-ChildItem -Path ($DacpacSourcePath) -Filter 'tSQLt.*.dacpac' | Copy-Item -Destination $tSQLtDacpacPath;
+    Get-ChildItem -Path $DacpacSourcePath -Filter 'tSQLt.*.dacpac' | Copy-Item -Destination $tSQLtDacpacPath;
 
     Copy-Item (Join-Path $PublicTempPath "ReleaseNotes.txt" | Resolve-Path) -Destination (Join-Path $PublicTempPath "ReadMe.txt");
+
+    Write-Warning "BuildPackage Pre-Zip:"
+    Write-Warning "----------------------------------------------------------------"
+    Get-ChildItem $PublicTempPath -Recurse |FT;
+    Write-Warning "----------------------------------------------------------------"
+    Get-ChildItem $ValidationOutputFiles -Recurse |FT;
+    Write-Warning "----------------------------------------------------------------"
 
     <# Create the tSQLt.zip in the public output path #>
     $compress = @{
