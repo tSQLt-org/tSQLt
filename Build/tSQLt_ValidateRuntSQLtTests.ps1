@@ -27,7 +27,7 @@ if($DeploySource -eq "class"){
     Log-Output('Deploying tSQLt from tSQLt DacPac...')
 
     $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection;
-    $DacpacFileName = (Join-Path $SourcePath  ("tSQLtDacPacs/tSQLt."+$FriendlySQLServerVersion+".dacpac") | Resolve-Path);
+    $DacpacFileName = (Join-Path $SourcePath  ("tSQLtDacpacs/tSQLt."+$FriendlySQLServerVersion+".dacpac") | Resolve-Path);
     $SqlConnectionString = $SqlServerConnection.GetConnectionString($TestDbName,'DeployDacpac')
     & sqlpackage /a:Publish /tcs:"$SqlConnectionString" /sf:"$DacpacFileName"
     if($LASTEXITCODE -ne 0) {
