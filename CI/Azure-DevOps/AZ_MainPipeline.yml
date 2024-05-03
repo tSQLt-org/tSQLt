@@ -508,14 +508,14 @@ stages:
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_BUILD_DIR)"
 
-          Write-Warning "CopyFilesToOutputDirs Results:"
-          Write-Warning "----------------------------------------------------------------"
+          Write-Host "CopyFilesToOutputDirs Results:"
+          Write-Host "----------------------------------------------------------------"
           Get-ChildItem "$(TSQLT_BUILD_DIR)" -Recurse;
-          Write-Warning "----------------------------------------------------------------"
+          Write-Host "----------------------------------------------------------------"
           Get-ChildItem "$(TSQLT_TESTS_DIR)" -Recurse;
-          Write-Warning "----------------------------------------------------------------"
+          Write-Host "----------------------------------------------------------------"
           Get-ChildItem "$(DACPAC_BUILD_DIR)" -Recurse;
-          Write-Warning "----------------------------------------------------------------"
+          Write-Host "----------------------------------------------------------------"
 
     - task: PowerShell@2
       name: BuildtSQLtZip

@@ -8,14 +8,14 @@ try{
     $tSQLtBuildPath = (Join-Path $invocationDir '/output/tSQLtBuild/'|Resolve-Path);
     $tSQLtTestsPath = (Join-Path $invocationDir '/output/tSQLtTests/'|Resolve-Path);
     $DacpacBuildPath = (Join-Path $invocationDir '/output/DacpacBuild/'|Resolve-Path);
-    Write-Warning "BuildPackage Inputs:"
-    Write-Warning "----------------------------------------------------------------"
-    Get-ChildItem $tSQLtBuildPath -Recurse |FT;
-    Write-Warning "----------------------------------------------------------------"
-    Get-ChildItem $tSQLtTestsPath -Recurse |FT;
-    Write-Warning "----------------------------------------------------------------"
-    Get-ChildItem $DacpacBuildPath -Recurse |FT;
-    Write-Warning "----------------------------------------------------------------"
+    # Write-Warning "BuildPackage Inputs:"
+    # Write-Warning "----------------------------------------------------------------"
+    # Get-ChildItem $tSQLtBuildPath -Recurse |FT;
+    # Write-Warning "----------------------------------------------------------------"
+    # Get-ChildItem $tSQLtTestsPath -Recurse |FT;
+    # Write-Warning "----------------------------------------------------------------"
+    # Get-ChildItem $DacpacBuildPath -Recurse |FT;
+    # Write-Warning "----------------------------------------------------------------"
 
     $OutputPath = (Join-Path $invocationDir "/output/tSQLt/");
     $TempPath = (Join-Path $invocationDir "/temp/tSQLt/");
@@ -70,12 +70,12 @@ try{
 
     Copy-Item (Join-Path $PublicTempPath "ReleaseNotes.txt" | Resolve-Path) -Destination (Join-Path $PublicTempPath "ReadMe.txt");
 
-    Write-Warning "BuildPackage Pre-Zip:"
-    Write-Warning "----------------------------------------------------------------"
-    Get-ChildItem $PublicTempPath -Recurse |FT;
-    Write-Warning "----------------------------------------------------------------"
-    Get-ChildItem $ValidationOutputFiles -Recurse |FT;
-    Write-Warning "----------------------------------------------------------------"
+    # Write-Warning "BuildPackage Pre-Zip:"
+    # Write-Warning "----------------------------------------------------------------"
+    # Get-ChildItem $PublicTempPath -Recurse |FT;
+    # Write-Warning "----------------------------------------------------------------"
+    # Get-ChildItem $ValidationOutputFiles -Recurse |FT;
+    # Write-Warning "----------------------------------------------------------------"
 
     <# Create the tSQLt.zip in the public output path #>
     $compress = @{
