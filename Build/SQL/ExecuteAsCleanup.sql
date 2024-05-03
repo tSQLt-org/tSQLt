@@ -13,6 +13,6 @@ END
 
 IF @Counter >= @MaxAttempts
 BEGIN
-    RAISERROR('Impersonation could not be reverted after %d attempts.', 16, 1, @MaxAttempts);
+    RAISERROR('WARNING: Impersonation could not be reverted after %d attempts.', 0, 1, @MaxAttempts) WITH NOWAIT;
 END
 GO
