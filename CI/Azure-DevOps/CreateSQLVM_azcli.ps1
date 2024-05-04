@@ -19,15 +19,18 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $VMPriority
 );
 
-$scriptpath = $MyInvocation.MyCommand.Path;
-$dir = Split-Path $scriptpath;
-$projectDir = Split-Path (Split-Path $dir);
+Write-Host "Starting execution of CreateSQLContainer.ps1"
+$__=$__ #quiesce warnings
+$invocationDir = $PSScriptRoot
+Push-Location -Path $invocationDir
+$cfam = (Join-Path (Join-Path $invocationDir "../../Build/") "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+Write-Host "Attempting to load module from: $cfam"
+Import-Module "$cfam" -Force -Verbose
+Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
-.($projectDir+"\Build\CommonFunctionsAndMethods.ps1")
 
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Log-Output "FileLocation: ", $dir;
-Log-Output "Project Location: ", $projectDir;
+Log-Output "FileLocation: ", $invocationDir;
 Log-Output "Parameters: ---------------------------";
 Log-Output "Location:", $Location;
 Log-Output "Size:", $Size;
@@ -71,7 +74,7 @@ $SQLVersionEditionHash = @{
 
 $SQLVersionEditionInfo = $SQLVersionEditionHash.$SQLVersionEdition;
 $ImageUrn = $SQLVersionEditionInfo.publisher+":"+$SQLVersionEditionInfo.offer+":"+$SQLVersionEditionInfo.sku+":"+$SQLVersionEditionInfo.version;
-$TemplateFile = $dir + "/" + $SQLVersionEditionInfo.bicep;
+$TemplateFile = (Join-Path $invocationDir  $SQLVersionEditionInfo.bicep | Resolve-Path);
 Log-Output "ImageUrn:  ", $ImageUrn;
 Log-Output "SQLVersionEditionInfo:  ", $SQLVersionEditionInfo;
 Log-Output "TemplateFile: ", $TemplateFile;
@@ -177,7 +180,8 @@ $SQLVM|Out-String|Log-Output;
 Log-Output 'DONE: Applying SqlVM Config'
 
 Log-Output 'START: Prep SQL Server for tSQLt Build'
-$DS = Invoke-Sqlcmd -InputFile "$dir/GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
+$GetSQLServerVersionPath = (Join-Path $invocationDir "GetSQLServerVersion.sql" | Resolve-Path)
+$DS = Invoke-Sqlcmd -InputFile $GetSQLServerVersionPath -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
 $DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']), $($_['ServerCollation']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];

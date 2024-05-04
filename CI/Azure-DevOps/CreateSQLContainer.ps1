@@ -14,9 +14,7 @@ Write-Host "Starting execution of CreateSQLContainer.ps1"
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
-Write-Warning 'GH1';
 $cfam = (Join-Path (Join-Path $invocationDir "../../Build/") "CommonFunctionsAndMethods.psm1" | Resolve-Path)
-Write-Warning 'GH2';
 Write-Host "Attempting to load module from: $cfam"
 Import-Module "$cfam" -Force -Verbose
 Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
