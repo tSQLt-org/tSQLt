@@ -93,7 +93,7 @@ stages:
 ##########################################################################################################
 
 
-- stage: Create_VMs
+- stage: Create_Environments
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
   pool:
     vmImage: 'windows-latest'
@@ -376,7 +376,7 @@ stages:
 - stage: Build_tSQLt_Part2
   dependsOn:
   - Build_tSQLt_Part1
-  - Create_VMs
+  - Create_Environments
 
   jobs:
   - job: Build_Dacpac
@@ -388,7 +388,7 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
-      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
         
     steps:
     - checkout: self
@@ -604,7 +604,7 @@ stages:
   displayName: ValidateAll
   dependsOn:
   - Build_tSQLt_Part2
-  - Create_VMs
+  - Create_Environments
 
   jobs:
 
@@ -616,7 +616,7 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
-      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]        
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]        
 
     steps:
     - checkout: self
@@ -792,7 +792,7 @@ stages:
 - stage: Delete_Resources
   displayName: Delete Pipeline Resources
   dependsOn:
-  - Create_VMs
+  - Create_Environments
   - Validate
   condition: always()
   pool:
@@ -809,7 +809,7 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
-      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
         
     steps:
     - checkout: self
