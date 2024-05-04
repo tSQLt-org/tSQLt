@@ -70,6 +70,7 @@ $SQLVersionEditionHash = @{
     "2016"=@{"sqlversion"="2016";"offer"="SQL2016SP2-WS2016";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2016sp2-ws2019:sqldev:latest
     "2017"=@{"sqlversion"="2017";"offer"="sql2017-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2017-ws2019:sqldev:latest
     "2019"=@{"sqlversion"="2019";"offer"="sql2019-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2019-ws2019:sqldev:latest
+    "2022"=@{"sqlversion"="2022";"offer"="sql2022-ws2022";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2022-ws2022:sqldev:latest
 };
 
 $SQLVersionEditionInfo = $SQLVersionEditionHash.$SQLVersionEdition;
