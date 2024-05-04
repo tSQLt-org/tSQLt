@@ -30,6 +30,14 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
       SQLVersionEdition: 2017
     - name: SQL2019
       SQLVersionEdition: 2019
+    - name: SQL2022
+      SQLVersionEdition: 2022
+    - name: SQL2017Linux
+      SQLVersionEdition: 2017L
+    - name: SQL2019Linux
+      SQLVersionEdition: 2019L
+    - name: SQL2022Linux
+      SQLVersionEdition: 2022L
   - name: VMPriority
     displayName: VM Priority
     type: string
