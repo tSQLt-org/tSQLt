@@ -67,10 +67,10 @@ $SQLVersionEditionHash = @{
     "2008R2Std"=@{"sqlversion"="2008R2";"offer"="SQL2008R2SP3-WS2008R2SP1";"publisher"="microsoftsqlserver";"sku"="Standard";"osType"="Windows";"version"="latest";"bicep"="CreateSqlVirtualMachineTemplate-2008R2.bicep"}; #MicrosoftSQLServer:SQL2008R2SP3-WS2008R2SP1:Standard:latest
     "2012Ent"=@{"sqlversion"="2012";"offer"="SQL2012SP4-WS2012R2";"publisher"="microsoftsqlserver";"sku"="Enterprise";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:SQL2012SP4-WS2012R2:Enterprise:latest
     "2014"=@{"sqlversion"="2014";"offer"="sql2014sp3-ws2012r2";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2014sp3-ws2012r2:sqldev:latest
-    "2016"=@{"sqlversion"="2016";"offer"="SQL2016SP2-WS2016";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2016sp2-ws2019:sqldev:latest
+    "2016"=@{"sqlversion"="2016";"offer"="sql2016sp3-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2016sp2-ws2019:sqldev:latest
     "2017"=@{"sqlversion"="2017";"offer"="sql2017-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2017-ws2019:sqldev:latest
-    "2019"=@{"sqlversion"="2019";"offer"="sql2019-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2019-ws2019:sqldev:latest
-    "2022"=@{"sqlversion"="2022";"offer"="sql2022-ws2022";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2022-ws2022:sqldev:latest
+    "2019"=@{"sqlversion"="2019";"offer"="sql2019-ws2022";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2019-ws2019:sqldev:latest
+    "2022"=@{"sqlversion"="2022";"offer"="sql2022-ws2022";"publisher"="microsoftsqlserver";"sku"="sqldev-gen2";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2022-ws2022:sqldev:latest
 };
 
 $SQLVersionEditionInfo = $SQLVersionEditionHash.$SQLVersionEdition;
