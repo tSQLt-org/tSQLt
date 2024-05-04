@@ -6,7 +6,7 @@ if (-not ([System.Management.Automation.PSTypeName]'SqlServerConnection').Type) 
       hidden [System.Security.SecureString]$Password
       hidden [bool]$TrustedConnection
       hidden [string]$ApplicationName
-      hidden [string]$BaseConnectionString = "Connect Timeout=60;TrustServerCertificate=true;"
+      hidden [string]$BaseConnectionString = "Connect Timeout=60;Encrypt=false;TrustServerCertificate=true;"
   
       SqlServerConnection([string]$ServerName, [string]$UserName, [System.Security.SecureString]$Password,[string]$ApplicationName) {
         $this.ServerName = $ServerName.Trim()

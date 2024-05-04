@@ -19,7 +19,7 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $VMPriority
 );
 
-Write-Host "Starting execution of CreateSQLContainer.ps1"
+Write-Host "Starting execution of CreateSQLVM_azcli.ps1"
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir

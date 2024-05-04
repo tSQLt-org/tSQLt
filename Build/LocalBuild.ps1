@@ -1,5 +1,3 @@
-using module "./CommonFunctionsAndMethods.psm1";
-
 param(
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $ServerName = 'localhost,1433',
     [Parameter(Mandatory=$true, ParameterSetName = 'UserPass')][ValidateNotNullOrEmpty()][string] $UserName = "sa" ,
@@ -14,7 +12,14 @@ param(
 $PSDefaultParameterValues = $PSDefaultParameterValues.clone()
 $PSDefaultParameterValues += @{'*:ErrorAction' = 'Stop'}
 
-Get-Module -Name CommonFunctionsAndMethods | Select-Object Name, Path, Version
+Write-Host "Starting execution of LocalBuild.ps1"
+$__=$__ #quiesce warnings
+$invocationDir = $PSScriptRoot
+Push-Location -Path $invocationDir
+$cfam = (Join-Path $invocationDir "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+Write-Host "Attempting to load module from: $cfam"
+Import-Module "$cfam" -Force -Verbose
+. (Join-Path $invocationDir 'SQLServerConnection.ps1');
 
 function CleanTemp {
     param (

@@ -116,48 +116,6 @@ $dddafter-$dddbefore
     }
 }
 
-Function Get-SqlConnectionString
-{
-  [CmdletBinding()]
-  param(
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ServerName,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $Login,
-    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $DatabaseName
-  );
-
-  $ServerNameTrimmed = $ServerName.Trim();
-  $LoginTrimmed = $Login.Trim();
-
-  <# 
-    ☹️
-    This is so questionable, but it looks like sqlpackage cannot handle valid connection strings that use a valid server alias.
-    The following snippet is meant to spelunk through the registry and extract the actual server from the alias.
-    ☹️
-  #>
-  $resolvedServerName = $ServerNameTrimmed;
-  $serverAlias = Get-Item -Path HKLM:\SOFTWARE\Microsoft\MSSQLServer\Client\ConnectTo -ErrorAction SilentlyContinue;
-  if ($null -ne $serverAlias -And $serverAlias.GetValueNames() -contains $ServerNameTrimmed) {
-      $aliasValue = $serverAlias.GetValue($ServerNameTrimmed)
-      if ($aliasValue -match "DBMSSOCN[,](.*)"){
-          $resolvedServerName = $Matches[1];
-      }
-  }
-  
-  <# When using Windows Authentication, you must use "Integrated Security=SSPI" in the SqlConnectionString. Else use "User ID=<username>;Password=<password>;" #>
-  if ($LoginTrimmed -match '((.*[-][uU])|(.*[-][pP]))+.*'){
-      $AuthenticationString = $LoginTrimmed -replace '^((\s*[-][uU]\s+(?<user>\S+)\s*)|(\s*[-][pP]\s+)((?<quote>[''"])(?<password>.*?)\k<quote>|(?<password>\S+))\s*)+$', 'User Id=${user};Password="${password}"'  
-  }
-  elseif ($LoginTrimmed -eq "-E"){
-      $AuthenticationString = "Integrated Security=SSPI;";
-  }
-  else{
-      throw $LoginTrimmed + " is not supported here."
-  }
-
-  $SqlConnectionString = "Data Source="+$resolvedServerName+";"+$AuthenticationString+";Connect Timeout=60;Initial Catalog="+$DatabaseName+";TrustServerCertificate=true;";
-  $SqlConnectionString;
-}
-
 function Get-TempFileForQuery {
   [CmdletBinding()]
   [OutputType([string])]
