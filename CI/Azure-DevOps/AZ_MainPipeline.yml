@@ -89,7 +89,7 @@ resources:
 stages:
 
 ##########################################################################################################
-##         CREATE VMs                                                                                   ##
+##         CREATE VMs / Containers                                                                      ##
 ##########################################################################################################
 
 
@@ -99,7 +99,7 @@ stages:
     vmImage: 'windows-latest'
 
   jobs:
-  - job: Create_VM
+  - job: Create
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
