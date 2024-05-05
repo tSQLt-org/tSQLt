@@ -469,6 +469,9 @@ stages:
   - job: Package_tSQLt_Artifact
     dependsOn: Build_Dacpac
 
+    pool:
+      vmImage: 'windows-latest'
+
     steps:
 
     - checkout: self
