@@ -395,6 +395,9 @@ stages:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
+    pool:
+      vmImage: 'windows-latest'
+
     variables:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
         
@@ -468,9 +471,6 @@ stages:
 
   - job: Package_tSQLt_Artifact
     dependsOn: Build_Dacpac
-
-    pool:
-      vmImage: 'windows-latest'
 
     steps:
 
