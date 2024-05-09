@@ -22,22 +22,22 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
     default:
     # - name: SQL2012
     #   SQLVersionEdition: 2012Ent
-    - name: SQL2014
-      SQLVersionEdition: 2014
+    # - name: SQL2014
+    #   SQLVersionEdition: 2014
     - name: SQL2016
       SQLVersionEdition: 2016
-    - name: SQL2017
-      SQLVersionEdition: 2017
-    - name: SQL2019
-      SQLVersionEdition: 2019
-    - name: SQL2022
-      SQLVersionEdition: 2022
-    - name: SQL2017Linux
-      SQLVersionEdition: 2017L
-    - name: SQL2019Linux
-      SQLVersionEdition: 2019L
-    - name: SQL2022Linux
-      SQLVersionEdition: 2022L
+    # - name: SQL2017
+    #   SQLVersionEdition: 2017
+    # - name: SQL2019
+    #   SQLVersionEdition: 2019
+    # - name: SQL2022
+    #   SQLVersionEdition: 2022
+    # - name: SQL2017Linux
+    #   SQLVersionEdition: 2017L
+    # - name: SQL2019Linux
+    #   SQLVersionEdition: 2019L
+    # - name: SQL2022Linux
+    #   SQLVersionEdition: 2022L
   - name: VMPriority
     displayName: VM Priority
     type: string
@@ -805,7 +805,7 @@ stages:
   dependsOn:
   - Create_Environments
   - Validate
-  condition: always()
+  condition: false #always()
   pool:
     vmImage: 'windows-latest'
 
