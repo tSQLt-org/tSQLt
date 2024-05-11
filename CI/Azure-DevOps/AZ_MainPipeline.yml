@@ -254,7 +254,7 @@ stages:
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
 
   - job: PrintConnectionInfo
-    dependsOn: Create_Environments
+    dependsOn: Create
     condition: eq(${{ parameters.CreateEnvOnly }}, true)
     strategy:
       matrix:
