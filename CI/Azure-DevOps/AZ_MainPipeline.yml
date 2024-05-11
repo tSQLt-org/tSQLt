@@ -38,6 +38,10 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
     #   SQLVersionEdition: 2019L
     # - name: SQL2022Linux
     #   SQLVersionEdition: 2022L
+  - name: CreateEnvOnly
+    displayName: Create Environment Only
+    default: false
+    type: boolean
   - name: VMPriority
     displayName: VM Priority
     type: string
@@ -46,10 +50,6 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
     - Spot
     - Regular
     - Low
-  - name: CreateEnvOnly
-    displayName: Create Environment Only
-    default: false
-    type: boolean
 
 variables:
   - name: ArtifactBranchName
@@ -255,7 +255,7 @@ stages:
 
   - job: PrintConnectionInfo
     dependsOn: Create_Environments
-    condition: eq(${{ parameters.envonly }}, true)
+    condition: eq(${{ parameters.CreateEnvOnly }}, true)
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
@@ -295,7 +295,7 @@ stages:
   - job: CompileCLR
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
-    condition: eq(${{ parameters.envonly }}, false)
+    condition: eq(${{ parameters.CreateEnvOnly }}, false)
 
     # variables:
     #   CertificatePath: '$(Build.Repository.LocalPath)/tsqltclr/OfficialSigningKey/tSQLtOfficialSigningKey.pfx'
@@ -839,7 +839,7 @@ stages:
   - Create_Environments
   - Validate
 
-  condition: not(and(eq(${{ parameters.envonly }}, true), eq(stageDependencies.Create_Environments.Create.result, 'Succeeded')))
+  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), eq(stageDependencies.Create_Environments.Create.result, 'Succeeded')))
 
   pool:
     vmImage: 'windows-latest'
