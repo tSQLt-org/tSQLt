@@ -255,7 +255,7 @@ stages:
 
   - job: PrintConnectionInfo
     dependsOn: Create
-    condition: eq(${{ parameters.CreateEnvOnly }}, true)
+    condition: and(eq(${{ parameters.CreateEnvOnly }}, true), succeeded('Create'))
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
