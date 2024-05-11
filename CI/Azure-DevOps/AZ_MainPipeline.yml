@@ -262,6 +262,8 @@ stages:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
             SQLVersionName: ${{ version.name }}
+    variables:
+      databaseAccessDetails: $[convertToJson(Create.outputs)]        
     steps:
     - checkout: none
     - task: PowerShell@2
@@ -269,11 +271,15 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+          $inputObject = @'
+          $(databaseAccessDetails)
+          '@;
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
           $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
           $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
           $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
-          $SQLPwd = (ConvertTo-SecureString $myJsonObject.$SQLPwdKey -AsPlainText);
+          $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
           Write-Info '==========================================================';
           Write-Warning "Name: $(SQLVersionName)";
@@ -281,6 +287,12 @@ stages:
           Write-Warning "User: $SQLUserName";
           Write-Warning "FQDN: $SQLPwd";
           Write-Host '==========================================================';
+    - task: PowerShell@2
+      name: fail
+      inputs:
+        targetType: 'inline'
+        script: |
+          1/0
 
 
 ##########################################################################################################
