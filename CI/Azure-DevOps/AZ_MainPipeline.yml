@@ -263,7 +263,7 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
             SQLVersionName: ${{ version.name }}
     variables:
-      databaseAccessDetails: $[convertToJson(Create.outputs)]        
+      databaseAccessDetails: $[convertToJson(dependencies.Create.outputs)]        
     steps:
     - checkout: none
     - task: PowerShell@2
