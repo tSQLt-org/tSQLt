@@ -46,6 +46,10 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
     - Spot
     - Regular
     - Low
+  - name: CreateEnvOnly
+    displayName: Create Environment Only
+    default: false
+    type: boolean
 
 variables:
   - name: ArtifactBranchName
@@ -249,6 +253,34 @@ stages:
           $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
 
+  - job: PrintConnectionInfo
+    dependsOn: Create_Environments
+    condition: eq(${{ parameters.envonly }}, true)
+    strategy:
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
+            SQLVersionName: ${{ version.name }}
+    steps:
+    - task: PowerShell@2
+      name: PrintConnectionInfo
+      inputs:
+        targetType: 'inline'
+        script: |
+          $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
+          $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
+          $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
+          $SQLUserName = $myJsonObject.$SQLUserNameKey;
+          $SQLPwd = (ConvertTo-SecureString $myJsonObject.$SQLPwdKey -AsPlainText);
+          $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+          Log-Output '==========================================================';
+          Log-Output "Name: $(SQLVersionName)";
+          Log-Output "FQDN: $FQDNAndPort";
+          Log-Output "User: $SQLUserName";
+          Log-Output "FQDN: $SQLPwd";
+          Log-Output '==========================================================';
+
 
 ##########################################################################################################
 ##         BUILD tSQLt - PART 1                                                                         ##
@@ -263,6 +295,7 @@ stages:
   - job: CompileCLR
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
+    condition: eq(${{ parameters.envonly }}, false)
 
     # variables:
     #   CertificatePath: '$(Build.Repository.LocalPath)/tsqltclr/OfficialSigningKey/tSQLtOfficialSigningKey.pfx'
@@ -805,7 +838,9 @@ stages:
   dependsOn:
   - Create_Environments
   - Validate
-  condition: false #always()
+
+  condition: not(and(eq(${{ parameters.envonly }}, true), eq(stageDependencies.Create_Environments.Create.result, 'Succeeded')))
+
   pool:
     vmImage: 'windows-latest'
 
