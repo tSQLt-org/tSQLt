@@ -263,6 +263,7 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
             SQLVersionName: ${{ version.name }}
     steps:
+    - checkout: none
     - task: PowerShell@2
       name: PrintConnectionInfo
       inputs:
@@ -274,12 +275,12 @@ stages:
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
           $SQLPwd = (ConvertTo-SecureString $myJsonObject.$SQLPwdKey -AsPlainText);
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
-          Log-Output '==========================================================';
-          Log-Output "Name: $(SQLVersionName)";
-          Log-Output "FQDN: $FQDNAndPort";
-          Log-Output "User: $SQLUserName";
-          Log-Output "FQDN: $SQLPwd";
-          Log-Output '==========================================================';
+          Write-Info '==========================================================';
+          Write-Warning "Name: $(SQLVersionName)";
+          Write-Warning "FQDN: $FQDNAndPort";
+          Write-Warning "User: $SQLUserName";
+          Write-Warning "FQDN: $SQLPwd";
+          Write-Host '==========================================================';
 
 
 ##########################################################################################################
@@ -289,13 +290,13 @@ stages:
 
 - stage: Build_tSQLt_Part1
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  condition: eq(${{ parameters.CreateEnvOnly }}, false)
 
   jobs:
 
   - job: CompileCLR
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
-    condition: eq(${{ parameters.CreateEnvOnly }}, false)
 
     # variables:
     #   CertificatePath: '$(Build.Repository.LocalPath)/tsqltclr/OfficialSigningKey/tSQLtOfficialSigningKey.pfx'
