@@ -287,12 +287,6 @@ stages:
           Write-Warning "User: $SQLUserName";
           Write-Warning "FQDN: $SQLPwd";
           Write-Host '==========================================================';
-    - task: PowerShell@2
-      name: fail
-      inputs:
-        targetType: 'inline'
-        script: |
-          1/0
 
 
 ##########################################################################################################
@@ -852,7 +846,7 @@ stages:
   - Create_Environments
   - Validate
 
-  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), eq(stageDependencies.Create_Environments.Create.result, 'Succeeded')))
+  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), eq(stageDependencies.Create_Environments.PrintConnectionInfo.result, 'Succeeded')))
 
   pool:
     vmImage: 'windows-latest'
