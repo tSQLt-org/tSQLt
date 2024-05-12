@@ -241,7 +241,7 @@ stages:
 
           # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
-          if eq(${{ parameters.CreateEnvOnly }}, true){
+          if(eq(${{ parameters.CreateEnvOnly }}, true)){
             Write-Host '==========================================================' -ForegroundColor Yellow;
             Write-Warning "Name: $(SQLVersionName)";
             Write-Warning "RGNm: $ResourceGroupName";
