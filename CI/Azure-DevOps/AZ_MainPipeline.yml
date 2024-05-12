@@ -241,16 +241,6 @@ stages:
 
           # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
-          if("${{ parameters.CreateEnvOnly }}" -ieq "true"){
-            Write-Host '==========================================================' -ForegroundColor Yellow;
-            Write-Warning "Name: $(SQLVersionName)";
-            Write-Warning "RGNm: $ResourceGroupName";
-            Write-Warning "FQDN: $FQDNAndPort";
-            Write-Warning "User: $SQLUserName";
-            Write-Warning "Pass: $SQLPwd";
-            Write-Host '==========================================================' -ForegroundColor Yellow;
-          }
-
 
     - task: PowerShell@2
       name: PrintSQLVersionInfo
@@ -262,6 +252,16 @@ stages:
         script: |
           $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
+
+          if("${{ parameters.CreateEnvOnly }}" -ieq "true"){
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+            Write-Warning "Name: $(SQLVersionName)";
+            Write-Warning "RGNm: $(CreateSQLVMEnvironment.ResourceGroupName)";
+            Write-Warning "FQDN: $(CreateSQLVMEnvironment.FQDNAndPort)";
+            Write-Warning "User: $(CreateSQLVMEnvironment.SQLUserName)";
+            Write-Warning "Pass: $(CreateSQLVMEnvironment.SQLPwd)";
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+          }
 
   - job: PrintConnectionInfo
     dependsOn: Create
