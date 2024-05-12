@@ -281,12 +281,12 @@ stages:
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
           $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
-          Write-Info '==========================================================';
+          Write-Host '==========================================================' -ForegroundColor Yellow;
           Write-Warning "Name: $(SQLVersionName)";
           Write-Warning "FQDN: $FQDNAndPort";
           Write-Warning "User: $SQLUserName";
           Write-Warning "FQDN: $SQLPwd";
-          Write-Host '==========================================================';
+          Write-Host '==========================================================' -ForegroundColor Yellow;
 
 
 ##########################################################################################################
