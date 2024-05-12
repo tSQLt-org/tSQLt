@@ -240,9 +240,8 @@ stages:
           # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
 
-  - job: PrintConnectionInfo
+  - job: PrintSQLInfo
     dependsOn: Create
-    condition: and(eq(${{ parameters.CreateEnvOnly }}, true), succeeded('Create'))
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
@@ -254,7 +253,7 @@ stages:
     steps:
     - checkout: none
     - task: PowerShell@2
-      name: PrintConnectionInfo
+      name: PrintSQLInfo
       inputs:
         targetType: 'inline'
         script: |
@@ -271,6 +270,7 @@ stages:
 
           $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$FQDNAndPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
+
           if("${{ parameters.CreateEnvOnly }}" -ieq "true"){
             Write-Host '==========================================================' -ForegroundColor Yellow;
             Write-Host "Name: $(SQLVersionName)";
@@ -847,7 +847,7 @@ stages:
   - Create_Environments
   - Validate
 
-  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), eq(stageDependencies.Create_Environments.PrintConnectionInfo.result, 'Succeeded')))
+  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), eq(stageDependencies.Create_Environments.PrintSQLInfo.result, 'Succeeded')))
 
   pool:
     vmImage: 'windows-latest'
