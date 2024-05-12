@@ -225,14 +225,12 @@ stages:
           # $SerializedVMDetails;
 
           #-----------------------------------------------------------------------#
-          # IMPORTANT (and, you've got to be kidding me):                         #
-          # The space below is absolutely required to make the ANT Task work.     #
+          # The space below is required to make ANT work. (Not currently in use.) #
           #---------------------------------------|-------------------------------#
           $FQDNAndPort = $VMDetails.SQLVmFQDN + ", " + $VMDetails.SQLVmPort;
           #---------------------------------------|-------------------------------#
           #-----------------------------------------------------------------------#
 
-          #TODO refactor such that the resourcegroupname is created in a previous step, so that it can be used by the delete job, even if this one is cancelled/failed.
           $ResourceGroupName = $VMDetails.ResourceGroupName;
           Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
           Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
@@ -241,27 +239,6 @@ stages:
 
           # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
-
-    - task: PowerShell@2
-      name: PrintSQLVersionInfo
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
-      inputs:
-        targetType: 'inline'
-        script: |
-          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
-          $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
-
-          if("${{ parameters.CreateEnvOnly }}" -ieq "true"){
-            Write-Host '==========================================================' -ForegroundColor Yellow;
-            Write-Warning "Name: $(SQLVersionName)";
-            Write-Warning "RGNm: $(CreateSQLVMEnvironment.ResourceGroupName)";
-            Write-Warning "FQDN: $(CreateSQLVMEnvironment.FQDNAndPort)";
-            Write-Warning "User: $(CreateSQLVMEnvironment.SQLUserName)";
-            Write-Warning "Pass: $(CreateSQLVMEnvironment.SQLPwd)";
-            Write-Host '==========================================================' -ForegroundColor Yellow;
-          }
 
   - job: PrintConnectionInfo
     dependsOn: Create
@@ -291,12 +268,17 @@ stages:
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
           $SQLPwd = $myJsonObject.$SQLPwdKey;
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
-          Write-Host '==========================================================' -ForegroundColor Yellow;
-          Write-Warning "Name: $(SQLVersionName)";
-          Write-Warning "FQDN: $FQDNAndPort";
-          Write-Warning "User: $SQLUserName";
-          Write-Warning "Pass: $SQLPwd";
-          Write-Host '==========================================================' -ForegroundColor Yellow;
+
+          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$FQDNAndPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
+          $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
+          if("${{ parameters.CreateEnvOnly }}" -ieq "true"){
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+            Write-Warning "Name: $(SQLVersionName)";
+            Write-Warning "FQDN: $FQDNAndPort";
+            Write-Warning "User: $SQLUserName";
+            Write-Warning "Pass: $SQLPwd";
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+          }
 
 
 ##########################################################################################################
