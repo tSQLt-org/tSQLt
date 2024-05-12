@@ -281,10 +281,9 @@ stages:
 
             Write-Warning 'This information is now public! Run the following Powershell Statement to change the password immediately!';
 
-            $Command = '$NewPwd = -join ((33..126) * 3 | Get-Random -Count 12 | % {[char]$_}); Write-Output "New Password: $NewPwd"; Invoke-Sqlcmd -Query "ALTER LOGIN [$($myJsonObject.$SQLUserNameKey)] WITH PASSWORD = ''$NewPwd'' REUSE;" -ServerInstance $myJsonObject.$FQDNAndPortKey -Username $myJsonObject.$SQLUserNameKey -Password $myJsonObject.$SQLPwdKey'
-            $EscapedCommand = $Command -replace '"', '""'
-            Write-Host '==========================================================' -ForegroundColor Yellow;
-            Write-Host $EscapedCommand
+            $PwdChngCommand = "`$NewPwd = -join ((33..126) * 3 | Get-Random - Count 12 | % {[char]`$_}); Write-Output `"New Password: `$NewPwd`"; Invoke-Sqlcmd -Query `"ALTER LOGIN [abc] WITH PASSWORD = '`$NewPwd';`" -ServerInstance `"$FQDNAndPort`" -Username `"$SQLUserName`" -Password `"$SQLPwd`";";
+            Write-Host '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - ' -ForegroundColor Yellow;
+            Write-Host $PwdChngCommand
             Write-Host '==========================================================' -ForegroundColor Yellow;
             
           }
@@ -847,7 +846,7 @@ stages:
   - Create_Environments
   - Validate
 
-  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), eq(stageDependencies.Create_Environments.PrintSQLInfo.result, 'Succeeded')))
+  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), succeeded('Create_Environments.PrintSQLInfo')))
 
   pool:
     vmImage: 'windows-latest'
