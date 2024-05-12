@@ -241,6 +241,16 @@ stages:
 
           # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
+          if eq(${{ parameters.CreateEnvOnly }}, true){
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+            Write-Warning "Name: $(SQLVersionName)";
+            Write-Warning "RGNm: $ResourceGroupName";
+            Write-Warning "FQDN: $FQDNAndPort";
+            Write-Warning "User: $SQLUserName";
+            Write-Warning "Pass: $SQLPwd";
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+          }
+
 
     - task: PowerShell@2
       name: PrintSQLVersionInfo
@@ -285,7 +295,7 @@ stages:
           Write-Warning "Name: $(SQLVersionName)";
           Write-Warning "FQDN: $FQDNAndPort";
           Write-Warning "User: $SQLUserName";
-          Write-Warning "FQDN: $SQLPwd";
+          Write-Warning "Pass: $SQLPwd";
           Write-Host '==========================================================' -ForegroundColor Yellow;
 
 
