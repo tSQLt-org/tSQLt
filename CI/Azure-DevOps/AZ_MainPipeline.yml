@@ -279,7 +279,7 @@ stages:
             Write-Host "Pass: $SQLPwd";
             Write-Host '==========================================================' -ForegroundColor Yellow;
 
-            Write-Warning 'This information is now public! Run the following statement to change the password immediately!' -ForegroundColor Yellow;
+            Write-Warning 'This information is now public! Run the following Powershell Statement to change the password immediately!' -ForegroundColor Yellow;
 
             $Command = '$NewPwd = -join ((33..126) * 3 | Get-Random -Count 12 | % {[char]$_}); Write-Output "New Password: $NewPwd"; Invoke-Sqlcmd -Query "ALTER LOGIN [$($myJsonObject.$SQLUserNameKey)] WITH PASSWORD = ''$NewPwd'' REUSE;" -ServerInstance $myJsonObject.$FQDNAndPortKey -Username $myJsonObject.$SQLUserNameKey -Password $myJsonObject.$SQLPwdKey'
             $EscapedCommand = $Command -replace '"', '""'
