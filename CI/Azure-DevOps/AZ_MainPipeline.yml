@@ -853,8 +853,6 @@ stages:
 
   jobs:
   - job: DebugInfo
-    dependsOn:
-      - Create_Environments
     steps:
     - pwsh: |
         # Access the parameter directly
