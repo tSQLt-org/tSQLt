@@ -853,18 +853,21 @@ stages:
 
   jobs:
   - job: DebugInfo
-    variables:
-      - name: CreateEnvOnly
-        value: ${{ parameters.CreateEnvOnly }}
-      - name: PrintSQLInfoStat
-        value: "${{ dependencies.Create_Environments.PrintSQLInfo.result }}"
-      - name: PrintSQLInfoSuc
-        value: succeeded('Create_Environments.PrintSQLInfo')
+    dependsOn:
+      - Create_Environments
     steps:
-    - script: |
-        echo "CreateEnvOnly: $(CreateEnvOnly)"
-        echo "PrintSQLInfoSuc: $(PrintSQLInfoSuc)"
-        echo "PrintSQLInfoStat: $(PrintSQLInfoStat)"
+    - pwsh: |
+        # Access the parameter directly
+        Write-Host "CreateEnvOnly: ${{ parameters.CreateEnvOnly }}"
+        
+        # Access the outcome of a job from another stage, assuming `Create_Environments` is a stage and `PrintSQLInfo` is a job within that stage.
+        $printSQLInfoStatus = '$(stageDependencies.Create_Environments.PrintSQLInfo.result)'
+        Write-Host "PrintSQLInfo Status: $printSQLInfoStatus"
+        
+        # Determine if the specific job succeeded
+        $printSQLInfoSucceeded = '$[eq(variables[''stageDependencies.Create_Environments.PrintSQLInfo.result''], ''Succeeded'')]'
+        Write-Host "PrintSQLInfo Succeeded: $printSQLInfoSucceeded"
+
 
   - job: Delete_VM
 
