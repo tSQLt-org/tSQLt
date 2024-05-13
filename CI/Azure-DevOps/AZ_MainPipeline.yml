@@ -281,7 +281,7 @@ stages:
 
             Write-Warning 'This information is now public! Run the following Powershell Statement to change the password immediately!';
 
-            $PwdChngCommand = "`$NewPwd = -join ((40..95+97..126) | Get-Random -Count 30 | % {[char]`$_}); Write-Output `"New Password: `$NewPwd`"; Invoke-Sqlcmd -Query `"ALTER LOGIN [abc] WITH PASSWORD = '`$NewPwd';`" -ServerInstance `"$FQDNAndPort`" -Username `"$SQLUserName`" -Password `"$SQLPwd`" -TrustServerCertificate;";
+            $PwdChngCommand = "`$NewPwd = -join ((40..95+97..126) | Get-Random -Count 30 | % {[char]`$_}); Write-Output `"New Password: `$NewPwd`"; Invoke-Sqlcmd -Query `"ALTER LOGIN [$SQLUserName] WITH PASSWORD = '`$NewPwd';`" -ServerInstance `"$FQDNAndPort`" -Username `"$SQLUserName`" -Password `"$SQLPwd`" -TrustServerCertificate;";
             Write-Host '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - ' -ForegroundColor Yellow;
             Write-Host $PwdChngCommand
             Write-Host '==========================================================' -ForegroundColor Yellow;
@@ -846,8 +846,6 @@ stages:
   - Create_Environments
   - Validate
 
-  condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), succeeded('Create_Environments.PrintSQLInfo')))
-
   pool:
     vmImage: 'windows-latest'
 
@@ -875,6 +873,8 @@ stages:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
+    condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), succeeded(format('Create_Environments.PrintSQLInfo_{0}', version.name))))
+  
     variables:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
         
