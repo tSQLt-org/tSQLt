@@ -22,22 +22,26 @@ parameters: # TODO, these don't work for scheduled pipelines, not even the defau
     default:
     # - name: SQL2012
     #   SQLVersionEdition: 2012Ent
-    - name: SQL2014
-      SQLVersionEdition: 2014
+    # - name: SQL2014
+    #   SQLVersionEdition: 2014
     - name: SQL2016
       SQLVersionEdition: 2016
-    - name: SQL2017
-      SQLVersionEdition: 2017
-    - name: SQL2019
-      SQLVersionEdition: 2019
-    - name: SQL2022
-      SQLVersionEdition: 2022
-    - name: SQL2017Linux
-      SQLVersionEdition: 2017L
-    - name: SQL2019Linux
-      SQLVersionEdition: 2019L
-    - name: SQL2022Linux
-      SQLVersionEdition: 2022L
+    # - name: SQL2017
+    #   SQLVersionEdition: 2017
+    # - name: SQL2019
+    #   SQLVersionEdition: 2019
+    # - name: SQL2022
+    #   SQLVersionEdition: 2022
+    # - name: SQL2017Linux
+    #   SQLVersionEdition: 2017L
+    # - name: SQL2019Linux
+    #   SQLVersionEdition: 2019L
+    # - name: SQL2022Linux
+    #   SQLVersionEdition: 2022L
+  - name: CreateEnvOnly
+    displayName: Create Environment Only
+    default: false
+    type: boolean
   - name: VMPriority
     displayName: VM Priority
     type: string
@@ -221,14 +225,12 @@ stages:
           # $SerializedVMDetails;
 
           #-----------------------------------------------------------------------#
-          # IMPORTANT (and, you've got to be kidding me):                         #
-          # The space below is absolutely required to make the ANT Task work.     #
+          # The space below is required to make ANT work. (Not currently in use.) #
           #---------------------------------------|-------------------------------#
           $FQDNAndPort = $VMDetails.SQLVmFQDN + ", " + $VMDetails.SQLVmPort;
           #---------------------------------------|-------------------------------#
           #-----------------------------------------------------------------------#
 
-          #TODO refactor such that the resourcegroupname is created in a previous step, so that it can be used by the delete job, even if this one is cancelled/failed.
           $ResourceGroupName = $VMDetails.ResourceGroupName;
           Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
           Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
@@ -238,16 +240,53 @@ stages:
           # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
 
+  - job: PrintSQLInfo
+    dependsOn: Create
+    strategy:
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
+            SQLVersionName: ${{ version.name }}
+    variables:
+      databaseAccessDetails: $[convertToJson(dependencies.Create.outputs)]        
+    steps:
+    - checkout: none
     - task: PowerShell@2
-      name: PrintSQLVersionInfo
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      name: PrintSQLInfo
       inputs:
         targetType: 'inline'
         script: |
-          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
+          $inputObject = @'
+          $(databaseAccessDetails)
+          '@;
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
+          $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
+          $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
+          $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
+          $SQLUserName = $myJsonObject.$SQLUserNameKey;
+          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+
+          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$FQDNAndPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
+
+          if("${{ parameters.CreateEnvOnly }}" -ieq "true"){
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+            Write-Host "Name: $(SQLVersionName)";
+            Write-Host "FQDN: $FQDNAndPort";
+            Write-Host "User: $SQLUserName";
+            Write-Host "Pass: $SQLPwd";
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+
+            Write-Warning 'This information is now public! Run the following Powershell Statement to change the password immediately!';
+
+            $PwdChngCommand = "`$NewPwd = -join ((40..95+97..126) | Get-Random -Count 40 | % {[char]`$_}); Write-Output `"New Password: `$NewPwd`"; Invoke-Sqlcmd -Query `"ALTER LOGIN [$SQLUserName] WITH PASSWORD = '`$NewPwd';`" -ServerInstance `"$FQDNAndPort`" -Username `"$SQLUserName`" -Password `"$SQLPwd`" -TrustServerCertificate;";
+            Write-Host '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - ' -ForegroundColor Yellow;
+            Write-Host $PwdChngCommand
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+            
+          }
 
 
 ##########################################################################################################
@@ -257,6 +296,7 @@ stages:
 
 - stage: Build_tSQLt_Part1
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  condition: eq(${{ parameters.CreateEnvOnly }}, false)
 
   jobs:
 
@@ -394,9 +434,6 @@ stages:
         ${{ each version in parameters.VMMatrix }}:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
-
-    pool:
-      vmImage: 'windows-latest'
 
     variables:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
@@ -805,12 +842,13 @@ stages:
   dependsOn:
   - Create_Environments
   - Validate
-  condition: always()
+
+  condition: not(eq(${{ parameters.CreateEnvOnly }}, true))
+
   pool:
     vmImage: 'windows-latest'
 
   jobs:
-
   - job: Delete_VM
 
     strategy:
@@ -818,7 +856,7 @@ stages:
         ${{ each version in parameters.VMMatrix }}:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
-
+  
     variables:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
         
