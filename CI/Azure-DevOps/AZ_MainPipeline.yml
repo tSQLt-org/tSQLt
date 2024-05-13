@@ -852,6 +852,19 @@ stages:
     vmImage: 'windows-latest'
 
   jobs:
+  - job: DebugInfo
+    variables:
+      - name: CreateEnvOnly
+        value: ${{ parameters.CreateEnvOnly }}
+      - name: PrintSQLInfoStat
+        value: "${{ dependencies.Create_Environments.PrintSQLInfo.result }}"
+      - name: PrintSQLInfoSuc
+        value: succeeded('Create_Environments.PrintSQLInfo')
+    steps:
+    - script: |
+        echo "CreateEnvOnly: $(CreateEnvOnly)"
+        echo "PrintSQLInfoSuc: $(PrintSQLInfoSuc)"
+        echo "PrintSQLInfoStat: $(PrintSQLInfoStat)"
 
   - job: Delete_VM
 
