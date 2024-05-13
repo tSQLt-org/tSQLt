@@ -846,25 +846,12 @@ stages:
   - Create_Environments
   - Validate
 
+  condition: not(eq(${{ parameters.CreateEnvOnly }}, true))
+
   pool:
     vmImage: 'windows-latest'
 
   jobs:
-  - job: DebugInfo
-    steps:
-    - pwsh: |
-        # Access the parameter directly
-        Write-Host "CreateEnvOnly: ${{ parameters.CreateEnvOnly }}"
-        
-        # Access the outcome of a job from another stage, assuming `Create_Environments` is a stage and `PrintSQLInfo` is a job within that stage.
-        $printSQLInfoStatus = '$(stageDependencies.Create_Environments.PrintSQLInfo.result)'
-        Write-Host "PrintSQLInfo Status: $printSQLInfoStatus"
-        
-        # Determine if the specific job succeeded
-        $printSQLInfoSucceeded = '$[eq(variables[''stageDependencies.Create_Environments.PrintSQLInfo.result''], ''Succeeded'')]'
-        Write-Host "PrintSQLInfo Succeeded: $printSQLInfoSucceeded"
-
-
   - job: Delete_VM
 
     strategy:
@@ -872,8 +859,6 @@ stages:
         ${{ each version in parameters.VMMatrix }}:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
-
-    condition: not(and(eq(${{ parameters.CreateEnvOnly }}, true), succeeded(format('Create_Environments.PrintSQLInfo_{0}', version.name))))
   
     variables:
       databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
