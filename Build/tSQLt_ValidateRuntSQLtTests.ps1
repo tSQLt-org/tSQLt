@@ -38,6 +38,18 @@ if($DeploySource -eq "class"){
 # Write-Warning('-->>------------>>--')
 # Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection     
 # Write-Warning('--<<------------<<--')
+Log-Output('Run All Tests... Disabling External Access...')
+$parameters = @{
+    SqlServerConnection = $SqlServerConnection
+    HelperSQLPath = $HelperSQLPath
+    Elevated = $true
+    Files = @(
+        (Join-Path $TestsPath "DisableExternalAccess.sql" | Resolve-Path)
+    )
+    DatabaseName = $TestDbName
+}
+Invoke-SQLFileOrQuery @parameters;
+
 Log-Output('Run All Tests... Run Bootstrap Tests...')
 $parameters = @{
     SqlServerConnection = $SqlServerConnection
@@ -112,6 +124,18 @@ $parameters = @{
 }
 Invoke-TestsFromFile @parameters;
 
+Log-Output('Run All Tests... Installing Assembly Key (needed for 2016 only)...')
+$parameters = @{
+    SqlServerConnection = $SqlServerConnection
+    HelperSQLPath = $HelperSQLPath
+    Elevated = $true
+    Files = @(
+        (Join-Path $TestsPath "Install(tSQLtAssemblyKey).sql" | Resolve-Path)
+    )
+    DatabaseName = $TestDbName
+}
+Invoke-SQLFileOrQuery @parameters;
+
 Log-Output('Run All Tests... tSQLt EXTERNAL_ACCESS_KEY_EXISTS Tests...')
 $parameters = @{
     SqlServerConnection = $SqlServerConnection
@@ -122,6 +146,18 @@ $parameters = @{
     OutputFile = (Join-Path $ResultsPath "TestResults_$TestsResultFilePrefix`_EXTERNAL_ACCESS_KEY_EXISTS.xml")
 }
 Invoke-TestsFromFile @parameters;
+
+Log-Output('Run All Tests... Enabling External Access...')
+$parameters = @{
+    SqlServerConnection = $SqlServerConnection
+    HelperSQLPath = $HelperSQLPath
+    Elevated = $true
+    Files = @(
+        (Join-Path $TestsPath "EnableExternalAccess.sql" | Resolve-Path)
+    )
+    DatabaseName = $TestDbName
+}
+Invoke-SQLFileOrQuery @parameters;
 
 Log-Output('Run All Tests... tSQLt EXTERNAL_ACCESS Tests...')
 $parameters = @{

@@ -81,7 +81,8 @@ Log-Output "SQLVersionEditionInfo:  ", $SQLVersionEditionInfo;
 Log-Output "TemplateFile: ", $TemplateFile;
 
 Log-Output "START: Creating Resource Group $ResourceGroupName";
-$output = az group create --location "$Location" --name "$ResourceGroupName" | ConvertFrom-Json;
+
+$output = az group create --location "$Location" --name "$ResourceGroupName" --tags Department="tSQLtCI" Ephemeral="True" | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating Resource Group";
     return

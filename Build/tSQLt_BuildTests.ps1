@@ -140,6 +140,7 @@ try{
             "Install(tSQLtAssemblyKey).sql",
             "ChangeDbAndExecuteStatement(tSQLt.Build).sql",
             "EnableExternalAccess.sql",
+            "DisableExternalAccess.sql",
             "Drop(master.tSQLt_testutil).sql",
             "Install(master.tSQLt_testutil).sql",
             "GetFailedTestCount.sql",
