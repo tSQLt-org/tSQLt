@@ -1,6 +1,6 @@
 $__=$__ #quiesce warnings
 $CommonFunctionsAndMethodsDir = $PSScriptRoot
-Write-Host "Loading CommonFunctionsAndMethods.psm1 from: $PSCommandPath"
+Write-Verbose "Loading CommonFunctionsAndMethods.psm1 from: $PSCommandPath"
 . (Join-Path $CommonFunctionsAndMethodsDir 'SQLServerConnection.ps1');
 
 $MergeHashTables = {param([HashTable]$base,[HashTable]$new);$new.GetEnumerator()|%{$base.remove($_.Key);$base += @{$_.Key=$_.Value}};$base;};
@@ -40,10 +40,10 @@ Function Invoke-SqlFile
     $parameters['Verbose'] = $true
   }
   
-  $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Invoke-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  $dddbefore = Get-Date;Write-Verbose("------->>BEFORE<<-------(CommonFunctionsAndMethods.p1:Invoke-SqlFile:Invoke-SqlCommand[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
   $results = (Invoke-SqlCmd @parameters)
-  $dddafter = Get-Date;Write-Warning("------->>After<<-------(CommonFunctionsAndMethods.p1:Invoke-SqlFile:Invoke-SqlCommand[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-  Write-Warning("Runtime in Milliseconds: $(($dddafter-$dddbefore).TotalMilliseconds)")
+  $dddafter = Get-Date;Write-Verbose("------->>After<<-------(CommonFunctionsAndMethods.p1:Invoke-SqlFile:Invoke-SqlCommand[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+  Write-Verbose("Runtime in Milliseconds: $(($dddafter-$dddbefore).TotalMilliseconds)")
   return $results
 }
 
@@ -100,9 +100,9 @@ Function Invoke-SQLFileOrQuery
             AdditionalParameters = $AdditionalParameters
             PrintSqlOutput = $PrintSqlOutput
         }
-$dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+$dddbefore = Get-Date;Write-Verbose("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
         $QueryOutput = Invoke-SqlFile @parameters
-$dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+$dddafter = Get-Date;Write-Verbose("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
 $dddafter-$dddbefore
         return $QueryOutput
     }
@@ -186,8 +186,8 @@ Function Remove-ResourceGroup{
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $ResourceGroupName,
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $BuildId);
 
-  Write-Output "▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-";
-  Write-Output ("[{0}]Start processing delete for {1}" -f ((get-date).toString("O")), ($ResourceGroupName));
+  Write-Verbose "▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-";
+  Write-Verbose ("[{0}]Start processing delete for {1}" -f ((get-date).toString("O")), ($ResourceGroupName));
 
   $MyAzResourceGroup = (Get-AzResourceGroup -name "$ResourceGroupName");
   if(("RemovalBy" -in $MyAzResourceGroup.tags.keys) -and (![string]::isnullorempty($MyAzResourceGroup.tags.RemovalBy))) {
@@ -195,37 +195,37 @@ Function Remove-ResourceGroup{
   }
   if($null -ne $MyAzResourceGroup) {
     $Tags = @{};
-    Write-Output ("Add Tag to {0}" -f $ResourceGroupName);
+    Write-Verbose ("Add Tag to {0}" -f $ResourceGroupName);
     $Tags = $MyAzResourceGroup.Tags;
     $Tags.remove("RemovalBy");
     $Tags += @{"RemovalBy"="$BuildId"};
     $MyAzResourceGroup | Set-AzResourceGroup -Tags $Tags;
     Start-Sleep 10;
-    Write-Output ("Confirming Tags are still in place for {0}" -f $ResourceGroupName);
+    Write-Verbose ("Confirming Tags are still in place for {0}" -f $ResourceGroupName);
     $MyAzResourceGroup = $MyAzResourceGroup | Get-AZResourceGroup | Where-Object {$_.Tags.RemovalBy -eq "$BuildId"};
     $MyAzResourceGroup.Tags | Format-Table;
 
     if($null -ne $MyAzResourceGroup) {
-      Write-Output "Removing Locks"
+      Write-Verbose "Removing Locks"
       $retrievedResourceGroupName = $MyAzResourceGroup.ResourceGroupName;
       Get-AzResource -ResourceGroupName $retrievedResourceGroupName | ForEach-Object {
         Get-AzResourceLock -ResourceType $_.ResourceType -ResourceName $_.Name -ResourceGroupName $_.ResourceGroupName | ForEach-Object{
-          Write-Output ("{0} -> {1}" -f $_.ResourceType, $_.ResourceName);
+          Write-Verbose ("{0} -> {1}" -f $_.ResourceType, $_.ResourceName);
           $_ | Remove-AzResourceLock -Force 
         }
       }
-      Write-Output ("Removing RG {0}" -f $retrievedResourceGroupName);
+      Write-Verbose ("Removing RG {0}" -f $retrievedResourceGroupName);
       $MyAzResourceGroup | Remove-AzResourceGroup -Force;
     }
     else {
-      Write-Output ("Tags changed by another process. Resource Group {0} is no longer eligible to be deleted." -f $ResourceGroupName);
+      Write-Verbose ("Tags changed by another process. Resource Group {0} is no longer eligible to be deleted." -f $ResourceGroupName);
     }
   }        
   else {
-    Write-Output ("Processing skipped for Resource Group: {0} Build Id: {1}" -f $ResourceGroupName, $BuildId);
+    Write-Verbose ("Processing skipped for Resource Group: {0} Build Id: {1}" -f $ResourceGroupName, $BuildId);
   }
-  Write-Output ("[{0}]Done processing delete for {1}" -f ((get-date).toString("O")), ($ResourceGroupName))
-  Write-Output "▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-";
+  Write-Verbose ("[{0}]Done processing delete for {1}" -f ((get-date).toString("O")), ($ResourceGroupName))
+  Write-Verbose "▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-▀-▄-_-▄-";
 }
 
 Function Get-SnipContent {
@@ -267,7 +267,7 @@ Function Replace-InFile {
         $isRegex = $true
         $rv = $rv[0]
       }
-      Write-Host("Replacing >$_< with >$rv<...");
+      Write-Verbose("Replacing >$_< with >$rv<...");
       if($isRegex){
         $fileContent = $fileContent -replace $_, $rv 
       }else{

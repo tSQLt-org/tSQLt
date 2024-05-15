@@ -12,7 +12,7 @@ $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 $cfam = (Join-Path $invocationDir "CommonFunctionsAndMethods.psm1" | Resolve-Path)
-Write-Host "Attempting to load module from: $cfam"
+Write-Verbose "Attempting to load module from: $cfam"
 Import-Module "$cfam" -Force
 Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
@@ -41,7 +41,7 @@ try{
     Invoke-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "CreateBuildDb.sql" -Database "tempdb" -AdditionalParameters @{NewDbName=$DacPacDatabaseName} -PrintSqlOutput $true;
     Log-Output('-- Executing tSQLt.class.sql')
     Invoke-SqlFile -SqlServerConnection $SqlServerConnection -FileNames "tSQLt.class.sql" -Database "$DacPacDatabaseName";
-    Write-Host('Building DACPAC')
+    Log-Output('Building DACPAC')
     $FriendlySQLServerVersion = Get-FriendlySQLServerVersion -SqlServerConnection $SqlServerConnection;
     $tSQLtDacpacFileName = "tSQLt."+$FriendlySQLServerVersion+".dacpac";
     $tSQLtApplicationName = "tSQLt."+$FriendlySQLServerVersion;
