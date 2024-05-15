@@ -1,1 +1,4 @@
-EXEC tSQLt.EnableExternalAccess @try = 0, @enable=1;
+IF(EXISTS(SELECT 1 FROM tSQLt.Info() WHERE HostPlatform NOT IN ('Linux')))
+BEGIN
+   EXEC tSQLt.EnableExternalAccess @try = 0, @enable=1;
+END;
