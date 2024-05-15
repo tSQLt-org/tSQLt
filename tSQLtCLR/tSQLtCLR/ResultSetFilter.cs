@@ -18,6 +18,36 @@ namespace tSQLtCLR
             this.testDatabaseFacade = testDatabaseFacade;
         }
 
+        public void insertSelectedResultSetToTable(SqlInt32 resultsetNo, SqlString command, SqlString table)
+        {
+            validateResultSetNumber(resultsetNo);
+
+            SqlDataReader dataReader = testDatabaseFacade.executeCommand(command);
+
+            List<object[]> data = null;
+            int ResultsetCount = 0;
+            if (dataReader.FieldCount > 0)
+            {
+                do
+                {
+                    ResultsetCount++;
+                    if (ResultsetCount == resultsetNo)
+                    {
+                        data = getDataFromReader(dataReader);
+                        break;
+                    }
+                } while (dataReader.NextResult());
+            }
+            dataReader.Close();
+            if (data != null)
+            {
+                testDatabaseFacade.insertData(table, data);
+            }
+            else if (ResultsetCount != resultsetNo)
+            {
+                throw new InvalidResultSetException("Execution returned only " + ResultsetCount.ToString() + " ResultSets. ResultSet [" + resultsetNo.ToString() + "] does not exist.");
+            }
+        }
         public void sendSelectedResultSetToSqlContext(SqlInt32 resultsetNo, SqlString command)
         {
             validateResultSetNumber(resultsetNo);
@@ -53,6 +83,16 @@ namespace tSQLtCLR
             }
         }
 
+        private List<object[]> getDataFromReader(SqlDataReader dataReader)
+        {
+            List<object[]> rows = new List<Object[]>();
+            while (dataReader.Read()) {
+                object[] recordData = new object[dataReader.FieldCount];
+                dataReader.GetSqlValues(recordData);
+                rows.Add(recordData);
+            }
+            return rows;
+        }
         private static void sendResultsetRecords(SqlDataReader dataReader)
         {
             SqlMetaData[] meta = createMetaDataForResultset(dataReader);

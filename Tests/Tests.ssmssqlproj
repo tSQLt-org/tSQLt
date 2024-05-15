@@ -366,6 +366,12 @@
           <AssociatedConnUserName />
           <FullPath>ResultSetFilterTests.class.sql</FullPath>
         </FileNode>
+        <FileNode Name="ResultSetInsertTests.class.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>ResultSetInsertTests.class.sql</FullPath>
+        </FileNode>
         <FileNode Name="Run_Methods_Tests.class.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />

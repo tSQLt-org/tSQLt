@@ -14,6 +14,7 @@
    limitations under the License.
 */
 IF OBJECT_ID('tSQLt.ResultSetFilter') IS NOT NULL DROP PROCEDURE tSQLt.ResultSetFilter;
+IF OBJECT_ID('tSQLt.ResultSetInsert') IS NOT NULL DROP PROCEDURE tSQLt.ResultSetInsert;
 IF OBJECT_ID('tSQLt.AssertResultSetsHaveSameMetaData') IS NOT NULL DROP PROCEDURE tSQLt.AssertResultSetsHaveSameMetaData;
 IF OBJECT_ID('tSQLt.NewConnection') IS NOT NULL DROP PROCEDURE tSQLt.NewConnection;
 IF OBJECT_ID('tSQLt.CaptureOutput') IS NOT NULL DROP PROCEDURE tSQLt.CaptureOutput;
@@ -30,6 +31,11 @@ GO
 CREATE PROCEDURE tSQLt.ResultSetFilter @ResultsetNo INT, @Command NVARCHAR(MAX)
 AS
 EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].ResultSetFilter;
+GO
+
+CREATE PROCEDURE tSQLt.ResultSetInsert @ResultsetNo INT, @Command NVARCHAR(MAX), @Table NVARCHAR(MAX)
+AS
+EXTERNAL NAME tSQLtCLR.[tSQLtCLR.StoredProcedures].ResultSetInsert;
 GO
 
 CREATE PROCEDURE tSQLt.AssertResultSetsHaveSameMetaData @expectedCommand NVARCHAR(MAX), @actualCommand NVARCHAR(MAX)
