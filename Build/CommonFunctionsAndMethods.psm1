@@ -103,8 +103,8 @@ Function Invoke-SQLFileOrQuery
 $dddbefore = Get-Date;Write-Verbose("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
         $QueryOutput = Invoke-SqlFile @parameters
 $dddafter = Get-Date;Write-Verbose("------->>After<<-------(tSQLt_Validate.ps1:Invoke-SQLFileOrQuery:Invoke-SqlFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-$dddafter-$dddbefore
-        return $QueryOutput
+Write-Verbose("Runtime in Milliseconds: $(($dddafter-$dddbefore).TotalMilliseconds)")
+      return $QueryOutput
     }
     catch{
         throw

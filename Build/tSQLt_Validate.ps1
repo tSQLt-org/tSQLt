@@ -9,7 +9,7 @@ Param(
 );
 
 
-
+$validateStartTime = Get-Date;
 
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
@@ -206,15 +206,23 @@ try{
     $matchingFiles = ($ActualTestResultFiles|Where-Object{$ExpectedTestResultFiles -Contains $_})
     Write-Warning("Matching Files:")
     $matchingFiles
-    Write-Warning("Missing Files:")
-    $missingFiles
-    Write-Warning("Unexpected Files:")
-    $superfluousFiles
+    if($missingFiles.length -gt 0){
+        Write-Warning("There are files missing:");
+        $missingFiles
+    }
+    if($superfluousFiles.length -gt 0){
+        Write-Warning("There are unexpected files:")
+        $superfluousFiles
+    }
     if($missingFiles.Length + $superfluousFiles.Length -gt 0){
         Write-Error("Missing or Unexpected Test Result Files!")
     }
 }
 finally{
     Pop-Location
+    $validateEndTime = Get-Date;
+    Log-Output("------------------------------------")
+    Log-Output("Total Duration: $($validateEndTime-$validateStartTime)")
+    Log-Output("------------------------------------")
 }
 

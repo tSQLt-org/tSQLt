@@ -67,16 +67,16 @@ Function Invoke-Tests
         DatabaseName = $DatabaseName
         PrintSqlOutput = $true
     }
-    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $dddbefore = Get-Date;Write-Verbose("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     $parameters;
     Invoke-SQLFileOrQuery @parameters;   
-    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    $dddafter-$dddbefore
+    $dddafter = Get-Date;Write-Verbose("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    Write-Verbose("Duration: $($dddafter-$dddbefore)")
 
-    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $dddbefore = Get-Date;Write-Verbose("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     Copy-SQLXmlToFile $SqlServerConnection $DatabaseName "EXEC [tSQLt].[XmlResultFormatter]" $OutputFile
-    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    $dddafter-$dddbefore
+    $dddafter = Get-Date;Write-Verbose("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Copy-SQLXmlToFile[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    Write-Verbose("Duration: $($dddafter-$dddbefore)")
 
     $parameters = @{
         SqlServerConnection = $SqlServerConnection
@@ -84,11 +84,11 @@ Function Invoke-Tests
         DatabaseName = $DatabaseName
         Query = "EXEC tSQLt_testutil.LogMultiRunResult '$TestSetName';"
     }
-    $dddbefore = Get-Date;Write-Warning("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    $dddbefore = Get-Date;Write-Verbose("------->>BEFORE<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddbefore|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
     # $parameters;
     Invoke-SQLFileOrQuery @parameters;         
-    $dddafter = Get-Date;Write-Warning("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
-    $dddafter-$dddbefore
+    $dddafter = Get-Date;Write-Verbose("------->>After<<-------(tSQLt_Validate.ps1:Invoke-Tests:Invoke-SQLFileOrQuery[$($dddafter|Get-Date -Format "yyyy:MM:dd;HH:mm:ss.fff")])")
+    Write-Verbose("Duration: $($dddafter-$dddbefore)")
 
 }
 Function Invoke-TestsFromFile
