@@ -58,7 +58,7 @@ function Concatenate-Files {
 
     $output = @()
     foreach ($file in $fileIterator) {
-        Write-Host("-->$file")
+        Write-Verbose("-->$file")
         $fileContent = Get-FileContent -filePath $file -bracket $bracket -includeFromStart $includeFromStart -separator $separator
         $output += $fileContent
     }
@@ -66,9 +66,9 @@ function Concatenate-Files {
     return $output
 }
 
-Write-Host("OutputFile: $OutputFile")
-Write-Host("SeparatorTemplate: >$SeparatorTemplate<")
-Write-Host("Input: $InputPath")
+Write-Verbose("OutputFile: $OutputFile")
+Write-Verbose("SeparatorTemplate: >$SeparatorTemplate<")
+Write-Verbose("Input: $InputPath")
 
 if([string]::IsNullOrWhiteSpace($SeparatorTemplate)){
     if($null -eq $SeparatorContent){
@@ -78,9 +78,9 @@ if([string]::IsNullOrWhiteSpace($SeparatorTemplate)){
 else{
     $SeparatorContent = Get-Content $SeparatorTemplate  -ErrorAction Stop
 }
-Write-Host(">--Separator Template-->")
-$SeparatorContent|%{Write-Host(">:$_")}
-Write-Host("<--Separator Template--<")
+Write-Verbose(">--Separator Template-->")
+$SeparatorContent|%{Write-Verbose(">:$_")}
+Write-Verbose("<--Separator Template--<")
 if($Bracket -eq ''){
     $IncludeFromStart = $true;
 }
@@ -88,20 +88,20 @@ if($Bracket -eq ''){
 try{
 
     if($null -eq $InputPath){
-        Write-Host("scriptPath: <no files>")
+        Write-Verbose("scriptPath: <no files>")
         $fileIterator = @()
     }
     elseif($InputPath  -is [System.Collections.IEnumerable]){
-        Write-Host("scriptPath: /")
+        Write-Verbose("scriptPath: /")
         $fileIterator = $InputPath
     } 
     elseif (Test-Path $InputPath -PathType Container) {
-        Write-Host("scriptPath: $InputPath")
+        Write-Verbose("scriptPath: $InputPath")
         $fileIterator = Get-ChildItem $InputPath -Filter $IncludePattern
     } 
     else {
         $scriptPath = (Split-Path $InputPath)
-        Write-Host("scriptPath: $scriptPath")
+        Write-Verbose("scriptPath: $scriptPath")
         $fileList = Get-Content $InputPath -ErrorAction Stop
         $fileIterator = $fileList | ForEach-Object { Join-Path $scriptPath $_ | Resolve-Path}
     }
@@ -111,7 +111,7 @@ try{
         $sv = $_["s"]
         $rv=$_["r"]; 
         $isRegex = $_.ContainsKey("isRegex") -and $_["isRegex"];
-        Write-Host("Replacing >$sv< with >$rv< [regex:$isRegex]...");
+        Write-Verbose("Replacing >$sv< with >$rv< [regex:$isRegex]...");
         if($isRegex){
             $concatenatedContent = $concatenatedContent -replace $sv, $rv 
           }else{

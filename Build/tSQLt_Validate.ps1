@@ -9,7 +9,7 @@ Param(
 );
 
 
-
+$validateStartTime = Get-Date;
 
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
@@ -204,17 +204,33 @@ try{
     $missingFiles = ($ExpectedTestResultFiles|Where-Object{$ActualTestResultFiles -NotContains $_})
     $superfluousFiles = ($ActualTestResultFiles|Where-Object{$ExpectedTestResultFiles -NotContains $_})
     $matchingFiles = ($ActualTestResultFiles|Where-Object{$ExpectedTestResultFiles -Contains $_})
-    Write-Warning("Matching Files:")
-    $matchingFiles
-    Write-Warning("Missing Files:")
-    $missingFiles
-    Write-Warning("Unexpected Files:")
-    $superfluousFiles
+    Log-Output("+------------------------------------------------");
+    Log-Output("| Expected Test Result Files:");
+    $matchingFiles|%{Log-Output("|  - $_");}
+    Log-Output("+------------------------------------------------");
+    if($missingFiles.length -gt 0){
+        Log-Output("| Missing Test Result Files:");
+        $missingFiles|%{Log-Output("|  - $_");}
+    }else{
+        Log-Output("| No Missing Test Result Files");
+    }
+    Log-Output("+------------------------------------------------");
+    if($superfluousFiles.length -gt 0){
+        Log-Output("| Unexpected Test Result Files:")
+        $superfluousFiles|%{Log-Output("|  - $_");}
+    }else{
+        Log-Output("| No Unexpected Test Result Files");
+    }
+    Log-Output("+------------------------------------------------");
     if($missingFiles.Length + $superfluousFiles.Length -gt 0){
         Write-Error("Missing or Unexpected Test Result Files!")
     }
 }
 finally{
     Pop-Location
+    $validateEndTime = Get-Date;
+    Log-Output("------------------------------------")
+    Log-Output("Total Duration: $($validateEndTime-$validateStartTime)")
+    Log-Output("------------------------------------")
 }
 

@@ -1,3 +1,4 @@
+[CmdletBinding()]
 param(
     [Parameter(Mandatory=$false)][ValidateNotNullOrEmpty()][string] $ServerName = 'localhost,1433',
     [Parameter(Mandatory=$true, ParameterSetName = 'UserPass')][ValidateNotNullOrEmpty()][string] $UserName = "sa" ,
@@ -9,12 +10,12 @@ param(
 $PSDefaultParameterValues = $PSDefaultParameterValues.clone()
 $PSDefaultParameterValues += @{'*:ErrorAction' = 'Stop'}
 
-Write-Host "Starting execution of LocalBuild.ps1"
+Write-Verbose "Starting execution of LocalBuild.ps1"
 $__=$__ #quiesce warnings
 $invocationDir = $PSScriptRoot
 Push-Location -Path $invocationDir
 $cfam = (Join-Path $invocationDir "CommonFunctionsAndMethods.psm1" | Resolve-Path)
-Write-Host "Attempting to load module from: $cfam"
+Write-Verbose "Attempting to load module from: $cfam"
 Import-Module "$cfam" -Force -Verbose
 . (Join-Path $invocationDir 'SQLServerConnection.ps1');
 
@@ -22,10 +23,10 @@ Import-Module "$cfam" -Force -Verbose
 try{
 
     if($TrustedConnection){
-        Write-Warning('GH:TC')
+        Log-Output('Selecting Trusted Connection')
         $SqlServerConnection = [SqlServerConnection]::new($ServerName,"LocalBuild");
     }else{
-        Write-Warning('GH:UP')
+        Log-Output('Selecting UserName/Password Connection')
         $SqlServerConnection = [SqlServerConnection]::new($ServerName,$UserName,$Password,"LocalBuild");
     }
 
