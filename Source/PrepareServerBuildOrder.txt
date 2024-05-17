@@ -1,4 +1,4 @@
-../Build/temp/tSQLtBuild/tSQLt.Private_GetAssemblyKeyBytes.sql 
+../Build/temp/tSQLtBuild/tSQLt.Private_GetAssemblyKeyBytes.sql
 tSQLt.Private_EnableCLR.ssp.sql
 tSQLt.Private_GetSQLProductMajorVersion.ssp.sql
 tSQLt.RemoveAssemblyKey.ssp.sql

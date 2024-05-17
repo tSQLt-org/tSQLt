@@ -10,5 +10,5 @@ GO
 GO
 DECLARE @Version INT;
 EXEC @Version = tSQLt.Private_GetSQLProductMajorVersion;
-PRINT @Version;
+PRINT 'SQL Major Version: '+CAST(@Version as NVARCHAR(MAX));
 

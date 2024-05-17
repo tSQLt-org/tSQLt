@@ -14,22 +14,34 @@ schedules:
   always: true
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 parameters: # TODO, these don't work for scheduled pipelines, not even the defaults. Fix it. Hint: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/runtime-parameters?view=azure-devops&tabs=script#check-for-an-empty-parameter-object
   - name: VMMatrix
     type: object
     default:
-    - name: SQL2012
-      SQLVersionEdition: 2012Ent
-    - name: SQL2014
-      SQLVersionEdition: 2014
+    # - name: SQL2012
+    #   SQLVersionEdition: 2012Ent
+    # - name: SQL2014
+    #   SQLVersionEdition: 2014
     - name: SQL2016
       SQLVersionEdition: 2016
-    - name: SQL2017
-      SQLVersionEdition: 2017
-    - name: SQL2019
-      SQLVersionEdition: 2019
+    # - name: SQL2017
+    #   SQLVersionEdition: 2017
+    # - name: SQL2019
+    #   SQLVersionEdition: 2019
+    # - name: SQL2022
+    #   SQLVersionEdition: 2022
+    # - name: SQL2017Linux
+    #   SQLVersionEdition: 2017L
+    # - name: SQL2019Linux
+    #   SQLVersionEdition: 2019L
+    # - name: SQL2022Linux
+    #   SQLVersionEdition: 2022L
+  - name: CreateEnvOnly
+    displayName: Create Environment Only
+    default: false
+    type: boolean
   - name: VMPriority
     displayName: VM Priority
     type: string
@@ -55,23 +67,29 @@ variables:
   - name: ARTIFACT_REPO_DIR
     value: 'tSQLtArtifactRepo'
   - name: CLR_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\CLRBuild
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtCLR
   - name: TSQLTFILES_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLtBuild
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtBuild/Artifact
   - name: DACPAC_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\DacpacBuild
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/DacpacBuild/Artifact
   - name: TSQLT_PUBLIC_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\public
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/public
   - name: TSQLT_VALIDATION_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation
   - name: TSQLT_TEST_RESULTS_ARTIFACT_DIR
-    value: $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)\Build\output\tSQLt\validation\TestResults
-  - name: SQLCMDPath
-#    value: 'C:\Program Files\Microsoft SQL Server\110\Tools\Binn' for vmImage: 'vs2017-win2016'
-    value: 'C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn'
-  - name: SQLPackagePath
-#    value: 'C:\Program Files\Microsoft SQL Server\150\DAC\bin' Updated to the new path on 2022-02-05
-    value: 'C:\Program Files\Microsoft SQL Server\160\DAC\bin'
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLt/validation/TestResults
+  - name: TSQLT_BUILD_DIR
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtBuild
+  - name: TSQLT_TESTS_DIR
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/tSQLtTests
+  - name: DACPAC_BUILD_DIR
+    value: $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)/Build/output/DacpacBuild
+#   - name: SQLCMDPath
+# #    value: 'C:/Program Files/Microsoft SQL Server/110/Tools/Binn' for vmImage: 'vs2017-win2016'
+#     value: 'C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn'
+#   - name: SQLPackagePath
+# #    value: 'C:/Program Files/Microsoft SQL Server/150/DAC/bin' Updated to the new path on 2022-02-05
+#     value: 'C:/Program Files/Microsoft SQL Server/160/DAC/bin'
 
 resources:
   repositories:
@@ -82,11 +100,18 @@ resources:
   
 stages:
 
-- stage: Create_VMs
+##########################################################################################################
+##         CREATE VMs / Containers                                                                      ##
+##########################################################################################################
+
+
+- stage: Create_Environments
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  pool:
+    vmImage: 'windows-latest'
 
   jobs:
-  - job: Create_VM
+  - job: Create
     strategy:
       matrix:
         ${{ each version in parameters.VMMatrix }}:
@@ -110,10 +135,14 @@ stages:
     - task: PowerShell@2
       name: CreateResourceGroupName
       inputs:
+        workingDirectory: "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
         targetType: 'inline'
         script: |
-          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
-          .("Build/CommonFunctionsAndMethods.ps1")
+          $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+
+          Write-Host "Attempting to load module from: $cfam"
+          Import-Module "$cfam" -Force
+          Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
           $ResourceGroupName = ("$(NamePreFix)" + (Get-Date).tostring('yyyyMMdd') + "_" + "$(SQLVersionName)" + "_" + "$(Build.BuildId)");
           Log-Output "ResourceGroupName: $ResourceGroupName";
@@ -135,47 +164,73 @@ stages:
         scriptType: ps
         scriptLocation: inlineScript
         inlineScript: |
-          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
-          .("Build/CommonFunctionsAndMethods.ps1")
+          Set-Location (Join-Path "$(Pipeline.Workspace)" "$(TSQLT_REPO_DIR)")
+          $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+          Write-Host "Attempting to load module from: $cfam"
+          Import-Module "$cfam" -Force
+          Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
           $SqlPort = Get-Random -minimum $env:SQLPORTMINIMUM -maximum $env:SQLPORTMAXIMUM
           $SQLUserName = "$env:SQL_USER_NAME";
           $SQLPwd = "$env:SQL_PASSWORD"; #TODO, randomize password, instead of taking it directly from the key vault
 
-          Log-Output '==========================================================';
-          Log-Output 'Executing CreateSQLVM.ps1';
-          Log-Output '==========================================================';
-          $Parameters = @{
-            Location="$(VMLocation)";
-            Size="$(VMSize)"
-            ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
-            BuildId="$(Build.BuildId)";
-            VMAdminName="$env:VM_USER_NAME";
-            VMAdminPwd="$env:VM_PASSWORD";
-            SQLVersionEdition="$(SQLVersionEdition)";
-            SQLPort="$SqlPort";
-            SQLUserName="$SQLUserName";
-            SQLPwd="$SQLPwd";
-            VMPriority="${{ parameters.VMPriority }}";
-          }; 
-          $VMDetails = .'CI/Azure-DevOps/CreateSQLVM_azcli.ps1' @Parameters
-    
-          Log-Output '==========================================================';
-          Log-Output 'Done: Executing CreateSQLVM.ps1';
-          Log-Output '==========================================================';
-              
+          if("$(SQLVersionEdition)" -like "[0-9][0-9][0-9][0-9]L"){
+            $SqlPort = 1433;
+            $SQLUserName = 'SA'
+
+            Log-Output '==========================================================';
+            Log-Output 'Executing CreateSQLContainer.ps1';
+            Log-Output '==========================================================';
+            $Parameters = @{
+              Location="$(VMLocation)";
+              # Size="$(VMSize)"
+              ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
+              BuildId="$(Build.BuildId)";
+              SQLVersionEdition="$(SQLVersionEdition)";
+              # SQLPort="1433";
+              # SQLUserName="SA";
+              SQLPwd="$SQLPwd";
+              SQLCpu=3;
+              SQLMemory=8;
+            }; 
+            $VMDetails = & 'CI/Azure-DevOps/CreateSQLContainer.ps1' @Parameters
+      
+            Log-Output '==========================================================';
+            Log-Output 'Done: Executing CreateSQLContainer.ps1';
+            Log-Output '==========================================================';
+          }else{
+            Log-Output '==========================================================';
+            Log-Output 'Executing CreateSQLVM_azcli.ps1';
+            Log-Output '==========================================================';
+            $Parameters = @{
+              Location="$(VMLocation)";
+              Size="$(VMSize)"
+              ResourceGroupName="$(CreateResourceGroupName.ResourceGroupName)";
+              BuildId="$(Build.BuildId)";
+              VMAdminName="$env:VM_USER_NAME";
+              VMAdminPwd="$env:VM_PASSWORD";
+              SQLVersionEdition="$(SQLVersionEdition)";
+              SQLPort="$SqlPort";
+              SQLUserName="$SQLUserName";
+              SQLPwd="$SQLPwd";
+              VMPriority="${{ parameters.VMPriority }}";
+            }; 
+            $VMDetails = .'CI/Azure-DevOps/CreateSQLVM_azcli.ps1' @Parameters
+      
+            Log-Output '==========================================================';
+            Log-Output 'Done: Executing CreateSQLVM_azcli.ps1';
+            Log-Output '==========================================================';
+          }              
           # $SerializedVMDetails=(ConvertTo-JSON -InputObject $VMDetails -Compress);
           # $SerializedVMDetails;
 
           #-----------------------------------------------------------------------#
-          # IMPORTANT (and, you've got to be kidding me):                         #
-          # The space below is absolutely required to make the ANT Task work.     #
+          # The space below is required to make ANT work. (Not currently in use.) #
           #---------------------------------------|-------------------------------#
           $FQDNAndPort = $VMDetails.SQLVmFQDN + ", " + $VMDetails.SQLVmPort;
           #---------------------------------------|-------------------------------#
           #-----------------------------------------------------------------------#
 
-          #TODO refactor such that the resourcegroupname is created in a previous step, so that it can be used by the delete job, even if this one is cancelled/failed.
           $ResourceGroupName = $VMDetails.ResourceGroupName;
           Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
           Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
@@ -185,20 +240,63 @@ stages:
           # Write-Host "##vso[task.setvariable variable=SerializedVMDetails;isOutput=true]$SerializedVMDetails";
 
 
+  - job: PrintSQLInfo
+    dependsOn: Create
+    strategy:
+      matrix:
+        ${{ each version in parameters.VMMatrix }}:
+          ${{ format('{0}', version.name) }}:
+            SQLVersionEdition: ${{ version.SQLVersionEdition }}
+            SQLVersionName: ${{ version.name }}
+    variables:
+      databaseAccessDetails: $[convertToJson(dependencies.Create.outputs)]        
+    steps:
+    - checkout: none
     - task: PowerShell@2
-      name: PrintSQLVersionInfo
-      env:
-        USER_NAME: $(tSQLt-UserForCIEnvironment-UserName)
-        PASSWORD: $(tSQLt-UserForCIEnvironment-Password)
+      name: PrintSQLInfo
       inputs:
         targetType: 'inline'
         script: |
-          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$(CreateSQLVMEnvironment.FQDNAndPort)" -Username "$(CreateSQLVMEnvironment.SQLUserName)" -Password "$(CreateSQLVMEnvironment.SQLPwd)" -As DataSet -TrustServerCertificate
+          $inputObject = @'
+          $(databaseAccessDetails)
+          '@;
+          $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
+          $SQLUserNameKey = "$(System.JobName).CreateSQLVMEnvironment.SQLUserName";
+          $SQLPwdKey = "$(System.JobName).CreateSQLVMEnvironment.SQLPwd";
+          $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
+          $SQLUserName = $myJsonObject.$SQLUserNameKey;
+          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+
+          $DS = Invoke-Sqlcmd -Query "SELECT SUSER_NAME() U,SYSDATETIME() T,@@VERSION V;" -ServerInstance "$FQDNAndPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
           $DS.Tables[0].Rows | %{ echo "{ $($_['U']), $($_['T']), $($_['V']) }" } 
+
+          if("${{ parameters.CreateEnvOnly }}" -ieq "true"){
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+            Write-Host "Name: $(SQLVersionName)";
+            Write-Host "FQDN: $FQDNAndPort";
+            Write-Host "User: $SQLUserName";
+            Write-Host "Pass: $SQLPwd";
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+
+            Write-Warning 'This information is now public! Run the following Powershell Statement to change the password immediately!';
+
+            $PwdChngCommand = "`$NewPwd = -join ((40..95+97..126) | Get-Random -Count 40 | % {[char]`$_}); Write-Output `"New Password: `$NewPwd`"; Invoke-Sqlcmd -Query `"ALTER LOGIN [$SQLUserName] WITH PASSWORD = '`$NewPwd';`" -ServerInstance `"$FQDNAndPort`" -Username `"$SQLUserName`" -Password `"$SQLPwd`" -TrustServerCertificate;";
+            Write-Host '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - ' -ForegroundColor Yellow;
+            Write-Host $PwdChngCommand
+            Write-Host '==========================================================' -ForegroundColor Yellow;
+            
+          }
+
+
+##########################################################################################################
+##         BUILD tSQLt - PART 1                                                                         ##
+##########################################################################################################
 
 
 - stage: Build_tSQLt_Part1
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+  condition: eq(${{ parameters.CreateEnvOnly }}, false)
 
   jobs:
 
@@ -206,8 +304,8 @@ stages:
     timeoutInMinutes: 10
     cancelTimeoutInMinutes: 2
 
-    variables:
-      CertificatePath: '$(Build.Repository.LocalPath)\tsqltclr\OfficialSigningKey\tSQLtOfficialSigningKey.pfx'
+    # variables:
+    #   CertificatePath: '$(Build.Repository.LocalPath)/tsqltclr/OfficialSigningKey/tSQLtOfficialSigningKey.pfx'
 
     steps:
 
@@ -222,38 +320,26 @@ stages:
         KeyVaultName: 'tSQLtSigningKey'
 
     - task: PowerShell@2
-      name: Install_tSQLt_OfficialSigningKey
+      name: CompileCLR
       inputs:
+        workingDirectory: $(Build.SourcesDirectory)/Build/
         targetType: 'inline'
         script: |
-          $pfxSecretBytes = [System.Convert]::FromBase64String('$(tSQLtOfficialSigningKey-Base64)')
-          $pfxPath = "$(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx"
-          [System.IO.File]::WriteAllBytes($pfxPath, $pfxSecretBytes)
-          &"$(Build.SourcesDirectory)/Build/SnInstallPfx" $(Build.SourcesDirectory)/Build/tSQLtOfficialSigningKey.pfx '$(tSQLtSigningKeyPassword)' tSQLt_OfficialSigningKey
 
-    - task: MSBuild@1
-      displayName: 'Build solution tSQLtCLR/tSQLtCLR.sln'
-      inputs:
-        solution: tSQLtCLR/tSQLtCLR.sln
-        platform: 'Any CPU'
-        configuration: CruiseControl
+          $pfxSecretBytes = [System.Convert]::FromBase64String('$(tSQLtOfficialSigningKey-Base64)')
+          $pfxFilePath = (Join-Path "$(Build.SourcesDirectory)" "/Build/tSQLtOfficialSigningKey.pfx")
+          [System.IO.File]::WriteAllBytes($pfxFilePath, $pfxSecretBytes)
+          $pfxPassword = (ConvertTo-SecureString -String '$(tSQLtSigningKeyPassword)' -Force -AsPlainText)
+
+          & ./tSQLt_BuildCLR.ps1 -pfxFilePath $pfxFilePath -pfxPassword $pfxPassword
 
     - task: CopyFiles@2
       displayName: 'Copy all dll files to the ArtifactStagingDirectory'
       inputs:
-        SourceFolder: tSQLtCLR
-        Contents: '*/bin/*/*.dll'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
+        SourceFolder: ./Build/output/tSQLtCLR
+        Contents: 'tSQLtCLR.zip'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
         flattenFolders: true
-
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/tSQLtCLR.zip'
-        replaceExistingArchive: true
-        verbose: true
 
     - task: PublishPipelineArtifact@1
       name: PublishCLRArtifact
@@ -274,6 +360,14 @@ stages:
       lfs: false
       path: $(TSQLT_REPO_DIR)
 
+    - task: PowerShell@2
+      name: CreateArtifactDir
+      inputs:
+        workingDirectory: $(Build.SourcesDirectory)/Build/
+        targetType: 'inline'
+        script: |
+          mkdir -p $(CLR_ARTIFACT_DIR)
+
     - task: DownloadPipelineArtifact@2
       inputs:
         buildType: 'current'
@@ -281,13 +375,21 @@ stages:
         itemPattern: '*.zip'
         targetPath: '$(CLR_ARTIFACT_DIR)'
 
-    - task: Ant@1
-      displayName: 'Ant -debug Build/tSQLt.build.xml'
+    - task: PowerShell@2
+      name: Build_tSQLt
       inputs:
-        buildFile: Build/tSQLt.build.xml
-        options: ' -D"commit.id"="$(Build.BuildId)" '
-        targets: all
-        publishJUnitResults: false
+        workingDirectory: $(Build.SourcesDirectory)/Build/
+        targetType: 'inline'
+        script: |
+          & ./tSQLt_Build.ps1
+
+    - task: PowerShell@2
+      name: Build_tSQLtTests
+      inputs:
+        workingDirectory: $(Build.SourcesDirectory)/Build/
+        targetType: 'inline'
+        script: |
+          & ./tSQLt_BuildTests.ps1
 
     - task: PowerShell@2
       name: CreateArtifact
@@ -295,25 +397,34 @@ stages:
         targetType: 'inline'
         failOnStderr: true
         script: |
-          $basePath = "$(Build.SourcesDirectory)\Build\output\tSQLtBuild\";
-          $artifactPath = ($basePath+"Artifact\");
+          $basePath = "$(Build.SourcesDirectory)/Build/output/";
+          $artifactPath = '$(TSQLTFILES_ARTIFACT_DIR)';
           New-Item -Path $artifactPath  -ItemType directory -Force
-          $artifactFiles = @("ReadMe.txt","CommitId.txt","CreateBuildLog.sql","GetFriendlySQLServerVersion.sql","tSQLt.tests.zip","tSQLtFacade.zip","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip","Version.txt");
-          Get-ChildItem -Path ($basePath + "*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
+          # $toBeCopied = @("Version.txt", "CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql", "CreateBuildLog.sql");
+          $artifactFiles = @("Version.txt","CommitId.txt", "tSQLt.Private_GetAssemblyKeyBytes.sql", "GetFriendlySQLServerVersion.sql","CreateBuildLog.sql","tSQLtFiles.zip","tSQLtSnippets(SQLPrompt).zip");
+          Get-ChildItem -Path ($basePath + "tSQLtBuild/*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
+          $artifactFiles = @("tSQLt.tests.zip");
+          Get-ChildItem -Path ($basePath + "tSQLtTests/*")  -Include $artifactFiles | Copy-Item -Destination "$artifactPath";
 
           Set-Content -Path ($artifactPath+"CommitId.txt") -Value "$(Build.SourceVersion)"
 
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtFilesArtifact
       inputs:
-        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)\Artifact'
+        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
         artifact: 'tSQLtFilesArtifact'
         publishLocation: 'pipeline'
+
+
+##########################################################################################################
+##         BUILD tSQLt - PART 2                                                                         ##
+##########################################################################################################
+
 
 - stage: Build_tSQLt_Part2
   dependsOn:
   - Build_tSQLt_Part1
-  - Create_VMs
+  - Create_Environments
 
   jobs:
   - job: Build_Dacpac
@@ -325,7 +436,7 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
-      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
         
     steps:
     - checkout: self
@@ -341,11 +452,29 @@ stages:
         targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
 
     - task: PowerShell@2
-      name: FacadeBuildDacpac
+      displayName: 'Install SqlServer Module'
       inputs:
+        pwsh: true
         targetType: 'inline'
         script: |
-          Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)"
+          # Check if the SqlServer module is installed
+          $module = "SqlServer"
+          if (-not (Get-Module -ListAvailable -Name $module)) {
+            # Install the SqlServer module
+            Install-Module -Name $module -Scope CurrentUser -Force -AllowClobber
+          }
+          Import-Module $module
+
+
+    - task: PowerShell@2
+      name: BuildDacpac
+      inputs:
+        pwsh: true
+        targetType: 'inline'
+        script: |
+          $BuildDir = (Join-Path "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)" "Build"|Resolve-Path);
+          Set-Location $BuildDir;
+          . (Join-Path $BuildDir 'SQLServerConnection.ps1');
 
           $inputObject = @'
           $(databaseAccessDetails)
@@ -358,17 +487,22 @@ stages:
           $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
 
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
-          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $SQLPwd = (ConvertTo-SecureString $myJsonObject.$SQLPwdKey -AsPlainText);
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+          $ApplicationName = "$(Build.DefinitionName)-$(Build.BuildId)-$(System.StageName)-$(System.JobId)"
+          $DatabaseName = "$(buildDatabase)_dacpac_src"
+          $SqlServerConnection = [SqlServerConnection]::new($FQDNAndPort,$SQLUserName,$SQLPwd,$ApplicationName);
 
-          .\Build\SetupDacpacBuild.ps1 -ErrorAction Stop 
-          .\Build\FacadeBuildDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
-          .\Build\BuildtSQLtDacpac.ps1 -ErrorAction Stop -ServerName "$FQDNAndPort" -DatabaseName "$(buildDatabase)_dacpac_src" -Login " -U $SQLUserName -P $SQLPwd" -SqlCmdPath "$(SQLCMDPath)" -SqlPackagePath "$(SQLPackagePath)"
+          $__ = New-Item -ItemType "directory" -Path "./output/tSQLtTests/"
+          # $__ = New-Item -ItemType "directory" -Path "./output/tSQLtBuild/"
+          Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLt.tests.zip') "./output/tSQLtTests/"
+          Move-Item (Join-Path '$(TSQLTFILES_ARTIFACT_DIR)' 'tSQLtFiles.zip') "./output/tSQLtBuild/"
+          & ./tSQLt_BuildDacpac.ps1 -SqlServerConnection $SqlServerConnection -DacPacDatabaseName $DatabaseName
 
     - task: PublishPipelineArtifact@1
       name: PublishtSQLtDacpacArtifact
       inputs:
-        targetPath: '$(DACPAC_ARTIFACT_DIR)'
+        targetPath: '$(DACPAC_BUILD_DIR)'
         artifact: 'tSQLtDacpacArtifact_$(System.JobName)'
         publishLocation: 'pipeline'
 
@@ -387,7 +521,7 @@ stages:
       inputs:
         buildType: 'current'
         artifactName: 'tSQLtFilesArtifact'
-        targetPath: '$(TSQLTFILES_ARTIFACT_DIR)'
+        targetPath: '$(Pipeline.Workspace)/tSQLtArtifactTmp'
 
     - task: DownloadPipelineArtifact@2
       name: DownloadtSQLtDacpacArtifact
@@ -397,15 +531,39 @@ stages:
         targetPath: '$(Pipeline.Workspace)/dacpacArtifactTmp'
 
     - task: PowerShell@2
-      name: CopyDacpacsToOutputDir
+      name: CopyFilesToOutputDirs
       inputs:
         targetType: 'inline'
         failOnStderr: true
         script: |  
+          $__ = New-Item -Path "$(TSQLT_BUILD_DIR)" -ItemType directory -Force;    
+          $__ = New-Item -Path "$(TSQLT_TESTS_DIR)" -ItemType directory -Force;    
+          $__ = New-Item -Path "$(DACPAC_BUILD_DIR)" -ItemType directory -Force;    
+
+          Get-ChildItem -Path "$(Pipeline.Workspace)/tSQLtArtifactTmp/" -Recurse;
+
+          $files = @(
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/Version.txt",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/CommitId.txt",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/CreateBuildLog.sql",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/GetFriendlySQLServerVersion.sql",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/tSQLtSnippets(SQLPrompt).zip",
+            "$(Pipeline.Workspace)/tSQLtArtifactTmp/tSQLtFiles.zip"
+          );
+          $files|%{Move-Item $_ "$(TSQLT_BUILD_DIR)"}
+          Move-Item (Join-Path '$(Pipeline.Workspace)/tSQLtArtifactTmp' 'tSQLt.tests.zip') "$(TSQLT_TESTS_DIR)"
+
           Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse;
-          New-Item -Path "$(DACPAC_ARTIFACT_DIR)" -ItemType directory -Force;    
-          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_ARTIFACT_DIR)"
-          Get-ChildItem -Path "$(DACPAC_ARTIFACT_DIR)" -Recurse;
+          Get-ChildItem -Path "$(Pipeline.Workspace)/dacpacArtifactTmp" -Filter *.dacpac -Recurse | Copy-Item -Destination "$(DACPAC_BUILD_DIR)"
+
+          Write-Host "CopyFilesToOutputDirs Results:"
+          Write-Host "----------------------------------------------------------------"
+          Get-ChildItem "$(TSQLT_BUILD_DIR)" -Recurse;
+          Write-Host "----------------------------------------------------------------"
+          Get-ChildItem "$(TSQLT_TESTS_DIR)" -Recurse;
+          Write-Host "----------------------------------------------------------------"
+          Get-ChildItem "$(DACPAC_BUILD_DIR)" -Recurse;
+          Write-Host "----------------------------------------------------------------"
 
     - task: PowerShell@2
       name: BuildtSQLtZip
@@ -413,7 +571,7 @@ stages:
         targetType: 'inline'
         script: |
           Set-Location "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)";
-          .\Build\BuildtSQLtZip.ps1
+          ./Build/tSQLt_BuildPackage.ps1
           Get-ChildItem -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)" -Recurse;
           Get-ChildItem -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)" -Recurse;
 
@@ -441,7 +599,7 @@ stages:
         script: |
           $CheckIfGitOk = {param($isOk);if(-not $isOk){Write-Host "##vso[task.logissue type=error]GIT Failed!";throw "GIT Failed!"}};          
 
-          Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
+          Set-Location "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/";
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
             git config --global user.email "$env:GITHUB_EMAIL"
@@ -460,11 +618,11 @@ stages:
 
             git rm -r *.*
             $CheckIfGitOk.invoke($?);
-            New-Item -Path "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\public" -ItemType directory -Force;    
-            New-Item -Path "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\validation" -ItemType directory -Force;    
+            New-Item -Path "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/public" -ItemType directory -Force;    
+            New-Item -Path "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/validation" -ItemType directory -Force;    
 
-            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)\*" -Destination "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\public" -Recurse -Verbose
-            Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)\*" -Destination "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\validation" -Recurse -Verbose
+            Copy-Item -Path "$(TSQLT_PUBLIC_ARTIFACT_DIR)/*" -Destination "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/public" -Recurse -Verbose
+            Copy-Item -Path "$(TSQLT_VALIDATION_ARTIFACT_DIR)/*" -Destination "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/validation" -Recurse -Verbose
 
             Get-ChildItem -Path "./public" -Recurse;
             Get-ChildItem -Path "./validation" -Recurse;
@@ -484,11 +642,17 @@ stages:
           } 
           git status
 
+
+##########################################################################################################
+##         VALIDATE                                                                                     ##
+##########################################################################################################
+
+
 - stage: Validate
   displayName: ValidateAll
   dependsOn:
   - Build_tSQLt_Part2
-  - Create_VMs
+  - Create_Environments
 
   jobs:
 
@@ -500,7 +664,7 @@ stages:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
 
     variables:
-      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]        
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]        
 
     steps:
     - checkout: self
@@ -545,10 +709,30 @@ stages:
 
 
     - task: PowerShell@2
-      name: SetupVariables
+      displayName: 'Install SqlServer Module'
       inputs:
+        pwsh: true
         targetType: 'inline'
         script: |
+          # Check if the SqlServer module is installed
+          $module = "SqlServer"
+          if (-not (Get-Module -ListAvailable -Name $module)) {
+            # Install the SqlServer module
+            Install-Module -Name $module -Scope CurrentUser -Force -AllowClobber
+          }
+          Import-Module $module
+
+
+    - task: PowerShell@2
+      name: tSQLtValidateBuild
+      inputs:
+        pwsh: true
+        targetType: 'inline'
+        script: |
+          $BuildDir = (Join-Path "$(Pipeline.Workspace)/$(TSQLT_REPO_DIR)" "Build"|Resolve-Path);
+          Set-Location $BuildDir;
+          . (Join-Path $BuildDir 'SQLServerConnection.ps1');
+
           $inputObject = @'
           $(databaseAccessDetails)
           '@;
@@ -560,32 +744,40 @@ stages:
           $FQDNAndPortKey = "$(System.JobName).CreateSQLVMEnvironment.FQDNAndPort";
 
           $SQLUserName = $myJsonObject.$SQLUserNameKey;
-          $SQLPwd = $myJsonObject.$SQLPwdKey;
+          $SQLPwd = (ConvertTo-SecureString $myJsonObject.$SQLPwdKey -AsPlainText);
           $FQDNAndPort = $myJsonObject.$FQDNAndPortKey;
+          $ApplicationName = "$(Build.DefinitionName)-$(Build.BuildId)-$(System.StageName)-$(System.JobId)"
+          $DatabaseName = "$(buildDatabase)_dacpac_src"
+          $SqlServerConnection = [SqlServerConnection]::new($FQDNAndPort,$SQLUserName,$SQLPwd,$ApplicationName);
 
-          Write-Host "##vso[task.setvariable variable=SQLUserName;isOutput=true]$SQLUserName"
-          Write-Host "##vso[task.setvariable variable=SQLPwd;isOutput=true]$SQLPwd"
-          Write-Host "##vso[task.setvariable variable=FQDNAndPort;isOutput=true]$FQDNAndPort"
+          $parameters = @{
+              SqlServerConnection = $SqlServerConnection
+              MainTestDb = 'tSQLt.TmpBuild.ValidateBuild'
+              DacpacTestDb = 'tSQLt.TmpBuild.ValidateDacPac'
+              ExampleTestDb = 'tSQLt.TmpBuild.ValidateExample'
+          }
 
-    - task: CmdLine@2
-      name: tSQLtValidateBuild
-      inputs:
-        script: |
-          cd /d $(Pipeline.Workspace)\$(TSQLT_REPO_DIR)
-          ECHO ON
-          SET SQLInstanceName=$(SetupVariables.FQDNAndPort)
-          SET DBName=$(buildDatabase)
-          SET DBLogin=-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)
-          SET SQLCMDPath=$(SQLCMDPath)
-          SET SQLPackagePath=$(SQLPackagePath)
-          echo %SQLInstanceName%
-          echo %DBName%
-          echo %SQLCMDPath%
-          echo %SQLPackagePath%
-          type %0
+          & ./tSQLt_Validate.ps1 @parameters
 
-          Build\LocalValidateBuild.bat "." "." "%SQLCMDPath%" "%SQLInstanceName%" tSQLt_Dev " %DBLogin%" "%SQLPackagePath%" -v || goto :error
-          :error
+    # - task: CmdLine@2
+    #   name: tSQLtValidateBuild
+    #   inputs:
+    #     script: |
+    #       cd /d $(Pipeline.Workspace)/$(TSQLT_REPO_DIR)
+    #       ECHO ON
+    #       SET SQLInstanceName=$(SetupVariables.FQDNAndPort)
+    #       SET DBName=$(buildDatabase)
+    #       SET DBLogin=-U $(SetupVariables.SQLUserName) -P $(SetupVariables.SQLPwd)
+    #       SET SQLCMDPath=$(SQLCMDPath)
+    #       SET SQLPackagePath=$(SQLPackagePath)
+    #       echo %SQLInstanceName%
+    #       echo %DBName%
+    #       echo %SQLCMDPath%
+    #       echo %SQLPackagePath%
+    #       type %0
+
+    #       Build/LocalValidateBuild.bat "." "." "%SQLCMDPath%" "%SQLInstanceName%" tSQLt_Dev " %DBLogin%" "%SQLPackagePath%" -v || goto :error
+    #       :error
 
 
     - task: PublishTestResults@2
@@ -618,7 +810,7 @@ stages:
           
           $TagName = "$(SQLVersionEdition)_$(Build.BuildId)"
 
-          Set-Location "$(Pipeline.Workspace)\$(ARTIFACT_REPO_DIR)\";
+          Set-Location "$(Pipeline.Workspace)/$(ARTIFACT_REPO_DIR)/";
 
           Write-Host ("ArtifactBranchName: {0}" -f "$(ArtifactBranchName)"); 
           try{
@@ -639,17 +831,24 @@ stages:
             throw "git failed. See prior errors.";
           }  
 
-    ##--##--##--##--##--##--##--##--##--##---##--##--##--##--##--##--##--##--##--##
+
+##########################################################################################################
+##         DELETE RESOURCES                                                                             ##
+##########################################################################################################
+
 
 - stage: Delete_Resources
   displayName: Delete Pipeline Resources
   dependsOn:
-  - Create_VMs
+  - Create_Environments
   - Validate
-  condition: always()
+
+  condition: not(eq(${{ parameters.CreateEnvOnly }}, true))
+
+  pool:
+    vmImage: 'windows-latest'
 
   jobs:
-
   - job: Delete_VM
 
     strategy:
@@ -657,11 +856,16 @@ stages:
         ${{ each version in parameters.VMMatrix }}:
           ${{ format('{0}', version.name) }}:
             SQLVersionEdition: ${{ version.SQLVersionEdition }}
-
+  
     variables:
-      databaseAccessDetails: $[convertToJson(stageDependencies.Create_VMs.Create_VM.outputs)]
+      databaseAccessDetails: $[convertToJson(stageDependencies.Create_Environments.Create.outputs)]
         
     steps:
+    - checkout: self
+      clean: true
+      lfs: false
+      path: $(TSQLT_REPO_DIR)
+
     - task: AzureCLI@2
       name: DeleteAzureVM
       inputs:
@@ -670,15 +874,18 @@ stages:
         scriptType: ps
         scriptLocation: inlineScript
         inlineScript: |
+          Set-Location (Join-Path "$(Pipeline.Workspace)" "$(TSQLT_REPO_DIR)")
+          $cfam = (Join-Path "./Build/" "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+          Write-Host "Attempting to load module from: $cfam"
+          Import-Module "$cfam" -Force
+          Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
+
           $inputObject = @'
           $(databaseAccessDetails)
           '@;
           $myJsonObject = ConvertFrom-JSON -InputObject $inputObject;
           $ResourceGroupNameKey = "$(System.JobName).CreateResourceGroupName.ResourceGroupName";
           $ResourceGroupName = $myJsonObject.$ResourceGroupNameKey;          
-    
-          Set-Location $(Build.Repository.LocalPath)
-          .("Build/CommonFunctionsAndMethods.ps1")
-    
+        
           $ResourceGroupName | Log-Output;
           az group delete --name $ResourceGroupName --yes

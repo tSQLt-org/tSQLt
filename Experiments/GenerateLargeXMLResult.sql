@@ -1,0 +1,3 @@
+
+SELECT (SELECT * FROM sys.all_objects CROSS JOIN (SELECT TOP(1) ROW_NUMBER()OVER(ORDER BY (SELECT 1)) n FROM sys.all_objects) n  FOR XML PATH(''),TYPE,ROOT('GH'))
+

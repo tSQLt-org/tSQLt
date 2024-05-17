@@ -1,0 +1,3 @@
+../Build/temp/tSQLtTests/ResetValidationServer.tmp.sql
+../Build/SQL/ForceDropTempProcedures.sql
+../Build/SQL/CreateLogin(tSQLt.Build).sql

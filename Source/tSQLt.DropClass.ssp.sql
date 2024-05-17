@@ -80,7 +80,7 @@ BEGIN
       FROM StatementBlob;
 
     EXEC(@Cmd);
-END;
 /*SnipEnd: CreateDropClassStatement.ps1*/
+END;
 ---Build-
 GO

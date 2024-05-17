@@ -19,15 +19,18 @@ Param(
     [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string] $VMPriority
 );
 
-$scriptpath = $MyInvocation.MyCommand.Path;
-$dir = Split-Path $scriptpath;
-$projectDir = Split-Path (Split-Path $dir);
+Write-Host "Starting execution of CreateSQLVM_azcli.ps1"
+$__=$__ #quiesce warnings
+$invocationDir = $PSScriptRoot
+Push-Location -Path $invocationDir
+$cfam = (Join-Path (Join-Path $invocationDir "../../Build/") "CommonFunctionsAndMethods.psm1" | Resolve-Path)
+Write-Host "Attempting to load module from: $cfam"
+Import-Module "$cfam" -Force -Verbose
+Get-Module -Name CommonFunctionsAndMethods  # Verify if module is loaded
 
-.($projectDir+"\Build\CommonFunctionsAndMethods.ps1")
 
 Log-Output "<-><-><-><-><-><-><-><-><-><-><-><-><-><->";
-Log-Output "FileLocation: ", $dir;
-Log-Output "Project Location: ", $projectDir;
+Log-Output "FileLocation: ", $invocationDir;
 Log-Output "Parameters: ---------------------------";
 Log-Output "Location:", $Location;
 Log-Output "Size:", $Size;
@@ -64,20 +67,22 @@ $SQLVersionEditionHash = @{
     "2008R2Std"=@{"sqlversion"="2008R2";"offer"="SQL2008R2SP3-WS2008R2SP1";"publisher"="microsoftsqlserver";"sku"="Standard";"osType"="Windows";"version"="latest";"bicep"="CreateSqlVirtualMachineTemplate-2008R2.bicep"}; #MicrosoftSQLServer:SQL2008R2SP3-WS2008R2SP1:Standard:latest
     "2012Ent"=@{"sqlversion"="2012";"offer"="SQL2012SP4-WS2012R2";"publisher"="microsoftsqlserver";"sku"="Enterprise";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:SQL2012SP4-WS2012R2:Enterprise:latest
     "2014"=@{"sqlversion"="2014";"offer"="sql2014sp3-ws2012r2";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2014sp3-ws2012r2:sqldev:latest
-    "2016"=@{"sqlversion"="2016";"offer"="SQL2016SP2-WS2016";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2016sp2-ws2019:sqldev:latest
+    "2016"=@{"sqlversion"="2016";"offer"="sql2016sp3-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2016sp2-ws2019:sqldev:latest
     "2017"=@{"sqlversion"="2017";"offer"="sql2017-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"}; #MicrosoftSQLServer:sql2017-ws2019:sqldev:latest
-    "2019"=@{"sqlversion"="2019";"offer"="sql2019-ws2019";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2019-ws2019:sqldev:latest
+    "2019"=@{"sqlversion"="2019";"offer"="sql2019-ws2022";"publisher"="microsoftsqlserver";"sku"="sqldev";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2019-ws2019:sqldev:latest
+    "2022"=@{"sqlversion"="2022";"offer"="sql2022-ws2022";"publisher"="microsoftsqlserver";"sku"="sqldev-gen2";"osType"="Windows";"version"="latest";"bicep"="CreateSQLVirtualMachineTemplate.bicep"} #MicrosoftSQLServer:sql2022-ws2022:sqldev:latest
 };
 
 $SQLVersionEditionInfo = $SQLVersionEditionHash.$SQLVersionEdition;
 $ImageUrn = $SQLVersionEditionInfo.publisher+":"+$SQLVersionEditionInfo.offer+":"+$SQLVersionEditionInfo.sku+":"+$SQLVersionEditionInfo.version;
-$TemplateFile = $dir + "/" + $SQLVersionEditionInfo.bicep;
+$TemplateFile = (Join-Path $invocationDir  $SQLVersionEditionInfo.bicep | Resolve-Path);
 Log-Output "ImageUrn:  ", $ImageUrn;
 Log-Output "SQLVersionEditionInfo:  ", $SQLVersionEditionInfo;
 Log-Output "TemplateFile: ", $TemplateFile;
 
 Log-Output "START: Creating Resource Group $ResourceGroupName";
-$output = az group create --location "$Location" --name "$ResourceGroupName" | ConvertFrom-Json;
+
+$output = az group create --location "$Location" --name "$ResourceGroupName" --tags Department="tSQLtCI" Ephemeral="True" | ConvertFrom-Json;
 if (!$output) {
     Write-Error "Error creating Resource Group";
     return
@@ -177,7 +182,8 @@ $SQLVM|Out-String|Log-Output;
 Log-Output 'DONE: Applying SqlVM Config'
 
 Log-Output 'START: Prep SQL Server for tSQLt Build'
-$DS = Invoke-Sqlcmd -InputFile "$dir/GetSQLServerVersion.sql" -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
+$GetSQLServerVersionPath = (Join-Path $invocationDir "GetSQLServerVersion.sql" | Resolve-Path)
+$DS = Invoke-Sqlcmd -InputFile $GetSQLServerVersionPath -ServerInstance "$FQDN,$SQLPort" -Username "$SQLUserName" -Password "$SQLPwd" -As DataSet -TrustServerCertificate
 $DS.Tables[0].Rows | %{ Log-Output "{ $($_['LoginName']), $($_['TimeStamp']), $($_['VersionDetail']), $($_['ProductVersion']), $($_['ProductLevel']), $($_['SqlVersion']), $($_['ServerCollation']) }" }
 
 $ActualSQLVersion = $DS.Tables[0].Rows[0]['SqlVersion'];

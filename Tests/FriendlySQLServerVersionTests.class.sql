@@ -138,6 +138,17 @@ BEGIN
   EXEC tSQLt.AssertEqualsTable '#Expected','#Actual';
 END;
 GO
+--[@tSQLt:MaxSqlMajorVersion](16)
+--[@tSQLt:MinSqlMajorVersion](16)
+CREATE PROCEDURE FriendlySQLServerVersionTests.[test returns 2022 for the actual ProductVersion on 2022]
+AS
+BEGIN
+  DECLARE @CurrentProductVersion NVARCHAR(128) = CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128));
+  EXEC FriendlySQLServerVersionTests.AssertReturnsCorrectFriendlyVersion 
+         @Productversion = @CurrentProductVersion,
+         @ExpectedVersion = '2022';
+END;
+GO
 --[@tSQLt:MaxSqlMajorVersion](15)
 --[@tSQLt:MinSqlMajorVersion](15)
 CREATE PROCEDURE FriendlySQLServerVersionTests.[test returns 2019 for the actual ProductVersion on 2019]

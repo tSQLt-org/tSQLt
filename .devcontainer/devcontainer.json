@@ -1,0 +1,69 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-in-docker
+{
+	"name": "Docker in Docker",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	//"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+    //"image": "mcr.microsoft.com/mssql/server:2022-latest",
+    // "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"build": {
+		// Path is relataive to the devcontainer.json file.
+		"dockerfile": "Dockerfile"
+	},
+
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest",
+			"enableNonRootDocker": "true",
+			"moby": "true"
+		},
+		// "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+		"ghcr.io/devcontainers/features/dotnet:1": {},
+		"ghcr.io/devcontainers/features/git:1": {},
+		// "ghcr.io/devcontainers/features/git-lfs:1": {},
+		// "ghcr.io/devcontainers/features/github-cli:1": {},
+		// "ghcr.io/devcontainers/features/go:1": {},
+		//  "ghcr.io/devcontainers/features/powershell:1": {},
+		// "ghcr.io/devcontainers/features/python:1": {},
+	},
+
+	// Use this environment variable if you need to bind mount your local source code into a new container.
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [],
+
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"remote.autoForwardPorts": false
+			  },
+			"extensions": [
+				"ms-mssql.mssql",
+				"redhat.vscode-yaml",
+				"ms-vscode.powershell",
+				"ms-azuretools.vscode-docker",
+				"ms-mssql.sql-bindings-vscode",
+				"ms-mssql.sql-database-projects-vscode",
+				"ms-mssql.data-workspace-vscode",
+				"github.vscode-github-actions",
+				"ms-dotnettools.csdevkit",
+				"ms-vscode.powershell",
+				"ms-azuretools.vscode-bicep",
+			]
+		}
+	},
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": ["/bin/sh", "-c", "whoami && pwd && chmod 777 ./.devcontainer/postCreateCommand.sh && ./.devcontainer/postCreateCommand.sh"], // 
+
+	// Use 'postStartCommand' to run commands after the container is created.
+	"postStartCommand": ["/bin/sh", "-c", "whoami && pwd && chmod 777 ./.devcontainer/postStartCommand.sh && ./.devcontainer/postStartCommand.sh"], // 
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
+
+
