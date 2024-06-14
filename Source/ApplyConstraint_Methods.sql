@@ -1,4 +1,6 @@
 IF OBJECT_ID('tSQLt.Private_GetQuotedTableNameForConstraint') IS NOT NULL DROP FUNCTION tSQLt.Private_GetQuotedTableNameForConstraint;
+IF OBJECT_ID('tSQLt.Private_GetUniqueIndexDefinition') IS NOT NULL) DROP FUNCTION tSQLt.Private_GetUniqueIndexDefinition;
+IF OBJECT_ID('tSQLt.Private_ApplyUniqueIndex') IS NOT NULL) DROP PROCEDURE tSQLt.Private_ApplyUniqueIndex;
 IF OBJECT_ID('tSQLt.Private_FindConstraint') IS NOT NULL DROP FUNCTION tSQLt.Private_FindConstraint;
 IF OBJECT_ID('tSQLt.Private_ResolveApplyConstraintParameters') IS NOT NULL DROP FUNCTION tSQLt.Private_ResolveApplyConstraintParameters;
 IF OBJECT_ID('tSQLt.Private_ApplyCheckConstraint') IS NOT NULL DROP PROCEDURE tSQLt.Private_ApplyCheckConstraint;
@@ -29,6 +31,69 @@ RETURN
        AND constraints.object_id = @ConstraintObjectId;
 GO
 
+CREATE FUNCTION tSQLt.Private_GetUniqueIndexDefinition
+(
+    @ConstraintObjectId INT,
+    @QuotedTableName NVARCHAR(MAX)
+)
+RETURNS TABLE
+AS
+RETURN
+  SELECT 'CREATE UNIQUE ' + 
+		 IX.type_desc +
+		 ' INDEX '+
+         QUOTENAME(tSQLt.Private::CreateUniqueObjectName() + '_' + IX.name) COLLATE SQL_Latin1_General_CP1_CI_AS+
+         ' ON ' +
+         @QuotedTableName +
+         ' ' +
+         '(' +
+         STUFF((
+                 SELECT ','+QUOTENAME(C.name)+CASE IC.is_descending_key WHEN 1 THEN ' DESC' ELSE ' ASC' END
+                   FROM sys.index_columns AS IC
+                   JOIN sys.columns AS C
+                     ON IC.object_id = C.object_id
+                    AND IC.column_id = C.column_id
+                  WHERE IX.index_id = IC.index_id
+                    AND IX.object_id = IC.object_id
+                    FOR XML PATH(''),TYPE
+               ).value('.','NVARCHAR(MAX)'),
+               1,
+               1,
+               ''
+              ) +
+         ')' + ISNULL(' WHERE ' + filter_definition,'') + ';' AS CreateConstraintCmd
+    FROM sys.indexes AS IX
+   WHERE IX.object_id = @ConstraintObjectId
+   AND IX.is_unique = 1
+   AND IX.is_unique_constraint = 0
+   AND IX.is_primary_key = 0;
+GO
+
+CREATE PROCEDURE tSQLt.Private_ApplyUniqueIndex
+  @ConstraintObjectId INT
+AS
+BEGIN
+  DECLARE @SchemaName NVARCHAR(MAX);
+  DECLARE @OrgTableName NVARCHAR(MAX);
+  DECLARE @TableName NVARCHAR(MAX);
+  DECLARE @ConstraintName NVARCHAR(MAX);
+  DECLARE @CreateConstraintCmd NVARCHAR(MAX);
+
+  SELECT @SchemaName = OBJECT_SCHEMA_NAME(OBJECT_ID(OriginalName)),
+         @OrgTableName = OBJECT_ID(OriginalName),
+         @TableName = OBJECT_NAME(OBJECT_ID(OriginalName)),
+         @ConstraintName = OBJECT_NAME(@ConstraintObjectId)
+    FROM tSQLt.Private_RenamedObjectLog
+   WHERE ObjectId = @ConstraintObjectId;
+  
+
+  SELECT @CreateConstraintCmd = CreateConstraintCmd
+    FROM tSQLt.Private_GetUniqueIndexDefinition(@ConstraintObjectId, QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName));
+
+  EXEC (@CreateConstraintCmd);
+END;
+GO
+
 CREATE FUNCTION tSQLt.Private_FindConstraint
 (
   @TableObjectId INT,
@@ -42,7 +107,16 @@ RETURN
     CROSS JOIN tSQLt.Private_GetOriginalTableInfo(@TableObjectId) orgTbl
    WHERE @ConstraintName IN (constraints.name, QUOTENAME(constraints.name))
      AND constraints.parent_object_id = orgTbl.OrgTableObjectId
-   ORDER BY LEN(constraints.name) ASC;
+   UNION ALL
+  SELECT TOP(1) indexes.object_id AS ConstraintObjectId, 'UNIQUE_INDEX' AS ConstraintType
+    FROM sys.indexes AS indexes
+    CROSS JOIN tSQLt.Private_GetOriginalTableInfo(@TableObjectId) orgTbl
+   WHERE @ConstraintName IN (indexes.name, QUOTENAME(indexes.name))
+     AND indexes.object_id = orgTbl.OrgTableObjectId
+     AND indexes.is_unique = 1
+     AND indexes.is_unique_constraint = 0
+     AND indexes.is_primary_key = 0
+   ORDER BY ConstraintType ASC;
 GO
 
 CREATE FUNCTION tSQLt.Private_ResolveApplyConstraintParameters
@@ -202,6 +276,12 @@ BEGIN
     RETURN 0;
   END;  
    
+  IF @ConstraintType = 'UNIQUE_INDEX'
+  BEGIN
+    EXEC tSQLt.Private_ApplyUniqueIndex @ConstraintObjectId;
+    RETURN 0;
+  END;  
+  
   RAISERROR ('ApplyConstraint could not resolve the object names, ''%s'', ''%s''. Be sure to call ApplyConstraint and pass in two parameters, such as: EXEC tSQLt.ApplyConstraint ''MySchema.MyTable'', ''MyConstraint''', 
              16, 10, @TableName, @ConstraintName);
   RETURN 0;
