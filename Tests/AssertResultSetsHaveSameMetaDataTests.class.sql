@@ -195,3 +195,42 @@ BEGIN
 END;
 GO
 
+CREATE PROC tSQLt_test_AssertResultSetsHaveSameMetaData.[test AssertResultSetsHaveSameMetaData does not fail for multiple identical single column result sets]
+AS
+BEGIN
+    EXEC tSQLt.AssertResultSetsHaveSameMetaData
+         'SELECT CAST(1 AS INT) A; SELECT CAST(1.02 AS DECIMAL(10,2)) A',
+         'SELECT CAST(3 AS INT) A; SELECT CAST(3.05 AS DECIMAL(10,2)) A';
+    EXEC tSQLt.AssertResultSetsHaveSameMetaData
+         'SELECT CAST(1.02 AS DECIMAL(10,2)) A; SELECT CAST(''ABC'' AS VARCHAR(15)) A',
+         'SELECT CAST(3.05 AS DECIMAL(10,2)) A; SELECT CAST(''XYZ'' AS VARCHAR(15)) A';
+    EXEC tSQLt.AssertResultSetsHaveSameMetaData
+         'SELECT CAST(1 AS INT) A; SELECT CAST(''ABC'' AS VARCHAR(15)) A; SELECT CAST(1.02 AS DECIMAL(10,2)) A',
+         'SELECT CAST(3 AS INT) A; SELECT CAST(''XYZ'' AS VARCHAR(15)) A; SELECT CAST(3.05 AS DECIMAL(10,2)) A';
+    EXEC tSQLt.AssertResultSetsHaveSameMetaData
+         'SELECT NULL A; SELECT NULL B; SELECT NULL C; SELECT NULL D',
+         'SELECT NULL A; SELECT NULL B; SELECT NULL C; SELECT NULL D';
+END;
+GO
+
+CREATE PROC tSQLt_test_AssertResultSetsHaveSameMetaData.[test AssertResultSetsHaveSameMetaData fails for multiple differing single column result sets]
+AS
+BEGIN
+    EXEC tSQLt_testutil.assertFailCalled
+         'EXEC tSQLt.AssertResultSetsHaveSameMetaData
+             ''SELECT CAST(1 AS INT) A; SELECT CAST(1 AS INT) A'',
+             ''SELECT CAST(1 AS INT) A; SELECT CAST(3 AS BIGINT) A'';',
+         'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with differing 2nd resultsets [INT and BIGINT]';
+    EXEC tSQLt_testutil.assertFailCalled
+         'EXEC tSQLt.AssertResultSetsHaveSameMetaData
+             ''SELECT CAST(1 AS INT) A; SELECT CAST(3 AS BIGINT) A; SELECT CAST(1.02 AS DECIMAL(10,2)) A'',
+             ''SELECT CAST(1 AS INT) A; SELECT CAST(3 AS BIGINT) A; SELECT CAST(3.05 AS DECIMAL(10,9)) A'';',
+         'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with differing 3rd resultsets [DECIMAL(10,2) and DECIMAL(10,9)]';
+    EXEC tSQLt_testutil.assertFailCalled
+         'EXEC tSQLt.AssertResultSetsHaveSameMetaData
+             ''SELECT CAST(''''ABC'''' AS VARCHAR(15)) A; SELECT CAST(3 AS BIGINT) A; SELECT CAST(1.02 AS DECIMAL(10,2)) A'',
+             ''SELECT CAST(''''XYZ'''' AS VARCHAR(23)) A; SELECT CAST(3 AS BIGINT) A; SELECT CAST(1.02 AS DECIMAL(10,2)) A'';',
+         'Expected tSQLt.Fail called when AssertResultSetsHaveSameMetaData called with differing 1st resultsets [VARCHAR(15) and VARCHAR(23)]';
+END;
+GO
+
