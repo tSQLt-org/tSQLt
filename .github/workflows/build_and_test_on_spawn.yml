@@ -184,7 +184,7 @@ jobs:
           Write-Host "✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ✨   ";
 
       - name: download tSQLtBuildArtifact artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: tSQLtBuildArtifact
           path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLtBuild"
@@ -226,13 +226,13 @@ jobs:
           path: tSQLt
 
       - name: download tSQLtBuildArtifact artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: tSQLtBuildArtifact
           path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLtBuild"
 
       - name: download tSQLt dacpac artifact(s)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: dacpacs
           path: "${{ github.workspace }}\\tSQLt\\Build\\output\\DacpacBuild"
@@ -290,13 +290,13 @@ jobs:
           path: tSQLt
 
       - name: download public tSQLt artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: tSQLtPublic
           path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLt\\public"
 
       - name: download validation tSQLt artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: tSQLtValidation
           path: "${{ github.workspace }}\\tSQLt\\Build\\output\\tSQLt\\validation"
