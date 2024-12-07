@@ -42,7 +42,7 @@ RETURN
            THEN 'WITH(STATISTICS_ONLY = -1)'
            ELSE ''
          END +
-         ';' AS create_cmd
+         ';' COLLATE DATABASE_DEFAULT AS create_cmd
     FROM tSQLt.Private_SysIndexes AS I
    CROSS APPLY
    (
