@@ -6,6 +6,9 @@
   ],
 "settings": {
   "powershell.codeFormatting.addWhitespaceAroundPipe": true,
-  "yaml.schemaStore.enable": false
+"yaml.schemaStore.enable": false,
+"dataworkspace.excludedProjects": [
+],
+"dotnet.preferCSharpExtension": true
 }
 }

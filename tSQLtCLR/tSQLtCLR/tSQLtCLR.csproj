@@ -1,136 +1,48 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
+  <Target Name="SetBaseVersion" BeforeTargets="SetVersion">
+    <PropertyGroup>
+      <BaseVersionMajor>1</BaseVersionMajor>
+      <BaseVersionMinor>1</BaseVersionMinor>
+    </PropertyGroup>
+  </Target>
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{309A14D6-7C8A-4022-BC2C-409FD7FE48AB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>tSQLtCLR</RootNamespace>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-    <AssemblyName>tSQLtCLR</AssemblyName>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
-    <TargetFrameworkProfile />
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFramework>net40</TargetFramework>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <AssemblyTitle>tSQLtCLR</AssemblyTitle>
+    <AssemblyDescription>The CLR for the tSQLt unit testing framework</AssemblyDescription>
+    <Company>tSQLt Foundation</Company>
+    <Product>tSQLt</Product>
+    <Copyright>Copyright © sqlity.net 2010 - $(Year)</Copyright>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>true</CLSCompliant>
+    <AssemblyConfiguration>Release</AssemblyConfiguration>
+    <AssemblyCulture></AssemblyCulture>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(tSQLtOfficialSigningKey)</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'CruiseControl|AnyCPU'">
-    <OutputPath>bin\CruiseControl\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NoSigningForCI|AnyCPU'">
-    <OutputPath>bin\NoSigningForCI\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+  <Target Name="SetYear" BeforeTargets="BeforeBuild">
+    <PropertyGroup>
+      <Year>$([System.DateTime]::Now.Year)</Year>
+    </PropertyGroup>
+  </Target>
+  <Target Name="SetVersion" BeforeTargets="BeforeBuild">
+    <PropertyGroup>
+      <BaseDate>2000-01-01T00:00:00Z</BaseDate>
+      <BaseDateTicks>$([System.DateTime]::Parse($(BaseDate)).Ticks)</BaseDateTicks>
+      <NowTicks>$([System.DateTime]::UtcNow.Ticks)</NowTicks>
+      <DiffTicks>$([MSBuild]::Subtract($(NowTicks), $(BaseDateTicks)))</DiffTicks>
+      <DaysSince2000>$([System.TimeSpan]::FromTicks($(DiffTicks)).Days)</DaysSince2000>
+      <CurrentTimeInSeconds>$([System.DateTime]::Now.TimeOfDay.TotalSeconds)</CurrentTimeInSeconds>
+      <HalfSecondsSinceMidnight>$([System.Convert]::ToInt32($([MSBuild]::Divide($(CurrentTimeInSeconds), 2))))</HalfSecondsSinceMidnight>
+      <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(BaseVersionMajor).$(BaseVersionMinor).$(DaysSince2000).$(HalfSecondsSinceMidnight)</AssemblyVersion>
+      <FileVersion Condition="'$(FileVersion)' == ''">$(AssemblyVersion)</FileVersion>
+      <!-- ReadFinalVersion: monodis &#x2D;&#x2D;assembly /workspaces/tSQLt/tSQLtCLR/tSQLtCLR/bin/Debug/net40/tSQLtCLR.dll | grep Version | awk '{print $2}' -->
+      <!-- &#x2D; = "-" -->
+    </PropertyGroup>
+  </Target>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Annotations.cs" />
-    <Compile Include="AssemblyCopyright.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AssemblyCopyright.tt</DependentUpon>
-    </Compile>
-    <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="CommandExecutor.cs" />
-    <Compile Include="CommandExecutorException.cs" />
-    <Compile Include="OutputCaptor.cs" />
-    <Compile Include="tSQLtPrivate.cs" />
-    <Compile Include="InvalidResultSetException.cs" />
-    <Compile Include="MetaDataEqualityAsserter.cs" />
-    <Compile Include="ResultSetFilter.cs" />
-    <Compile Include="StoredProcedures.cs" />
-    <Compile Include="TestDatabaseFacade.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="AssemblyCopyright.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AssemblyCopyright.cs</LastGenOutput>
-    </None>
-    <None Include="PostBuild.bat" />
-    <None Include="sql.proj">
-      <InProject>false</InProject>
-    </None>
-    <None Include="typeconversion.xml">
-      <InProject>false</InProject>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
-      <Visible>False</Visible>
-      <ProductName>Windows Installer 3.1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
-  <PropertyGroup>
-    <PostBuildEvent>IF ($(ConfigurationName))==(Release) "$(SolutionDir)tSQLtCLR\PostBuild.bat" "$(SolutionDir)" "$(TargetPath)"</PostBuildEvent>
-  </PropertyGroup>
 </Project>

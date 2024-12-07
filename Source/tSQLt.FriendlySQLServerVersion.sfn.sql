@@ -12,6 +12,7 @@ RETURN
   SELECT 
       @ProductVersion ProductVersion, 
       CASE 
+        WHEN SSV.Major = '16' THEN '2022' 
         WHEN SSV.Major = '15' THEN '2019' 
         WHEN SSV.Major = '14' THEN '2017' 
         WHEN SSV.Major = '13' THEN '2016' 
