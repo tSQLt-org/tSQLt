@@ -8,13 +8,20 @@ CREATE FUNCTION tSQLt.Private_CreateFakeTableStatement(
   @Identity BIT,
   @ComputedColumns BIT,
   @Defaults BIT,
-  @PreserveNOTNULL BIT
+  @PreserveNOTNULL BIT,
+  @IsNode BIT = 0,
+  @IsEdge BIT = 0
 )
 RETURNS TABLE
 AS
 RETURN
   SELECT 
-      'CREATE TABLE ' + @FullFakeTableName + '(' + STUFF(Cols,1,1,'') + ')' CreateTableStatement,
+      'CREATE TABLE ' + @FullFakeTableName + '(' + STUFF(Cols,1,1,'') 
+        + CASE 
+          WHEN @IsNode = 1 THEN ') AS NODE'
+          WHEN @IsEdge = 1 THEN ') AS EDGE'
+          ELSE ')'
+        END CreateTableStatement,
       'CREATE TYPE ' + @FullFakeTableName + ' AS TABLE(' + STUFF(Cols,1,1,'') + ')' CreateTableTypeStatement
     FROM 
     (

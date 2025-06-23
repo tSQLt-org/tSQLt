@@ -7,12 +7,14 @@ CREATE PROCEDURE tSQLt.Private_CreateFakeOfTable
   @OrigTableObjectId INT,
   @Identity BIT,
   @ComputedColumns BIT,
-  @Defaults BIT
+  @Defaults BIT,
+  @IsNode BIT = 0,
+  @IsEdge BIT = 0
 AS
 BEGIN
    DECLARE @cmd NVARCHAR(MAX) =
      (SELECT CreateTableStatement 
-        FROM tSQLt.Private_CreateFakeTableStatement(@OrigTableObjectId, @SchemaName+'.'+@TableName,@Identity,@ComputedColumns,@Defaults,0));
+        FROM tSQLt.Private_CreateFakeTableStatement(@OrigTableObjectId, @SchemaName+'.'+@TableName,@Identity,@ComputedColumns,@Defaults,0, @IsNode, @IsEdge));
    EXEC (@cmd);
 END;
 ---Build-
