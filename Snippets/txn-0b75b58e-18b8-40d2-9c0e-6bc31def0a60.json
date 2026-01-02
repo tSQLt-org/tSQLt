@@ -1,0 +1,6 @@
+{
+  "id": "0b75b58e-18b8-40d2-9c0e-6bc31def0a60",
+  "prefix": "txn",
+  "description": "tSQLt.ExpectNoException [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "EXEC tSQLt.ExpectNoException;\n"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "b5b03738-987b-4049-91fa-7d78c298e7e1",
+  "prefix": "idt",
+  "description": "IF EXISTS DROP: Table -  [provided by @sqlity]",
+  "body": "IF OBJECT_ID('$CURSOR$') IS NOT NULL DROP TABLE ;"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "e83dcd46-f555-4a3c-9139-2e2199fe2f33",
+  "prefix": "trf",
+  "description": "tSQLt.ResultSetFilter [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "EXEC tSQLt.ResultSetFilter @ResultsetNo = 1, @Command = '$CURSOR$';"
+}

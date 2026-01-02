@@ -1,0 +1,6 @@
+{
+  "id": "519e7ad1-caef-46bc-a16f-439adf762cad",
+  "prefix": "ids",
+  "description": "IF EXISTS DROP: Synonym -  [provided by @sqlity]",
+  "body": "IF OBJECT_ID('$CURSOR$') IS NOT NULL DROP SYNONYM ;"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "c2a18766-36e2-4628-b9a2-16887c69d164",
+  "prefix": "tpc",
+  "description": "tSQLt: Test Pattern - Current Event [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "DECLARE @actual DATETIME2;\nDECLARE @after DATETIME2;\nDECLARE @before DATETIME2;\n\nSET @before = SYSUTCDATETIME();  \n\nEXEC $CURSOR$\n\nSET @after = SYSUTCDATETIME();  \n\nSELECT  @actual = \nFROM    \n\nIF(@actual < @before OR @actual > @after OR @actual IS NULL)\nBEGIN\n  DECLARE @msg NVARCHAR(MAX) = \n    'Expected:'+\n    CONVERT(NVARCHAR(MAX),@before,121)+\n    ' <= '+\n    ISNULL(CONVERT(NVARCHAR(MAX),@actual,121),'!NULL!')+\n    ' <= '+\n    CONVERT(NVARCHAR(MAX),@after,121);\n    EXEC tSQLt.Fail @msg;\nEND;\n\n"
+}

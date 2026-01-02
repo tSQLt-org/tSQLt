@@ -1,0 +1,6 @@
+{
+  "id": "f2efaf3b-c1ac-4b6c-b74d-afb0d5e3c20c",
+  "prefix": "idu",
+  "description": "IF EXISTS DROP: User - [provided by @sqlity]",
+  "body": "IF USER_ID('$CURSOR$') IS NOT NULL DROP USER ;"
+}

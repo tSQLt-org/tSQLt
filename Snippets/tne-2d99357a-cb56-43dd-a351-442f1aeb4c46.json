@@ -1,0 +1,6 @@
+{
+  "id": "2d99357a-cb56-43dd-a351-442f1aeb4c46",
+  "prefix": "tne",
+  "description": "tSQLt.AssertNotEquals [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "EXEC tSQLt.AssertNotEquals @Expected = '$CURSOR$', @Actual;"
+}

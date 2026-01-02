@@ -1,0 +1,6 @@
+{
+  "id": "e1d61823-f962-4817-b46b-1fa45d0f155e",
+  "prefix": "tco",
+  "description": "tSQLt.CaptureOutput [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "EXEC tSQLt.CaptureOutput '$CURSOR$';\n\nSELECT * \n  INTO #Actual\n  FROM tSQLt.CaptureOutputLog;\n\n"
+}

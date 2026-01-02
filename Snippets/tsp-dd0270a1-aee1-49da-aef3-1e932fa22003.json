@@ -1,0 +1,6 @@
+{
+  "id": "dd0270a1-aee1-49da-aef3-1e932fa22003",
+  "prefix": "tsp",
+  "description": "tSQLt.SpyProcedure [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "EXEC tSQLt.SpyProcedure @ProcedureName = '$CURSOR$', @CommandToExecute = NULL;"
+}

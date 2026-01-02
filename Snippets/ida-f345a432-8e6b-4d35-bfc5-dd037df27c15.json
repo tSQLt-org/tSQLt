@@ -1,0 +1,6 @@
+{
+  "id": "f345a432-8e6b-4d35-bfc5-dd037df27c15",
+  "prefix": "ida",
+  "description": "IF EXISTS DROP: Assembly - [provided by @sqlity]",
+  "body": "IF ASSEMBLYPROPERTY('$CURSOR$','CLRName') IS NOT NULL DROP ASSEMBLY ;"
+}

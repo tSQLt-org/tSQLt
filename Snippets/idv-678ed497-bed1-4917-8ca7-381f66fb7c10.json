@@ -1,0 +1,6 @@
+{
+  "id": "678ed497-bed1-4917-8ca7-381f66fb7c10",
+  "prefix": "idv",
+  "description": "IF EXISTS DROP: View -  [provided by @sqlity]",
+  "body": "IF OBJECT_ID('$CURSOR$') IS NOT NULL DROP VIEW ;\nGO\n"
+}

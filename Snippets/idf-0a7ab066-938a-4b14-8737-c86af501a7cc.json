@@ -1,0 +1,6 @@
+{
+  "id": "0a7ab066-938a-4b14-8737-c86af501a7cc",
+  "prefix": "idf",
+  "description": "IF EXISTS DROP: Function - [provided by @sqlity]",
+  "body": "IF OBJECT_ID('$CURSOR$') IS NOT NULL DROP FUNCTION ;\nGO\n"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "3e910591-b3d5-4f2d-9153-4d20b2f65656",
+  "prefix": "tal",
+  "description": "tSQLt.AssertLike [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "EXEC tSQLt.AssertLike @ExpectedPattern = '$CURSOR$', @Actual;"
+}

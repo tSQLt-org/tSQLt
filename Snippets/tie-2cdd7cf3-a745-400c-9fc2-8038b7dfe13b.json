@@ -1,0 +1,6 @@
+{
+  "id": "2cdd7cf3-a745-400c-9fc2-8038b7dfe13b",
+  "prefix": "tie",
+  "description": "tSQLt: INSERT INTO #Expected [tSQLt - Database Unit Testing for SQL Server. Get it at http://tsqlt.org]",
+  "body": "INSERT INTO #Expected\nVALUES($CURSOR$);"
+}
