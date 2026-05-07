@@ -57,10 +57,10 @@
 	},
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": ["/bin/sh", "-c", "whoami && pwd && chmod 777 ./.devcontainer/postCreateCommand.sh && ./.devcontainer/postCreateCommand.sh"], // 
+	"postCreateCommand": ["/bin/sh", "-c", "whoami && pwd && /bin/sh ./.devcontainer/postCreateCommand.sh"], //
 
 	// Use 'postStartCommand' to run commands after the container is created.
-	"postStartCommand": ["/bin/sh", "-c", "whoami && pwd && chmod 777 ./.devcontainer/postStartCommand.sh && ./.devcontainer/postStartCommand.sh"], // 
+	"postStartCommand": ["/bin/sh", "-c", "whoami && pwd && /bin/sh ./.devcontainer/postStartCommand.sh"], //
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"

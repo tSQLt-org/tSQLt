@@ -1,0 +1,74 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start SQL Server",
+            "type": "shell",
+            "command": "docker-compose -f '${workspaceFolder}/.devcontainer/sqlserver.yml' up -d && until sqlcmd -S localhost,1433 -U sa -P 'P@ssw0rd' -Q 'SELECT 1' -b > /dev/null 2>&1; do echo 'Waiting for SQL Server...'; sleep 2; done && echo 'SQL Server is ready'",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "Deploy: Build & Deploy tSQLt from Source",
+            "type": "shell",
+            "command": "& '${workspaceFolder}/Build/LocalBuild.ps1' -ServerName 'localhost,1433' -UserName 'sa' -Password (ConvertTo-SecureString 'P@ssw0rd' -AsPlainText -Force)",
+            "options": {
+                "shell": {
+                    "executable": "pwsh",
+                    "args": ["-Command"]
+                },
+                "cwd": "${workspaceFolder}/Build"
+            },
+            "dependsOn": ["Start SQL Server"],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "Test: Run tSQLt Unit Tests",
+            "type": "shell",
+            "command": "& '${workspaceFolder}/Build/LocalValidate.ps1' -ServerName 'localhost,1433' -UserName 'sa' -Password (ConvertTo-SecureString 'P@ssw0rd' -AsPlainText -Force)",
+            "options": {
+                "shell": {
+                    "executable": "pwsh",
+                    "args": ["-Command"]
+                },
+                "cwd": "${workspaceFolder}/Build"
+            },
+            "dependsOn": ["Start SQL Server"],
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        }
+    ]
+}
