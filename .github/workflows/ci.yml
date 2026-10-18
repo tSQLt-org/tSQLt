@@ -1,0 +1,170 @@
+# Builds tSQLt and runs the full validation suite against SQL Server on Linux.
+#
+# Mirrors the dev container setup (.devcontainer/): the CLR assemblies are signed
+# with a throwaway self-signed key, so the artifacts are for validation only and
+# must not be released.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: build and test (SQL Server ${{ matrix.sqlserver }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sqlserver: ['2017', '2019', '2022']
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:${{ matrix.sqlserver }}-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: 'Y'
+          # Must match SA_PASSWORD below (the env context is not available to services).
+          MSSQL_SA_PASSWORD: 'P@ssw0rd'
+
+    env:
+      # Ephemeral credentials for the service container and the self-signed signing key.
+      SA_PASSWORD: 'P@ssw0rd'
+      PFX_PASSWORD: 'P@ssw0rdP@ssw0rdP@ssw0rdP@ssw0rd'
+      SQL_SERVER: 'localhost,1433'
+
+    steps:
+      - name: Checkout tSQLt
+        uses: actions/checkout@v4
+
+      - name: Install SqlServer PowerShell module
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name SqlServer -Scope CurrentUser -AllowClobber -Force
+          Get-Module -ListAvailable SqlServer | Select-Object Name, Version | Format-Table
+
+      - name: Install sqlpackage
+        shell: bash
+        run: |
+          curl -sSL https://aka.ms/sqlpackage-linux -o "$RUNNER_TEMP/sqlpackage.zip"
+          mkdir -p "$RUNNER_TEMP/sqlpackage"
+          unzip -q "$RUNNER_TEMP/sqlpackage.zip" -d "$RUNNER_TEMP/sqlpackage"
+          chmod +x "$RUNNER_TEMP/sqlpackage/sqlpackage"
+          echo "$RUNNER_TEMP/sqlpackage" >> "$GITHUB_PATH"
+
+      - name: Create self-signed signing key
+        shell: bash
+        run: |
+          CERT_DIR="$RUNNER_TEMP/tSQLtCert"
+          mkdir -p "$CERT_DIR"
+          cd "$CERT_DIR"
+          openssl req -x509 -newkey rsa:4096 -keyout tSQLtOfficialSigningKey.key -out tSQLtOfficialSigningKey.crt -days 1 -nodes -subj "/CN=tSQLt-CI"
+          openssl pkcs12 -export -out tSQLtOfficialSigningKey.pfx -inkey tSQLtOfficialSigningKey.key -in tSQLtOfficialSigningKey.crt -passout pass:"$PFX_PASSWORD"
+          echo "PFX_PATH=$CERT_DIR/tSQLtOfficialSigningKey.pfx" >> "$GITHUB_ENV"
+
+      - name: Wait for SQL Server
+        shell: pwsh
+        run: |
+          $connectionString = "Server=$env:SQL_SERVER;User Id=sa;Password=$env:SA_PASSWORD;TrustServerCertificate=true;Connect Timeout=5;"
+          for ($i = 1; $i -le 60; $i++) {
+            try {
+              Invoke-Sqlcmd -ConnectionString $connectionString -Query "SELECT @@VERSION AS V;" -ErrorAction Stop | Format-List
+              exit 0
+            } catch {
+              Write-Host "SQL Server not ready yet (attempt $i): $($_.Exception.Message)"
+              Start-Sleep -Seconds 5
+            }
+          }
+          throw "SQL Server did not become ready in time."
+
+      - name: Build
+        shell: pwsh
+        run: |
+          Start-Transcript -Path "$env:RUNNER_TEMP/tSQLt-logs/build.log" -Force
+          try {
+            ./Build/LocalBuild.ps1 `
+              -ServerName $env:SQL_SERVER `
+              -UserName sa `
+              -Password (ConvertTo-SecureString $env:SA_PASSWORD -AsPlainText -Force) `
+              -pfxFilePath $env:PFX_PATH `
+              -pfxPassword (ConvertTo-SecureString $env:PFX_PASSWORD -AsPlainText -Force)
+          } finally {
+            Stop-Transcript
+          }
+
+      - name: Validate
+        shell: pwsh
+        run: |
+          Start-Transcript -Path "$env:RUNNER_TEMP/tSQLt-logs/validate.log" -Force
+          try {
+            ./Build/LocalValidate.ps1 `
+              -ServerName $env:SQL_SERVER `
+              -UserName sa `
+              -Password (ConvertTo-SecureString $env:SA_PASSWORD -AsPlainText -Force)
+          } finally {
+            Stop-Transcript
+          }
+
+      - name: Summarize test results
+        if: always()
+        shell: pwsh
+        run: |
+          $resultFiles = Get-ChildItem -Path ./Build/temp/Validate/Results -Filter 'TestResults*.xml' -Recurse -ErrorAction SilentlyContinue
+          $summary = @("### tSQLt test results (SQL Server ${{ matrix.sqlserver }})", "", "| Suite | Tests | Failures | Errors | Skipped |", "|---|---:|---:|---:|---:|")
+          $totalTests = 0
+          $totalFailures = 0
+          $totalErrors = 0
+          foreach ($file in $resultFiles) {
+            [xml]$xml = Get-Content -Path $file.FullName -Raw
+            $suites = @($xml.SelectNodes('//testsuite'))
+            $sum = { param($attribute) $total = 0; foreach ($s in $suites) { $value = $s.GetAttribute($attribute); if ($value) { $total += [int]$value } }; $total }
+            $summary += "| $($file.BaseName) | $(& $sum 'tests') | $(& $sum 'failures') | $(& $sum 'errors') | $(& $sum 'skipped') |"
+            $totalTests += & $sum 'tests'
+            $totalFailures += & $sum 'failures'
+            $totalErrors += & $sum 'errors'
+          }
+          if (-not $resultFiles) { $summary += "| (no result files) | | | | |" }
+          $summary -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          if ($totalTests -eq 0 -or $totalFailures -gt 0 -or $totalErrors -gt 0) {
+            throw "Validation did not pass: $totalTests tests, $totalFailures failures, $totalErrors errors. See the test results and logs."
+          }
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-sql${{ matrix.sqlserver }}
+          path: |
+            Build/temp/Validate/Results/
+            Build/output/Validate/
+            ${{ runner.temp }}/tSQLt-logs/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload build artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tSQLt-sql${{ matrix.sqlserver }}
+          path: Build/output/tSQLt/
+          if-no-files-found: error
+          retention-days: 14

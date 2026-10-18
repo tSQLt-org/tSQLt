@@ -783,6 +783,31 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE TableToTextTests.[test CLR TableToString works for DATE values across the full supported range]
+AS
+BEGIN
+    CREATE TABLE #DoesExist(T DATE);
+    INSERT INTO #DoesExist (T)VALUES('0001-01-01');
+    INSERT INTO #DoesExist (T)VALUES('1752-12-31');
+    INSERT INTO #DoesExist (T)VALUES('1753-01-01');
+    INSERT INTO #DoesExist (T)VALUES('9999-12-31');
+    INSERT INTO #DoesExist (T)VALUES(NULL);
+
+    DECLARE @result NVARCHAR(MAX);
+    SET @result = tSQLt.Private::TableToString('#DoesExist', 'T', '');
+
+    DECLARE @expected NVARCHAR(MAX);
+    SET @expected = '|T         |
++----------+
+|!NULL!    |
+|0001-01-01|
+|1752-12-31|
+|1753-01-01|
+|9999-12-31|';
+    EXEC tSQLt.AssertEqualsString @expected, @result;
+END;
+GO
+
 CREATE PROCEDURE TableToTextTests.[test TableToText works for CLR datatype that is not in tempdb]
 AS
 BEGIN
